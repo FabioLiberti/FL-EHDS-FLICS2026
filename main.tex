@@ -1,0 +1,379 @@
+% FL-EHDS Paper for FLICS 2026
+% IEEE Conference Format
+
+\documentclass[conference]{IEEEtran}
+
+% Packages
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{hyperref}
+\usepackage{cleveref}
+
+% Custom commands
+\newcommand{\ehds}{EHDS}
+\newcommand{\fl}{FL}
+\newcommand{\hdab}{HDAB}
+\newcommand{\spe}{SPE}
+
+% Document
+\begin{document}
+
+\title{FL-EHDS: A Privacy-Preserving Federated Learning Framework for the European Health Data Space}
+
+\author{
+    \IEEEauthorblockN{Fabio Liberti}
+    \IEEEauthorblockA{
+        Department of Computer Science\\
+        Universitas Mercatorum, Rome, Italy\\
+        fabio.liberti@unimercatorum.it\\
+        ORCID: 0000-0000-0000-0000
+    }
+}
+
+\maketitle
+
+% ============================================================================
+% ABSTRACT
+% ============================================================================
+\begin{abstract}
+The European Health Data Space (EHDS), effective March 2025, mandates cross-border health data analytics while preserving privacy. Federated Learning (FL) emerges as the key enabling technology, yet a systematic evidence synthesis reveals critical gaps: only 23\% of FL implementations achieve production deployment, with hardware heterogeneity (78\%) and non-IID data (67\%) as dominant barriers. Legal uncertainties regarding gradient data status under GDPR remain unresolved. We present FL-EHDS, a three-layer compliance framework integrating governance mechanisms (HDABs, data permits), FL orchestration (aggregation within Secure Processing Environments), and data holder components. The framework maps evidence-based barriers to specific mitigation strategies and provides compliance checkpoints aligned with EHDS requirements. We contribute: (1) first systematic barrier taxonomy for FL in EHDS contexts; (2) a reference architecture addressing identified gaps; (3) an implementation roadmap for the 2025-2031 transition period. FL-EHDS bridges the technology-governance divide critical for successful EHDS operationalization.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Federated Learning, European Health Data Space, Privacy-Preserving Technologies, GDPR Compliance, Health Data Governance, Cross-Border Analytics
+\end{IEEEkeywords}
+
+% ============================================================================
+% 1. INTRODUCTION
+% ============================================================================
+\section{Introduction}
+\label{sec:introduction}
+
+% 1.1 Problem Statement
+\subsection{The EHDS Challenge}
+
+The European Health Data Space (EHDS), established by Regulation (EU) 2025/327 and entering into force on 26 March 2025, represents the EU's most ambitious initiative for cross-border health data governance~\cite{eu2025ehds}. The regulation creates a dual framework: primary use through MyHealth@EU for patient care coordination, and secondary use through HealthData@EU for research, innovation, and public health surveillance.
+
+This ambition confronts a fundamental tension: maximizing data utility while preserving privacy and maintaining data sovereignty across 27 Member States with diverse health systems and regulatory traditions.
+
+% 1.2 Motivation and Gap
+\subsection{The Technology-Governance Divide}
+
+Federated Learning (FL) emerges as the theoretically ideal solution---the model travels to data rather than centralizing sensitive records~\cite{rieke2020future}. However, policy assumptions about technological maturity may not align with implementation realities.
+
+Recent evidence reveals a sobering gap: only 23\% of FL implementations achieve sustained production deployment in healthcare settings~\cite{frohlich2025reality}. Technical barriers including hardware heterogeneity (affecting 78\% of pilot participants) and non-IID data challenges (67\%) persist~\cite{frohlich2025reality}. Simultaneously, legal uncertainties regarding gradient data status under GDPR remain unresolved~\cite{quinn2024gdpr}.
+
+The scholarly discourse is characterized by disciplinary fragmentation: technical literature develops sophisticated algorithms while abstracting from legal constraints; legal scholarship analyzes compliance without engaging technical feasibility. This divide risks producing recommendations that are either technically naive or legally ungrounded.
+
+% 1.3 Contributions
+\subsection{Contributions}
+
+This paper makes three primary contributions:
+
+\begin{enumerate}
+    \item \textbf{Systematic Barrier Taxonomy}: First evidence synthesis of FL implementation barriers specific to EHDS contexts, based on systematic review of 47 documents (PRISMA methodology, GRADE-CERQual confidence assessment).
+    
+    \item \textbf{FL-EHDS Framework}: A three-layer reference architecture mapping identified barriers to specific mitigation strategies, with compliance checkpoints aligned with GDPR and EHDS requirements.
+    
+    \item \textbf{Implementation Roadmap}: Prioritized actions for the 2025-2031 transition period, with stakeholder-specific recommendations and evaluation metrics.
+\end{enumerate}
+
+The remainder of this paper is organized as follows: Section~\ref{sec:background} provides essential background on EHDS and FL fundamentals; Section~\ref{sec:framework} presents the FL-EHDS framework architecture; Section~\ref{sec:evidence} synthesizes barrier evidence; Section~\ref{sec:roadmap} outlines the implementation roadmap; Section~\ref{sec:discussion} discusses implications and limitations.
+
+% ============================================================================
+% 2. BACKGROUND
+% ============================================================================
+\section{Background}
+\label{sec:background}
+
+% 2.1 EHDS Overview
+\subsection{European Health Data Space}
+
+The EHDS establishes Health Data Access Bodies (HDABs) in each Member State to evaluate and authorize secondary use requests through standardized data permits. Article 53 enumerates permitted purposes including scientific research, public health surveillance, and AI training for medical devices. Article 71 introduces an opt-out mechanism balancing collective benefit with individual autonomy~\cite{staunton2024ethical}.
+
+\Cref{tab:timeline} summarizes the implementation timeline creating urgency for FL readiness.
+
+\begin{table}[htbp]
+\caption{EHDS Implementation Timeline}
+\label{tab:timeline}
+\centering
+\begin{tabular}{lll}
+\toprule
+\textbf{Date} & \textbf{Milestone} & \textbf{FL Relevance} \\
+\midrule
+Mar 2025 & Entry into force & Framework active \\
+Mar 2027 & Delegated acts & Legal clarification \\
+Mar 2029 & Secondary use & FL operational \\
+Mar 2031 & Sensitive data & Genetic, imaging \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% 2.2 Federated Learning Fundamentals
+\subsection{Federated Learning Fundamentals}
+
+FL inverts the traditional paradigm: rather than centralizing data, the model travels to distributed sources~\cite{mcmahan2017communication}. Local training produces gradients capturing learned patterns without raw records; these are aggregated centrally and redistributed for iterative refinement~\cite{kairouz2021advances}.
+
+Several characteristics render FL suitable for EHDS: alignment with GDPR data minimization (Article 5(1)(c)); scalability to pan-European scope; and applicability to EHDS permitted purposes. However, known challenges include non-IID data distributions~\cite{li2020federated}, communication overhead, and privacy attacks (gradient inversion~\cite{zhu2019deep}, membership inference~\cite{shokri2017membership}).
+
+% Figure 1: FL Workflow (placeholder)
+% \begin{figure}[htbp]
+% \centering
+% \includegraphics[width=\columnwidth]{figures/fig1-fl-workflow.pdf}
+% \caption{Federated Learning workflow: data remains local; only gradients are exchanged with the aggregation server.}
+% \label{fig:fl-workflow}
+% \end{figure}
+
+% ============================================================================
+% 3. FL-EHDS FRAMEWORK
+% ============================================================================
+\section{FL-EHDS Framework}
+\label{sec:framework}
+
+We present FL-EHDS, a three-layer compliance framework designed specifically for EHDS cross-border analytics. The architecture integrates governance mechanisms, FL orchestration, and data holder components with compliance-by-design principles.
+
+% 3.1 Framework Overview
+\subsection{Architecture Overview}
+
+\Cref{fig:architecture} illustrates the FL-EHDS architecture. The framework comprises:
+
+\begin{itemize}
+    \item \textbf{Layer 1 (Governance)}: HDAB integration, data permit workflows, opt-out registry
+    \item \textbf{Layer 2 (Orchestration)}: Aggregation within Secure Processing Environments
+    \item \textbf{Layer 3 (Data Holders)}: Local training engines, FHIR preprocessing
+\end{itemize}
+
+% Figure 2: Architecture (placeholder - MAIN CONTRIBUTION)
+% \begin{figure*}[htbp]
+% \centering
+% \includegraphics[width=\textwidth]{figures/fig2-fl-ehds-arch.pdf}
+% \caption{FL-EHDS three-layer architecture: Governance Layer (HDABs, data permits), Orchestration Layer (aggregation within SPE), and Data Holder Layer (local training). Gradients flow upward; global model parameters flow downward. All processing occurs within regulatory boundaries.}
+% \label{fig:architecture}
+% \end{figure*}
+
+% 3.2 Layer 1: Governance
+\subsection{Layer 1: Governance Layer}
+
+The Governance Layer provides the regulatory interface between FL operations and EHDS requirements:
+
+\textbf{HDAB Integration}: Standardized APIs enable automated data permit verification before training initiation. Multi-HDAB synchronization protocols coordinate cross-border studies involving multiple Member States.
+
+\textbf{Opt-out Registry}: The framework consults national opt-out registries before including data from any individual, ensuring Article 71 compliance. Technical mechanisms handle granularity (purpose-specific vs. blanket opt-out) and temporal dynamics (participants opting out mid-study).
+
+\textbf{Data Permit Workflow}: Authorization requests are routed through appropriate HDABs with purpose limitation enforcement throughout the FL lifecycle.
+
+% 3.3 Layer 2: Orchestration
+\subsection{Layer 2: FL Orchestration Layer}
+
+The Orchestration Layer operates within Secure Processing Environments (SPEs) as mandated by EHDS:
+
+\textbf{Aggregation Module}: Implements FedAvg~\cite{mcmahan2017communication} with FedProx~\cite{li2020federated} adaptations for non-IID data. Gradient compression reduces communication overhead for cross-border transmission.
+
+\textbf{Privacy Protection}: Differential privacy integration with configurable $\varepsilon$-budget management; gradient clipping limits information leakage; membership inference defense validates model privacy before release.
+
+\textbf{Compliance Modules}: Audit logging aligned with GDPR Article 30; purpose limitation enforcement throughout training; automated compliance verification at each aggregation round.
+
+% 3.4 Layer 3: Data Holders
+\subsection{Layer 3: Data Holder Layer}
+
+The Data Holder Layer addresses infrastructure heterogeneity:
+
+\textbf{Adaptive Training Engine}: Resource-aware model partitioning accommodates hardware heterogeneity---from GPU clusters at academic centers to CPU-only environments in community hospitals.
+
+\textbf{FHIR-Native Preprocessing}: Data normalization to HL7 FHIR ensures semantic interoperability; quality assessment validates training-readiness.
+
+\textbf{Secure Communication}: Encrypted gradient transmission with integrity verification; no raw data leaves institutional boundaries.
+
+% ============================================================================
+% 4. EVIDENCE SYNTHESIS
+% ============================================================================
+\section{Evidence Synthesis: Barriers and Mitigation}
+\label{sec:evidence}
+
+% 4.1 Methodology
+\subsection{Methodology Summary}
+
+We conducted a systematic review following PRISMA 2020 guidelines, searching eight databases (PubMed, IEEE Xplore, Scopus, Web of Science, ScienceDirect, Springer Nature, Frontiers, arXiv) for publications from May 2022 to January 2026. From 847 identified records, 47 documents met inclusion criteria (44 peer-reviewed). Quality was assessed using MMAT; confidence in findings using GRADE-CERQual.
+
+% 4.2 Technical Barriers
+\subsection{Technical Barriers}
+
+\Cref{tab:barriers} summarizes the barrier taxonomy with evidence and framework mitigation.
+
+\begin{table}[htbp]
+\caption{FL Implementation Barriers for EHDS}
+\label{tab:barriers}
+\centering
+\small
+\begin{tabular}{p{2cm}p{1.2cm}p{2.2cm}p{1.8cm}}
+\toprule
+\textbf{Barrier} & \textbf{Prev.} & \textbf{Evidence} & \textbf{Mitigation} \\
+\midrule
+Hardware heterogeneity & 78\% & Fröhlich 2025 & Adaptive engine \\
+Non-IID data & 67\% & Multiple & FedProx \\
+Production gap & 23\% & Fröhlich 2025 & Ref. impl. \\
+FHIR compliance & 34\% & Hussein 2025 & Preprocessing \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The 23\% production deployment rate~\cite{frohlich2025reality} indicates most FL systems remain at pilot stages, with direct implications for the March 2029 deadline.
+
+% 4.3 Legal Uncertainties
+\subsection{Legal Uncertainties}
+
+Three legal questions remain unresolved with moderate GRADE-CERQual confidence:
+
+\textbf{Gradient Data Status}: Whether gradients constitute personal data under GDPR. Research demonstrates re-identification risks through gradient inversion~\cite{zhu2019deep} and membership inference~\cite{shokri2017membership}, yet no DPA has issued formal guidance~\cite{quinn2024gdpr}.
+
+\textbf{Model Anonymity}: Whether aggregated models qualify as anonymous or pseudonymous, determining GDPR applicability to model sharing.
+
+\textbf{Controller Responsibilities}: Unclear allocation of controller/processor roles in multi-party FL configurations.
+
+The FL-EHDS framework addresses these through explicit compliance checkpoints and audit trails, pending regulatory clarification in 2027 delegated acts.
+
+% 4.4 Organizational Barriers
+\subsection{Organizational Barriers}
+
+HDAB capacity asymmetries documented by TEHDAS~\cite{tehdas2024ready} show Nordic countries 2-3 years ahead of Southern/Eastern European states. Access timelines vary from 3 weeks (Finland) to over 12 months (France)~\cite{forster2025journeys}---organizational factors, not technical limitations, dominate.
+
+% ============================================================================
+% 5. IMPLEMENTATION ROADMAP
+% ============================================================================
+\section{Implementation Roadmap}
+\label{sec:roadmap}
+
+% 5.1 Phased Strategy
+\subsection{Phased Implementation}
+
+\Cref{tab:roadmap} presents a phased implementation strategy aligned with EHDS milestones.
+
+\begin{table}[htbp]
+\caption{FL-EHDS Implementation Roadmap}
+\label{tab:roadmap}
+\centering
+\small
+\begin{tabular}{llp{4cm}}
+\toprule
+\textbf{Phase} & \textbf{Timeline} & \textbf{Actions} \\
+\midrule
+Foundation & 2025-26 & Reference implementation; pilot deployment \\
+Clarification & 2027 & Delegated acts integration; legal guidance \\
+Scaling & 2028-29 & Multi-MS deployment; HDAB onboarding \\
+Operation & 2029-31 & Full production; all data categories \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% 5.2 Stakeholder Recommendations
+\subsection{Stakeholder Recommendations}
+
+\textbf{EU Policymakers}: Clarify gradient data status in 2027 delegated acts; establish FL-specific HDAB guidance; fund cross-border pilot programs with mandatory public reporting.
+
+\textbf{National Authorities}: Invest early in HDAB capacity; train staff on FL technical evaluation; standardize authorization workflows.
+
+\textbf{Healthcare Organizations}: Accelerate FHIR compliance; assess local training infrastructure; participate in pilot programs.
+
+\textbf{Researchers}: Shift from proof-of-concept to implementation studies; report negative results; pursue interdisciplinary collaboration.
+
+% 5.3 Success Metrics
+\subsection{Evaluation Metrics}
+
+Key success metrics include: production deployment rate (target: >50\% by 2029, vs. 23\% baseline); FHIR compliance (>70\% vs. 34\%); legal clarity (resolved vs. unresolved); cross-border pilots (20+ use cases vs. 5 current).
+
+% ============================================================================
+% 6. DISCUSSION AND CONCLUSIONS
+% ============================================================================
+\section{Discussion and Conclusions}
+\label{sec:discussion}
+
+% 6.1 Key Findings
+\subsection{Key Findings}
+
+This paper contributes the first systematic synthesis of FL barriers specific to EHDS implementation, revealing that \textbf{legal uncertainties---not technical barriers---are the critical blocker}. The 23\% production deployment rate indicates technology readiness issues, but the more fundamental challenge lies in unresolved regulatory questions about gradient data protection status.
+
+The technology-governance divide poses risks for both effectiveness and legitimacy. FL cannot substitute for robust governance; public trust depends on institutional transparency rather than technical privacy guarantees alone~\cite{vandrumpt2025pets}.
+
+% 6.2 Limitations
+\subsection{Limitations}
+
+The FL-EHDS framework has not yet been empirically validated in operational EHDS environments---such validation must await the 2029 application date. The evidence base is predominantly anticipatory, analyzing the newly-adopted regulation rather than actual implementation. The rapidly evolving technical and regulatory landscape may outpace our findings.
+
+% 6.3 Future Work
+\subsection{Future Work}
+
+Future work should prioritize: empirical validation through HealthData@EU pilot integration; citizen attitude studies examining FL acceptance; economic sustainability modeling for HDAB FL operations; and longitudinal tracking as implementation proceeds through 2031.
+
+% 6.4 Conclusion
+\subsection{Conclusion}
+
+The FL-EHDS framework bridges the technology-governance divide by providing a reference architecture with explicit compliance checkpoints. The 2027 delegated acts represent a critical window for legal clarification; without it, the 2029 deadline arrives with FL adoption still inhibited by uncertainty.
+
+For the FL research community, the pressing question is no longer ``can FL work?'' but ``how does FL work in practice under real regulatory constraints?'' This paper provides an evidence-based foundation for that investigation.
+
+% ============================================================================
+% ACKNOWLEDGMENTS
+% ============================================================================
+\section*{Acknowledgments}
+The author thanks the TEHDAS Joint Action consortium for making preparatory materials publicly available.
+
+% ============================================================================
+% REFERENCES
+% ============================================================================
+\bibliographystyle{IEEEtran}
+% \bibliography{references}
+
+% Inline references for template (replace with .bib)
+\begin{thebibliography}{00}
+
+\bibitem{eu2025ehds}
+European Commission, ``Regulation (EU) 2025/327 on the European Health Data Space,'' \textit{Official Journal of the European Union}, 2025.
+
+\bibitem{rieke2020future}
+N. Rieke et al., ``The future of digital health with federated learning,'' \textit{NPJ Digital Medicine}, vol. 3, article 119, 2020.
+
+\bibitem{frohlich2025reality}
+H. Fröhlich et al., ``Reality check: The aspirations of the EHDS amidst challenges in decentralized data analysis,'' \textit{J. Medical Internet Research}, vol. 27, e76491, 2025.
+
+\bibitem{quinn2024gdpr}
+P. Quinn et al., ``Will the GDPR restrain health data access bodies under the EHDS?'' \textit{Computer Law \& Security Review}, vol. 54, 105993, 2024.
+
+\bibitem{staunton2024ethical}
+C. Staunton et al., ``Ethical and social reflections on the proposed European Health Data Space,'' \textit{Eur. J. Human Genetics}, vol. 32, no. 5, pp. 498--505, 2024.
+
+\bibitem{mcmahan2017communication}
+B. McMahan et al., ``Communication-efficient learning of deep networks from decentralized data,'' \textit{Proc. AISTATS}, pp. 1273--1282, 2017.
+
+\bibitem{kairouz2021advances}
+P. Kairouz et al., ``Advances and open problems in federated learning,'' \textit{Foundations and Trends in ML}, vol. 14, no. 1--2, pp. 1--210, 2021.
+
+\bibitem{li2020federated}
+T. Li et al., ``Federated optimization in heterogeneous networks,'' \textit{Proc. MLSys}, vol. 2, pp. 429--450, 2020.
+
+\bibitem{zhu2019deep}
+L. Zhu et al., ``Deep leakage from gradients,'' \textit{Advances in NeurIPS}, vol. 32, pp. 14774--14784, 2019.
+
+\bibitem{shokri2017membership}
+R. Shokri et al., ``Membership inference attacks against machine learning models,'' \textit{IEEE S\&P}, pp. 3--18, 2017.
+
+\bibitem{tehdas2024ready}
+TEHDAS Joint Action, ``Are EU member states ready for the European Health Data Space?'' \textit{Eur. J. Public Health}, vol. 34, no. 6, pp. 1102--1108, 2024.
+
+\bibitem{forster2025journeys}
+R. B. Forster et al., ``User journeys in cross-European secondary use of health data,'' \textit{Eur. J. Public Health}, vol. 35, Suppl. 3, pp. iii18--iii24, 2025.
+
+\bibitem{vandrumpt2025pets}
+S. van Drumpt et al., ``Secondary use under the European Health Data Space: Setting the scene and towards a research agenda on privacy-enhancing technologies,'' \textit{Frontiers in Digital Health}, vol. 7, 1602101, 2025.
+
+\bibitem{hussein2025interop}
+R. Hussein et al., ``Interoperability framework of the EHDS for secondary use,'' \textit{J. Medical Internet Research}, vol. 27, e69813, 2025.
+
+\end{thebibliography}
+
+\end{document}
