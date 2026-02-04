@@ -587,6 +587,13 @@ C. Dwork and A. Roth, ``The algorithmic foundations of differential privacy,'' \
 \bibitem{abadi2016deep}
 M. Abadi \textit{et al.}, ``Deep learning with differential privacy,'' in \textit{Proc. ACM CCS}, pp.~308--318, 2016.
 
+% === Advanced FL Algorithms ===
+\bibitem{karimireddy2020scaffold}
+S. P. Karimireddy \textit{et al.}, ``SCAFFOLD: Stochastic controlled averaging for federated learning,'' in \textit{Proc. ICML}, pp.~5132--5143, 2020.
+
+\bibitem{reddi2021adaptive}
+S. Reddi \textit{et al.}, ``Adaptive federated optimization,'' in \textit{Proc. ICLR}, 2021.
+
 \end{thebibliography}
 
 % ============================================================================
@@ -1003,5 +1010,116 @@ Figure~\ref{fig:client_accuracy} shows individual client accuracy trajectories, 
 \caption{Per-client accuracy over training rounds. Variance reflects non-IID data: NL (older, higher-risk population) reaches 64\% accuracy while FR (mid-range demographics) stabilizes at 55\%.}
 \label{fig:client_accuracy}
 \end{figure}
+
+% ============================================================================
+% APPENDIX C - FL ALGORITHM COMPARISON
+% ============================================================================
+\section{FL Algorithm Comparison Analysis}
+\label{appendix:algorithm_comparison}
+
+This appendix provides comprehensive benchmarking of five FL algorithms across varying degrees of data heterogeneity. Results inform algorithm selection for different EHDS deployment scenarios.
+
+\subsection{Algorithms Evaluated}
+
+We compare five prominent FL algorithms:
+
+\begin{itemize}
+    \item \textbf{FedAvg}~\cite{mcmahan2017communication}: Baseline federated averaging with weighted aggregation.
+    \item \textbf{FedProx}~\cite{li2020federated}: Proximal term ($\mu$) regularizes local drift in non-IID settings.
+    \item \textbf{SCAFFOLD}~\cite{karimireddy2020scaffold}: Variance reduction through control variates correcting client drift.
+    \item \textbf{FedAdam}: Adaptive server-side optimization with momentum and second-moment estimates.
+    \item \textbf{FedYogi}~\cite{reddi2021adaptive}: Variant of FedAdam with improved stability for sparse gradients.
+\end{itemize}
+
+\subsection{Non-IID Configuration}
+
+Data heterogeneity is controlled via Dirichlet distribution with concentration parameter $\alpha$:
+\begin{itemize}
+    \item $\alpha = 0.1$: \textbf{Extreme non-IID} --- highly skewed label distributions per client
+    \item $\alpha = 0.5$: \textbf{High non-IID} --- significant heterogeneity
+    \item $\alpha = 1.0$: \textbf{Moderate non-IID} --- balanced heterogeneity
+    \item $\alpha = 10.0$: \textbf{Near-IID} --- approximately uniform distributions
+\end{itemize}
+
+\subsection{Convergence at Different Heterogeneity Levels}
+
+Figure~\ref{fig:algo_comparison_noniid} shows convergence trajectories for all algorithms across four non-IID levels. Key observations:
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.95\columnwidth]{figures/fig_algorithm_comparison_noniid.pdf}
+\caption{Algorithm convergence across non-IID levels ($\alpha \in \{0.1, 0.5, 1.0, 10.0\}$). SCAFFOLD and adaptive methods (FedAdam, FedYogi) show superior stability under extreme heterogeneity ($\alpha=0.1$).}
+\label{fig:algo_comparison_noniid}
+\end{figure}
+
+\textbf{Findings:}
+\begin{enumerate}
+    \item At $\alpha=0.1$ (extreme non-IID), \textbf{SCAFFOLD} achieves most stable convergence due to variance reduction.
+    \item \textbf{FedProx} provides marginal improvement over FedAvg at moderate heterogeneity ($\alpha=0.5$--$1.0$).
+    \item \textbf{Adaptive methods} (FedAdam, FedYogi) excel in near-IID settings ($\alpha=10$) but may oscillate under extreme heterogeneity.
+    \item \textbf{FedAvg} remains competitive in near-IID conditions, making it suitable for homogeneous federations.
+\end{enumerate}
+
+\subsection{Final Accuracy vs. Data Heterogeneity}
+
+Figure~\ref{fig:accuracy_vs_noniid} summarizes final accuracy (round 50) as a function of heterogeneity level.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.95\columnwidth]{figures/fig_accuracy_vs_noniid.pdf}
+\caption{Final accuracy vs. Dirichlet $\alpha$. All algorithms degrade under extreme non-IID conditions. SCAFFOLD shows smallest performance gap between $\alpha=0.1$ and $\alpha=10$.}
+\label{fig:accuracy_vs_noniid}
+\end{figure}
+
+\textbf{EHDS Implications:}
+Cross-border federations with heterogeneous patient populations (different age distributions, disease prevalence, clinical practices) should prefer SCAFFOLD or FedProx over baseline FedAvg.
+
+\subsection{Convergence Speed Analysis}
+
+Figure~\ref{fig:convergence_speed} analyzes two convergence metrics: (a) rounds required to reach 55\% accuracy threshold, and (b) best accuracy achieved within the first 20 rounds.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.95\columnwidth]{figures/fig_convergence_speed.pdf}
+\caption{Convergence speed comparison. Left: rounds to 55\% accuracy. Right: best accuracy in first 20 rounds. Adaptive methods converge faster in early rounds but may plateau.}
+\label{fig:convergence_speed}
+\end{figure}
+
+\textbf{Resource-Constrained Scenarios:}
+For EHDS deployments with limited communication budgets or time constraints, adaptive methods (FedAdam, FedYogi) may be preferred for their faster early convergence, despite potential instability in later rounds.
+
+\subsection{Algorithm Selection Guidelines for EHDS}
+
+Table~\ref{tab:algo_selection} provides recommendations based on federation characteristics:
+
+\begin{table}[htbp]
+\centering
+\caption{Algorithm Selection Guidelines for EHDS Deployments}
+\label{tab:algo_selection}
+\small
+\begin{tabular}{p{2.8cm}p{2.2cm}p{2.5cm}}
+\toprule
+\textbf{Scenario} & \textbf{Recommended} & \textbf{Rationale} \\
+\midrule
+Homogeneous MS & FedAvg & Simplicity, proven \\
+Heterogeneous MS & SCAFFOLD & Variance reduction \\
+Resource-limited & FedAdam & Fast convergence \\
+Privacy-critical & FedAvg + DP & Well-studied DP bounds \\
+Sparse participation & FedProx & Dropout resilience \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{MS} = Member States. Heterogeneity arises from demographic differences, clinical coding practices, EHR system variations, and population health profiles across EU regions.
+
+\subsection{Reproducibility}
+
+All algorithm comparison results are reproducible via:
+\begin{verbatim}
+cd fl-ehds-framework
+python benchmarks/algorithm_comparison.py
+\end{verbatim}
+
+\noindent Figures are generated in \texttt{./results\_algorithms/}.
 
 \end{document}
