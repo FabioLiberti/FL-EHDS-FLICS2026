@@ -31,7 +31,7 @@
         Department of Computer Science\\
         Universitas Mercatorum, Rome, Italy\\
         fabio.liberti@unimercatorum.it\\
-        ORCID: 0000-0000-0000-0000
+        ORCID: 0000-0003-3019-5411
     }
 }
 
@@ -41,7 +41,7 @@
 % ABSTRACT
 % ============================================================================
 \begin{abstract}
-The European Health Data Space (EHDS), established by Regulation (EU) 2025/327 and effective March 2025, mandates cross-border health data analytics while preserving citizen privacy. Federated Learning (FL) emerges as the key enabling technology for secondary use, yet systematic evidence synthesis reveals critical implementation gaps: only 23\% of FL implementations achieve sustained production deployment in healthcare settings, with hardware heterogeneity (78\%) and non-IID data distributions (67\%) as dominant technical barriers. Legal uncertainties regarding gradient data status under GDPR and controller/processor responsibilities remain unresolved. We present FL-EHDS, a three-layer compliance framework integrating governance mechanisms (Health Data Access Bodies, data permits, opt-out registries), FL orchestration (aggregation within Secure Processing Environments, differential privacy), and data holder components (adaptive training, FHIR preprocessing). The framework maps evidence-based barriers to specific mitigation strategies and provides compliance checkpoints aligned with EHDS requirements. This paper contributes: (1) the first systematic barrier taxonomy for FL in EHDS contexts based on 47 documents following PRISMA methodology; (2) a reference architecture addressing identified technical, legal, and organizational gaps; (3) an implementation roadmap for the critical 2025-2031 transition period with prioritized actions for policymakers, national authorities, and healthcare organizations.
+The European Health Data Space (EHDS), established by Regulation (EU) 2025/327 and effective March 2025, mandates cross-border health data analytics while preserving citizen privacy. Federated Learning (FL) emerges as the key enabling technology for secondary use, yet systematic evidence synthesis reveals critical implementation gaps: only 23\% of FL implementations achieve sustained production deployment in healthcare settings, with hardware heterogeneity (78\%) and non-IID data distributions (67\%) as dominant technical barriers. Legal uncertainties regarding gradient data status under GDPR and controller/processor responsibilities remain unresolved. We present FL-EHDS, a three-layer compliance framework integrating governance mechanisms (Health Data Access Bodies, data permits, opt-out registries), FL orchestration (aggregation within Secure Processing Environments, differential privacy), and data holder components (adaptive training, FHIR preprocessing). The framework maps evidence-based barriers to specific mitigation strategies and provides compliance checkpoints aligned with EHDS requirements. This paper contributes: (1) the first systematic barrier taxonomy for FL in EHDS contexts based on 47 documents following PRISMA methodology; (2) a reference architecture addressing identified technical, legal, and organizational gaps; (3) an open-source reference implementation providing modular components for practical deployment; (4) an implementation roadmap for the critical 2025-2031 transition period with prioritized actions for policymakers, national authorities, and healthcare organizations.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -68,11 +68,12 @@ Van Drumpt et al.~\cite{vandrumpt2025pets} demonstrate through expert interviews
 
 \subsection{Contributions}
 
-This paper bridges the technology-governance divide by making three contributions:
+This paper bridges the technology-governance divide by making four contributions:
 
 \begin{enumerate}
     \item \textbf{Barrier Taxonomy}: Systematic evidence synthesis of FL implementation barriers specific to EHDS contexts (47 documents, PRISMA methodology, GRADE-CERQual confidence assessment).
     \item \textbf{FL-EHDS Framework}: A three-layer reference architecture with compliance checkpoints mapping barriers to mitigation strategies.
+    \item \textbf{Reference Implementation}: Open-source modular Python codebase implementing the framework components for practical deployment.
     \item \textbf{Implementation Roadmap}: Prioritized actions for the 2025-2031 transition period addressing policymakers, national authorities, and healthcare organizations.
 \end{enumerate}
 
@@ -161,6 +162,10 @@ Figure~\ref{fig:architecture} illustrates the FL-EHDS architecture comprising th
 \textbf{FHIR Preprocessing}: Data normalization pipelines ensure interoperability across heterogeneous EHR systems. Only 34\% of European healthcare providers achieve full FHIR compliance~\cite{hussein2025interop}; the preprocessing module bridges format gaps through automated transformation.
 
 \textbf{Secure Communication}: End-to-end encrypted gradient transmission ensures no raw data leaves institutional boundaries. Certificate-based authentication validates participant identity within the FL consortium.
+
+\subsection{Reference Implementation}
+
+A modular Python implementation of the FL-EHDS framework is available as open-source software\footnote{Available at: \url{https://github.com/FabioLiberti/FL-EHDS-FLICS2026}}. The implementation provides: (1) governance components for HDAB integration, permit management, and Article 71 opt-out compliance; (2) orchestration modules implementing FedAvg/FedProx aggregation with differential privacy ($\varepsilon$-budget tracking) and secure aggregation; (3) data holder utilities for adaptive training and FHIR R4 preprocessing. The codebase serves as a foundation for HealthData@EU pilot integration and empirical validation.
 
 % ============================================================================
 % 4. EVIDENCE SYNTHESIS
@@ -261,7 +266,7 @@ In contrast, unresolved regulatory questions create compliance uncertainty that 
 
 \subsection{Limitations}
 
-This study has limitations informing interpretation. First, the FL/EHDS literature is rapidly evolving; publications after January 2026 are not captured. Second, most included studies analyze the newly-adopted regulation rather than actual implementation---empirical evidence on operational EHDS FL systems does not yet exist. Third, FL-EHDS framework validation remains conceptual; empirical evaluation through HealthData@EU pilot integration represents essential future work.
+This study has limitations informing interpretation. First, the FL/EHDS literature is rapidly evolving; publications after January 2026 are not captured. Second, most included studies analyze the newly-adopted regulation rather than actual implementation---empirical evidence on operational EHDS FL systems does not yet exist. Third, while we provide a reference implementation, empirical validation through real-world HealthData@EU pilot integration remains essential future work to assess performance under production conditions.
 
 % ============================================================================
 % 7. CONCLUSIONS
