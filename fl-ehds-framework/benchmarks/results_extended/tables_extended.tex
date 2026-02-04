@@ -1,0 +1,77 @@
+
+\begin{table}[htbp]
+\centering
+\caption{Comprehensive Experimental Results}
+\label{tab:main_results}
+\small
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Configuration} & \textbf{Acc.} & \textbf{F1} & \textbf{AUC} & \textbf{Prec.} & \textbf{Rec.} \\
+\midrule
+FedAvg (IID) & 56.4% & 0.56 & 0.63 & 0.55 & 0.58 \\
+FedAvg (Non-IID Low) & 57.2% & 0.56 & 0.63 & 0.56 & 0.57 \\
+FedAvg (Non-IID High) & 58.2% & 0.57 & 0.64 & 0.57 & 0.56 \\
+FedProx ($\mu$=0.1) & 57.8% & 0.57 & 0.64 & 0.57 & 0.57 \\
+FedAvg + DP ($\varepsilon$=10) & 55.8% & 0.57 & 0.57 & 0.54 & 0.59 \\
+FedAvg + DP ($\varepsilon$=1) & 52.0% & 0.56 & 0.55 & 0.51 & 0.62 \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\begin{table}[htbp]
+\centering
+\caption{Privacy-Utility Tradeoff Analysis}
+\label{tab:privacy_utility}
+\small
+\begin{tabular}{lccccc}
+\toprule
+\textbf{$\varepsilon$} & \textbf{Accuracy} & \textbf{F1-Score} & \textbf{AUC-ROC} & \textbf{Acc. Drop} & \textbf{Total $\varepsilon$} \\
+\midrule
+$\infty$ & 57.2% & 0.56 & 0.63 & --- & --- \\
+50 & 50.6% & 0.50 & 0.51 & 6.6pp & 250.0 \\
+10 & 55.8% & 0.57 & 0.57 & 1.4pp & 50.0 \\
+5 & 51.2% & 0.45 & 0.54 & 6.0pp & 25.0 \\
+1 & 52.0% & 0.56 & 0.55 & 5.2pp & 5.0 \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\begin{table}[htbp]
+\centering
+\caption{Scalability Analysis}
+\label{tab:scalability}
+\small
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Hospitals} & \textbf{Accuracy} & \textbf{Std. Dev.} & \textbf{Time (s)} & \textbf{Comm. (KB)} \\
+\midrule
+3 & 57.6% & 0.019 & 0.31 & 7.0 \\
+5 & 57.2% & 0.016 & 0.31 & 11.7 \\
+7 & 57.2% & 0.021 & 0.44 & 16.4 \\
+
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\begin{table}[htbp]
+\centering
+\caption{FedProx Proximal Term ($\mu$) Impact}
+\label{tab:fedprox}
+\small
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Algorithm} & \textbf{Accuracy} & \textbf{F1-Score} & \textbf{Client Std.} & \textbf{Convergence} \\
+\midrule
+FedAvg & 58.2% & 0.57 & 0.023 & 0 \\
+FedProx $\mu$=0.01 & 58.0% & 0.57 & 0.024 & 0 \\
+FedProx $\mu$=0.1 & 57.8% & 0.57 & 0.029 & 0 \\
+FedProx $\mu$=1.0 & 57.2% & 0.57 & 0.024 & 0 \\
+
+\bottomrule
+\end{tabular}
+\end{table}
