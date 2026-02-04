@@ -1,0 +1,23 @@
+Conference alla quale inviare il paper:
+https://flics-conference.org/
+
+informazioni richieste dalla conference, per lo sviluppo del paper:
+https://flics-conference.org/cfp.php
+
+Main Track 1 – Federated Learning Systems & Applications
+
+For Submission:
+https://flics-conference.org/submission.php
+
+Length
+Long papers: 8–9 pages.
+
+
+---------------------------
+
+Ultimi docs sviluppati:
+
+SAL_FL-EHDS_FLICS2026.md - Aggiornato con framework documentation
+fl-ehds-framework/README.md - Documentazione completa
+
+------

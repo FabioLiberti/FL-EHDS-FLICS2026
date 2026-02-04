@@ -1,0 +1,298 @@
+# FL-EHDS Framework Configuration
+# =================================
+# Configuration for Privacy-Preserving Federated Learning
+# under European Health Data Space (EHDS) Regulation
+
+framework:
+  name: "FL-EHDS"
+  version: "1.0.0"
+  environment: "development"  # development, staging, production
+  log_level: "INFO"
+
+# =============================================================================
+# LAYER 1: GOVERNANCE
+# =============================================================================
+governance:
+  # Health Data Access Body Integration
+  hdab:
+    # API endpoint for HDAB communication
+    endpoint: "https://hdab.healthdata.eu/api/v1"
+    # Authentication method: api_key, oauth2, mtls
+    auth_method: "oauth2"
+    # Request timeout in seconds
+    timeout: 30
+    # Retry configuration
+    retry:
+      max_attempts: 3
+      backoff_factor: 2
+    # Cache settings for permit validation
+    cache:
+      enabled: true
+      ttl_seconds: 3600  # 1 hour
+
+  # Data Permit Management
+  permits:
+    # Permitted purposes per EHDS Article 53
+    allowed_purposes:
+      - "scientific_research"
+      - "public_health_surveillance"
+      - "health_policy"
+      - "education_training"
+      - "ai_system_development"
+      - "personalized_medicine"
+    # Data categories that can be processed
+    data_categories:
+      - "ehr"           # Electronic Health Records
+      - "lab_results"   # Laboratory data
+      - "imaging"       # Medical imaging
+      - "genomic"       # Genetic data
+      - "registry"      # Disease registries
+    # Permit validation settings
+    validation:
+      strict_mode: true
+      verify_expiry: true
+      check_purpose_alignment: true
+
+  # Opt-out Registry (Article 71)
+  optout:
+    # Sync interval with national registries (seconds)
+    sync_interval: 300  # 5 minutes
+    # Cache configuration
+    cache:
+      enabled: true
+      max_size: 100000  # Maximum cached records
+      ttl_seconds: 600  # 10 minutes
+    # Opt-out checking granularity
+    granularity: "record"  # record, patient, dataset
+    # Action on opt-out detection
+    on_optout: "exclude"  # exclude, anonymize, error
+
+  # Compliance Logging (GDPR Article 30)
+  logging:
+    # Log storage backend
+    backend: "structured_file"  # structured_file, database, siem
+    # Log file path (for file backend)
+    path: "logs/compliance/"
+    # Retention period in days
+    retention_days: 2555  # ~7 years per GDPR
+    # Log format
+    format: "json"
+    # Fields to always include
+    required_fields:
+      - "timestamp"
+      - "action"
+      - "actor"
+      - "data_categories"
+      - "purpose"
+      - "legal_basis"
+      - "outcome"
+
+# =============================================================================
+# LAYER 2: FL ORCHESTRATION
+# =============================================================================
+orchestration:
+  # Aggregation Configuration
+  aggregation:
+    # Algorithm selection: fedavg, fedprox, scaffold
+    algorithm: "fedavg"
+
+    # FedAvg specific settings
+    fedavg:
+      weighted: true  # Weight by dataset size
+
+    # FedProx specific settings (for non-IID data)
+    fedprox:
+      mu: 0.01  # Proximal term coefficient
+
+    # Training rounds
+    num_rounds: 100
+    # Minimum clients per round
+    min_clients: 3
+    # Maximum clients per round (null = all available)
+    max_clients: null
+    # Client selection strategy: random, performance, fairness
+    client_selection: "random"
+    # Early stopping
+    early_stopping:
+      enabled: true
+      patience: 10
+      min_delta: 0.001
+
+  # Privacy Protection
+  privacy:
+    # Differential Privacy
+    differential_privacy:
+      enabled: true
+      # Privacy budget (lower = more private)
+      epsilon: 1.0
+      # Failure probability
+      delta: 1e-5
+      # Noise mechanism: gaussian, laplace
+      mechanism: "gaussian"
+      # Accountant type: rdp, gdp, prv
+      accountant: "rdp"
+      # Maximum gradient norm for sensitivity
+      max_grad_norm: 1.0
+
+    # Gradient Clipping
+    gradient_clipping:
+      enabled: true
+      # Clipping norm
+      max_norm: 1.0
+      # Clipping type: l2, linf
+      norm_type: "l2"
+      # Per-layer or global clipping
+      per_layer: false
+
+    # Secure Aggregation
+    secure_aggregation:
+      enabled: true
+      # Protocol: shamir, paillier, functional_encryption
+      protocol: "shamir"
+      # Threshold for secret reconstruction
+      threshold: 0.67  # 2/3 of clients
+      # Key management
+      key_rotation_rounds: 10
+
+  # Compliance Module
+  compliance:
+    # Purpose Limitation (Article 53)
+    purpose_limitation:
+      enabled: true
+      # Enforce at training start
+      verify_on_init: true
+      # Verify each round
+      verify_per_round: false
+      # Actions on violation
+      on_violation: "abort"  # abort, warn, log
+
+    # Model Output Controls
+    output_controls:
+      # Minimum aggregation threshold
+      min_aggregation_count: 5
+      # Output anonymization
+      anonymize_outputs: true
+      # Model inspection restrictions
+      allow_gradient_inspection: false
+
+# =============================================================================
+# LAYER 3: DATA HOLDERS
+# =============================================================================
+data_holders:
+  # Training Engine Configuration
+  training:
+    # Model architecture settings
+    model:
+      # Default architecture type
+      type: "neural_network"
+      # Architecture file (optional)
+      architecture_path: null
+
+    # Training hyperparameters
+    hyperparameters:
+      batch_size: 32
+      local_epochs: 5
+      learning_rate: 0.01
+      optimizer: "sgd"  # sgd, adam, adamw
+      momentum: 0.9
+      weight_decay: 1e-4
+
+    # Adaptive training for hardware heterogeneity
+    adaptive:
+      enabled: true
+      # Adjust batch size based on memory
+      adaptive_batching: true
+      # Minimum batch size
+      min_batch_size: 8
+      # Maximum batch size
+      max_batch_size: 128
+      # Model partitioning for limited resources
+      model_partitioning: false
+      # Gradient accumulation steps
+      gradient_accumulation: 1
+
+  # FHIR Preprocessing
+  preprocessing:
+    # FHIR version
+    fhir_version: "R4"
+    # Validation settings
+    validation:
+      enabled: true
+      strict: false
+    # Normalization
+    normalize: true
+    # Missing value handling
+    missing_values:
+      strategy: "impute"  # impute, drop, error
+      imputation_method: "median"  # mean, median, mode, constant
+    # Feature engineering
+    features:
+      # Categorical encoding
+      categorical_encoding: "onehot"  # onehot, label, target
+      # Numerical scaling
+      numerical_scaling: "standard"  # standard, minmax, robust
+    # Resource type mappings
+    resource_mappings:
+      Patient: ["demographics", "identifiers"]
+      Observation: ["lab_results", "vitals"]
+      Condition: ["diagnoses"]
+      Procedure: ["interventions"]
+      MedicationRequest: ["prescriptions"]
+
+  # Secure Communication
+  communication:
+    # Transport protocol
+    protocol: "grpc"  # grpc, https, websocket
+    # Encryption
+    encryption:
+      enabled: true
+      algorithm: "AES-256-GCM"
+      key_exchange: "ECDHE"
+    # Authentication
+    authentication:
+      method: "mtls"  # mtls, jwt, api_key
+      certificate_path: "certs/"
+    # Compression
+    compression:
+      enabled: true
+      algorithm: "gzip"
+      level: 6
+    # Timeout settings
+    timeout:
+      connect: 10
+      read: 60
+      write: 60
+    # Retry policy
+    retry:
+      max_attempts: 3
+      backoff_base: 1.0
+      backoff_max: 30.0
+
+# =============================================================================
+# MONITORING & OBSERVABILITY
+# =============================================================================
+monitoring:
+  # Metrics collection
+  metrics:
+    enabled: true
+    # Export format: prometheus, statsd, otlp
+    exporter: "prometheus"
+    # Export endpoint
+    endpoint: "localhost:9090"
+    # Collection interval (seconds)
+    interval: 15
+
+  # Health checks
+  health:
+    enabled: true
+    endpoint: "/health"
+    checks:
+      - "hdab_connectivity"
+      - "storage_available"
+      - "memory_usage"
+
+  # Alerting
+  alerting:
+    enabled: false
+    # Alert destinations
+    destinations: []
