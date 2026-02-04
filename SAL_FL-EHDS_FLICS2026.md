@@ -12,7 +12,7 @@
 ### Obiettivo
 Sviluppo di un paper scientifico su **Federated Learning per European Health Data Space (EHDS)** da sottomettere alla conferenza **FLICS 2026** (Federated Learning in Complex Systems).
 
-### Documenti di Riferimento (nel progetto Claude)
+### Documenti di Riferimento
 1. `FL_EHDS_Paper_Structure.md` - Struttura dettagliata del paper (~6,500 parole target)
 2. `SLR_EHDS_Extended_Abstract.pdf` - Abstract precedente della SLR
 3. `SLR_EHDS_Complete_v3_0.pdf` - Paper SLR completo precedente (52 documenti, 5 assi tematici)

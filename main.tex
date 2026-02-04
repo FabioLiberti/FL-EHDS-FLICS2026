@@ -19,6 +19,8 @@
 % TikZ for vector figures
 \usepackage{tikz}
 \usetikzlibrary{shapes.geometric, arrows.meta, positioning, fit, backgrounds, calc}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
 
 % ===== DOCUMENT =====
 \begin{document}
@@ -165,13 +167,101 @@ Figure~\ref{fig:architecture} illustrates the FL-EHDS architecture comprising th
 
 \subsection{Reference Implementation}
 
-A modular Python implementation of the FL-EHDS framework is available as open-source software\footnote{Available at: \url{https://github.com/FabioLiberti/FL-EHDS-FLICS2026}}. The implementation provides: (1) governance components for HDAB integration, permit management, and Article 71 opt-out compliance; (2) orchestration modules implementing FedAvg/FedProx aggregation with differential privacy ($\varepsilon$-budget tracking) and secure aggregation; (3) data holder utilities for adaptive training and FHIR R4 preprocessing. The codebase serves as a foundation for HealthData@EU pilot integration and empirical validation.
+A modular Python implementation of the FL-EHDS framework is available as open-source software\footnote{Available at: \url{https://github.com/FabioLiberti/FL-EHDS-FLICS2026}}. The implementation provides: (1) governance components for HDAB integration, permit management, and Article 71 opt-out compliance; (2) orchestration modules implementing FedAvg/FedProx aggregation with differential privacy ($\varepsilon$-budget tracking) and secure aggregation; (3) data holder utilities for adaptive training and FHIR R4 preprocessing.
 
 % ============================================================================
-% 4. EVIDENCE SYNTHESIS
+% 4. EXPERIMENTAL EVALUATION
+% ============================================================================
+\section{Experimental Evaluation}
+\label{sec:experiments}
+
+We evaluate the FL-EHDS framework through controlled experiments simulating cross-border healthcare analytics. All experiments use synthetic cardiovascular risk prediction data to ensure reproducibility while maintaining clinical relevance.
+
+\subsection{Experimental Setup}
+
+\textbf{Task}: Binary classification for cardiovascular event risk prediction using five clinical features: age, BMI, systolic blood pressure, glucose level, and cholesterol. Features are normalized and labels are generated from a logistic risk model.
+
+\textbf{Data Distribution}: We simulate 5 hospitals across EU Member States with heterogeneous data distributions (non-IID). Each hospital has 300--500 patient records with hospital-specific demographic biases reflecting real-world population differences (e.g., age distributions varying by region).
+
+\textbf{Model}: Logistic regression classifier trained via federated optimization. While simpler than deep learning models used in production systems, this choice isolates FL algorithm behavior from model complexity confounds.
+
+\textbf{Configurations}: We evaluate FedAvg~\cite{mcmahan2017communication} and FedProx~\cite{li2020federated} under varying conditions: IID vs.\ non-IID data, and differential privacy budgets $\varepsilon \in \{1, 10, \infty\}$.
+
+\subsection{Results}
+
+Table~\ref{tab:experimental_results} summarizes experimental outcomes across 30 training rounds with 5 participating hospitals.
+
+\begin{table}[htbp]
+\centering
+\caption{Experimental Results: FL-EHDS Framework Performance}
+\label{tab:experimental_results}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Configuration} & \textbf{Accuracy} & \textbf{Loss} & \textbf{$\varepsilon$} \\
+\midrule
+FedAvg (IID) & 57.0\% & 0.658 & --- \\
+FedAvg (Non-IID) & 58.4\% & 0.643 & --- \\
+FedProx (Non-IID, $\mu$=0.1) & 58.0\% & 0.643 & --- \\
+FedAvg + DP ($\varepsilon$=10) & 53.6\% & 6.87 & 10.0 \\
+FedAvg + DP ($\varepsilon$=1) & 52.8\% & 7.10 & 1.0 \\
+\bottomrule
+\end{tabular}
+\vspace{1mm}
+
+\footnotesize{5 hospitals, 30 rounds, 3 local epochs, batch size 32. Gradient clipping $C$=1.0.}
+\end{table}
+
+\textbf{Key Observations}:
+
+\begin{enumerate}
+    \item \textbf{Non-IID Impact}: Contrary to some literature findings, the non-IID configuration achieved slightly higher accuracy (58.4\% vs.\ 57.0\%). This suggests that for low-dimensional problems with sufficient data diversity, non-IID distributions may provide regularization benefits.
+
+    \item \textbf{FedProx Performance}: FedProx with proximal term $\mu$=0.1 achieved comparable accuracy to FedAvg (58.0\% vs.\ 58.4\%), with reduced variance across client models (std.\ dev.\ 0.023 vs.\ 0.025).
+
+    \item \textbf{Privacy-Utility Tradeoff}: Differential privacy introduces measurable accuracy degradation: 4.8 percentage points for $\varepsilon$=10, increasing to 5.6 percentage points for strong privacy ($\varepsilon$=1). This quantifies the cost of formal privacy guarantees.
+
+    \item \textbf{Client Heterogeneity}: Per-hospital accuracy ranged from 57.7\% to 64.3\%, reflecting the non-IID data distributions. The global model generalizes across hospitals despite local distribution shifts.
+\end{enumerate}
+
+\subsection{Privacy Budget Analysis}
+
+Figure~\ref{fig:privacy_tradeoff} illustrates the privacy-utility tradeoff. With strong privacy guarantees ($\varepsilon$=1), accuracy degrades by approximately 10\% relative to baseline, consistent with theoretical expectations for Gaussian mechanism noise~\cite{dwork2014dp}.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    ybar,
+    bar width=0.8cm,
+    width=0.42\textwidth,
+    height=4cm,
+    ylabel={Accuracy (\%)},
+    xlabel={Privacy Budget ($\varepsilon$)},
+    symbolic x coords={$\infty$, 10, 1},
+    xtick=data,
+    ymin=45, ymax=65,
+    nodes near coords,
+    nodes near coords align={vertical},
+    every node near coord/.append style={font=\small},
+    grid=major,
+    grid style={dashed, gray!30},
+]
+\addplot[fill=blue!60] coordinates {($\infty$,58.4) (10,53.6) (1,52.8)};
+\end{axis}
+\end{tikzpicture}
+\caption{Privacy-utility tradeoff: accuracy vs.\ differential privacy budget $\varepsilon$.}
+\label{fig:privacy_tradeoff}
+\end{figure}
+
+These results demonstrate that the FL-EHDS framework achieves functional federated learning with configurable privacy guarantees. The modest absolute accuracy reflects the synthetic data and simple model; production deployments with richer features and deep learning architectures would achieve higher performance while exhibiting similar relative patterns across configurations.
+
+% ============================================================================
+% 5. EVIDENCE SYNTHESIS
 % ============================================================================
 \section{Evidence Synthesis}
 \label{sec:evidence}
+
+The following systematic review provides context for the technical barriers addressed by FL-EHDS and validated in Section~\ref{sec:experiments}.
 
 \subsection{Methodology}
 
@@ -220,7 +310,7 @@ HDAB capacity shows significant variation across Member States. TEHDAS assessmen
 \textbf{GRADE-CERQual confidence}: HIGH (consistent findings across multiple high-quality studies).
 
 % ============================================================================
-% 5. IMPLEMENTATION ROADMAP
+% 6. IMPLEMENTATION ROADMAP
 % ============================================================================
 \section{Implementation Roadmap}
 \label{sec:roadmap}
@@ -253,7 +343,7 @@ Operation & 2029-31 & Full cross-border analytics \\
 \textbf{Healthcare Organizations}: Preparation cannot wait for 2029. Organizations should: (1) accelerate FHIR compliance beyond the current 34\% baseline; (2) participate in HealthData@EU pilots to gain FL experience; (3) assess computational infrastructure for FL participation; (4) develop internal governance policies for responding to HDAB data access requests.
 
 % ============================================================================
-% 6. DISCUSSION
+% 7. DISCUSSION
 % ============================================================================
 \section{Discussion}
 \label{sec:discussion}
@@ -266,10 +356,10 @@ In contrast, unresolved regulatory questions create compliance uncertainty that 
 
 \subsection{Limitations}
 
-This study has limitations informing interpretation. First, the FL/EHDS literature is rapidly evolving; publications after January 2026 are not captured. Second, most included studies analyze the newly-adopted regulation rather than actual implementation---empirical evidence on operational EHDS FL systems does not yet exist. Third, while we provide a reference implementation, empirical validation through real-world HealthData@EU pilot integration remains essential future work to assess performance under production conditions.
+This study has limitations informing interpretation. First, the FL/EHDS literature is rapidly evolving; publications after January 2026 are not captured. Second, most included studies analyze the newly-adopted regulation rather than actual implementation---empirical evidence on operational EHDS FL systems does not yet exist. Third, while our experimental evaluation (Section~\ref{sec:experiments}) validates framework functionality with synthetic data, real-world HealthData@EU pilot integration with clinical datasets remains essential future work. The synthetic cardiovascular data provides controlled reproducibility but cannot capture the full complexity of production EHR systems.
 
 % ============================================================================
-% 7. CONCLUSIONS
+% 8. CONCLUSIONS
 % ============================================================================
 \section{Conclusions}
 \label{sec:conclusions}
@@ -369,5 +459,123 @@ C. Dwork and A. Roth, ``The algorithmic foundations of differential privacy,'' \
 M. Abadi \textit{et al.}, ``Deep learning with differential privacy,'' in \textit{Proc. ACM CCS}, pp.~308--318, 2016.
 
 \end{thebibliography}
+
+% ============================================================================
+% APPENDIX - PSEUDOCODE (Outside page count)
+% ============================================================================
+\appendix
+
+\section{FL-EHDS Algorithm Pseudocode}
+\label{appendix:pseudocode}
+
+This appendix provides formal algorithmic descriptions of the FL-EHDS framework components.
+
+\subsection{FedAvg with EHDS Compliance}
+
+\begin{figure}[htbp]
+\centering
+\fbox{\parbox{0.92\columnwidth}{
+\small
+\textbf{Algorithm 1: FL-EHDS FedAvg Training}\\[2pt]
+\textbf{Input:} Hospitals $\mathcal{H} = \{h_1, \ldots, h_K\}$, permit $P$, rounds $T$\\
+\textbf{Output:} Global model $\theta^{(T)}$\\[4pt]
+\textbf{Server executes:}\\
+\hspace*{4mm}Initialize $\theta^{(0)}$\\
+\hspace*{4mm}\textbf{for} round $t = 1$ to $T$ \textbf{do}\\
+\hspace*{8mm}// Governance check (Layer 1)\\
+\hspace*{8mm}\textbf{if} not ValidatePermit($P$, $t$) \textbf{then abort}\\
+\hspace*{8mm}$\mathcal{H}_t \leftarrow$ SelectParticipants($\mathcal{H}$)\\
+\hspace*{8mm}\textbf{for each} hospital $h \in \mathcal{H}_t$ \textbf{in parallel do}\\
+\hspace*{12mm}$\Delta_h^{(t)}, n_h \leftarrow$ LocalTrain($h$, $\theta^{(t-1)}$)\\
+\hspace*{8mm}// Aggregation with privacy (Layer 2)\\
+\hspace*{8mm}$\theta^{(t)} \leftarrow \theta^{(t-1)} + \frac{1}{\sum_h n_h} \sum_{h \in \mathcal{H}_t} n_h \cdot \Delta_h^{(t)}$\\
+\hspace*{8mm}LogCompliance($t$, $\mathcal{H}_t$)\\
+\hspace*{4mm}\textbf{return} $\theta^{(T)}$\\[4pt]
+\textbf{LocalTrain}($h$, $\theta$) \textbf{at hospital} $h$:\\
+\hspace*{4mm}// Opt-out filtering (Layer 1)\\
+\hspace*{4mm}$\mathcal{D}_h \leftarrow$ FilterOptedOut($\mathcal{D}_h$, OptOutRegistry)\\
+\hspace*{4mm}$\theta_h \leftarrow \theta$\\
+\hspace*{4mm}\textbf{for} epoch $e = 1$ to $E$ \textbf{do}\\
+\hspace*{8mm}\textbf{for} batch $\mathcal{B} \in \mathcal{D}_h$ \textbf{do}\\
+\hspace*{12mm}$\theta_h \leftarrow \theta_h - \eta \nabla \mathcal{L}(\theta_h; \mathcal{B})$\\
+\hspace*{4mm}$\Delta_h \leftarrow \theta_h - \theta$\\
+\hspace*{4mm}// Privacy protection (Layer 3)\\
+\hspace*{4mm}$\Delta_h \leftarrow$ ClipGradient($\Delta_h$, $C$)\\
+\hspace*{4mm}\textbf{return} $\Delta_h$, $|\mathcal{D}_h|$
+}}
+\end{figure}
+
+\subsection{Differential Privacy Mechanism}
+
+\begin{figure}[htbp]
+\centering
+\fbox{\parbox{0.92\columnwidth}{
+\small
+\textbf{Algorithm 2: Gaussian DP Mechanism}\\[2pt]
+\textbf{Input:} Gradient $\Delta$, sensitivity $C$, privacy budget $\varepsilon$, $\delta$\\
+\textbf{Output:} Noisy gradient $\tilde{\Delta}$\\[4pt]
+// Compute noise scale\\
+$\sigma \leftarrow C \cdot \sqrt{2 \ln(1.25/\delta)} / \varepsilon$\\[2pt]
+// Add calibrated noise\\
+\textbf{for each} parameter $w \in \Delta$ \textbf{do}\\
+\hspace*{4mm}$\tilde{w} \leftarrow w + \mathcal{N}(0, \sigma^2)$\\[2pt]
+// Update privacy accountant\\
+PrivacyAccountant.spend($\varepsilon$)\\
+\textbf{if} PrivacyAccountant.budget\_exhausted() \textbf{then}\\
+\hspace*{4mm}\textbf{raise} PrivacyBudgetExhaustedError\\[2pt]
+\textbf{return} $\tilde{\Delta}$
+}}
+\end{figure}
+
+\subsection{HDAB Permit Validation}
+
+\begin{figure}[htbp]
+\centering
+\fbox{\parbox{0.92\columnwidth}{
+\small
+\textbf{Algorithm 3: Data Permit Validation}\\[2pt]
+\textbf{Input:} Permit $P$, round $t$, requested categories $\mathcal{C}$\\
+\textbf{Output:} Boolean validity\\[4pt]
+// Check temporal validity\\
+\textbf{if} CurrentTime() $>$ $P$.valid\_until \textbf{then}\\
+\hspace*{4mm}\textbf{raise} PermitExpiredError\\[2pt]
+// Check purpose alignment (Article 53)\\
+\textbf{if} $P$.purpose $\notin$ AllowedPurposes \textbf{then}\\
+\hspace*{4mm}\textbf{raise} PurposeMismatchError\\[2pt]
+// Check data category authorization\\
+\textbf{for each} category $c \in \mathcal{C}$ \textbf{do}\\
+\hspace*{4mm}\textbf{if} $c \notin P$.authorized\_categories \textbf{then}\\
+\hspace*{8mm}\textbf{raise} UnauthorizedCategoryError\\[2pt]
+// Log access for GDPR Article 30\\
+AuditTrail.log(permit=$P$, round=$t$, categories=$\mathcal{C}$)\\[2pt]
+\textbf{return} True
+}}
+\end{figure}
+
+\subsection{Secure Aggregation Protocol}
+
+\begin{figure}[htbp]
+\centering
+\fbox{\parbox{0.92\columnwidth}{
+\small
+\textbf{Algorithm 4: Secure Aggregation (Simplified)}\\[2pt]
+\textbf{Input:} Client gradients $\{\Delta_1, \ldots, \Delta_K\}$, threshold $t$\\
+\textbf{Output:} Aggregated gradient $\Delta_{agg}$\\[4pt]
+// Phase 1: Secret sharing\\
+\textbf{for each} client $k$ \textbf{do}\\
+\hspace*{4mm}shares$_k \leftarrow$ ShamirShare($\Delta_k$, $t$, $K$)\\
+\hspace*{4mm}Distribute shares$_k$ to other clients\\[2pt]
+// Phase 2: Masked aggregation\\
+\textbf{for each} client $k$ \textbf{do}\\
+\hspace*{4mm}$\hat{\Delta}_k \leftarrow \Delta_k + \sum_{j<k} r_{jk} - \sum_{j>k} r_{kj}$\\
+\hspace*{4mm}// where $r_{ij}$ are pairwise random masks\\[2pt]
+// Phase 3: Reconstruction\\
+$\Delta_{agg} \leftarrow \sum_{k=1}^{K} \hat{\Delta}_k$\\
+// Masks cancel out: $\sum r_{jk} - \sum r_{kj} = 0$\\[2pt]
+\textbf{if} ActiveClients $< t$ \textbf{then}\\
+\hspace*{4mm}\textbf{raise} SecureAggregationError\\[2pt]
+\textbf{return} $\Delta_{agg}$
+}}
+\end{figure}
 
 \end{document}

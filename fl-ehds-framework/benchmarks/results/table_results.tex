@@ -1,0 +1,20 @@
+
+\begin{table}[htbp]
+\centering
+\caption{Experimental Results: FL-EHDS Framework Performance}
+\label{tab:experimental_results}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Configuration} & \textbf{Accuracy} & \textbf{Loss} & \textbf{Conv.} & \textbf{$\varepsilon$} \\
+\midrule
+FedAvg (IID) & 57.0% & 0.658 & 30 & --- \\
+FedAvg (Non-IID) & 58.4% & 0.643 & 30 & --- \\
+FedProx (Non-IID) & 58.0% & 0.643 & 30 & --- \\
+FedAvg + DP ($\varepsilon$=10) & 53.6% & 6.873 & 30 & 50.0 \\
+FedAvg + DP ($\varepsilon$=1) & 52.8% & 7.100 & 30 & 5.0 \\
+
+\bottomrule
+\end{tabular}
+\vspace{1mm}
+\footnotesize{Conv. = Convergence round (loss $<$ 0.5). 5 hospitals, 30 rounds, synthetic cardiovascular data.}
+\end{table}
