@@ -1,0 +1,4451 @@
+{
+  "hospital_stats": [
+    {
+      "mean_age": 49.05777739203398,
+      "mean_bmi": 23.96734670182624,
+      "mean_bp": 124.36524349132338,
+      "mean_glucose": 90.07658250854243,
+      "mean_chol": 182.55517791700683,
+      "positive_rate": 0.3925,
+      "n_samples": 400,
+      "name": "Hospital-IT-Roma",
+      "country": "IT"
+    },
+    {
+      "mean_age": 53.28902011323975,
+      "mean_bmi": 25.515120771931354,
+      "mean_bp": 128.18141510770172,
+      "mean_glucose": 98.16169300107607,
+      "mean_chol": 197.3826392385478,
+      "positive_rate": 0.416,
+      "n_samples": 500,
+      "name": "Hospital-DE-Berlin",
+      "country": "DE"
+    },
+    {
+      "mean_age": 55.215772753439275,
+      "mean_bmi": 26.052333855561415,
+      "mean_bp": 130.04704372980117,
+      "mean_glucose": 100.38715020701717,
+      "mean_chol": 200.14702108400948,
+      "positive_rate": 0.43142857142857144,
+      "n_samples": 350,
+      "name": "Hospital-FR-Paris",
+      "country": "FR"
+    },
+    {
+      "mean_age": 58.21621408195746,
+      "mean_bmi": 27.092708182466886,
+      "mean_bp": 134.65057797509596,
+      "mean_glucose": 106.61466940915751,
+      "mean_chol": 207.51313087438564,
+      "positive_rate": 0.5777777777777777,
+      "n_samples": 450,
+      "name": "Hospital-ES-Madrid",
+      "country": "ES"
+    },
+    {
+      "mean_age": 60.76104723476846,
+      "mean_bmi": 27.85221563473714,
+      "mean_bp": 136.09448936070905,
+      "mean_glucose": 113.88048989977037,
+      "mean_chol": 215.3752494805358,
+      "positive_rate": 0.6263157894736842,
+      "n_samples": 380,
+      "name": "Hospital-NL-Amsterdam",
+      "country": "NL"
+    }
+  ],
+  "per_round": [
+    {
+      "round": 1,
+      "clients": [
+        {
+          "name": "Hospital-IT-Roma",
+          "accuracy": 0.6275,
+          "loss": 0.6284710967485146,
+          "grad_norm": 0.2518903793460412,
+          "time": 0.0007569789886474609
+        },
+        {
+          "name": "Hospital-DE-Berlin",
+          "accuracy": 0.636,
+          "loss": 0.6392592746782716,
+          "grad_norm": 0.22794033083811735,
+          "time": 0.0007288455963134766
+        },
+        {
+          "name": "Hospital-FR-Paris",
+          "accuracy": 0.6342857142857142,
+          "loss": 0.6656185241320092,
+          "grad_norm": 0.20091724605934866,
+          "time": 0.0005037784576416016
+        },
+        {
+          "name": "Hospital-ES-Madrid",
+          "accuracy": 0.6222222222222222,
+          "loss": 0.6529215624476953,
+          "grad_norm": 0.27887174895236355,
+          "time": 0.0010190010070800781
+        },
+        {
+          "name": "Hospital-NL-Amsterdam",
+          "accuracy": 0.6578947368421053,
+          "loss": 0.6304422153390645,
+          "grad_norm": 0.22950566118217916,
+          "time": 0.0007688999176025391
+        }
+      ],
+      "test_accuracy": 0.584,
+      "test_loss": 0.6655920870841032,
+      "round_time": 0.004137992858886719,
+      "participating_clients": 5
+    },
+    {
+      "round": 2,
+      "clients": [
+        {
+          "name": "Hospital-DE-Berlin",
+          "accuracy": 0.636,
+          "loss": 0.6362551596952085,
+          "grad_norm": 0.22401344761246902,
+          "time": 0.0007269382476806641
+        },
+        {
+          "name": "Hospital-FR-Paris",
+          "accuracy": 0.6285714285714286,
+          "loss": 0.6602847225486401,
+          "grad_norm": 0.18773632550681105,
+          "time": 0.0005147457122802734
+        },
+        {
+          "name": "Hospital-ES-Madrid",
+          "accuracy": 0.6311111111111111,
+          "loss": 0.6519184670891834,
+          "grad_norm": 0.23791349940855744,
+          "time": 0.0006690025329589844
+        },
+        {
+          "name": "Hospital-NL-Amsterdam",
+          "accuracy": 0.6421052631578947,
+          "loss": 0.6277053109858332,
+          "grad_norm": 0.20625742784626677,
+          "time": 0.0007607936859130859
+        }
+      ],
+      "test_accuracy": 0.574,
+      "test_loss": 0.66290403534781,
+      "round_time": 0.0029561519622802734,
+      "participating_clients": 4
+    },
+    {
+      "round": 3,
+      "clients": [
+        {
+          "name": "Hospital-IT-Roma",
+          "accuracy": 0.6325,
+          "loss": 0.6268795770690111,
+          "grad_norm": 0.2000417200776625,
+          "time": 0.0009019374847412109
+        },
+        {
+          "name": "Hospital-FR-Paris",
+          "accuracy": 0.6285714285714286,
+          "loss": 0.6594761913536986,
+          "grad_norm": 0.193997594492149,
+          "time": 0.0009310245513916016
+        },
+        {
+          "name": "Hospital-ES-Madrid",
+          "accuracy": 0.6133333333333333,
+          "loss": 0.6535152223964651,
+          "grad_norm": 0.23517814673490467,
+          "time": 0.0010848045349121094
+        },
+        {
+          "name": "Hospital-NL-Amsterdam",
+          "accuracy": 0.631578947368421,
+          "loss": 0.6275064051355046,
+          "grad_norm": 0.1806372325147185,
+          "time": 0.0008409023284912109
+        }
+      ],
+      "test_accuracy": 0.584,
+      "test_loss": 0.6622503212431248,
+      "round_time": 0.00414276123046875,
+      "participating_clients": 4
+    },
+    {
+      "round": 4,
+      "clients": [
+        {
+          "name": "Hospital-IT-Roma",
+          "accuracy": 0.63,
+          "loss": 0.625975847804478,
+          "grad_norm": 0.20453964755991308,
+          "time": 0.0009050369262695312
+        },
+        {
+          "name": "Hospital-DE-Berlin",
+          "accuracy": 0.636,
+          "loss": 0.6359352786120259,
+          "grad_norm": 0.21532171715775986,
+          "time": 0.0010900497436523438
+        },
+        {
+          "name": "Hospital-ES-Madrid",
+          "accuracy": 0.6422222222222222,
+          "loss": 0.6524615229204803,
+          "grad_norm": 0.24807841989158,
+          "time": 0.0009920597076416016
+        },
+        {
+          "name": "Hospital-NL-Amsterdam",
+          "accuracy": 0.6421052631578947,
+          "loss": 0.6273618591488653,
+          "grad_norm": 0.20411991661849585,
+          "time": 0.0007419586181640625
+        }
+      ],
+      "test_accuracy": 0.588,
+      "test_loss": 0.662375899410384,
+      "round_time": 0.004062175750732422,
+      "participating_clients": 4
+    },
+    {
+      "round": 5,
+      "clients": [
+        {
+          "name": "Hospital-IT-Roma",
+          "accuracy": 0.6325,
+          "loss": 0.6253859896985098,
+          "grad_norm": 0.22018432724313278,
+          "time": 0.0007998943328857422
+        },
+        {
+          "name": "Hospital-DE-Berlin",
+          "accuracy": 0.638,
+          "loss": 0.6361704217830217,
+          "grad_norm": 0.20873057563343847,
+          "time": 0.0009732246398925781
+        },
+        {
+          "name": "Hospital-FR-Paris",
+          "accuracy": 0.6228571428571429,
+          "loss": 0.6602007529933851,
+          "grad_norm": 0.1999056387605852,
+          "time": 0.0006749629974365234
+        },
+        {
+          "name": "Hospital-ES-Madrid",
+          "accuracy": 0.6222222222222222,
+          "loss": 0.6509128216314505,
+          "grad_norm": 0.23033422392134462,
+          "time": 0.0010440349578857422
+        }
+      ],
+      "test_accuracy": 0.59,
+      "test_loss": 0.6614435398502184,
+      "round_time": 0.0038137435913085938,
+      "participating_clients": 4
+    },
+    {
+      "round": 6,
+      "clients": [
+        {
+          "name": "Hospital-IT-Roma",
+          "accuracy": 0.635,
+          "loss": 0.6264869238353475,
+          "grad_norm": 0.2156588475918494,
+          "time": 0.000701904296875
+        },
+        {
+          "name": "Hospital-DE-Berlin",
+          "accuracy": 0.64,
+          "loss": 0.6360383092417824,
+          "grad_norm": 0.2072459169753292,
+          "time": 0.0011010169982910156
+        },
+        {
+          "name": "Hospital-FR-Paris",
+          "accuracy": 0.6371428571428571,
+          "loss": 0.6600423700666336,
+          "grad_norm": 0.19297352391966324,
+          "time": 0.0007040500640869141
+        },
+        {
+          "name": "Hospital-ES-Madrid",
+          "accuracy": 0.6288888888888889,
+          "loss": 0.6515667332790991,
+          "grad_norm": 0.25522507474354,
+          "time": 0.0009260177612304688
+        }
+      ],
+      "test_accuracy": 0.59,
+      "test_loss": 0.6608505914121622,
+      "round_time": 0.003801107406616211,
+      "participating_clients": 4
+    },
+    {
+      "round": 7,
+      "clients": [
+        {
+          "name": "Hospital-IT-Roma",
+          "accuracy": 0.6325,
+          "loss": 0.6263913613361173,
+          "grad_norm": 0.21790314159673757,
+          "time": 0.0007958412170410156
+        },
+        {
+          "name": "Hospital-DE-Berlin",
+          "accuracy": 0.636,
+          "loss": 0.6355707913086893,
+          "grad_norm": 0.2171945391020389,
+          "time": 0.0008821487426757812
+        },
+        {
+          "name": "Hospital-FR-Paris",
+          "accuracy": 0.6457142857142857,
+          "loss": 0.659885244779633,
+          "grad_norm": 0.19123088306852984,
+          "time": 0.0006148815155029297
+        },
+        {
+          "name": "Hospital-ES-Madrid",
+          "accuracy": 0.62,
+          "loss": 0.6515453414438822,
+          "grad_norm": 0.2534762865405007,
+          "time": 0.0008351802825927734
+        },
+        {
+          "name": "Hospital-NL-Amsterdam",
+          "accuracy": 0.6394736842105263,
+          "loss": 0.6275236842342018,
+          "grad_norm": 0.2053325260385637,
+          "time": 0.0006699562072753906
+        }
+      ],
+      "test_accuracy": 0.582,
+      "test_loss": 0.6619480697470871,
+      "round_time": 0.004143714904785156,
+      "participating_clients": 5
+    },
+    {
+      "round": 8,
+      "clients": [
+        {
+          "name": "Hospital-IT-Roma",
+          "accuracy": 0.6325,
+          "loss": 0.6259805717992682,
+          "grad_norm": 0.23164760523482736,
+          "time": 0.0007221698760986328
+        },
+        {
+          "name": "Hospital-DE-Berlin",
+          "accuracy": 0.636,
+          "loss": 0.6357487069905402,
+          "grad_norm": 0.19747596077031312,
+          "time": 0.0008780956268310547
+        },
+        {
+          "name": "Hospital-FR-Paris",
+          "accuracy": 0.6371428571428571,
+          "loss": 0.6597679051485594,
+          "grad_norm": 0.1953059940638731,
+          "time": 0.0006096363067626953
+        },
+        {
+          "name": "Hospital-ES-Madrid",
+          "accuracy": 0.6288888888888889,
+          "loss": 0.6520910138287903,
+          "grad_norm": 0.24830800736702288,
+          "time": 0.0007927417755126953
+        },
+        {
+          "name": "Hospital-NL-Amsterdam",
+          "accuracy": 0.6394736842105263,
+          "loss": 0.6273963604805006,
+          "grad_norm": 0.2055649977679602,
+          "time": 0.0006642341613769531
+        }
+      ],
+      "test_accuracy": 0.586,
+      "test_loss": 0.6619035796316532,
+      "round_time": 0.0041310787200927734,
+      "participating_clients": 5
+    },
+    {
+      "round": 9,
+      "clients": [
+        {
+          "name": "Hospital-IT-Roma",
+          "accuracy": 0.63,
+          "loss": 0.6265048316932571,
+          "grad_norm": 0.216985054506315,
+          "time": 0.0006718635559082031
+        },
+        {
+          "name": "Hospital-DE-Berlin",
+          "accuracy": 0.638,
+          "loss": 0.6359683892118976,
+          "grad_norm": 0.19426881954080277,
+          "time": 0.0008070468902587891
+        },
+        {
+          "name": "Hospital-FR-Paris",
+          "accuracy": 0.6342857142857142,
+          "loss": 0.6596010932393247,
+          "grad_norm": 0.19511442179739147,
+          "time": 0.0005710124969482422
+        },
+        {
+          "name": "Hospital-NL-Amsterdam",
+          "accuracy": 0.6473684210526316,
+          "loss": 0.6273175662204844,
+          "grad_norm": 0.21098381336148508,
+          "time": 0.0006792545318603516
+        }
+      ],
+      "test_accuracy": 0.578,
+      "test_loss": 0.6626500767134967,
+      "round_time": 0.003004789352416992,
+      "participating_clients": 4
+    },
+    {
+      "round": 10,
+      "clients": [
+        {
+          "name": "Hospital-IT-Roma",
+          "accuracy": 0.63,
+          "loss": 0.6265662083952842,
+          "grad_norm": 0.21204836783597436,
+          "time": 0.0006718635559082031
+        },
+        {
+          "name": "Hospital-FR-Paris",
+          "accuracy": 0.6257142857142857,
+          "loss": 0.6592887485801304,
+          "grad_norm": 0.1839429723708438,
+          "time": 0.0005629062652587891
+        },
+        {
+          "name": "Hospital-ES-Madrid",
+          "accuracy": 0.6177777777777778,
+          "loss": 0.6507552284120587,
+          "grad_norm": 0.24786953977548684,
+          "time": 0.0007560253143310547
+        },
+        {
+          "name": "Hospital-NL-Amsterdam",
+          "accuracy": 0.6394736842105263,
+          "loss": 0.6274357345047766,
+          "grad_norm": 0.19857001179096512,
+          "time": 0.0006079673767089844
+        }
+      ],
+      "test_accuracy": 0.59,
+      "test_loss": 0.6628500014165282,
+      "round_time": 0.0028579235076904297,
+      "participating_clients": 4
+    },
+    {
+      "round": 11,
+      "clients": [
+        {
+          "name": "Hospital-IT-Roma",
+          "accuracy": 0.63,
+          "loss": 0.625544544632633,
+          "grad_norm": 0.2013836556203262,
+          "time": 0.0006628036499023438
+        },
+        {
+          "name": "Hospital-DE-Berlin",
+          "accuracy": 0.64,
+          "loss": 0.6361131622934245,
+          "grad_norm": 0.19629468695275967,
+          "time": 0.00080108642578125
+        },
+        {
+          "name": "Hospital-FR-Paris",
+          "accuracy": 0.6228571428571429,
+          "loss": 0.6603472681583876,
+          "grad_norm": 0.19127725441390817,
+          "time": 0.0006380081176757812
+        },
+        {
+          "name": "Hospital-ES-Madrid",
+          "accuracy": 0.6244444444444445,
+          "loss": 0.6521780252779563,
+          "grad_norm": 0.25350940004390216,
+          "time": 0.0007810592651367188
+        },
+        {
+          "name": "Hospital-NL-Amsterdam",
+          "accuracy": 0.6368421052631579,
+          "loss": 0.6270978240123363,
+          "grad_norm": 0.19196366443373372,
+          "time": 0.0006148815155029297
+        }
+      ],
+      "test_accuracy": 0.584,
+      "test_loss": 0.6625551762433922,
+      "round_time": 0.0038328170776367188,
+      "participating_clients": 5
+    },
+    {
+      "round": 12,
+      "clients": [
+        {
+          "name": "Hospital-IT-Roma",
+          "accuracy": 0.635,
+          "loss": 0.6263205173639845,
+          "grad_norm": 0.20891410138395153,
+          "time": 0.0006718635559082031
+        },
+        {
+          "name": "Hospital-DE-Berlin",
+          "accuracy": 0.636,
+          "loss": 0.6356581027029642,
+          "grad_norm": 0.20225179200735843,
+          "time": 0.0009462833404541016
+        },
+        {
+          "name": "Hospital-FR-Paris",
+          "accuracy": 0.6314285714285715,
+          "loss": 0.6598468375509182,
+          "grad_norm": 0.19194389207054893,
+          "time": 0.0006039142608642578
+        },
+        {
+          "name": "Hospital-ES-Madrid",
+          "accuracy": 0.6266666666666667,
+          "loss": 0.6507479347473036,
+          "grad_norm": 0.25539536379745864,
+          "time": 0.0007870197296142578
+        },
+        {
+          "name": "Hospital-NL-Amsterdam",
+          "accuracy": 0.6447368421052632,
+          "loss": 0.6273834147179896,
+          "grad_norm": 0.177201333983798,
+          "time": 0.0006158351898193359
+        }
+      ],
+      "test_accuracy": 0.582,
+      "test_loss": 0.6616322439147219,
+      "round_time": 0.003993988037109375,
+      "participating_clients": 5
+    },
+    {
+      "round": 13,
+      "clients": [
+        {
+          "name": "Hospital-IT-Roma",
+          "accuracy": 0.6375,
+          "loss": 0.6262796838620404,
+          "grad_norm": 0.2049297122237777,
+          "time": 0.000644683837890625
+        },
+        {
+          "name": "Hospital-DE-Berlin",
+          "accuracy": 0.638,
+          "loss": 0.6359369215817853,
+          "grad_norm": 0.20992154115327874,
+          "time": 0.0007827281951904297
+        },
+        {
+          "name": "Hospital-ES-Madrid",
+          "accuracy": 0.6222222222222222,
+          "loss": 0.6508527720357535,
+          "grad_norm": 0.2491605984300979,
+          "time": 0.0007100105285644531
+        },
+        {
+          "name": "Hospital-NL-Amsterdam",
+          "accuracy": 0.6421052631578947,
+          "loss": 0.6273359207360013,
+          "grad_norm": 0.19861977858531915,
+          "time": 0.0005810260772705078
+        }
+      ],
+      "test_accuracy": 0.594,
+      "test_loss": 0.6615797418386071,
+      "round_time": 0.0029659271240234375,
+      "participating_clients": 4
+    },
+    {
+      "round": 14,
+      "clients": [
+        {
+          "name": "Hospital-IT-Roma",
+          "accuracy": 0.64,
+          "loss": 0.6255230136521581,
+          "grad_norm": 0.2218425665472288,
+          "time": 0.0006210803985595703
+        },
+        {
+          "name": "Hospital-DE-Berlin",
+          "accuracy": 0.638,
+          "loss": 0.635908414797556,
+          "grad_norm": 0.20581671651215638,
+          "time": 0.0007510185241699219
+        },
+        {
+          "name": "Hospital-FR-Paris",
+          "accuracy": 0.6342857142857142,
+          "loss": 0.6604377157289307,
+          "grad_norm": 0.1986551869976342,
+          "time": 0.0005209445953369141
+        },
+        {
+          "name": "Hospital-ES-Madrid",
+          "accuracy": 0.6155555555555555,
+          "loss": 0.6550779377089789,
+          "grad_norm": 0.2702808191899143,
+          "time": 0.0007920265197753906
+        },
+        {
+          "name": "Hospital-NL-Amsterdam",
+          "accuracy": 0.6447368421052632,
+          "loss": 0.6273287520939744,
+          "grad_norm": 0.167057944179113,
+          "time": 0.0005841255187988281
+        }
+      ],
+      "test_accuracy": 0.592,
+      "test_loss": 0.6617747355369552,
+      "round_time": 0.0035791397094726562,
+      "participating_clients": 5
+    },
+    {
+      "round": 15,
+      "clients": [
+        {
+          "name": "Hospital-IT-Roma",
+          "accuracy": 0.635,
+          "loss": 0.6261042070640722,
+          "grad_norm": 0.21598155450398387,
+          "time": 0.0006258487701416016
+        },
+        {
+          "name": "Hospital-DE-Berlin",
+          "accuracy": 0.64,
+          "loss": 0.63597975807537,
+          "grad_norm": 0.1988525793794542,
+          "time": 0.0007390975952148438
+        },
+        {
+          "name": "Hospital-FR-Paris",
+          "accuracy": 0.6342857142857142,
+          "loss": 0.6600636274150673,
+          "grad_norm": 0.18921073471103506,
+          "time": 0.0004940032958984375
+        },
+        {
+          "name": "Hospital-ES-Madrid",
+          "accuracy": 0.6333333333333333,
+          "loss": 0.6527555574005907,
+          "grad_norm": 0.22997718734730824,
+          "time": 0.0006701946258544922
+        },
+        {
+          "name": "Hospital-NL-Amsterdam",
+          "accuracy": 0.6368421052631579,
+          "loss": 0.6272980184992525,
+          "grad_norm": 0.17283952671968505,
+          "time": 0.0005381107330322266
+        }
+      ],
+      "test_accuracy": 0.578,
+      "test_loss": 0.6628516833575673,
+      "round_time": 0.0033447742462158203,
+      "participating_clients": 5
+    },
+    {
+      "round": 16,
+      "clients": [
+        {
+          "name": "Hospital-IT-Roma",
+          "accuracy": 0.6325,
+          "loss": 0.6261034995545978,
+          "grad_norm": 0.19402817509352052,
+          "time": 0.0005843639373779297
+        },
+        {
+          "name": "Hospital-DE-Berlin",
+          "accuracy": 0.646,
+          "loss": 0.6365005545956687,
+          "grad_norm": 0.2076350254546675,
+          "time": 0.0007109642028808594
+        },
+        {
+          "name": "Hospital-FR-Paris",
+          "accuracy": 0.6342857142857142,
+          "loss": 0.6597013260790582,
+          "grad_norm": 0.19299124841704224,
+          "time": 0.0005090236663818359
+        },
+        {
+          "name": "Hospital-ES-Madrid",
+          "accuracy": 0.62,
+          "loss": 0.6537094668664518,
+          "grad_norm": 0.2643386401278444,
+          "time": 0.0006690025329589844
+        },
+        {
+          "name": "Hospital-NL-Amsterdam",
+          "accuracy": 0.6447368421052632,
+          "loss": 0.6273214861672001,
+          "grad_norm": 0.1967187019497091,
+          "time": 0.0005419254302978516
+        }
+      ],
+      "test_accuracy": 0.576,
+      "test_loss": 0.6632093585821424,
+      "round_time": 0.003287076950073242,
+      "participating_clients": 5
+    },
+    {
+      "round": 17,
+      "clients": [
+        {
+          "name": "Hospital-IT-Roma",
+          "accuracy": 0.6325,
+          "loss": 0.6259526211117311,
+          "grad_norm": 0.21278669806069955,
+          "time": 0.0005881786346435547
+        },
+        {
+          "name": "Hospital-DE-Berlin",
+          "accuracy": 0.634,
+          "loss": 0.635972571220732,
+          "grad_norm": 0.20769161083606147,
+          "time": 0.0007290840148925781
+        },
+        {
+          "name": "Hospital-ES-Madrid",
+          "accuracy": 0.6155555555555555,
+          "loss": 0.6538159678217258,
+          "grad_norm": 0.2665719421485075,
+          "time": 0.0006730556488037109
+        },
+        {
+          "name": "Hospital-NL-Amsterdam",
+          "accuracy": 0.6394736842105263,
+          "loss": 0.6274137893845911,
+          "grad_norm": 0.19145744255225108,
+          "time": 0.0005400180816650391
+        }
+      ],
+      "test_accuracy": 0.586,
+      "test_loss": 0.6609777799929751,
+      "round_time": 0.0028078556060791016,
+      "participating_clients": 4
+    },
+    {
+      "round": 18,
+      "clients": [
+        {
+          "name": "Hospital-IT-Roma",
+          "accuracy": 0.6375,
+          "loss": 0.6258883503188123,
+          "grad_norm": 0.19011382771743038,
+          "time": 0.0005750656127929688
+        },
+        {
+          "name": "Hospital-DE-Berlin",
+          "accuracy": 0.642,
+          "loss": 0.6358453512862353,
+          "grad_norm": 0.2106001146183891,
+          "time": 0.0007100105285644531
+        },
+        {
+          "name": "Hospital-FR-Paris",
+          "accuracy": 0.6371428571428571,
+          "loss": 0.6598025395586152,
+          "grad_norm": 0.2023681980932526,
+          "time": 0.0005037784576416016
+        },
+        {
+          "name": "Hospital-ES-Madrid",
+          "accuracy": 0.6155555555555555,
+          "loss": 0.6521325948644296,
+          "grad_norm": 0.24065363240298737,
+          "time": 0.0006690025329589844
+        },
+        {
+          "name": "Hospital-NL-Amsterdam",
+          "accuracy": 0.6421052631578947,
+          "loss": 0.6274366141664651,
+          "grad_norm": 0.20985555585662535,
+          "time": 0.0005369186401367188
+        }
+      ],
+      "test_accuracy": 0.588,
+      "test_loss": 0.6611565002527855,
+      "round_time": 0.003264904022216797,
+      "participating_clients": 5
+    },
+    {
+      "round": 19,
+      "clients": [
+        {
+          "name": "Hospital-IT-Roma",
+          "accuracy": 0.635,
+          "loss": 0.6269594739414072,
+          "grad_norm": 0.2023899973263657,
+          "time": 0.0005869865417480469
+        },
+        {
+          "name": "Hospital-DE-Berlin",
+          "accuracy": 0.638,
+          "loss": 0.635754713319981,
+          "grad_norm": 0.20198903718299502,
+          "time": 0.0007128715515136719
+        },
+        {
+          "name": "Hospital-FR-Paris",
+          "accuracy": 0.6371428571428571,
+          "loss": 0.6597313700484857,
+          "grad_norm": 0.17768520011470706,
+          "time": 0.0004978179931640625
+        },
+        {
+          "name": "Hospital-ES-Madrid",
+          "accuracy": 0.6333333333333333,
+          "loss": 0.6516048665031322,
+          "grad_norm": 0.2501978456693987,
+          "time": 0.0006701946258544922
+        }
+      ],
+      "test_accuracy": 0.586,
+      "test_loss": 0.6607576249557136,
+      "round_time": 0.002695322036743164,
+      "participating_clients": 4
+    },
+    {
+      "round": 20,
+      "clients": [
+        {
+          "name": "Hospital-DE-Berlin",
+          "accuracy": 0.636,
+          "loss": 0.6356566484253275,
+          "grad_norm": 0.21289045574461177,
+          "time": 0.0007691383361816406
+        },
+        {
+          "name": "Hospital-FR-Paris",
+          "accuracy": 0.64,
+          "loss": 0.6597096189578563,
+          "grad_norm": 0.20543103412904587,
+          "time": 0.0005021095275878906
+        },
+        {
+          "name": "Hospital-ES-Madrid",
+          "accuracy": 0.6355555555555555,
+          "loss": 0.653712157448495,
+          "grad_norm": 0.2679830828464204,
+          "time": 0.0006661415100097656
+        },
+        {
+          "name": "Hospital-NL-Amsterdam",
+          "accuracy": 0.6421052631578947,
+          "loss": 0.6275095863237168,
+          "grad_norm": 0.19988431523239517,
+          "time": 0.0005319118499755859
+        }
+      ],
+      "test_accuracy": 0.572,
+      "test_loss": 0.6621266294551033,
+      "round_time": 0.002711772918701172,
+      "participating_clients": 4
+    },
+    {
+      "round": 21,
+      "clients": [
+        {
+          "name": "Hospital-IT-Roma",
+          "accuracy": 0.6325,
+          "loss": 0.6266208576992953,
+          "grad_norm": 0.1938205977911552,
+          "time": 0.0005700588226318359
+        },
+        {
+          "name": "Hospital-DE-Berlin",
+          "accuracy": 0.632,
+          "loss": 0.6357030697327828,
+          "grad_norm": 0.19165473247532785,
+          "time": 0.0006949901580810547
+        },
+        {
+          "name": "Hospital-FR-Paris",
+          "accuracy": 0.6314285714285715,
+          "loss": 0.6593728668385753,
+          "grad_norm": 0.1985592932929406,
+          "time": 0.0004918575286865234
+        },
+        {
+          "name": "Hospital-ES-Madrid",
+          "accuracy": 0.6333333333333333,
+          "loss": 0.6518550325709379,
+          "grad_norm": 0.24912278672316532,
+          "time": 0.0006687641143798828
+        },
+        {
+          "name": "Hospital-NL-Amsterdam",
+          "accuracy": 0.6342105263157894,
+          "loss": 0.6277784641174474,
+          "grad_norm": 0.21117567692395284,
+          "time": 0.0005471706390380859
+        }
+      ],
+      "test_accuracy": 0.588,
+      "test_loss": 0.6620558261365023,
+      "round_time": 0.0032417774200439453,
+      "participating_clients": 5
+    },
+    {
+      "round": 22,
+      "clients": [
+        {
+          "name": "Hospital-IT-Roma",
+          "accuracy": 0.6325,
+          "loss": 0.6263982866585135,
+          "grad_norm": 0.22701988302083714,
+          "time": 0.0005781650543212891
+        },
+        {
+          "name": "Hospital-FR-Paris",
+          "accuracy": 0.6314285714285715,
+          "loss": 0.6595557361721494,
+          "grad_norm": 0.19112825408319695,
+          "time": 0.0004940032958984375
+        },
+        {
+          "name": "Hospital-ES-Madrid",
+          "accuracy": 0.6222222222222222,
+          "loss": 0.6518204145594226,
+          "grad_norm": 0.24950684705398551,
+          "time": 0.0006680488586425781
+        },
+        {
+          "name": "Hospital-NL-Amsterdam",
+          "accuracy": 0.6447368421052632,
+          "loss": 0.6273371054362693,
+          "grad_norm": 0.1905140252470705,
+          "time": 0.0005459785461425781
+        }
+      ],
+      "test_accuracy": 0.594,
+      "test_loss": 0.6628866054726671,
+      "round_time": 0.0025076866149902344,
+      "participating_clients": 4
+    },
+    {
+      "round": 23,
+      "clients": [
+        {
+          "name": "Hospital-IT-Roma",
+          "accuracy": 0.6325,
+          "loss": 0.6251659965043628,
+          "grad_norm": 0.21608146631997735,
+          "time": 0.0006608963012695312
+        },
+        {
+          "name": "Hospital-DE-Berlin",
+          "accuracy": 0.638,
+          "loss": 0.6361119781402248,
+          "grad_norm": 0.19899893729109355,
+          "time": 0.0007169246673583984
+        },
+        {
+          "name": "Hospital-FR-Paris",
+          "accuracy": 0.62,
+          "loss": 0.660661895368265,
+          "grad_norm": 0.1935086871338481,
+          "time": 0.0004909038543701172
+        },
+        {
+          "name": "Hospital-NL-Amsterdam",
+          "accuracy": 0.6473684210526316,
+          "loss": 0.627142498927438,
+          "grad_norm": 0.19937591551329115,
+          "time": 0.0005402565002441406
+        }
+      ],
+      "test_accuracy": 0.584,
+      "test_loss": 0.6626952766378587,
+      "round_time": 0.002651214599609375,
+      "participating_clients": 4
+    },
+    {
+      "round": 24,
+      "clients": [
+        {
+          "name": "Hospital-IT-Roma",
+          "accuracy": 0.6325,
+          "loss": 0.6263096516555156,
+          "grad_norm": 0.22021718135568177,
+          "time": 0.0005922317504882812
+        },
+        {
+          "name": "Hospital-DE-Berlin",
+          "accuracy": 0.638,
+          "loss": 0.635930405535697,
+          "grad_norm": 0.20168397460531717,
+          "time": 0.0007038116455078125
+        },
+        {
+          "name": "Hospital-ES-Madrid",
+          "accuracy": 0.6244444444444445,
+          "loss": 0.6530412583982764,
+          "grad_norm": 0.26206061715343054,
+          "time": 0.0006747245788574219
+        },
+        {
+          "name": "Hospital-NL-Amsterdam",
+          "accuracy": 0.6473684210526316,
+          "loss": 0.6272797591228296,
+          "grad_norm": 0.18040833160310876,
+          "time": 0.0005590915679931641
+        }
+      ],
+      "test_accuracy": 0.584,
+      "test_loss": 0.6617089999281555,
+      "round_time": 0.0027768611907958984,
+      "participating_clients": 4
+    },
+    {
+      "round": 25,
+      "clients": [
+        {
+          "name": "Hospital-IT-Roma",
+          "accuracy": 0.635,
+          "loss": 0.6261965585902394,
+          "grad_norm": 0.21676883400602776,
+          "time": 0.0006108283996582031
+        },
+        {
+          "name": "Hospital-DE-Berlin",
+          "accuracy": 0.638,
+          "loss": 0.6356467401061877,
+          "grad_norm": 0.1965899300984245,
+          "time": 0.000705718994140625
+        },
+        {
+          "name": "Hospital-FR-Paris",
+          "accuracy": 0.6342857142857142,
+          "loss": 0.6599568678553511,
+          "grad_norm": 0.19796113614011446,
+          "time": 0.0004870891571044922
+        },
+        {
+          "name": "Hospital-ES-Madrid",
+          "accuracy": 0.6377777777777778,
+          "loss": 0.6515995084247844,
+          "grad_norm": 0.24049763186903014,
+          "time": 0.0006580352783203125
+        },
+        {
+          "name": "Hospital-NL-Amsterdam",
+          "accuracy": 0.65,
+          "loss": 0.6273548489098092,
+          "grad_norm": 0.21827958791162685,
+          "time": 0.0006341934204101562
+        }
+      ],
+      "test_accuracy": 0.59,
+      "test_loss": 0.6607455566839029,
+      "round_time": 0.003373861312866211,
+      "participating_clients": 5
+    },
+    {
+      "round": 26,
+      "clients": [
+        {
+          "name": "Hospital-DE-Berlin",
+          "accuracy": 0.638,
+          "loss": 0.635844460389322,
+          "grad_norm": 0.20968807433363632,
+          "time": 0.0007278919219970703
+        },
+        {
+          "name": "Hospital-ES-Madrid",
+          "accuracy": 0.62,
+          "loss": 0.6520355843668042,
+          "grad_norm": 0.23244783797420798,
+          "time": 0.0006730556488037109
+        },
+        {
+          "name": "Hospital-NL-Amsterdam",
+          "accuracy": 0.6421052631578947,
+          "loss": 0.6273697088737847,
+          "grad_norm": 0.18740161793632712,
+          "time": 0.0005359649658203125
+        }
+      ],
+      "test_accuracy": 0.586,
+      "test_loss": 0.6603130456427447,
+      "round_time": 0.0021266937255859375,
+      "participating_clients": 3
+    },
+    {
+      "round": 27,
+      "clients": [
+        {
+          "name": "Hospital-IT-Roma",
+          "accuracy": 0.635,
+          "loss": 0.6264607797778637,
+          "grad_norm": 0.25135090193223864,
+          "time": 0.0005829334259033203
+        },
+        {
+          "name": "Hospital-DE-Berlin",
+          "accuracy": 0.642,
+          "loss": 0.6355079991568384,
+          "grad_norm": 0.2094352136656937,
+          "time": 0.0007061958312988281
+        },
+        {
+          "name": "Hospital-FR-Paris",
+          "accuracy": 0.6342857142857142,
+          "loss": 0.6604431764121629,
+          "grad_norm": 0.20044943195773382,
+          "time": 0.0004999637603759766
+        },
+        {
+          "name": "Hospital-ES-Madrid",
+          "accuracy": 0.6244444444444445,
+          "loss": 0.6514862436862059,
+          "grad_norm": 0.22616097573587687,
+          "time": 0.0006661415100097656
+        },
+        {
+          "name": "Hospital-NL-Amsterdam",
+          "accuracy": 0.631578947368421,
+          "loss": 0.627820315683948,
+          "grad_norm": 0.20442115873335323,
+          "time": 0.0005419254302978516
+        }
+      ],
+      "test_accuracy": 0.582,
+      "test_loss": 0.6617693828319505,
+      "round_time": 0.003265857696533203,
+      "participating_clients": 5
+    },
+    {
+      "round": 28,
+      "clients": [
+        {
+          "name": "Hospital-IT-Roma",
+          "accuracy": 0.6375,
+          "loss": 0.6262578050792181,
+          "grad_norm": 0.19147563505042814,
+          "time": 0.0005860328674316406
+        },
+        {
+          "name": "Hospital-DE-Berlin",
+          "accuracy": 0.638,
+          "loss": 0.6356634843022814,
+          "grad_norm": 0.19661001586718943,
+          "time": 0.000720977783203125
+        },
+        {
+          "name": "Hospital-FR-Paris",
+          "accuracy": 0.6342857142857142,
+          "loss": 0.65980595958333,
+          "grad_norm": 0.2010342380752843,
+          "time": 0.0005030632019042969
+        },
+        {
+          "name": "Hospital-ES-Madrid",
+          "accuracy": 0.6133333333333333,
+          "loss": 0.6543870562480063,
+          "grad_norm": 0.25291900265136913,
+          "time": 0.0007522106170654297
+        },
+        {
+          "name": "Hospital-NL-Amsterdam",
+          "accuracy": 0.6421052631578947,
+          "loss": 0.6274895782997164,
+          "grad_norm": 0.20191830666280916,
+          "time": 0.0005278587341308594
+        }
+      ],
+      "test_accuracy": 0.578,
+      "test_loss": 0.6621123518401646,
+      "round_time": 0.0033762454986572266,
+      "participating_clients": 5
+    },
+    {
+      "round": 29,
+      "clients": [
+        {
+          "name": "Hospital-IT-Roma",
+          "accuracy": 0.63,
+          "loss": 0.6264440399614576,
+          "grad_norm": 0.22393231077117223,
+          "time": 0.000553131103515625
+        },
+        {
+          "name": "Hospital-DE-Berlin",
+          "accuracy": 0.632,
+          "loss": 0.6356408706860732,
+          "grad_norm": 0.19057892645502775,
+          "time": 0.0007932186126708984
+        },
+        {
+          "name": "Hospital-FR-Paris",
+          "accuracy": 0.6285714285714286,
+          "loss": 0.6595778900734516,
+          "grad_norm": 0.18543460722800786,
+          "time": 0.0005152225494384766
+        },
+        {
+          "name": "Hospital-ES-Madrid",
+          "accuracy": 0.6244444444444445,
+          "loss": 0.6506104988749829,
+          "grad_norm": 0.24853390325862001,
+          "time": 0.0006749629974365234
+        },
+        {
+          "name": "Hospital-NL-Amsterdam",
+          "accuracy": 0.6394736842105263,
+          "loss": 0.6275739977844359,
+          "grad_norm": 0.18901898120526262,
+          "time": 0.0005152225494384766
+        }
+      ],
+      "test_accuracy": 0.582,
+      "test_loss": 0.6616620306858185,
+      "round_time": 0.0033309459686279297,
+      "participating_clients": 5
+    },
+    {
+      "round": 30,
+      "clients": [
+        {
+          "name": "Hospital-IT-Roma",
+          "accuracy": 0.635,
+          "loss": 0.6261148248962213,
+          "grad_norm": 0.21455825301244508,
+          "time": 0.0005688667297363281
+        },
+        {
+          "name": "Hospital-DE-Berlin",
+          "accuracy": 0.64,
+          "loss": 0.6357323623836999,
+          "grad_norm": 0.2126820949850877,
+          "time": 0.0006978511810302734
+        },
+        {
+          "name": "Hospital-FR-Paris",
+          "accuracy": 0.6314285714285715,
+          "loss": 0.6596633990425874,
+          "grad_norm": 0.19076837661028456,
+          "time": 0.0004961490631103516
+        },
+        {
+          "name": "Hospital-NL-Amsterdam",
+          "accuracy": 0.6447368421052632,
+          "loss": 0.6273260017319306,
+          "grad_norm": 0.2018161635074065,
+          "time": 0.0005366802215576172
+        }
+      ],
+      "test_accuracy": 0.58,
+      "test_loss": 0.6621508060857464,
+      "round_time": 0.002537965774536133,
+      "participating_clients": 4
+    },
+    {
+      "round": 31,
+      "clients": [
+        {
+          "name": "Hospital-IT-Roma",
+          "accuracy": 0.63,
+          "loss": 0.6258821905712879,
+          "grad_norm": 0.21216273440303837,
+          "time": 0.0005898475646972656
+        },
+        {
+          "name": "Hospital-DE-Berlin",
+          "accuracy": 0.636,
+          "loss": 0.6356603399248384,
+          "grad_norm": 0.19577732993393923,
+          "time": 0.000675201416015625
+        },
+        {
+          "name": "Hospital-FR-Paris",
+          "accuracy": 0.6342857142857142,
+          "loss": 0.6595137535931228,
+          "grad_norm": 0.19079873431306546,
+          "time": 0.0005879402160644531
+        },
+        {
+          "name": "Hospital-NL-Amsterdam",
+          "accuracy": 0.6342105263157894,
+          "loss": 0.6275621965202143,
+          "grad_norm": 0.20600790233053595,
+          "time": 0.0005617141723632812
+        }
+      ],
+      "test_accuracy": 0.576,
+      "test_loss": 0.6627624365751171,
+      "round_time": 0.0026581287384033203,
+      "participating_clients": 4
+    },
+    {
+      "round": 32,
+      "clients": [
+        {
+          "name": "Hospital-IT-Roma",
+          "accuracy": 0.6325,
+          "loss": 0.6258266802959747,
+          "grad_norm": 0.2247314449394309,
+          "time": 0.0005869865417480469
+        },
+        {
+          "name": "Hospital-DE-Berlin",
+          "accuracy": 0.64,
+          "loss": 0.6357782549010804,
+          "grad_norm": 0.19824896549516413,
+          "time": 0.0007190704345703125
+        },
+        {
+          "name": "Hospital-FR-Paris",
+          "accuracy": 0.6342857142857142,
+          "loss": 0.6591995952130266,
+          "grad_norm": 0.18628676829630963,
+          "time": 0.0004889965057373047
+        },
+        {
+          "name": "Hospital-ES-Madrid",
+          "accuracy": 0.6266666666666667,
+          "loss": 0.6536982838281914,
+          "grad_norm": 0.22738192813840707,
+          "time": 0.0006990432739257812
+        },
+        {
+          "name": "Hospital-NL-Amsterdam",
+          "accuracy": 0.6368421052631579,
+          "loss": 0.6274666262496257,
+          "grad_norm": 0.21094871071421317,
+          "time": 0.0005450248718261719
+        }
+      ],
+      "test_accuracy": 0.58,
+      "test_loss": 0.662663925043088,
+      "round_time": 0.0033228397369384766,
+      "participating_clients": 5
+    },
+    {
+      "round": 33,
+      "clients": [
+        {
+          "name": "Hospital-IT-Roma",
+          "accuracy": 0.6225,
+          "loss": 0.6265181691159641,
+          "grad_norm": 0.20059533953052402,
+          "time": 0.0005900859832763672
+        },
+        {
+          "name": "Hospital-DE-Berlin",
+          "accuracy": 0.642,
+          "loss": 0.6356473827653933,
+          "grad_norm": 0.2069196957816135,
+          "time": 0.0007112026214599609
+        },
+        {
+          "name": "Hospital-FR-Paris",
+          "accuracy": 0.6314285714285715,
+          "loss": 0.6594079482264168,
+          "grad_norm": 0.20122283083094278,
+          "time": 0.0004870891571044922
+        },
+        {
+          "name": "Hospital-ES-Madrid",
+          "accuracy": 0.62,
+          "loss": 0.6514901252890836,
+          "grad_norm": 0.21906523681606146,
+          "time": 0.0006592273712158203
+        },
+        {
+          "name": "Hospital-NL-Amsterdam",
+          "accuracy": 0.6447368421052632,
+          "loss": 0.6274181438409131,
+          "grad_norm": 0.21603819342729869,
+          "time": 0.0005178451538085938
+        }
+      ],
+      "test_accuracy": 0.584,
+      "test_loss": 0.6622272812061474,
+      "round_time": 0.0032329559326171875,
+      "participating_clients": 5
+    },
+    {
+      "round": 34,
+      "clients": [
+        {
+          "name": "Hospital-IT-Roma",
+          "accuracy": 0.6325,
+          "loss": 0.6267265188340794,
+          "grad_norm": 0.19177092195563392,
+          "time": 0.0005481243133544922
+        },
+        {
+          "name": "Hospital-DE-Berlin",
+          "accuracy": 0.636,
+          "loss": 0.6356101992311023,
+          "grad_norm": 0.21278817361888566,
+          "time": 0.0007190704345703125
+        },
+        {
+          "name": "Hospital-FR-Paris",
+          "accuracy": 0.6371428571428571,
+          "loss": 0.6597911663051087,
+          "grad_norm": 0.2064892679693908,
+          "time": 0.00047588348388671875
+        },
+        {
+          "name": "Hospital-ES-Madrid",
+          "accuracy": 0.6177777777777778,
+          "loss": 0.6519009445423019,
+          "grad_norm": 0.2529895915420954,
+          "time": 0.0006473064422607422
+        }
+      ],
+      "test_accuracy": 0.582,
+      "test_loss": 0.6606129644176185,
+      "round_time": 0.0026099681854248047,
+      "participating_clients": 4
+    },
+    {
+      "round": 35,
+      "clients": [
+        {
+          "name": "Hospital-DE-Berlin",
+          "accuracy": 0.636,
+          "loss": 0.635530476174722,
+          "grad_norm": 0.20896070099427932,
+          "time": 0.0006840229034423828
+        },
+        {
+          "name": "Hospital-ES-Madrid",
+          "accuracy": 0.6333333333333333,
+          "loss": 0.6512843299190164,
+          "grad_norm": 0.22668788459318534,
+          "time": 0.0007870197296142578
+        },
+        {
+          "name": "Hospital-NL-Amsterdam",
+          "accuracy": 0.6394736842105263,
+          "loss": 0.6275035282309431,
+          "grad_norm": 0.1824077629022106,
+          "time": 0.0005748271942138672
+        }
+      ],
+      "test_accuracy": 0.578,
+      "test_loss": 0.6606989593025718,
+      "round_time": 0.0022509098052978516,
+      "participating_clients": 3
+    },
+    {
+      "round": 36,
+      "clients": [
+        {
+          "name": "Hospital-IT-Roma",
+          "accuracy": 0.6325,
+          "loss": 0.6271546225678363,
+          "grad_norm": 0.20177517754619667,
+          "time": 0.0006060600280761719
+        },
+        {
+          "name": "Hospital-DE-Berlin",
+          "accuracy": 0.642,
+          "loss": 0.6354942629895186,
+          "grad_norm": 0.2092851898410073,
+          "time": 0.0006930828094482422
+        },
+        {
+          "name": "Hospital-FR-Paris",
+          "accuracy": 0.6342857142857142,
+          "loss": 0.660220177651871,
+          "grad_norm": 0.18624134903391143,
+          "time": 0.00048089027404785156
+        },
+        {
+          "name": "Hospital-ES-Madrid",
+          "accuracy": 0.6333333333333333,
+          "loss": 0.6513308505691164,
+          "grad_norm": 0.23067674427064927,
+          "time": 0.000644683837890625
+        },
+        {
+          "name": "Hospital-NL-Amsterdam",
+          "accuracy": 0.631578947368421,
+          "loss": 0.6277424412051432,
+          "grad_norm": 0.21467432603261086,
+          "time": 0.0005199909210205078
+        }
+      ],
+      "test_accuracy": 0.584,
+      "test_loss": 0.6614562895174099,
+      "round_time": 0.0032110214233398438,
+      "participating_clients": 5
+    },
+    {
+      "round": 37,
+      "clients": [
+        {
+          "name": "Hospital-IT-Roma",
+          "accuracy": 0.6375,
+          "loss": 0.6263291667885112,
+          "grad_norm": 0.2129149770705135,
+          "time": 0.000598907470703125
+        },
+        {
+          "name": "Hospital-DE-Berlin",
+          "accuracy": 0.632,
+          "loss": 0.6356513724177643,
+          "grad_norm": 0.19936822038422056,
+          "time": 0.0007059574127197266
+        },
+        {
+          "name": "Hospital-FR-Paris",
+          "accuracy": 0.64,
+          "loss": 0.6598424417748586,
+          "grad_norm": 0.21196363124605902,
+          "time": 0.0005052089691162109
+        },
+        {
+          "name": "Hospital-ES-Madrid",
+          "accuracy": 0.6333333333333333,
+          "loss": 0.6519026010004497,
+          "grad_norm": 0.23314423122497352,
+          "time": 0.0006878376007080078
+        },
+        {
+          "name": "Hospital-NL-Amsterdam",
+          "accuracy": 0.6289473684210526,
+          "loss": 0.6277265404534004,
+          "grad_norm": 0.20025758924444015,
+          "time": 0.0005409717559814453
+        }
+      ],
+      "test_accuracy": 0.594,
+      "test_loss": 0.6611962035522579,
+      "round_time": 0.003304004669189453,
+      "participating_clients": 5
+    },
+    {
+      "round": 38,
+      "clients": [
+        {
+          "name": "Hospital-IT-Roma",
+          "accuracy": 0.6375,
+          "loss": 0.6261089628175631,
+          "grad_norm": 0.21012546528489212,
+          "time": 0.0005557537078857422
+        },
+        {
+          "name": "Hospital-FR-Paris",
+          "accuracy": 0.64,
+          "loss": 0.6600402855825168,
+          "grad_norm": 0.18751306922796093,
+          "time": 0.0004589557647705078
+        },
+        {
+          "name": "Hospital-ES-Madrid",
+          "accuracy": 0.62,
+          "loss": 0.6544008564425619,
+          "grad_norm": 0.2503198220538671,
+          "time": 0.0006289482116699219
+        },
+        {
+          "name": "Hospital-NL-Amsterdam",
+          "accuracy": 0.6394736842105263,
+          "loss": 0.6274189139045613,
+          "grad_norm": 0.1940135268302757,
+          "time": 0.0005068778991699219
+        }
+      ],
+      "test_accuracy": 0.588,
+      "test_loss": 0.6630340520727042,
+      "round_time": 0.002357006072998047,
+      "participating_clients": 4
+    },
+    {
+      "round": 39,
+      "clients": [
+        {
+          "name": "Hospital-IT-Roma",
+          "accuracy": 0.6275,
+          "loss": 0.6251915610921611,
+          "grad_norm": 0.21192837225032454,
+          "time": 0.0005440711975097656
+        },
+        {
+          "name": "Hospital-DE-Berlin",
+          "accuracy": 0.644,
+          "loss": 0.6365603269060373,
+          "grad_norm": 0.19912619878904694,
+          "time": 0.0006639957427978516
+        },
+        {
+          "name": "Hospital-FR-Paris",
+          "accuracy": 0.6342857142857142,
+          "loss": 0.6600562838653172,
+          "grad_norm": 0.19143818098944307,
+          "time": 0.0004620552062988281
+        },
+        {
+          "name": "Hospital-NL-Amsterdam",
+          "accuracy": 0.6421052631578947,
+          "loss": 0.6272054363535733,
+          "grad_norm": 0.19541017101243108,
+          "time": 0.0005021095275878906
+        }
+      ],
+      "test_accuracy": 0.584,
+      "test_loss": 0.6629494494747835,
+      "round_time": 0.002376079559326172,
+      "participating_clients": 4
+    },
+    {
+      "round": 40,
+      "clients": [
+        {
+          "name": "Hospital-IT-Roma",
+          "accuracy": 0.63,
+          "loss": 0.626003458038623,
+          "grad_norm": 0.20673204309620488,
+          "time": 0.0005459785461425781
+        },
+        {
+          "name": "Hospital-FR-Paris",
+          "accuracy": 0.6314285714285715,
+          "loss": 0.6594665024355939,
+          "grad_norm": 0.2003786875292431,
+          "time": 0.0004620552062988281
+        },
+        {
+          "name": "Hospital-NL-Amsterdam",
+          "accuracy": 0.6447368421052632,
+          "loss": 0.6273428357194405,
+          "grad_norm": 0.18875529086777293,
+          "time": 0.0005099773406982422
+        }
+      ],
+      "test_accuracy": 0.58,
+      "test_loss": 0.6652964046937748,
+      "round_time": 0.0016782283782958984,
+      "participating_clients": 3
+    },
+    {
+      "round": 41,
+      "clients": [
+        {
+          "name": "Hospital-DE-Berlin",
+          "accuracy": 0.634,
+          "loss": 0.6364768433254839,
+          "grad_norm": 0.19415494536479053,
+          "time": 0.0006742477416992188
+        },
+        {
+          "name": "Hospital-FR-Paris",
+          "accuracy": 0.6314285714285715,
+          "loss": 0.6596873956237608,
+          "grad_norm": 0.18660378560750024,
+          "time": 0.0004661083221435547
+        },
+        {
+          "name": "Hospital-ES-Madrid",
+          "accuracy": 0.6222222222222222,
+          "loss": 0.6527183791249185,
+          "grad_norm": 0.23783569134596796,
+          "time": 0.0006320476531982422
+        },
+        {
+          "name": "Hospital-NL-Amsterdam",
+          "accuracy": 0.6394736842105263,
+          "loss": 0.6270719027205066,
+          "grad_norm": 0.20333289984097888,
+          "time": 0.0005018711090087891
+        }
+      ],
+      "test_accuracy": 0.586,
+      "test_loss": 0.6627605947912913,
+      "round_time": 0.002496004104614258,
+      "participating_clients": 4
+    },
+    {
+      "round": 42,
+      "clients": [
+        {
+          "name": "Hospital-IT-Roma",
+          "accuracy": 0.6325,
+          "loss": 0.62701293038935,
+          "grad_norm": 0.24543149953749804,
+          "time": 0.0006158351898193359
+        },
+        {
+          "name": "Hospital-DE-Berlin",
+          "accuracy": 0.638,
+          "loss": 0.6355141672584907,
+          "grad_norm": 0.2016578030073958,
+          "time": 0.0006997585296630859
+        },
+        {
+          "name": "Hospital-FR-Paris",
+          "accuracy": 0.6285714285714286,
+          "loss": 0.6595609943323155,
+          "grad_norm": 0.17743917040942295,
+          "time": 0.0004799365997314453
+        },
+        {
+          "name": "Hospital-ES-Madrid",
+          "accuracy": 0.6222222222222222,
+          "loss": 0.6526046706665664,
+          "grad_norm": 0.2606708896030907,
+          "time": 0.000637054443359375
+        },
+        {
+          "name": "Hospital-NL-Amsterdam",
+          "accuracy": 0.6368421052631579,
+          "loss": 0.6276686488925644,
+          "grad_norm": 0.1799576667068883,
+          "time": 0.0005109310150146484
+        }
+      ],
+      "test_accuracy": 0.584,
+      "test_loss": 0.6617372667577655,
+      "round_time": 0.003226757049560547,
+      "participating_clients": 5
+    },
+    {
+      "round": 43,
+      "clients": [
+        {
+          "name": "Hospital-IT-Roma",
+          "accuracy": 0.6325,
+          "loss": 0.625934495831081,
+          "grad_norm": 0.20521752823412845,
+          "time": 0.0005550384521484375
+        },
+        {
+          "name": "Hospital-FR-Paris",
+          "accuracy": 0.6342857142857142,
+          "loss": 0.6597248116622072,
+          "grad_norm": 0.18311580690045126,
+          "time": 0.00047588348388671875
+        },
+        {
+          "name": "Hospital-ES-Madrid",
+          "accuracy": 0.6177777777777778,
+          "loss": 0.6530414822071434,
+          "grad_norm": 0.2587813466416262,
+          "time": 0.0006499290466308594
+        },
+        {
+          "name": "Hospital-NL-Amsterdam",
+          "accuracy": 0.6447368421052632,
+          "loss": 0.6274894603928188,
+          "grad_norm": 0.19525739528359173,
+          "time": 0.000537872314453125
+        }
+      ],
+      "test_accuracy": 0.59,
+      "test_loss": 0.6626454520837654,
+      "round_time": 0.002437114715576172,
+      "participating_clients": 4
+    },
+    {
+      "round": 44,
+      "clients": [
+        {
+          "name": "Hospital-DE-Berlin",
+          "accuracy": 0.638,
+          "loss": 0.6363579173098938,
+          "grad_norm": 0.19863014752244068,
+          "time": 0.0006823539733886719
+        },
+        {
+          "name": "Hospital-FR-Paris",
+          "accuracy": 0.6342857142857142,
+          "loss": 0.6602203453688841,
+          "grad_norm": 0.18106111728525384,
+          "time": 0.0004839897155761719
+        },
+        {
+          "name": "Hospital-ES-Madrid",
+          "accuracy": 0.6333333333333333,
+          "loss": 0.6519505570758017,
+          "grad_norm": 0.23364395830592827,
+          "time": 0.0006427764892578125
+        },
+        {
+          "name": "Hospital-NL-Amsterdam",
+          "accuracy": 0.6473684210526316,
+          "loss": 0.6271564823725156,
+          "grad_norm": 0.20604781713405992,
+          "time": 0.0005140304565429688
+        }
+      ],
+      "test_accuracy": 0.588,
+      "test_loss": 0.6630483571595588,
+      "round_time": 0.002537965774536133,
+      "participating_clients": 4
+    },
+    {
+      "round": 45,
+      "clients": [
+        {
+          "name": "Hospital-IT-Roma",
+          "accuracy": 0.635,
+          "loss": 0.6266107141652939,
+          "grad_norm": 0.21702891402181207,
+          "time": 0.000560760498046875
+        },
+        {
+          "name": "Hospital-DE-Berlin",
+          "accuracy": 0.636,
+          "loss": 0.635656342056152,
+          "grad_norm": 0.20957175564322028,
+          "time": 0.0006771087646484375
+        },
+        {
+          "name": "Hospital-FR-Paris",
+          "accuracy": 0.6314285714285715,
+          "loss": 0.6598070649869313,
+          "grad_norm": 0.200951831544922,
+          "time": 0.00046324729919433594
+        },
+        {
+          "name": "Hospital-ES-Madrid",
+          "accuracy": 0.6377777777777778,
+          "loss": 0.6519757700623442,
+          "grad_norm": 0.22092227788072813,
+          "time": 0.0006797313690185547
+        },
+        {
+          "name": "Hospital-NL-Amsterdam",
+          "accuracy": 0.6368421052631579,
+          "loss": 0.6275780488546286,
+          "grad_norm": 0.2088361387288614,
+          "time": 0.0005090236663818359
+        }
+      ],
+      "test_accuracy": 0.584,
+      "test_loss": 0.6620886512802764,
+      "round_time": 0.003139019012451172,
+      "participating_clients": 5
+    },
+    {
+      "round": 46,
+      "clients": [
+        {
+          "name": "Hospital-IT-Roma",
+          "accuracy": 0.63,
+          "loss": 0.6267102721717452,
+          "grad_norm": 0.21760368274022637,
+          "time": 0.0005490779876708984
+        },
+        {
+          "name": "Hospital-DE-Berlin",
+          "accuracy": 0.638,
+          "loss": 0.6357202130971471,
+          "grad_norm": 0.2041422283276898,
+          "time": 0.0006682872772216797
+        },
+        {
+          "name": "Hospital-ES-Madrid",
+          "accuracy": 0.6133333333333333,
+          "loss": 0.6549645442926463,
+          "grad_norm": 0.24472060652575223,
+          "time": 0.0006318092346191406
+        },
+        {
+          "name": "Hospital-NL-Amsterdam",
+          "accuracy": 0.6394736842105263,
+          "loss": 0.6274543075313633,
+          "grad_norm": 0.18642445708521177,
+          "time": 0.0005090236663818359
+        }
+      ],
+      "test_accuracy": 0.576,
+      "test_loss": 0.661793520697243,
+      "round_time": 0.0025658607482910156,
+      "participating_clients": 4
+    },
+    {
+      "round": 47,
+      "clients": [
+        {
+          "name": "Hospital-IT-Roma",
+          "accuracy": 0.6275,
+          "loss": 0.626652142966009,
+          "grad_norm": 0.21842950767880057,
+          "time": 0.0005507469177246094
+        },
+        {
+          "name": "Hospital-DE-Berlin",
+          "accuracy": 0.634,
+          "loss": 0.635978044104779,
+          "grad_norm": 0.207001236675422,
+          "time": 0.0006611347198486328
+        },
+        {
+          "name": "Hospital-FR-Paris",
+          "accuracy": 0.64,
+          "loss": 0.6600069810551712,
+          "grad_norm": 0.19697497435499248,
+          "time": 0.00046896934509277344
+        },
+        {
+          "name": "Hospital-ES-Madrid",
+          "accuracy": 0.6222222222222222,
+          "loss": 0.652300808434177,
+          "grad_norm": 0.2362441857719909,
+          "time": 0.0006420612335205078
+        },
+        {
+          "name": "Hospital-NL-Amsterdam",
+          "accuracy": 0.6473684210526316,
+          "loss": 0.6274644427532552,
+          "grad_norm": 0.19528685435913784,
+          "time": 0.0005102157592773438
+        }
+      ],
+      "test_accuracy": 0.574,
+      "test_loss": 0.6625263908004367,
+      "round_time": 0.0032401084899902344,
+      "participating_clients": 5
+    },
+    {
+      "round": 48,
+      "clients": [
+        {
+          "name": "Hospital-IT-Roma",
+          "accuracy": 0.6275,
+          "loss": 0.6261895976740104,
+          "grad_norm": 0.21898337083868574,
+          "time": 0.0005459785461425781
+        },
+        {
+          "name": "Hospital-FR-Paris",
+          "accuracy": 0.6314285714285715,
+          "loss": 0.6596701009916985,
+          "grad_norm": 0.19690329353709896,
+          "time": 0.0004630088806152344
+        },
+        {
+          "name": "Hospital-ES-Madrid",
+          "accuracy": 0.6244444444444445,
+          "loss": 0.6517513185638586,
+          "grad_norm": 0.2529751916096906,
+          "time": 0.0006358623504638672
+        },
+        {
+          "name": "Hospital-NL-Amsterdam",
+          "accuracy": 0.6421052631578947,
+          "loss": 0.6274411008941215,
+          "grad_norm": 0.18536777629058035,
+          "time": 0.0005080699920654297
+        }
+      ],
+      "test_accuracy": 0.592,
+      "test_loss": 0.6634285353619654,
+      "round_time": 0.0023598670959472656,
+      "participating_clients": 4
+    },
+    {
+      "round": 49,
+      "clients": [
+        {
+          "name": "Hospital-IT-Roma",
+          "accuracy": 0.63,
+          "loss": 0.625384058992115,
+          "grad_norm": 0.21257206765933193,
+          "time": 0.0005476474761962891
+        },
+        {
+          "name": "Hospital-DE-Berlin",
+          "accuracy": 0.64,
+          "loss": 0.6360783585791414,
+          "grad_norm": 0.20401999010187086,
+          "time": 0.0008401870727539062
+        },
+        {
+          "name": "Hospital-FR-Paris",
+          "accuracy": 0.6171428571428571,
+          "loss": 0.6602452336459042,
+          "grad_norm": 0.1898369310874844,
+          "time": 0.0005140304565429688
+        },
+        {
+          "name": "Hospital-ES-Madrid",
+          "accuracy": 0.6444444444444445,
+          "loss": 0.6534848278621823,
+          "grad_norm": 0.24882380490678702,
+          "time": 0.0007371902465820312
+        },
+        {
+          "name": "Hospital-NL-Amsterdam",
+          "accuracy": 0.6368421052631579,
+          "loss": 0.6271813143192307,
+          "grad_norm": 0.21185276538954,
+          "time": 0.0005481243133544922
+        }
+      ],
+      "test_accuracy": 0.586,
+      "test_loss": 0.6626153441707897,
+      "round_time": 0.003512144088745117,
+      "participating_clients": 5
+    },
+    {
+      "round": 50,
+      "clients": [
+        {
+          "name": "Hospital-IT-Roma",
+          "accuracy": 0.6325,
+          "loss": 0.6258508800732738,
+          "grad_norm": 0.20651828851549586,
+          "time": 0.0005970001220703125
+        },
+        {
+          "name": "Hospital-DE-Berlin",
+          "accuracy": 0.64,
+          "loss": 0.6359390805242755,
+          "grad_norm": 0.2156713081413948,
+          "time": 0.0006961822509765625
+        },
+        {
+          "name": "Hospital-FR-Paris",
+          "accuracy": 0.6257142857142857,
+          "loss": 0.6600052645034803,
+          "grad_norm": 0.19366029715948876,
+          "time": 0.0004911422729492188
+        },
+        {
+          "name": "Hospital-ES-Madrid",
+          "accuracy": 0.6333333333333333,
+          "loss": 0.6517759471641263,
+          "grad_norm": 0.24916291776837265,
+          "time": 0.0006501674652099609
+        },
+        {
+          "name": "Hospital-NL-Amsterdam",
+          "accuracy": 0.6421052631578947,
+          "loss": 0.627296873715144,
+          "grad_norm": 0.2331097310965542,
+          "time": 0.0005359649658203125
+        }
+      ],
+      "test_accuracy": 0.584,
+      "test_loss": 0.6624912054967694,
+      "round_time": 0.0032470226287841797,
+      "participating_clients": 5
+    }
+  ],
+  "per_client_per_round": {
+    "Hospital-IT-Roma": [
+      {
+        "participated": true,
+        "accuracy": 0.6275,
+        "loss": 0.6284710967485146
+      },
+      {
+        "participated": false,
+        "accuracy": null,
+        "loss": null
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6325,
+        "loss": 0.6268795770690111
+      },
+      {
+        "participated": true,
+        "accuracy": 0.63,
+        "loss": 0.625975847804478
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6325,
+        "loss": 0.6253859896985098
+      },
+      {
+        "participated": true,
+        "accuracy": 0.635,
+        "loss": 0.6264869238353475
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6325,
+        "loss": 0.6263913613361173
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6325,
+        "loss": 0.6259805717992682
+      },
+      {
+        "participated": true,
+        "accuracy": 0.63,
+        "loss": 0.6265048316932571
+      },
+      {
+        "participated": true,
+        "accuracy": 0.63,
+        "loss": 0.6265662083952842
+      },
+      {
+        "participated": true,
+        "accuracy": 0.63,
+        "loss": 0.625544544632633
+      },
+      {
+        "participated": true,
+        "accuracy": 0.635,
+        "loss": 0.6263205173639845
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6375,
+        "loss": 0.6262796838620404
+      },
+      {
+        "participated": true,
+        "accuracy": 0.64,
+        "loss": 0.6255230136521581
+      },
+      {
+        "participated": true,
+        "accuracy": 0.635,
+        "loss": 0.6261042070640722
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6325,
+        "loss": 0.6261034995545978
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6325,
+        "loss": 0.6259526211117311
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6375,
+        "loss": 0.6258883503188123
+      },
+      {
+        "participated": true,
+        "accuracy": 0.635,
+        "loss": 0.6269594739414072
+      },
+      {
+        "participated": false,
+        "accuracy": null,
+        "loss": null
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6325,
+        "loss": 0.6266208576992953
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6325,
+        "loss": 0.6263982866585135
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6325,
+        "loss": 0.6251659965043628
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6325,
+        "loss": 0.6263096516555156
+      },
+      {
+        "participated": true,
+        "accuracy": 0.635,
+        "loss": 0.6261965585902394
+      },
+      {
+        "participated": false,
+        "accuracy": null,
+        "loss": null
+      },
+      {
+        "participated": true,
+        "accuracy": 0.635,
+        "loss": 0.6264607797778637
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6375,
+        "loss": 0.6262578050792181
+      },
+      {
+        "participated": true,
+        "accuracy": 0.63,
+        "loss": 0.6264440399614576
+      },
+      {
+        "participated": true,
+        "accuracy": 0.635,
+        "loss": 0.6261148248962213
+      },
+      {
+        "participated": true,
+        "accuracy": 0.63,
+        "loss": 0.6258821905712879
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6325,
+        "loss": 0.6258266802959747
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6225,
+        "loss": 0.6265181691159641
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6325,
+        "loss": 0.6267265188340794
+      },
+      {
+        "participated": false,
+        "accuracy": null,
+        "loss": null
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6325,
+        "loss": 0.6271546225678363
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6375,
+        "loss": 0.6263291667885112
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6375,
+        "loss": 0.6261089628175631
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6275,
+        "loss": 0.6251915610921611
+      },
+      {
+        "participated": true,
+        "accuracy": 0.63,
+        "loss": 0.626003458038623
+      },
+      {
+        "participated": false,
+        "accuracy": null,
+        "loss": null
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6325,
+        "loss": 0.62701293038935
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6325,
+        "loss": 0.625934495831081
+      },
+      {
+        "participated": false,
+        "accuracy": null,
+        "loss": null
+      },
+      {
+        "participated": true,
+        "accuracy": 0.635,
+        "loss": 0.6266107141652939
+      },
+      {
+        "participated": true,
+        "accuracy": 0.63,
+        "loss": 0.6267102721717452
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6275,
+        "loss": 0.626652142966009
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6275,
+        "loss": 0.6261895976740104
+      },
+      {
+        "participated": true,
+        "accuracy": 0.63,
+        "loss": 0.625384058992115
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6325,
+        "loss": 0.6258508800732738
+      }
+    ],
+    "Hospital-DE-Berlin": [
+      {
+        "participated": true,
+        "accuracy": 0.636,
+        "loss": 0.6392592746782716
+      },
+      {
+        "participated": true,
+        "accuracy": 0.636,
+        "loss": 0.6362551596952085
+      },
+      {
+        "participated": false,
+        "accuracy": null,
+        "loss": null
+      },
+      {
+        "participated": true,
+        "accuracy": 0.636,
+        "loss": 0.6359352786120259
+      },
+      {
+        "participated": true,
+        "accuracy": 0.638,
+        "loss": 0.6361704217830217
+      },
+      {
+        "participated": true,
+        "accuracy": 0.64,
+        "loss": 0.6360383092417824
+      },
+      {
+        "participated": true,
+        "accuracy": 0.636,
+        "loss": 0.6355707913086893
+      },
+      {
+        "participated": true,
+        "accuracy": 0.636,
+        "loss": 0.6357487069905402
+      },
+      {
+        "participated": true,
+        "accuracy": 0.638,
+        "loss": 0.6359683892118976
+      },
+      {
+        "participated": false,
+        "accuracy": null,
+        "loss": null
+      },
+      {
+        "participated": true,
+        "accuracy": 0.64,
+        "loss": 0.6361131622934245
+      },
+      {
+        "participated": true,
+        "accuracy": 0.636,
+        "loss": 0.6356581027029642
+      },
+      {
+        "participated": true,
+        "accuracy": 0.638,
+        "loss": 0.6359369215817853
+      },
+      {
+        "participated": true,
+        "accuracy": 0.638,
+        "loss": 0.635908414797556
+      },
+      {
+        "participated": true,
+        "accuracy": 0.64,
+        "loss": 0.63597975807537
+      },
+      {
+        "participated": true,
+        "accuracy": 0.646,
+        "loss": 0.6365005545956687
+      },
+      {
+        "participated": true,
+        "accuracy": 0.634,
+        "loss": 0.635972571220732
+      },
+      {
+        "participated": true,
+        "accuracy": 0.642,
+        "loss": 0.6358453512862353
+      },
+      {
+        "participated": true,
+        "accuracy": 0.638,
+        "loss": 0.635754713319981
+      },
+      {
+        "participated": true,
+        "accuracy": 0.636,
+        "loss": 0.6356566484253275
+      },
+      {
+        "participated": true,
+        "accuracy": 0.632,
+        "loss": 0.6357030697327828
+      },
+      {
+        "participated": false,
+        "accuracy": null,
+        "loss": null
+      },
+      {
+        "participated": true,
+        "accuracy": 0.638,
+        "loss": 0.6361119781402248
+      },
+      {
+        "participated": true,
+        "accuracy": 0.638,
+        "loss": 0.635930405535697
+      },
+      {
+        "participated": true,
+        "accuracy": 0.638,
+        "loss": 0.6356467401061877
+      },
+      {
+        "participated": true,
+        "accuracy": 0.638,
+        "loss": 0.635844460389322
+      },
+      {
+        "participated": true,
+        "accuracy": 0.642,
+        "loss": 0.6355079991568384
+      },
+      {
+        "participated": true,
+        "accuracy": 0.638,
+        "loss": 0.6356634843022814
+      },
+      {
+        "participated": true,
+        "accuracy": 0.632,
+        "loss": 0.6356408706860732
+      },
+      {
+        "participated": true,
+        "accuracy": 0.64,
+        "loss": 0.6357323623836999
+      },
+      {
+        "participated": true,
+        "accuracy": 0.636,
+        "loss": 0.6356603399248384
+      },
+      {
+        "participated": true,
+        "accuracy": 0.64,
+        "loss": 0.6357782549010804
+      },
+      {
+        "participated": true,
+        "accuracy": 0.642,
+        "loss": 0.6356473827653933
+      },
+      {
+        "participated": true,
+        "accuracy": 0.636,
+        "loss": 0.6356101992311023
+      },
+      {
+        "participated": true,
+        "accuracy": 0.636,
+        "loss": 0.635530476174722
+      },
+      {
+        "participated": true,
+        "accuracy": 0.642,
+        "loss": 0.6354942629895186
+      },
+      {
+        "participated": true,
+        "accuracy": 0.632,
+        "loss": 0.6356513724177643
+      },
+      {
+        "participated": false,
+        "accuracy": null,
+        "loss": null
+      },
+      {
+        "participated": true,
+        "accuracy": 0.644,
+        "loss": 0.6365603269060373
+      },
+      {
+        "participated": false,
+        "accuracy": null,
+        "loss": null
+      },
+      {
+        "participated": true,
+        "accuracy": 0.634,
+        "loss": 0.6364768433254839
+      },
+      {
+        "participated": true,
+        "accuracy": 0.638,
+        "loss": 0.6355141672584907
+      },
+      {
+        "participated": false,
+        "accuracy": null,
+        "loss": null
+      },
+      {
+        "participated": true,
+        "accuracy": 0.638,
+        "loss": 0.6363579173098938
+      },
+      {
+        "participated": true,
+        "accuracy": 0.636,
+        "loss": 0.635656342056152
+      },
+      {
+        "participated": true,
+        "accuracy": 0.638,
+        "loss": 0.6357202130971471
+      },
+      {
+        "participated": true,
+        "accuracy": 0.634,
+        "loss": 0.635978044104779
+      },
+      {
+        "participated": false,
+        "accuracy": null,
+        "loss": null
+      },
+      {
+        "participated": true,
+        "accuracy": 0.64,
+        "loss": 0.6360783585791414
+      },
+      {
+        "participated": true,
+        "accuracy": 0.64,
+        "loss": 0.6359390805242755
+      }
+    ],
+    "Hospital-FR-Paris": [
+      {
+        "participated": true,
+        "accuracy": 0.6342857142857142,
+        "loss": 0.6656185241320092
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6285714285714286,
+        "loss": 0.6602847225486401
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6285714285714286,
+        "loss": 0.6594761913536986
+      },
+      {
+        "participated": false,
+        "accuracy": null,
+        "loss": null
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6228571428571429,
+        "loss": 0.6602007529933851
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6371428571428571,
+        "loss": 0.6600423700666336
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6457142857142857,
+        "loss": 0.659885244779633
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6371428571428571,
+        "loss": 0.6597679051485594
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6342857142857142,
+        "loss": 0.6596010932393247
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6257142857142857,
+        "loss": 0.6592887485801304
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6228571428571429,
+        "loss": 0.6603472681583876
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6314285714285715,
+        "loss": 0.6598468375509182
+      },
+      {
+        "participated": false,
+        "accuracy": null,
+        "loss": null
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6342857142857142,
+        "loss": 0.6604377157289307
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6342857142857142,
+        "loss": 0.6600636274150673
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6342857142857142,
+        "loss": 0.6597013260790582
+      },
+      {
+        "participated": false,
+        "accuracy": null,
+        "loss": null
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6371428571428571,
+        "loss": 0.6598025395586152
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6371428571428571,
+        "loss": 0.6597313700484857
+      },
+      {
+        "participated": true,
+        "accuracy": 0.64,
+        "loss": 0.6597096189578563
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6314285714285715,
+        "loss": 0.6593728668385753
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6314285714285715,
+        "loss": 0.6595557361721494
+      },
+      {
+        "participated": true,
+        "accuracy": 0.62,
+        "loss": 0.660661895368265
+      },
+      {
+        "participated": false,
+        "accuracy": null,
+        "loss": null
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6342857142857142,
+        "loss": 0.6599568678553511
+      },
+      {
+        "participated": false,
+        "accuracy": null,
+        "loss": null
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6342857142857142,
+        "loss": 0.6604431764121629
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6342857142857142,
+        "loss": 0.65980595958333
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6285714285714286,
+        "loss": 0.6595778900734516
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6314285714285715,
+        "loss": 0.6596633990425874
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6342857142857142,
+        "loss": 0.6595137535931228
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6342857142857142,
+        "loss": 0.6591995952130266
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6314285714285715,
+        "loss": 0.6594079482264168
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6371428571428571,
+        "loss": 0.6597911663051087
+      },
+      {
+        "participated": false,
+        "accuracy": null,
+        "loss": null
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6342857142857142,
+        "loss": 0.660220177651871
+      },
+      {
+        "participated": true,
+        "accuracy": 0.64,
+        "loss": 0.6598424417748586
+      },
+      {
+        "participated": true,
+        "accuracy": 0.64,
+        "loss": 0.6600402855825168
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6342857142857142,
+        "loss": 0.6600562838653172
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6314285714285715,
+        "loss": 0.6594665024355939
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6314285714285715,
+        "loss": 0.6596873956237608
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6285714285714286,
+        "loss": 0.6595609943323155
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6342857142857142,
+        "loss": 0.6597248116622072
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6342857142857142,
+        "loss": 0.6602203453688841
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6314285714285715,
+        "loss": 0.6598070649869313
+      },
+      {
+        "participated": false,
+        "accuracy": null,
+        "loss": null
+      },
+      {
+        "participated": true,
+        "accuracy": 0.64,
+        "loss": 0.6600069810551712
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6314285714285715,
+        "loss": 0.6596701009916985
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6171428571428571,
+        "loss": 0.6602452336459042
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6257142857142857,
+        "loss": 0.6600052645034803
+      }
+    ],
+    "Hospital-ES-Madrid": [
+      {
+        "participated": true,
+        "accuracy": 0.6222222222222222,
+        "loss": 0.6529215624476953
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6311111111111111,
+        "loss": 0.6519184670891834
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6133333333333333,
+        "loss": 0.6535152223964651
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6422222222222222,
+        "loss": 0.6524615229204803
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6222222222222222,
+        "loss": 0.6509128216314505
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6288888888888889,
+        "loss": 0.6515667332790991
+      },
+      {
+        "participated": true,
+        "accuracy": 0.62,
+        "loss": 0.6515453414438822
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6288888888888889,
+        "loss": 0.6520910138287903
+      },
+      {
+        "participated": false,
+        "accuracy": null,
+        "loss": null
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6177777777777778,
+        "loss": 0.6507552284120587
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6244444444444445,
+        "loss": 0.6521780252779563
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6266666666666667,
+        "loss": 0.6507479347473036
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6222222222222222,
+        "loss": 0.6508527720357535
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6155555555555555,
+        "loss": 0.6550779377089789
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6333333333333333,
+        "loss": 0.6527555574005907
+      },
+      {
+        "participated": true,
+        "accuracy": 0.62,
+        "loss": 0.6537094668664518
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6155555555555555,
+        "loss": 0.6538159678217258
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6155555555555555,
+        "loss": 0.6521325948644296
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6333333333333333,
+        "loss": 0.6516048665031322
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6355555555555555,
+        "loss": 0.653712157448495
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6333333333333333,
+        "loss": 0.6518550325709379
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6222222222222222,
+        "loss": 0.6518204145594226
+      },
+      {
+        "participated": false,
+        "accuracy": null,
+        "loss": null
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6244444444444445,
+        "loss": 0.6530412583982764
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6377777777777778,
+        "loss": 0.6515995084247844
+      },
+      {
+        "participated": true,
+        "accuracy": 0.62,
+        "loss": 0.6520355843668042
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6244444444444445,
+        "loss": 0.6514862436862059
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6133333333333333,
+        "loss": 0.6543870562480063
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6244444444444445,
+        "loss": 0.6506104988749829
+      },
+      {
+        "participated": false,
+        "accuracy": null,
+        "loss": null
+      },
+      {
+        "participated": false,
+        "accuracy": null,
+        "loss": null
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6266666666666667,
+        "loss": 0.6536982838281914
+      },
+      {
+        "participated": true,
+        "accuracy": 0.62,
+        "loss": 0.6514901252890836
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6177777777777778,
+        "loss": 0.6519009445423019
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6333333333333333,
+        "loss": 0.6512843299190164
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6333333333333333,
+        "loss": 0.6513308505691164
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6333333333333333,
+        "loss": 0.6519026010004497
+      },
+      {
+        "participated": true,
+        "accuracy": 0.62,
+        "loss": 0.6544008564425619
+      },
+      {
+        "participated": false,
+        "accuracy": null,
+        "loss": null
+      },
+      {
+        "participated": false,
+        "accuracy": null,
+        "loss": null
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6222222222222222,
+        "loss": 0.6527183791249185
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6222222222222222,
+        "loss": 0.6526046706665664
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6177777777777778,
+        "loss": 0.6530414822071434
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6333333333333333,
+        "loss": 0.6519505570758017
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6377777777777778,
+        "loss": 0.6519757700623442
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6133333333333333,
+        "loss": 0.6549645442926463
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6222222222222222,
+        "loss": 0.652300808434177
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6244444444444445,
+        "loss": 0.6517513185638586
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6444444444444445,
+        "loss": 0.6534848278621823
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6333333333333333,
+        "loss": 0.6517759471641263
+      }
+    ],
+    "Hospital-NL-Amsterdam": [
+      {
+        "participated": true,
+        "accuracy": 0.6578947368421053,
+        "loss": 0.6304422153390645
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6421052631578947,
+        "loss": 0.6277053109858332
+      },
+      {
+        "participated": true,
+        "accuracy": 0.631578947368421,
+        "loss": 0.6275064051355046
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6421052631578947,
+        "loss": 0.6273618591488653
+      },
+      {
+        "participated": false,
+        "accuracy": null,
+        "loss": null
+      },
+      {
+        "participated": false,
+        "accuracy": null,
+        "loss": null
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6394736842105263,
+        "loss": 0.6275236842342018
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6394736842105263,
+        "loss": 0.6273963604805006
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6473684210526316,
+        "loss": 0.6273175662204844
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6394736842105263,
+        "loss": 0.6274357345047766
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6368421052631579,
+        "loss": 0.6270978240123363
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6447368421052632,
+        "loss": 0.6273834147179896
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6421052631578947,
+        "loss": 0.6273359207360013
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6447368421052632,
+        "loss": 0.6273287520939744
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6368421052631579,
+        "loss": 0.6272980184992525
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6447368421052632,
+        "loss": 0.6273214861672001
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6394736842105263,
+        "loss": 0.6274137893845911
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6421052631578947,
+        "loss": 0.6274366141664651
+      },
+      {
+        "participated": false,
+        "accuracy": null,
+        "loss": null
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6421052631578947,
+        "loss": 0.6275095863237168
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6342105263157894,
+        "loss": 0.6277784641174474
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6447368421052632,
+        "loss": 0.6273371054362693
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6473684210526316,
+        "loss": 0.627142498927438
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6473684210526316,
+        "loss": 0.6272797591228296
+      },
+      {
+        "participated": true,
+        "accuracy": 0.65,
+        "loss": 0.6273548489098092
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6421052631578947,
+        "loss": 0.6273697088737847
+      },
+      {
+        "participated": true,
+        "accuracy": 0.631578947368421,
+        "loss": 0.627820315683948
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6421052631578947,
+        "loss": 0.6274895782997164
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6394736842105263,
+        "loss": 0.6275739977844359
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6447368421052632,
+        "loss": 0.6273260017319306
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6342105263157894,
+        "loss": 0.6275621965202143
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6368421052631579,
+        "loss": 0.6274666262496257
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6447368421052632,
+        "loss": 0.6274181438409131
+      },
+      {
+        "participated": false,
+        "accuracy": null,
+        "loss": null
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6394736842105263,
+        "loss": 0.6275035282309431
+      },
+      {
+        "participated": true,
+        "accuracy": 0.631578947368421,
+        "loss": 0.6277424412051432
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6289473684210526,
+        "loss": 0.6277265404534004
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6394736842105263,
+        "loss": 0.6274189139045613
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6421052631578947,
+        "loss": 0.6272054363535733
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6447368421052632,
+        "loss": 0.6273428357194405
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6394736842105263,
+        "loss": 0.6270719027205066
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6368421052631579,
+        "loss": 0.6276686488925644
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6447368421052632,
+        "loss": 0.6274894603928188
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6473684210526316,
+        "loss": 0.6271564823725156
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6368421052631579,
+        "loss": 0.6275780488546286
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6394736842105263,
+        "loss": 0.6274543075313633
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6473684210526316,
+        "loss": 0.6274644427532552
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6421052631578947,
+        "loss": 0.6274411008941215
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6368421052631579,
+        "loss": 0.6271813143192307
+      },
+      {
+        "participated": true,
+        "accuracy": 0.6421052631578947,
+        "loss": 0.627296873715144
+      }
+    ]
+  },
+  "gradient_norms": {
+    "Hospital-IT-Roma": [
+      0.2518903793460412,
+      0,
+      0.2000417200776625,
+      0.20453964755991308,
+      0.22018432724313278,
+      0.2156588475918494,
+      0.21790314159673757,
+      0.23164760523482736,
+      0.216985054506315,
+      0.21204836783597436,
+      0.2013836556203262,
+      0.20891410138395153,
+      0.2049297122237777,
+      0.2218425665472288,
+      0.21598155450398387,
+      0.19402817509352052,
+      0.21278669806069955,
+      0.19011382771743038,
+      0.2023899973263657,
+      0,
+      0.1938205977911552,
+      0.22701988302083714,
+      0.21608146631997735,
+      0.22021718135568177,
+      0.21676883400602776,
+      0,
+      0.25135090193223864,
+      0.19147563505042814,
+      0.22393231077117223,
+      0.21455825301244508,
+      0.21216273440303837,
+      0.2247314449394309,
+      0.20059533953052402,
+      0.19177092195563392,
+      0,
+      0.20177517754619667,
+      0.2129149770705135,
+      0.21012546528489212,
+      0.21192837225032454,
+      0.20673204309620488,
+      0,
+      0.24543149953749804,
+      0.20521752823412845,
+      0,
+      0.21702891402181207,
+      0.21760368274022637,
+      0.21842950767880057,
+      0.21898337083868574,
+      0.21257206765933193,
+      0.20651828851549586
+    ],
+    "Hospital-DE-Berlin": [
+      0.22794033083811735,
+      0.22401344761246902,
+      0,
+      0.21532171715775986,
+      0.20873057563343847,
+      0.2072459169753292,
+      0.2171945391020389,
+      0.19747596077031312,
+      0.19426881954080277,
+      0,
+      0.19629468695275967,
+      0.20225179200735843,
+      0.20992154115327874,
+      0.20581671651215638,
+      0.1988525793794542,
+      0.2076350254546675,
+      0.20769161083606147,
+      0.2106001146183891,
+      0.20198903718299502,
+      0.21289045574461177,
+      0.19165473247532785,
+      0,
+      0.19899893729109355,
+      0.20168397460531717,
+      0.1965899300984245,
+      0.20968807433363632,
+      0.2094352136656937,
+      0.19661001586718943,
+      0.19057892645502775,
+      0.2126820949850877,
+      0.19577732993393923,
+      0.19824896549516413,
+      0.2069196957816135,
+      0.21278817361888566,
+      0.20896070099427932,
+      0.2092851898410073,
+      0.19936822038422056,
+      0,
+      0.19912619878904694,
+      0,
+      0.19415494536479053,
+      0.2016578030073958,
+      0,
+      0.19863014752244068,
+      0.20957175564322028,
+      0.2041422283276898,
+      0.207001236675422,
+      0,
+      0.20401999010187086,
+      0.2156713081413948
+    ],
+    "Hospital-FR-Paris": [
+      0.20091724605934866,
+      0.18773632550681105,
+      0.193997594492149,
+      0,
+      0.1999056387605852,
+      0.19297352391966324,
+      0.19123088306852984,
+      0.1953059940638731,
+      0.19511442179739147,
+      0.1839429723708438,
+      0.19127725441390817,
+      0.19194389207054893,
+      0,
+      0.1986551869976342,
+      0.18921073471103506,
+      0.19299124841704224,
+      0,
+      0.2023681980932526,
+      0.17768520011470706,
+      0.20543103412904587,
+      0.1985592932929406,
+      0.19112825408319695,
+      0.1935086871338481,
+      0,
+      0.19796113614011446,
+      0,
+      0.20044943195773382,
+      0.2010342380752843,
+      0.18543460722800786,
+      0.19076837661028456,
+      0.19079873431306546,
+      0.18628676829630963,
+      0.20122283083094278,
+      0.2064892679693908,
+      0,
+      0.18624134903391143,
+      0.21196363124605902,
+      0.18751306922796093,
+      0.19143818098944307,
+      0.2003786875292431,
+      0.18660378560750024,
+      0.17743917040942295,
+      0.18311580690045126,
+      0.18106111728525384,
+      0.200951831544922,
+      0,
+      0.19697497435499248,
+      0.19690329353709896,
+      0.1898369310874844,
+      0.19366029715948876
+    ],
+    "Hospital-ES-Madrid": [
+      0.27887174895236355,
+      0.23791349940855744,
+      0.23517814673490467,
+      0.24807841989158,
+      0.23033422392134462,
+      0.25522507474354,
+      0.2534762865405007,
+      0.24830800736702288,
+      0,
+      0.24786953977548684,
+      0.25350940004390216,
+      0.25539536379745864,
+      0.2491605984300979,
+      0.2702808191899143,
+      0.22997718734730824,
+      0.2643386401278444,
+      0.2665719421485075,
+      0.24065363240298737,
+      0.2501978456693987,
+      0.2679830828464204,
+      0.24912278672316532,
+      0.24950684705398551,
+      0,
+      0.26206061715343054,
+      0.24049763186903014,
+      0.23244783797420798,
+      0.22616097573587687,
+      0.25291900265136913,
+      0.24853390325862001,
+      0,
+      0,
+      0.22738192813840707,
+      0.21906523681606146,
+      0.2529895915420954,
+      0.22668788459318534,
+      0.23067674427064927,
+      0.23314423122497352,
+      0.2503198220538671,
+      0,
+      0,
+      0.23783569134596796,
+      0.2606708896030907,
+      0.2587813466416262,
+      0.23364395830592827,
+      0.22092227788072813,
+      0.24472060652575223,
+      0.2362441857719909,
+      0.2529751916096906,
+      0.24882380490678702,
+      0.24916291776837265
+    ],
+    "Hospital-NL-Amsterdam": [
+      0.22950566118217916,
+      0.20625742784626677,
+      0.1806372325147185,
+      0.20411991661849585,
+      0,
+      0,
+      0.2053325260385637,
+      0.2055649977679602,
+      0.21098381336148508,
+      0.19857001179096512,
+      0.19196366443373372,
+      0.177201333983798,
+      0.19861977858531915,
+      0.167057944179113,
+      0.17283952671968505,
+      0.1967187019497091,
+      0.19145744255225108,
+      0.20985555585662535,
+      0,
+      0.19988431523239517,
+      0.21117567692395284,
+      0.1905140252470705,
+      0.19937591551329115,
+      0.18040833160310876,
+      0.21827958791162685,
+      0.18740161793632712,
+      0.20442115873335323,
+      0.20191830666280916,
+      0.18901898120526262,
+      0.2018161635074065,
+      0.20600790233053595,
+      0.21094871071421317,
+      0.21603819342729869,
+      0,
+      0.1824077629022106,
+      0.21467432603261086,
+      0.20025758924444015,
+      0.1940135268302757,
+      0.19541017101243108,
+      0.18875529086777293,
+      0.20333289984097888,
+      0.1799576667068883,
+      0.19525739528359173,
+      0.20604781713405992,
+      0.2088361387288614,
+      0.18642445708521177,
+      0.19528685435913784,
+      0.18536777629058035,
+      0.21185276538954,
+      0.2331097310965542
+    ]
+  },
+  "training_times": {
+    "Hospital-IT-Roma": [
+      0.0007569789886474609,
+      0,
+      0.0009019374847412109,
+      0.0009050369262695312,
+      0.0007998943328857422,
+      0.000701904296875,
+      0.0007958412170410156,
+      0.0007221698760986328,
+      0.0006718635559082031,
+      0.0006718635559082031,
+      0.0006628036499023438,
+      0.0006718635559082031,
+      0.000644683837890625,
+      0.0006210803985595703,
+      0.0006258487701416016,
+      0.0005843639373779297,
+      0.0005881786346435547,
+      0.0005750656127929688,
+      0.0005869865417480469,
+      0,
+      0.0005700588226318359,
+      0.0005781650543212891,
+      0.0006608963012695312,
+      0.0005922317504882812,
+      0.0006108283996582031,
+      0,
+      0.0005829334259033203,
+      0.0005860328674316406,
+      0.000553131103515625,
+      0.0005688667297363281,
+      0.0005898475646972656,
+      0.0005869865417480469,
+      0.0005900859832763672,
+      0.0005481243133544922,
+      0,
+      0.0006060600280761719,
+      0.000598907470703125,
+      0.0005557537078857422,
+      0.0005440711975097656,
+      0.0005459785461425781,
+      0,
+      0.0006158351898193359,
+      0.0005550384521484375,
+      0,
+      0.000560760498046875,
+      0.0005490779876708984,
+      0.0005507469177246094,
+      0.0005459785461425781,
+      0.0005476474761962891,
+      0.0005970001220703125
+    ],
+    "Hospital-DE-Berlin": [
+      0.0007288455963134766,
+      0.0007269382476806641,
+      0,
+      0.0010900497436523438,
+      0.0009732246398925781,
+      0.0011010169982910156,
+      0.0008821487426757812,
+      0.0008780956268310547,
+      0.0008070468902587891,
+      0,
+      0.00080108642578125,
+      0.0009462833404541016,
+      0.0007827281951904297,
+      0.0007510185241699219,
+      0.0007390975952148438,
+      0.0007109642028808594,
+      0.0007290840148925781,
+      0.0007100105285644531,
+      0.0007128715515136719,
+      0.0007691383361816406,
+      0.0006949901580810547,
+      0,
+      0.0007169246673583984,
+      0.0007038116455078125,
+      0.000705718994140625,
+      0.0007278919219970703,
+      0.0007061958312988281,
+      0.000720977783203125,
+      0.0007932186126708984,
+      0.0006978511810302734,
+      0.000675201416015625,
+      0.0007190704345703125,
+      0.0007112026214599609,
+      0.0007190704345703125,
+      0.0006840229034423828,
+      0.0006930828094482422,
+      0.0007059574127197266,
+      0,
+      0.0006639957427978516,
+      0,
+      0.0006742477416992188,
+      0.0006997585296630859,
+      0,
+      0.0006823539733886719,
+      0.0006771087646484375,
+      0.0006682872772216797,
+      0.0006611347198486328,
+      0,
+      0.0008401870727539062,
+      0.0006961822509765625
+    ],
+    "Hospital-FR-Paris": [
+      0.0005037784576416016,
+      0.0005147457122802734,
+      0.0009310245513916016,
+      0,
+      0.0006749629974365234,
+      0.0007040500640869141,
+      0.0006148815155029297,
+      0.0006096363067626953,
+      0.0005710124969482422,
+      0.0005629062652587891,
+      0.0006380081176757812,
+      0.0006039142608642578,
+      0,
+      0.0005209445953369141,
+      0.0004940032958984375,
+      0.0005090236663818359,
+      0,
+      0.0005037784576416016,
+      0.0004978179931640625,
+      0.0005021095275878906,
+      0.0004918575286865234,
+      0.0004940032958984375,
+      0.0004909038543701172,
+      0,
+      0.0004870891571044922,
+      0,
+      0.0004999637603759766,
+      0.0005030632019042969,
+      0.0005152225494384766,
+      0.0004961490631103516,
+      0.0005879402160644531,
+      0.0004889965057373047,
+      0.0004870891571044922,
+      0.00047588348388671875,
+      0,
+      0.00048089027404785156,
+      0.0005052089691162109,
+      0.0004589557647705078,
+      0.0004620552062988281,
+      0.0004620552062988281,
+      0.0004661083221435547,
+      0.0004799365997314453,
+      0.00047588348388671875,
+      0.0004839897155761719,
+      0.00046324729919433594,
+      0,
+      0.00046896934509277344,
+      0.0004630088806152344,
+      0.0005140304565429688,
+      0.0004911422729492188
+    ],
+    "Hospital-ES-Madrid": [
+      0.0010190010070800781,
+      0.0006690025329589844,
+      0.0010848045349121094,
+      0.0009920597076416016,
+      0.0010440349578857422,
+      0.0009260177612304688,
+      0.0008351802825927734,
+      0.0007927417755126953,
+      0,
+      0.0007560253143310547,
+      0.0007810592651367188,
+      0.0007870197296142578,
+      0.0007100105285644531,
+      0.0007920265197753906,
+      0.0006701946258544922,
+      0.0006690025329589844,
+      0.0006730556488037109,
+      0.0006690025329589844,
+      0.0006701946258544922,
+      0.0006661415100097656,
+      0.0006687641143798828,
+      0.0006680488586425781,
+      0,
+      0.0006747245788574219,
+      0.0006580352783203125,
+      0.0006730556488037109,
+      0.0006661415100097656,
+      0.0007522106170654297,
+      0.0006749629974365234,
+      0,
+      0,
+      0.0006990432739257812,
+      0.0006592273712158203,
+      0.0006473064422607422,
+      0.0007870197296142578,
+      0.000644683837890625,
+      0.0006878376007080078,
+      0.0006289482116699219,
+      0,
+      0,
+      0.0006320476531982422,
+      0.000637054443359375,
+      0.0006499290466308594,
+      0.0006427764892578125,
+      0.0006797313690185547,
+      0.0006318092346191406,
+      0.0006420612335205078,
+      0.0006358623504638672,
+      0.0007371902465820312,
+      0.0006501674652099609
+    ],
+    "Hospital-NL-Amsterdam": [
+      0.0007688999176025391,
+      0.0007607936859130859,
+      0.0008409023284912109,
+      0.0007419586181640625,
+      0,
+      0,
+      0.0006699562072753906,
+      0.0006642341613769531,
+      0.0006792545318603516,
+      0.0006079673767089844,
+      0.0006148815155029297,
+      0.0006158351898193359,
+      0.0005810260772705078,
+      0.0005841255187988281,
+      0.0005381107330322266,
+      0.0005419254302978516,
+      0.0005400180816650391,
+      0.0005369186401367188,
+      0,
+      0.0005319118499755859,
+      0.0005471706390380859,
+      0.0005459785461425781,
+      0.0005402565002441406,
+      0.0005590915679931641,
+      0.0006341934204101562,
+      0.0005359649658203125,
+      0.0005419254302978516,
+      0.0005278587341308594,
+      0.0005152225494384766,
+      0.0005366802215576172,
+      0.0005617141723632812,
+      0.0005450248718261719,
+      0.0005178451538085938,
+      0,
+      0.0005748271942138672,
+      0.0005199909210205078,
+      0.0005409717559814453,
+      0.0005068778991699219,
+      0.0005021095275878906,
+      0.0005099773406982422,
+      0.0005018711090087891,
+      0.0005109310150146484,
+      0.000537872314453125,
+      0.0005140304565429688,
+      0.0005090236663818359,
+      0.0005090236663818359,
+      0.0005102157592773438,
+      0.0005080699920654297,
+      0.0005481243133544922,
+      0.0005359649658203125
+    ]
+  },
+  "communication_bytes": {
+    "Hospital-IT-Roma": [
+      48,
+      0,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      0,
+      48,
+      48,
+      48,
+      48,
+      48,
+      0,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      0,
+      48,
+      48,
+      48,
+      48,
+      48,
+      0,
+      48,
+      48,
+      0,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48
+    ],
+    "Hospital-DE-Berlin": [
+      48,
+      48,
+      0,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      0,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      0,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      0,
+      48,
+      0,
+      48,
+      48,
+      0,
+      48,
+      48,
+      48,
+      48,
+      0,
+      48,
+      48
+    ],
+    "Hospital-FR-Paris": [
+      48,
+      48,
+      48,
+      0,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      0,
+      48,
+      48,
+      48,
+      0,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      0,
+      48,
+      0,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      0,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      0,
+      48,
+      48,
+      48,
+      48
+    ],
+    "Hospital-ES-Madrid": [
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      0,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      0,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      0,
+      0,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      0,
+      0,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48
+    ],
+    "Hospital-NL-Amsterdam": [
+      48,
+      48,
+      48,
+      48,
+      0,
+      0,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      0,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      0,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48,
+      48
+    ]
+  },
+  "participation_matrix": [
+    [
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      0,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      0,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      0,
+      1
+    ],
+    [
+      1,
+      0,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      0,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      0,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      0,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      0,
+      1
+    ],
+    [
+      1,
+      1,
+      0,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      0,
+      1,
+      0,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      0,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      0,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      0
+    ],
+    [
+      0,
+      1,
+      0,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      0,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      0,
+      1
+    ],
+    [
+      1,
+      0,
+      1,
+      0,
+      1
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      0,
+      1,
+      1,
+      1
+    ],
+    [
+      0,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      0,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      0,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1
+    ],
+    [
+      1,
+      1,
+      1,
+      1,
+      1
+    ]
+  ]
+}

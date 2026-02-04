@@ -590,16 +590,27 @@ M. Abadi \textit{et al.}, ``Deep learning with differential privacy,'' in \texti
 \end{thebibliography}
 
 % ============================================================================
-% APPENDIX - PSEUDOCODE (Outside page count)
+% APPENDIX - PSEUDOCODE AND SUPPLEMENTARY FIGURES (Outside page count)
 % ============================================================================
 \appendix
 
 \section{FL-EHDS Algorithm Pseudocode}
 \label{appendix:pseudocode}
 
-This appendix provides formal algorithmic descriptions of the FL-EHDS framework components.
+This appendix provides formal algorithmic descriptions of the FL-EHDS framework components. Each algorithm includes detailed explanations of key steps and their relevance to EHDS compliance requirements.
 
 \subsection{FedAvg with EHDS Compliance}
+
+Algorithm~1 presents the core federated averaging procedure adapted for EHDS regulatory requirements. The algorithm operates in a client-server architecture where the central aggregator (typically within a Secure Processing Environment) coordinates training across distributed hospital nodes.
+
+\textbf{Key Design Decisions:}
+\begin{itemize}
+    \item \textbf{ValidatePermit}: Before each training round, the HDAB-issued data permit is verified against temporal bounds and permitted purposes (EHDS Article 53). This ensures no training proceeds with expired or misaligned authorizations.
+    \item \textbf{SelectParticipants}: Implements configurable client selection---full participation (default) or sampling for large federations. Selection criteria may include connectivity, historical reliability, and data freshness.
+    \item \textbf{FilterOptedOut}: At each hospital, records from citizens who exercised their Article 71 opt-out rights are excluded \textit{before} any gradient computation. This filtering occurs locally to prevent opted-out data from influencing even intermediate computations.
+    \item \textbf{Weighted Aggregation}: Gradients are weighted by local dataset size ($n_h$), giving larger hospitals proportionally more influence on the global model. This follows the original FedAvg formulation and is appropriate when data quality is uniform.
+    \item \textbf{ClipGradient}: L2-norm clipping bounds individual hospital contributions, providing the sensitivity bound required for differential privacy and limiting the influence of any single institution.
+\end{itemize}
 
 \begin{figure}[htbp]
 \centering
@@ -636,6 +647,21 @@ This appendix provides formal algorithmic descriptions of the FL-EHDS framework 
 
 \subsection{Differential Privacy Mechanism}
 
+Algorithm~2 implements the Gaussian mechanism for differential privacy, providing formal privacy guarantees through calibrated noise injection. This mechanism is applied at the aggregation server after receiving clipped gradients from hospitals.
+
+\textbf{Mathematical Foundation:}
+The noise scale $\sigma$ is computed from the Gaussian mechanism formula where $C$ is the gradient clipping threshold (sensitivity), $\varepsilon$ is the privacy parameter (smaller = stronger privacy), and $\delta$ is the failure probability (typically $10^{-5}$). The formula $\sigma = C \cdot \sqrt{2\ln(1.25/\delta)}/\varepsilon$ guarantees $(\varepsilon, \delta)$-differential privacy.
+
+\textbf{Privacy Accountant:}
+The cumulative privacy expenditure is tracked across training rounds using composition theorems. Once the total budget is exhausted, further training must cease---this hard stop prevents ``privacy bankruptcy'' where continued queries would violate the guaranteed bounds.
+
+\textbf{Practical Considerations:}
+\begin{itemize}
+    \item At $\varepsilon = 10$, noise is moderate with minimal accuracy impact (1.4pp drop in our experiments).
+    \item At $\varepsilon = 1$ (strong privacy), noise significantly impacts convergence (5.2pp drop).
+    \item The tradeoff between $\varepsilon$ selection and model utility must be negotiated with HDABs during permit approval.
+\end{itemize}
+
 \begin{figure}[htbp]
 \centering
 \fbox{\parbox{0.92\columnwidth}{
@@ -643,12 +669,12 @@ This appendix provides formal algorithmic descriptions of the FL-EHDS framework 
 \textbf{Algorithm 2: Gaussian DP Mechanism}\\[2pt]
 \textbf{Input:} Gradient $\Delta$, sensitivity $C$, privacy budget $\varepsilon$, $\delta$\\
 \textbf{Output:} Noisy gradient $\tilde{\Delta}$\\[4pt]
-// Compute noise scale\\
+// Compute noise scale from Gaussian mechanism\\
 $\sigma \leftarrow C \cdot \sqrt{2 \ln(1.25/\delta)} / \varepsilon$\\[2pt]
-// Add calibrated noise\\
+// Add calibrated Gaussian noise to each parameter\\
 \textbf{for each} parameter $w \in \Delta$ \textbf{do}\\
 \hspace*{4mm}$\tilde{w} \leftarrow w + \mathcal{N}(0, \sigma^2)$\\[2pt]
-// Update privacy accountant\\
+// Track cumulative privacy expenditure\\
 PrivacyAccountant.spend($\varepsilon$)\\
 \textbf{if} PrivacyAccountant.budget\_exhausted() \textbf{then}\\
 \hspace*{4mm}\textbf{raise} PrivacyBudgetExhaustedError\\[2pt]
@@ -658,6 +684,16 @@ PrivacyAccountant.spend($\varepsilon$)\\
 
 \subsection{HDAB Permit Validation}
 
+Algorithm~3 ensures that all FL operations comply with the data permit issued by the responsible Health Data Access Body. This validation occurs before each training round and implements the regulatory requirements of EHDS Articles 53 (permitted purposes) and Article 30 of GDPR (record-keeping).
+
+\textbf{Validation Checks:}
+\begin{itemize}
+    \item \textbf{Temporal Validity}: Permits have explicit start and end dates. Continued training after expiration constitutes unauthorized processing.
+    \item \textbf{Purpose Alignment}: The permit specifies allowed purposes (e.g., scientific research, AI training). Each training run is tagged with a purpose that must match permit allowances.
+    \item \textbf{Category Authorization}: Different data categories (demographics, diagnoses, medications, genetic data) require separate authorization. The algorithm verifies that requested categories are covered.
+    \item \textbf{Audit Logging}: Every access attempt is logged with timestamp, permit reference, categories accessed, and round number---satisfying GDPR Article 30 record-keeping requirements for regulatory inspection.
+\end{itemize}
+
 \begin{figure}[htbp]
 \centering
 \fbox{\parbox{0.92\columnwidth}{
@@ -665,7 +701,7 @@ PrivacyAccountant.spend($\varepsilon$)\\
 \textbf{Algorithm 3: Data Permit Validation}\\[2pt]
 \textbf{Input:} Permit $P$, round $t$, requested categories $\mathcal{C}$\\
 \textbf{Output:} Boolean validity\\[4pt]
-// Check temporal validity\\
+// Check temporal validity (permit expiration)\\
 \textbf{if} CurrentTime() $>$ $P$.valid\_until \textbf{then}\\
 \hspace*{4mm}\textbf{raise} PermitExpiredError\\[2pt]
 // Check purpose alignment (Article 53)\\
@@ -675,7 +711,7 @@ PrivacyAccountant.spend($\varepsilon$)\\
 \textbf{for each} category $c \in \mathcal{C}$ \textbf{do}\\
 \hspace*{4mm}\textbf{if} $c \notin P$.authorized\_categories \textbf{then}\\
 \hspace*{8mm}\textbf{raise} UnauthorizedCategoryError\\[2pt]
-// Log access for GDPR Article 30\\
+// Log access for GDPR Article 30 compliance\\
 AuditTrail.log(permit=$P$, round=$t$, categories=$\mathcal{C}$)\\[2pt]
 \textbf{return} True
 }}
@@ -683,28 +719,289 @@ AuditTrail.log(permit=$P$, round=$t$, categories=$\mathcal{C}$)\\[2pt]
 
 \subsection{Secure Aggregation Protocol}
 
+Algorithm~4 implements secure aggregation using Shamir's secret sharing, ensuring that the aggregation server cannot observe individual hospital gradients---only their sum. This provides protection against a ``honest-but-curious'' central server.
+
+\textbf{Protocol Phases:}
+\begin{enumerate}
+    \item \textbf{Secret Sharing}: Each client splits their gradient into $K$ shares using $(t, K)$-threshold Shamir secret sharing. Any $t$ shares suffice for reconstruction, but fewer reveal nothing.
+    \item \textbf{Masked Aggregation}: Clients add pairwise random masks ($r_{jk}$) negotiated through key exchange. These masks are designed to cancel in the final sum.
+    \item \textbf{Reconstruction}: The server collects masked gradients and computes their sum. Because $\sum_{j<k} r_{jk} - \sum_{j>k} r_{kj} = 0$ across all pairs, the masks cancel and only the true aggregate remains.
+\end{enumerate}
+
+\textbf{Security Guarantees:}
+The server learns only $\Delta_{agg} = \sum_k \Delta_k$, never individual $\Delta_k$. If fewer than $t$ clients complete the round, reconstruction fails gracefully without privacy leakage.
+
 \begin{figure}[htbp]
 \centering
 \fbox{\parbox{0.92\columnwidth}{
 \small
-\textbf{Algorithm 4: Secure Aggregation (Simplified)}\\[2pt]
+\textbf{Algorithm 4: Secure Aggregation}\\[2pt]
 \textbf{Input:} Client gradients $\{\Delta_1, \ldots, \Delta_K\}$, threshold $t$\\
 \textbf{Output:} Aggregated gradient $\Delta_{agg}$\\[4pt]
-// Phase 1: Secret sharing\\
+// Phase 1: Shamir secret sharing\\
 \textbf{for each} client $k$ \textbf{do}\\
 \hspace*{4mm}shares$_k \leftarrow$ ShamirShare($\Delta_k$, $t$, $K$)\\
 \hspace*{4mm}Distribute shares$_k$ to other clients\\[2pt]
-// Phase 2: Masked aggregation\\
+// Phase 2: Add pairwise random masks\\
 \textbf{for each} client $k$ \textbf{do}\\
-\hspace*{4mm}$\hat{\Delta}_k \leftarrow \Delta_k + \sum_{j<k} r_{jk} - \sum_{j>k} r_{kj}$\\
-\hspace*{4mm}// where $r_{ij}$ are pairwise random masks\\[2pt]
-// Phase 3: Reconstruction\\
+\hspace*{4mm}$\hat{\Delta}_k \leftarrow \Delta_k + \sum_{j<k} r_{jk} - \sum_{j>k} r_{kj}$\\[2pt]
+// Phase 3: Server reconstructs aggregate\\
 $\Delta_{agg} \leftarrow \sum_{k=1}^{K} \hat{\Delta}_k$\\
-// Masks cancel out: $\sum r_{jk} - \sum r_{kj} = 0$\\[2pt]
+// Masks cancel: $\sum_k \sum_{j<k} r_{jk} - \sum_k \sum_{j>k} r_{kj} = 0$\\[2pt]
 \textbf{if} ActiveClients $< t$ \textbf{then}\\
 \hspace*{4mm}\textbf{raise} SecureAggregationError\\[2pt]
 \textbf{return} $\Delta_{agg}$
 }}
+\end{figure}
+
+\subsection{FedProx for Non-IID Data}
+
+Algorithm~5 extends FedAvg to handle heterogeneous (non-IID) data distributions common in cross-border healthcare settings. The proximal term $\mu$ regularizes local updates toward the global model, preventing drift when hospitals have skewed patient populations.
+
+\textbf{Intuition:}
+In standard FedAvg, hospitals with extreme data distributions may compute gradients that diverge significantly from the global optimum. FedProx adds a penalty term $\frac{\mu}{2}\|\theta_h - \theta\|^2$ to the local objective, ensuring local models remain ``close'' to the global model.
+
+\textbf{Parameter Selection:}
+\begin{itemize}
+    \item $\mu = 0$: Equivalent to FedAvg (no regularization).
+    \item $\mu = 0.01$--$0.1$: Moderate regularization; our experiments show stable convergence with minimal accuracy impact.
+    \item $\mu > 1$: Strong regularization; may prevent adaptation to local data characteristics.
+\end{itemize}
+
+\begin{figure}[htbp]
+\centering
+\fbox{\parbox{0.92\columnwidth}{
+\small
+\textbf{Algorithm 5: FedProx Local Update}\\[2pt]
+\textbf{Input:} Local data $\mathcal{D}_h$, global model $\theta$, proximal weight $\mu$\\
+\textbf{Output:} Local update $\Delta_h$\\[4pt]
+// Initialize local model from global\\
+$\theta_h \leftarrow \theta$\\[2pt]
+// Local training with proximal regularization\\
+\textbf{for} epoch $e = 1$ to $E$ \textbf{do}\\
+\hspace*{4mm}\textbf{for} batch $\mathcal{B} \in \mathcal{D}_h$ \textbf{do}\\
+\hspace*{8mm}// Standard loss gradient\\
+\hspace*{8mm}$g \leftarrow \nabla \mathcal{L}(\theta_h; \mathcal{B})$\\
+\hspace*{8mm}// Add proximal term gradient: $\nabla \frac{\mu}{2}\|\theta_h - \theta\|^2$\\
+\hspace*{8mm}$g \leftarrow g + \mu(\theta_h - \theta)$\\
+\hspace*{8mm}// Update local model\\
+\hspace*{8mm}$\theta_h \leftarrow \theta_h - \eta \cdot g$\\[2pt]
+// Compute update delta\\
+$\Delta_h \leftarrow \theta_h - \theta$\\[2pt]
+\textbf{return} $\Delta_h$
+}}
+\end{figure}
+
+\subsection{Article 71 Opt-Out Registry Protocol}
+
+Algorithm~6 implements the EHDS Article 71 opt-out mechanism, enabling citizens to withdraw their electronic health data from secondary use. The protocol ensures that opted-out records are excluded from FL training while maintaining computational efficiency.
+
+\textbf{Design Considerations:}
+\begin{itemize}
+    \item \textbf{Real-time vs. Batch}: Full registry synchronization before each round ensures compliance but incurs latency. Cached mode with periodic refresh balances compliance and performance.
+    \item \textbf{Granularity}: Opt-out may apply to all secondary use, specific purposes, or specific categories. The algorithm supports fine-grained filtering.
+    \item \textbf{Auditability}: Every filtering operation is logged, enabling demonstration of compliance during regulatory audits.
+\end{itemize}
+
+\begin{figure}[htbp]
+\centering
+\fbox{\parbox{0.92\columnwidth}{
+\small
+\textbf{Algorithm 6: Article 71 Opt-Out Filtering}\\[2pt]
+\textbf{Input:} Local dataset $\mathcal{D}_h$, purpose $p$, categories $\mathcal{C}$\\
+\textbf{Output:} Filtered dataset $\mathcal{D}'_h$\\[4pt]
+// Synchronize with national opt-out registry\\
+OptOutRecords $\leftarrow$ FetchOptOutRegistry(MemberState)\\[2pt]
+// Initialize filtered dataset\\
+$\mathcal{D}'_h \leftarrow \emptyset$\\[2pt]
+\textbf{for each} record $r \in \mathcal{D}_h$ \textbf{do}\\
+\hspace*{4mm}citizen\_id $\leftarrow$ r.pseudonymized\_id\\
+\hspace*{4mm}opted\_out $\leftarrow$ False\\[2pt]
+\hspace*{4mm}// Check purpose-specific opt-out\\
+\hspace*{4mm}\textbf{if} (citizen\_id, $p$) $\in$ OptOutRecords \textbf{then}\\
+\hspace*{8mm}opted\_out $\leftarrow$ True\\[2pt]
+\hspace*{4mm}// Check category-specific opt-out\\
+\hspace*{4mm}\textbf{for each} $c \in \mathcal{C}$ \textbf{do}\\
+\hspace*{8mm}\textbf{if} (citizen\_id, $c$) $\in$ OptOutRecords \textbf{then}\\
+\hspace*{12mm}opted\_out $\leftarrow$ True\\[2pt]
+\hspace*{4mm}\textbf{if} not opted\_out \textbf{then}\\
+\hspace*{8mm}$\mathcal{D}'_h \leftarrow \mathcal{D}'_h \cup \{r\}$\\[2pt]
+// Log filtering statistics for audit\\
+AuditLog.record(total=$|\mathcal{D}_h|$, filtered=$|\mathcal{D}'_h|$)\\[2pt]
+\textbf{return} $\mathcal{D}'_h$
+}}
+\end{figure}
+
+\subsection{FHIR R4 Preprocessing Pipeline}
+
+Algorithm~7 standardizes heterogeneous EHR data into the FHIR R4 format required for interoperable FL training. Given that only 34\% of European healthcare providers achieve full FHIR compliance, this preprocessing step is essential for practical deployment.
+
+\textbf{Pipeline Stages:}
+\begin{enumerate}
+    \item \textbf{Format Detection}: Identifies source format (HL7 v2, CDA, proprietary CSV, etc.) using heuristic signatures.
+    \item \textbf{Terminology Mapping}: Converts local coding systems to standard terminologies (ICD-10, SNOMED-CT, LOINC) using UMLS mappings.
+    \item \textbf{FHIR Transformation}: Constructs FHIR resources (Patient, Observation, Condition, MedicationStatement) from normalized data.
+    \item \textbf{Tensor Conversion}: Extracts numerical features from FHIR resources into tensors suitable for ML training.
+\end{enumerate}
+
+\begin{figure}[htbp]
+\centering
+\fbox{\parbox{0.92\columnwidth}{
+\small
+\textbf{Algorithm 7: FHIR R4 Preprocessing}\\[2pt]
+\textbf{Input:} Raw EHR records $\mathcal{R}$, feature specification $\mathcal{F}$\\
+\textbf{Output:} Training tensors $(X, y)$\\[4pt]
+// Detect source format and select parser\\
+format $\leftarrow$ DetectFormat($\mathcal{R}$)\\
+parser $\leftarrow$ GetParser(format)\\[2pt]
+// Parse to intermediate representation\\
+records $\leftarrow$ parser.parse($\mathcal{R}$)\\[2pt]
+// Map local codes to standard terminologies\\
+\textbf{for each} $r \in$ records \textbf{do}\\
+\hspace*{4mm}$r$.diagnoses $\leftarrow$ MapToICD10($r$.diagnoses)\\
+\hspace*{4mm}$r$.medications $\leftarrow$ MapToATC($r$.medications)\\
+\hspace*{4mm}$r$.labs $\leftarrow$ MapToLOINC($r$.labs)\\[2pt]
+// Convert to FHIR R4 resources\\
+fhir\_bundle $\leftarrow$ ToFHIR(records)\\
+ValidateFHIR(fhir\_bundle)\\[2pt]
+// Extract features into tensors\\
+$X \leftarrow$ ExtractFeatures(fhir\_bundle, $\mathcal{F}$)\\
+$y \leftarrow$ ExtractLabels(fhir\_bundle)\\[2pt]
+// Normalize numerical features\\
+$X \leftarrow$ StandardScaler.fit\_transform($X$)\\[2pt]
+\textbf{return} $(X, y)$
+}}
+\end{figure}
+
+\subsection{Privacy Budget Accountant}
+
+Algorithm~8 tracks cumulative privacy expenditure across FL training rounds using moment accountant composition. This enables tight privacy bounds when training for many rounds while ensuring the total guarantee is never exceeded.
+
+\textbf{Technical Details:}
+The moment accountant (R\'enyi DP) provides tighter composition bounds than basic composition. For $T$ rounds with per-round privacy cost $(\varepsilon_t, \delta_t)$, the total privacy loss is computed via the log-moment generating function, enabling longer training within the same budget.
+
+\begin{figure}[htbp]
+\centering
+\fbox{\parbox{0.92\columnwidth}{
+\small
+\textbf{Algorithm 8: Privacy Budget Accountant}\\[2pt]
+\textbf{Input:} Total budget $(\varepsilon_{total}, \delta_{total})$, rounds $T$\\
+\textbf{Output:} Per-round budget allocation\\[4pt]
+// Initialize moment accountant state\\
+$\lambda \leftarrow$ [0] $\times$ MAX\_ORDER \hfill // R\'enyi moments\\
+rounds\_completed $\leftarrow$ 0\\[2pt]
+\textbf{function} AllocateRound():\\
+\hspace*{4mm}// Compute remaining budget\\
+\hspace*{4mm}$\varepsilon_{spent} \leftarrow$ ComputeEpsilon($\lambda$, $\delta_{total}$)\\
+\hspace*{4mm}$\varepsilon_{remaining} \leftarrow \varepsilon_{total} - \varepsilon_{spent}$\\[2pt]
+\hspace*{4mm}// Check if budget allows another round\\
+\hspace*{4mm}\textbf{if} $\varepsilon_{remaining} < \varepsilon_{min}$ \textbf{then}\\
+\hspace*{8mm}\textbf{raise} BudgetExhaustedError\\[2pt]
+\hspace*{4mm}// Allocate per-round budget\\
+\hspace*{4mm}$\varepsilon_t \leftarrow \varepsilon_{remaining} / (T -$ rounds\_completed$)$\\
+\hspace*{4mm}\textbf{return} $\varepsilon_t$\\[2pt]
+\textbf{function} RecordRound($\sigma$, $q$):\\
+\hspace*{4mm}// Update moments after each round\\
+\hspace*{4mm}\textbf{for} order $= 1$ to MAX\_ORDER \textbf{do}\\
+\hspace*{8mm}$\lambda$[order] $+= $ ComputeMoment(order, $\sigma$, $q$)\\
+\hspace*{4mm}rounds\_completed $+= 1$
+}}
+\end{figure}
+
+% ============================================================================
+% APPENDIX B - SUPPLEMENTARY EXPERIMENTAL FIGURES
+% ============================================================================
+\section{Supplementary Experimental Figures}
+\label{appendix:figures}
+
+This section presents detailed experimental results from the FL-EHDS benchmark suite, providing insights into client heterogeneity, training dynamics, and system performance. All figures are generated from real experimental runs available in the repository.
+
+\subsection{Hospital Data Distribution}
+
+Figure~\ref{fig:data_distribution} illustrates the non-IID nature of data across the five simulated hospitals. Each hospital exhibits distinct demographic characteristics reflecting real-world geographical variation in European patient populations.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.95\columnwidth]{figures/figA1_data_distribution.pdf}
+\caption{Data distribution across hospitals. Metrics shown: sample count, mean age, BMI, systolic BP, glucose, and positive class rate. Notable heterogeneity: Amsterdam shows older population (60.8 years mean age) with higher positive rate (62.6\%) compared to Rome (49.1 years, 39.2\%).}
+\label{fig:data_distribution}
+\end{figure}
+
+\subsection{Per-Client Training Time}
+
+Figure~\ref{fig:training_times} shows training time variation across clients per round. Differences arise from local dataset sizes (300--500 records), hardware capabilities, and network conditions.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.95\columnwidth]{figures/figA2_training_times.pdf}
+\caption{Per-client training time per round. Larger hospitals (Berlin: 500 samples) exhibit slightly longer training times. The adaptive training engine compensates by adjusting batch sizes for stragglers.}
+\label{fig:training_times}
+\end{figure}
+
+\subsection{Client Participation Matrix}
+
+Figure~\ref{fig:participation} presents the client participation matrix over 50 training rounds. Not all clients participate in every round due to availability, connectivity, or straggler timeout policies.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.95\columnwidth]{figures/figA3_participation_matrix.pdf}
+\caption{Client participation matrix (50 rounds $\times$ 5 clients). Participation rates: IT 88\%, DE 86\%, FR 86\%, ES 88\%, NL 92\%. The framework tolerates 10--15\% dropout per round while maintaining convergence.}
+\label{fig:participation}
+\end{figure}
+
+\subsection{Gradient Norm Evolution}
+
+Figure~\ref{fig:gradient_norms} tracks gradient L2-norms throughout training. Decreasing gradient norms indicate model convergence; divergent norms suggest instability.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.95\columnwidth]{figures/figA4_gradient_norms.pdf}
+\caption{Gradient norm evolution per client over 50 rounds. All clients show decreasing trends indicating stable convergence. Clipping threshold $C=1.0$ bounds extreme values for DP compatibility.}
+\label{fig:gradient_norms}
+\end{figure}
+
+\subsection{Communication Cost Analysis}
+
+Figure~\ref{fig:communication} analyzes per-round communication overhead. For logistic regression with 6 parameters, each gradient transmission is approximately 2.3 KB (32-bit floats + protocol overhead).
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.95\columnwidth]{figures/figA5_communication_cost.pdf}
+\caption{Cumulative communication cost per round. Linear scaling with participating clients (3.5 KB/client/round). Total 50-round overhead: 875 KB for 5 clients---feasible even for bandwidth-constrained environments.}
+\label{fig:communication}
+\end{figure}
+
+\subsection{Learning Rate Sensitivity}
+
+Figure~\ref{fig:learning_rate} compares convergence across learning rates $\eta \in \{0.01, 0.05, 0.1, 0.2, 0.5\}$. Optimal performance is achieved at $\eta = 0.1$--$0.2$.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.95\columnwidth]{figures/figA6_learning_rate.pdf}
+\caption{Learning rate sensitivity analysis. $\eta = 0.01$: slow convergence (53.8\% at round 50). $\eta = 0.1$: optimal (58.6\%). $\eta = 0.5$: instability with oscillations.}
+\label{fig:learning_rate}
+\end{figure}
+
+\subsection{Batch Size Impact}
+
+Figure~\ref{fig:batch_size} evaluates the effect of batch sizes $\{8, 16, 32, 64, 128\}$ on convergence speed and final accuracy.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.95\columnwidth]{figures/figA7_batch_size.pdf}
+\caption{Batch size impact on convergence. Smaller batches (8--16) provide noisier gradients but faster initial progress. Batch size 32 balances gradient quality and computational efficiency.}
+\label{fig:batch_size}
+\end{figure}
+
+\subsection{Per-Client Accuracy Trajectories}
+
+Figure~\ref{fig:client_accuracy} shows individual client accuracy trajectories, revealing heterogeneity in local model performance.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.95\columnwidth]{figures/figA8_client_accuracy.pdf}
+\caption{Per-client accuracy over training rounds. Variance reflects non-IID data: NL (older, higher-risk population) reaches 64\% accuracy while FR (mid-range demographics) stabilizes at 55\%.}
+\label{fig:client_accuracy}
 \end{figure}
 
 \end{document}

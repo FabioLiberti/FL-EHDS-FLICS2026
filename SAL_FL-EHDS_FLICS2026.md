@@ -228,8 +228,8 @@ git push
 ## 📞 CONTATTI
 
 **Autore**: Fabio Liberti  
-**Email**: fabio.liberti@unimercatorum.it  
-**ORCID**: [DA INSERIRE]  
+**Email**: fabio.liberti@studenti.unimercatorum.it  
+**ORCID**: 0000-0003-3019-5411  
 **Tutor**: Prof. Sadi Alawadi
 
 ---

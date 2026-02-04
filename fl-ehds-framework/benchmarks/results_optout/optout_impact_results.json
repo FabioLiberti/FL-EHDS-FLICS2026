@@ -1,0 +1,344 @@
+{
+  "timestamp": "2026-02-04T13:49:02.679136",
+  "num_hospitals": 5,
+  "baseline_accuracy": 0.5927884615384615,
+  "critical_optout_threshold": 1.0,
+  "viability_threshold": 0.55,
+  "recommendations": [
+    "\u2713 Model is robust up to 100% opt-out rate.",
+    "\ud83d\udcca Publish opt-out statistics transparently to build citizen trust (EHDS Article 71 compliance).",
+    "\ud83d\udd12 Emphasize FL's privacy-preserving nature: data never leaves hospitals."
+  ],
+  "results": [
+    {
+      "scenario_name": "uniform_0pct",
+      "opt_out_rate": 0.0,
+      "original_samples": 2080,
+      "remaining_samples": 2080,
+      "accuracy": 0.5923076923076923,
+      "accuracy_drop": 0.00048076923076922906,
+      "f1_score": 0.709853054110369,
+      "auc_roc": 0.5849141203030427,
+      "per_hospital_samples": {
+        "Hospital-IT-Roma": 400,
+        "Hospital-DE-Berlin": 500,
+        "Hospital-FR-Paris": 350,
+        "Hospital-ES-Madrid": 450,
+        "Hospital-NL-Amsterdam": 380
+      },
+      "per_hospital_accuracy": {
+        "Hospital-IT-Roma": 0.6158333333333333,
+        "Hospital-DE-Berlin": 0.6053333333333333,
+        "Hospital-FR-Paris": 0.6228571428571429,
+        "Hospital-ES-Madrid": 0.5733333333333334,
+        "Hospital-NL-Amsterdam": 0.5447368421052632
+      },
+      "demographic_distribution_shift": {
+        "mean_age_shift": 0.0,
+        "pos_rate_shift": 0.0
+      },
+      "convergence_rounds": 9,
+      "model_viable": true
+    },
+    {
+      "scenario_name": "uniform_5pct",
+      "opt_out_rate": 0.05,
+      "original_samples": 2080,
+      "remaining_samples": 1973,
+      "accuracy": 0.5927834601073129,
+      "accuracy_drop": 5.001431148676794e-06,
+      "f1_score": 0.7049761488627735,
+      "auc_roc": 0.5853559812565793,
+      "per_hospital_samples": {
+        "Hospital-IT-Roma": 375,
+        "Hospital-DE-Berlin": 473,
+        "Hospital-FR-Paris": 335,
+        "Hospital-ES-Madrid": 432,
+        "Hospital-NL-Amsterdam": 358
+      },
+      "per_hospital_accuracy": {
+        "Hospital-IT-Roma": 0.6193263126913872,
+        "Hospital-DE-Berlin": 0.5984552816942676,
+        "Hospital-FR-Paris": 0.6251109173036348,
+        "Hospital-ES-Madrid": 0.5844195615758107,
+        "Hospital-NL-Amsterdam": 0.5376992895844358
+      },
+      "demographic_distribution_shift": {
+        "mean_age_shift": -0.08988826820705498,
+        "pos_rate_shift": 0.003124370358331352
+      },
+      "convergence_rounds": 22,
+      "model_viable": true
+    },
+    {
+      "scenario_name": "uniform_10pct",
+      "opt_out_rate": 0.1,
+      "original_samples": 2080,
+      "remaining_samples": 1851,
+      "accuracy": 0.5909412381457596,
+      "accuracy_drop": 0.0018472233927019355,
+      "f1_score": 0.7034124763300834,
+      "auc_roc": 0.5874983503936176,
+      "per_hospital_samples": {
+        "Hospital-IT-Roma": 351,
+        "Hospital-DE-Berlin": 439,
+        "Hospital-FR-Paris": 307,
+        "Hospital-ES-Madrid": 405,
+        "Hospital-NL-Amsterdam": 349
+      },
+      "per_hospital_accuracy": {
+        "Hospital-IT-Roma": 0.6103031150777405,
+        "Hospital-DE-Berlin": 0.592526627780053,
+        "Hospital-FR-Paris": 0.6233305087460288,
+        "Hospital-ES-Madrid": 0.5909194947557058,
+        "Hospital-NL-Amsterdam": 0.5384954551621218
+      },
+      "demographic_distribution_shift": {
+        "mean_age_shift": 0.1719413365769924,
+        "pos_rate_shift": 0.006242799924091158
+      },
+      "convergence_rounds": 16,
+      "model_viable": true
+    },
+    {
+      "scenario_name": "uniform_15pct",
+      "opt_out_rate": 0.15,
+      "original_samples": 2080,
+      "remaining_samples": 1760,
+      "accuracy": 0.5937108123991283,
+      "accuracy_drop": -0.0009223508606667208,
+      "f1_score": 0.7105307206053274,
+      "auc_roc": 0.5862507362009454,
+      "per_hospital_samples": {
+        "Hospital-IT-Roma": 335,
+        "Hospital-DE-Berlin": 421,
+        "Hospital-FR-Paris": 288,
+        "Hospital-ES-Madrid": 391,
+        "Hospital-NL-Amsterdam": 325
+      },
+      "per_hospital_accuracy": {
+        "Hospital-IT-Roma": 0.6239549113187206,
+        "Hospital-DE-Berlin": 0.600803890762098,
+        "Hospital-FR-Paris": 0.6240345234291238,
+        "Hospital-ES-Madrid": 0.5876549914019368,
+        "Hospital-NL-Amsterdam": 0.5310013126707828
+      },
+      "demographic_distribution_shift": {
+        "mean_age_shift": 0.06422414559695966,
+        "pos_rate_shift": -0.0012193603361161376
+      },
+      "convergence_rounds": 17,
+      "model_viable": true
+    },
+    {
+      "scenario_name": "uniform_20pct",
+      "opt_out_rate": 0.2,
+      "original_samples": 2080,
+      "remaining_samples": 1631,
+      "accuracy": 0.5898528321870763,
+      "accuracy_drop": 0.0029356293513852494,
+      "f1_score": 0.7152159594382402,
+      "auc_roc": 0.5850223981967895,
+      "per_hospital_samples": {
+        "Hospital-IT-Roma": 315,
+        "Hospital-DE-Berlin": 376,
+        "Hospital-FR-Paris": 289,
+        "Hospital-ES-Madrid": 368,
+        "Hospital-NL-Amsterdam": 283
+      },
+      "per_hospital_accuracy": {
+        "Hospital-IT-Roma": 0.6310251305890201,
+        "Hospital-DE-Berlin": 0.6115734098517457,
+        "Hospital-FR-Paris": 0.6106011857787491,
+        "Hospital-ES-Madrid": 0.5772903166716278,
+        "Hospital-NL-Amsterdam": 0.5140729294554282
+      },
+      "demographic_distribution_shift": {
+        "mean_age_shift": 0.1734420725574637,
+        "pos_rate_shift": 0.008020787973667232
+      },
+      "convergence_rounds": 6,
+      "model_viable": true
+    },
+    {
+      "scenario_name": "uniform_25pct",
+      "opt_out_rate": 0.25,
+      "original_samples": 2080,
+      "remaining_samples": 1554,
+      "accuracy": 0.5873235226661748,
+      "accuracy_drop": 0.005464938872286718,
+      "f1_score": 0.7078429934556408,
+      "auc_roc": 0.5838758928667603,
+      "per_hospital_samples": {
+        "Hospital-IT-Roma": 267,
+        "Hospital-DE-Berlin": 390,
+        "Hospital-FR-Paris": 265,
+        "Hospital-ES-Madrid": 343,
+        "Hospital-NL-Amsterdam": 289
+      },
+      "per_hospital_accuracy": {
+        "Hospital-IT-Roma": 0.6192079999965756,
+        "Hospital-DE-Berlin": 0.6059961352105168,
+        "Hospital-FR-Paris": 0.6133101674226165,
+        "Hospital-ES-Madrid": 0.5775544677268508,
+        "Hospital-NL-Amsterdam": 0.5177697273273859
+      },
+      "demographic_distribution_shift": {
+        "mean_age_shift": -0.378688118653443,
+        "pos_rate_shift": -0.015188942512643355
+      },
+      "convergence_rounds": 9,
+      "model_viable": true
+    },
+    {
+      "scenario_name": "uniform_30pct",
+      "opt_out_rate": 0.3,
+      "original_samples": 2080,
+      "remaining_samples": 1465,
+      "accuracy": 0.5873257653864329,
+      "accuracy_drop": 0.0054626961520286565,
+      "f1_score": 0.7077139914802353,
+      "auc_roc": 0.5808055228628172,
+      "per_hospital_samples": {
+        "Hospital-IT-Roma": 296,
+        "Hospital-DE-Berlin": 341,
+        "Hospital-FR-Paris": 238,
+        "Hospital-ES-Madrid": 321,
+        "Hospital-NL-Amsterdam": 269
+      },
+      "per_hospital_accuracy": {
+        "Hospital-IT-Roma": 0.6136818465526458,
+        "Hospital-DE-Berlin": 0.5990953203603278,
+        "Hospital-FR-Paris": 0.6263933478542184,
+        "Hospital-ES-Madrid": 0.5760805090458087,
+        "Hospital-NL-Amsterdam": 0.5234466100283192
+      },
+      "demographic_distribution_shift": {
+        "mean_age_shift": -0.10521451039043228,
+        "pos_rate_shift": -0.00979095417190401
+      },
+      "convergence_rounds": 2,
+      "model_viable": true
+    },
+    {
+      "scenario_name": "uniform_40pct",
+      "opt_out_rate": 0.4,
+      "original_samples": 2080,
+      "remaining_samples": 1258,
+      "accuracy": 0.5858222542892811,
+      "accuracy_drop": 0.006966207249180401,
+      "f1_score": 0.6999959311541276,
+      "auc_roc": 0.5800634085119885,
+      "per_hospital_samples": {
+        "Hospital-IT-Roma": 236,
+        "Hospital-DE-Berlin": 311,
+        "Hospital-FR-Paris": 228,
+        "Hospital-ES-Madrid": 261,
+        "Hospital-NL-Amsterdam": 222
+      },
+      "per_hospital_accuracy": {
+        "Hospital-IT-Roma": 0.6145261552897021,
+        "Hospital-DE-Berlin": 0.5995299474863207,
+        "Hospital-FR-Paris": 0.6247500882710523,
+        "Hospital-ES-Madrid": 0.5649996852484982,
+        "Hospital-NL-Amsterdam": 0.527913330483304
+      },
+      "demographic_distribution_shift": {
+        "mean_age_shift": -0.14877492450138163,
+        "pos_rate_shift": 0.005284127247769943
+      },
+      "convergence_rounds": 1,
+      "model_viable": true
+    },
+    {
+      "scenario_name": "uniform_50pct",
+      "opt_out_rate": 0.5,
+      "original_samples": 2080,
+      "remaining_samples": 1023,
+      "accuracy": 0.5842856086438374,
+      "accuracy_drop": 0.008502852894624158,
+      "f1_score": 0.6968413275719563,
+      "auc_roc": 0.5845102365033086,
+      "per_hospital_samples": {
+        "Hospital-IT-Roma": 193,
+        "Hospital-DE-Berlin": 238,
+        "Hospital-FR-Paris": 171,
+        "Hospital-ES-Madrid": 216,
+        "Hospital-NL-Amsterdam": 205
+      },
+      "per_hospital_accuracy": {
+        "Hospital-IT-Roma": 0.6167725382748095,
+        "Hospital-DE-Berlin": 0.5895334688631628,
+        "Hospital-FR-Paris": 0.6257502259000333,
+        "Hospital-ES-Madrid": 0.5732166612957869,
+        "Hospital-NL-Amsterdam": 0.5215486740842322
+      },
+      "demographic_distribution_shift": {
+        "mean_age_shift": 0.32551184325900095,
+        "pos_rate_shift": -0.012712467033234809
+      },
+      "convergence_rounds": 6,
+      "model_viable": true
+    },
+    {
+      "scenario_name": "uniform_60pct",
+      "opt_out_rate": 0.6,
+      "original_samples": 2080,
+      "remaining_samples": 856,
+      "accuracy": 0.5896539817956876,
+      "accuracy_drop": 0.0031344797427739213,
+      "f1_score": 0.7043598192010165,
+      "auc_roc": 0.5895716314930346,
+      "per_hospital_samples": {
+        "Hospital-IT-Roma": 174,
+        "Hospital-DE-Berlin": 207,
+        "Hospital-FR-Paris": 151,
+        "Hospital-ES-Madrid": 182,
+        "Hospital-NL-Amsterdam": 142
+      },
+      "per_hospital_accuracy": {
+        "Hospital-IT-Roma": 0.6157428519013549,
+        "Hospital-DE-Berlin": 0.5853037220537863,
+        "Hospital-FR-Paris": 0.6344559415079744,
+        "Hospital-ES-Madrid": 0.587114374963941,
+        "Hospital-NL-Amsterdam": 0.5308209011462252
+      },
+      "demographic_distribution_shift": {
+        "mean_age_shift": -0.5647387159687725,
+        "pos_rate_shift": -0.021765953423193096
+      },
+      "convergence_rounds": 10,
+      "model_viable": true
+    },
+    {
+      "scenario_name": "uniform_70pct",
+      "opt_out_rate": 0.7,
+      "original_samples": 2080,
+      "remaining_samples": 636,
+      "accuracy": 0.5790320321593959,
+      "accuracy_drop": 0.013756429379065627,
+      "f1_score": 0.6899201171473619,
+      "auc_roc": 0.5826146635892776,
+      "per_hospital_samples": {
+        "Hospital-IT-Roma": 131,
+        "Hospital-DE-Berlin": 150,
+        "Hospital-FR-Paris": 104,
+        "Hospital-ES-Madrid": 141,
+        "Hospital-NL-Amsterdam": 110
+      },
+      "per_hospital_accuracy": {
+        "Hospital-IT-Roma": 0.6198166463442171,
+        "Hospital-DE-Berlin": 0.5707667449317074,
+        "Hospital-FR-Paris": 0.6202234173340686,
+        "Hospital-ES-Madrid": 0.5843781310567984,
+        "Hospital-NL-Amsterdam": 0.5057525458944689
+      },
+      "demographic_distribution_shift": {
+        "mean_age_shift": 0.35881403254621347,
+        "pos_rate_shift": -0.041629942667597675
+      },
+      "convergence_rounds": 4,
+      "model_viable": true
+    }
+  ]
+}

@@ -2,7 +2,31 @@
 FL-EHDS Core Module
 ===================
 Core utilities, models, and base classes for the FL-EHDS framework.
+
+Includes:
+- FL Algorithms (FedAvg, FedProx, SCAFFOLD, FedAdam, etc.)
+- Data models and configuration classes
+- Utility functions
 """
+
+# FL Algorithms
+try:
+    from .fl_algorithms import (
+        ALGORITHM_INFO,
+        FLAlgorithm,
+        FedAvg,
+        FedProx,
+        SCAFFOLD,
+        FedAdam,
+        FedYogi,
+        FedAdagrad,
+        FedNova,
+        FedDyn,
+        Ditto,
+        create_algorithm
+    )
+except ImportError:
+    pass  # fl_algorithms may not be available
 
 from .models import (
     DataPermit,
