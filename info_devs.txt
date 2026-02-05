@@ -15,9 +15,21 @@ Long papers: 8–9 pages.
 
 ---------------------------
 
+Running the Terminal Interface
+
+fxlybs@MacBook-Pro-di-FxLybs fl-ehds-framework % pwd
+/Users/fxlybs/OneDrive - CEI - OP Bambino Gesù/__Univ Merc_PHD_2223__/_PHD_BD&AI_38_/___AA.2026__estensione/paper_devs/FL-EHDS-FLICS2026/fl-ehds-framework
+
+cd fl-ehds-framework
+conda activate flics2026
+python -m terminal
+
+---------------------------
+
 Ultimi docs sviluppati:
 
 SAL_FL-EHDS_FLICS2026.md - Aggiornato con framework documentation
 fl-ehds-framework/README.md - Documentazione completa
 
 ------
+

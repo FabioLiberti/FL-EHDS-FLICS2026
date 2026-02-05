@@ -1803,6 +1803,32 @@ data "aws_availability_zones" "available" {
 
     def _generate_kubernetes(self) -> str:
         """Generate kubernetes.tf."""
+        # GPU section (optional)
+        gpu_section = ""
+        if self.config.gpu_enabled:
+            gpu_section = '''
+  # GPU node group
+  gpu_node_groups = {
+    fl_gpu_workers = {
+      instance_types = [var.gpu_machine_type]
+      desired_size   = 0
+      min_size       = 0
+      max_size       = var.node_pool_max
+      disk_size      = 200
+
+      labels = {
+        "fl-ehds/role"     = "gpu-worker"
+        "nvidia.com/gpu"   = "true"
+      }
+
+      taints = [{
+        key    = "nvidia.com/gpu"
+        value  = "true"
+        effect = "NO_SCHEDULE"
+      }]
+    }
+  }
+'''
         return f'''# FL-EHDS Kubernetes Cluster
 
 module "kubernetes" {{
@@ -1847,31 +1873,7 @@ module "kubernetes" {{
       }}]
     }}
   }}
-
-  {"" if not self.config.gpu_enabled else '''
-  # GPU node group
-  gpu_node_groups = {
-    fl_gpu_workers = {
-      instance_types = [var.gpu_machine_type]
-      desired_size   = 0
-      min_size       = 0
-      max_size       = var.node_pool_max
-      disk_size      = 200
-
-      labels = {
-        "fl-ehds/role"     = "gpu-worker"
-        "nvidia.com/gpu"   = "true"
-      }
-
-      taints = [{
-        key    = "nvidia.com/gpu"
-        value  = "true"
-        effect = "NO_SCHEDULE"
-      }]
-    }
-  }
-'''}
-
+{gpu_section}
   # Encryption
   enable_encryption = var.enable_encryption
   kms_key_arn       = var.enable_encryption ? aws_kms_key.eks[0].arn : null

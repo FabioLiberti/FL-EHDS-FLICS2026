@@ -393,12 +393,12 @@ class HomomorphicAggregation:
         self.context.global_scale = 2**40
         self.context.generate_galois_keys()
 
-    def encrypt_gradient(self, gradient: np.ndarray) -> ts.CKKSVector:
+    def encrypt_gradient(self, gradient: np.ndarray) -> "ts.CKKSVector":
         """Encrypt gradient using CKKS."""
         return ts.ckks_vector(self.context, gradient.tolist())
 
     def aggregate_encrypted(self,
-                           encrypted_gradients: List[ts.CKKSVector]) -> ts.CKKSVector:
+                           encrypted_gradients: List["ts.CKKSVector"]) -> "ts.CKKSVector":
         """Aggregate encrypted gradients (addition in encrypted domain)."""
         result = encrypted_gradients[0]
 
@@ -407,7 +407,7 @@ class HomomorphicAggregation:
 
         return result
 
-    def decrypt_result(self, encrypted: ts.CKKSVector) -> np.ndarray:
+    def decrypt_result(self, encrypted: "ts.CKKSVector") -> np.ndarray:
         """Decrypt aggregated result."""
         return np.array(encrypted.decrypt())
 
