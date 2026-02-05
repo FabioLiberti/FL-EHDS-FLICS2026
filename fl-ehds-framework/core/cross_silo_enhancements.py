@@ -48,6 +48,7 @@ class AggregationAlgorithm(Enum):
     FEDADAGRAD = "fedadagrad"
     FEDNOVA = "fednova"
     FEDDYN = "feddyn"
+    MOON = "moon"
     KRUM = "krum"
     TRIMMED_MEAN = "trimmed_mean"
     MEDIAN = "median"
@@ -132,6 +133,13 @@ class AdaptiveAggregationConfig:
     fedyogi_lr: float = 0.01
     krum_num_byzantine: int = 0
     trimmed_mean_beta: float = 0.1
+
+    # FedDyn parameters
+    feddyn_alpha: float = 0.01  # Dynamic regularization coefficient
+
+    # MOON parameters
+    moon_mu: float = 1.0  # Contrastive loss coefficient
+    moon_temperature: float = 0.5  # Temperature for contrastive loss
 
     # Metrics to monitor
     metrics_weights: Dict[str, float] = field(
@@ -1485,6 +1493,260 @@ class FedNovaStrategy(AggregationStrategy):
         return "FedNova"
 
 
+class FedDynStrategy(AggregationStrategy):
+    """
+    FedDyn: Federated Learning with Dynamic Regularization.
+
+    Key idea: Maintains a dynamic regularizer for each client that aligns
+    local objectives to the global objective, achieving linear convergence
+    even with heterogeneous data.
+
+    Reference: Acar et al., "Federated Learning Based on Dynamic Regularization",
+    ICLR 2021.
+    """
+
+    def __init__(self, alpha: float = 0.01):
+        """
+        Initialize FedDyn strategy.
+
+        Args:
+            alpha: Regularization coefficient (controls alignment strength)
+        """
+        self.alpha = alpha
+        self.h: Optional[Dict[str, np.ndarray]] = None  # Server state (gradient correction)
+        self.client_gradients: Dict[int, Dict[str, np.ndarray]] = {}  # Client gradient history
+
+    def aggregate(
+        self,
+        client_updates: List[Dict[str, np.ndarray]],
+        client_weights: List[float],
+        global_weights: Dict[str, np.ndarray],
+        client_ids: Optional[List[int]] = None,
+        **kwargs
+    ) -> Dict[str, np.ndarray]:
+        """
+        Aggregate using FedDyn with dynamic regularization.
+
+        The algorithm maintains server state h that corrects for client drift:
+        h_new = h - alpha * (avg_update - global_weights)
+        global_new = avg_update - (1/alpha) * h_new
+        """
+        n = len(client_updates)
+
+        # Initialize server state if needed
+        if self.h is None:
+            self.h = {name: np.zeros_like(w) for name, w in global_weights.items()}
+
+        # Standard weighted averaging
+        weights = np.array(client_weights)
+        weights = weights / weights.sum()
+
+        # Compute average client update
+        avg_update = {}
+        for name in client_updates[0]:
+            stacked = np.stack([u[name] for u in client_updates], axis=0)
+            avg_update[name] = np.sum(
+                stacked * weights[:, np.newaxis, ...].reshape(
+                    [len(weights)] + [1] * (stacked.ndim - 1)
+                ),
+                axis=0
+            )
+
+        # Update server state h
+        # h_new = h - alpha * (avg_update - global_weights)
+        for name in self.h:
+            if name in avg_update:
+                delta = avg_update[name] - global_weights[name]
+                self.h[name] = self.h[name] - self.alpha * delta
+
+        # Compute final aggregated weights
+        # x_new = avg_update - (1/alpha) * h_new
+        aggregated = {}
+        for name in avg_update:
+            aggregated[name] = avg_update[name] - (1.0 / self.alpha) * self.h[name]
+
+        # Store client gradients for local update computation
+        if client_ids is not None:
+            for i, cid in enumerate(client_ids):
+                self.client_gradients[cid] = {
+                    name: client_updates[i][name] - global_weights[name]
+                    for name in client_updates[i]
+                }
+
+        return aggregated
+
+    def get_client_correction(
+        self,
+        client_id: int,
+        global_weights: Dict[str, np.ndarray]
+    ) -> Dict[str, np.ndarray]:
+        """
+        Get client-specific gradient correction term.
+
+        Used by clients to compute the dynamic regularization term
+        in their local objective.
+        """
+        if client_id in self.client_gradients:
+            return self.client_gradients[client_id]
+        else:
+            # Return zero correction for new clients
+            return {name: np.zeros_like(w) for name, w in global_weights.items()}
+
+    def reset_state(self):
+        """Reset server state (for new training run)."""
+        self.h = None
+        self.client_gradients = {}
+
+    @property
+    def name(self) -> str:
+        return f"FedDyn(α={self.alpha})"
+
+
+class MOONStrategy(AggregationStrategy):
+    """
+    MOON: Model-Contrastive Federated Learning.
+
+    Key idea: Uses contrastive learning at the model level to correct
+    local training by maximizing agreement between current local model
+    and global model while minimizing agreement with previous local model.
+
+    Reference: Li et al., "Model-Contrastive Federated Learning",
+    CVPR 2021.
+    """
+
+    def __init__(
+        self,
+        mu: float = 1.0,
+        temperature: float = 0.5,
+    ):
+        """
+        Initialize MOON strategy.
+
+        Args:
+            mu: Contrastive loss coefficient
+            temperature: Temperature for contrastive loss
+        """
+        self.mu = mu
+        self.temperature = temperature
+        self.previous_local_models: Dict[int, Dict[str, np.ndarray]] = {}
+        self.global_model_history: List[Dict[str, np.ndarray]] = []
+
+    def aggregate(
+        self,
+        client_updates: List[Dict[str, np.ndarray]],
+        client_weights: List[float],
+        global_weights: Dict[str, np.ndarray],
+        client_ids: Optional[List[int]] = None,
+        **kwargs
+    ) -> Dict[str, np.ndarray]:
+        """
+        Aggregate client updates using MOON.
+
+        The server side is standard FedAvg aggregation.
+        MOON's key innovation is on the client side with contrastive loss.
+        """
+        # Standard weighted averaging (server-side MOON is FedAvg)
+        weights = np.array(client_weights)
+        weights = weights / weights.sum()
+
+        aggregated = {}
+        for name in client_updates[0]:
+            stacked = np.stack([u[name] for u in client_updates], axis=0)
+            aggregated[name] = np.sum(
+                stacked * weights[:, np.newaxis, ...].reshape(
+                    [len(weights)] + [1] * (stacked.ndim - 1)
+                ),
+                axis=0
+            )
+
+        # Store previous local models for contrastive loss
+        if client_ids is not None:
+            for i, cid in enumerate(client_ids):
+                self.previous_local_models[cid] = {
+                    name: client_updates[i][name].copy()
+                    for name in client_updates[i]
+                }
+
+        # Store global model history
+        self.global_model_history.append({
+            name: w.copy() for name, w in aggregated.items()
+        })
+
+        # Keep only last 5 global models
+        if len(self.global_model_history) > 5:
+            self.global_model_history.pop(0)
+
+        return aggregated
+
+    def compute_contrastive_loss(
+        self,
+        client_id: int,
+        current_representation: np.ndarray,
+        global_representation: np.ndarray,
+    ) -> float:
+        """
+        Compute MOON contrastive loss for client.
+
+        L_con = -log(exp(sim(z, z_glob)/τ) /
+                     (exp(sim(z, z_glob)/τ) + exp(sim(z, z_prev)/τ)))
+
+        Args:
+            client_id: Client ID
+            current_representation: Current local model representation
+            global_representation: Global model representation
+
+        Returns:
+            Contrastive loss value
+        """
+        # Get previous local representation
+        if client_id not in self.previous_local_models:
+            return 0.0  # No contrastive loss for first round
+
+        # Compute cosine similarities
+        def cosine_sim(a: np.ndarray, b: np.ndarray) -> float:
+            return np.dot(a.flatten(), b.flatten()) / (
+                np.linalg.norm(a) * np.linalg.norm(b) + 1e-8
+            )
+
+        # Previous local model representation (flatten weights as proxy)
+        prev_model = self.previous_local_models[client_id]
+        prev_flat = np.concatenate([w.flatten() for w in prev_model.values()])
+
+        sim_global = cosine_sim(current_representation, global_representation)
+        sim_prev = cosine_sim(current_representation, prev_flat)
+
+        # Contrastive loss (InfoNCE style)
+        exp_global = np.exp(sim_global / self.temperature)
+        exp_prev = np.exp(sim_prev / self.temperature)
+
+        loss = -np.log(exp_global / (exp_global + exp_prev + 1e-8))
+
+        return self.mu * loss
+
+    def get_contrastive_targets(
+        self,
+        client_id: int,
+        global_weights: Dict[str, np.ndarray],
+    ) -> Tuple[Optional[Dict[str, np.ndarray]], Dict[str, np.ndarray]]:
+        """
+        Get targets for contrastive learning.
+
+        Returns:
+            Tuple of (previous_local_model, global_model) for contrastive loss
+        """
+        prev_local = self.previous_local_models.get(client_id, None)
+        return prev_local, global_weights
+
+    def reset_state(self):
+        """Reset state for new training."""
+        self.previous_local_models = {}
+        self.global_model_history = []
+
+    @property
+    def name(self) -> str:
+        return f"MOON(μ={self.mu},τ={self.temperature})"
+
+
 class AdaptiveAggregator:
     """
     Adaptive Aggregation: Dynamic switching between FL algorithms.
@@ -1523,6 +1785,8 @@ class AdaptiveAggregator:
             AggregationAlgorithm.TRIMMED_MEAN: TrimmedMeanStrategy(self.config.trimmed_mean_beta),
             AggregationAlgorithm.MEDIAN: MedianStrategy(),
             AggregationAlgorithm.FEDNOVA: FedNovaStrategy(),
+            AggregationAlgorithm.FEDDYN: FedDynStrategy(self.config.feddyn_alpha),
+            AggregationAlgorithm.MOON: MOONStrategy(self.config.moon_mu, self.config.moon_temperature),
         }
 
     def aggregate(
@@ -1887,6 +2151,8 @@ def create_selection_config(
         "krum": AggregationAlgorithm.KRUM,
         "trimmed_mean": AggregationAlgorithm.TRIMMED_MEAN,
         "fednova": AggregationAlgorithm.FEDNOVA,
+        "feddyn": AggregationAlgorithm.FEDDYN,
+        "moon": AggregationAlgorithm.MOON,
     }
 
     algs = [
@@ -1917,6 +2183,9 @@ def create_adaptive_config(
         "fedyogi": AggregationAlgorithm.FEDYOGI,
         "krum": AggregationAlgorithm.KRUM,
         "trimmed_mean": AggregationAlgorithm.TRIMMED_MEAN,
+        "feddyn": AggregationAlgorithm.FEDDYN,
+        "moon": AggregationAlgorithm.MOON,
+        "fednova": AggregationAlgorithm.FEDNOVA,
     }
 
     return AdaptiveAggregationConfig(

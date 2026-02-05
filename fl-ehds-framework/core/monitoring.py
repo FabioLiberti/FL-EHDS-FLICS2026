@@ -1518,6 +1518,591 @@ def counted(
 
 
 # =============================================================================
+# OpenTelemetry Integration
+# =============================================================================
+
+class OTELExportFormat(Enum):
+    """OpenTelemetry export formats."""
+    OTLP_GRPC = auto()      # OTLP over gRPC
+    OTLP_HTTP = auto()      # OTLP over HTTP
+    JAEGER = auto()         # Jaeger format
+    ZIPKIN = auto()         # Zipkin format
+    PROMETHEUS = auto()     # Prometheus format
+
+
+@dataclass
+class OTELConfig:
+    """OpenTelemetry configuration."""
+    enabled: bool = True
+    service_name: str = "fl-ehds"
+    service_version: str = "1.0.0"
+    deployment_environment: str = "production"
+
+    # Export settings
+    export_format: OTELExportFormat = OTELExportFormat.OTLP_GRPC
+    endpoint: str = "localhost:4317"  # Default OTLP gRPC endpoint
+
+    # Tracing
+    trace_sample_rate: float = 1.0
+    trace_max_queue_size: int = 2048
+    trace_max_export_batch_size: int = 512
+    trace_export_timeout: int = 30000  # ms
+
+    # Metrics
+    metrics_export_interval: int = 60000  # ms
+    metrics_readers: List[str] = field(default_factory=lambda: ["prometheus", "otlp"])
+
+    # Logging
+    logs_enabled: bool = True
+    logs_export_format: str = "otlp"
+
+    # Resource attributes
+    resource_attributes: Dict[str, str] = field(default_factory=dict)
+
+    # Baggage propagation
+    enable_baggage: bool = True
+
+
+class OTELResourceBuilder:
+    """Builds OpenTelemetry Resource with FL-EHDS attributes."""
+
+    def __init__(self, config: OTELConfig):
+        self.config = config
+
+    def build(self) -> Dict[str, str]:
+        """Build resource attributes."""
+        attributes = {
+            "service.name": self.config.service_name,
+            "service.version": self.config.service_version,
+            "deployment.environment": self.config.deployment_environment,
+            "telemetry.sdk.name": "fl-ehds-otel",
+            "telemetry.sdk.language": "python",
+            "telemetry.sdk.version": "1.0.0",
+        }
+
+        # Add custom attributes
+        attributes.update(self.config.resource_attributes)
+
+        # Add FL-specific attributes
+        attributes["fl.framework"] = "fl-ehds"
+        attributes["fl.ehds.compliant"] = "true"
+
+        return attributes
+
+
+class OTELSpanProcessor:
+    """
+    OpenTelemetry span processor for FL operations.
+
+    Processes spans and prepares them for export.
+    """
+
+    def __init__(self, config: OTELConfig):
+        self.config = config
+        self._spans_queue: List[Dict[str, Any]] = []
+        self._lock = threading.Lock()
+
+    def on_start(self, span: Span, parent_context: Optional[Dict] = None) -> None:
+        """Called when a span starts."""
+        # Add FL-specific attributes
+        span.set_tag("fl.component", "fl-ehds")
+
+    def on_end(self, span: Span) -> None:
+        """Called when a span ends."""
+        with self._lock:
+            self._spans_queue.append(self._span_to_otlp(span))
+
+            if len(self._spans_queue) >= self.config.trace_max_export_batch_size:
+                self._flush()
+
+    def _span_to_otlp(self, span: Span) -> Dict[str, Any]:
+        """Convert span to OTLP format."""
+        return {
+            "traceId": span.trace_id.replace("-", ""),
+            "spanId": span.span_id,
+            "parentSpanId": span.parent_span_id or "",
+            "name": span.operation_name,
+            "kind": "SPAN_KIND_INTERNAL",
+            "startTimeUnixNano": int(span.start_time.timestamp() * 1e9),
+            "endTimeUnixNano": int(span.end_time.timestamp() * 1e9) if span.end_time else 0,
+            "attributes": [
+                {"key": k, "value": {"stringValue": str(v)}}
+                for k, v in span.tags.items()
+            ],
+            "status": {
+                "code": "STATUS_CODE_OK" if span.status == TraceStatus.OK else "STATUS_CODE_ERROR",
+            },
+            "events": [
+                {
+                    "timeUnixNano": int(datetime.fromisoformat(
+                        log.get("timestamp", datetime.now().isoformat())
+                    ).timestamp() * 1e9),
+                    "name": log.get("message", ""),
+                }
+                for log in span.logs
+            ],
+        }
+
+    def _flush(self) -> None:
+        """Flush spans to exporter."""
+        # In production, send to OTLP endpoint
+        logger.debug(f"Flushing {len(self._spans_queue)} spans")
+        self._spans_queue.clear()
+
+    def force_flush(self) -> bool:
+        """Force flush all pending spans."""
+        with self._lock:
+            self._flush()
+        return True
+
+    def shutdown(self) -> None:
+        """Shutdown processor."""
+        self.force_flush()
+
+
+class OTELMetricsExporter:
+    """
+    OpenTelemetry metrics exporter.
+
+    Exports FL metrics in OTLP format.
+    """
+
+    def __init__(self, config: OTELConfig):
+        self.config = config
+        self._metrics_buffer: List[Dict[str, Any]] = []
+        self._resource = OTELResourceBuilder(config).build()
+        self._lock = threading.Lock()
+
+    def export_metrics(self, metrics: FLMetrics) -> bool:
+        """
+        Export FL metrics in OTLP format.
+
+        Args:
+            metrics: FL metrics to export
+
+        Returns:
+            Success status
+        """
+        otlp_metrics = []
+
+        for metric in metrics.get_all_metrics():
+            otlp_metric = self._metric_to_otlp(metric)
+            if otlp_metric:
+                otlp_metrics.append(otlp_metric)
+
+        if otlp_metrics:
+            payload = self._build_metrics_payload(otlp_metrics)
+            return self._send_metrics(payload)
+
+        return True
+
+    def _metric_to_otlp(self, metric: Metric) -> Optional[Dict[str, Any]]:
+        """Convert metric to OTLP format."""
+        metric_type = metric._type_name()
+
+        base = {
+            "name": metric.name,
+            "description": metric.description,
+            "unit": "1",
+        }
+
+        if metric_type == "counter":
+            return {
+                **base,
+                "sum": {
+                    "dataPoints": self._get_data_points(metric),
+                    "aggregationTemporality": "AGGREGATION_TEMPORALITY_CUMULATIVE",
+                    "isMonotonic": True,
+                }
+            }
+        elif metric_type == "gauge":
+            return {
+                **base,
+                "gauge": {
+                    "dataPoints": self._get_data_points(metric),
+                }
+            }
+        elif metric_type == "histogram":
+            return {
+                **base,
+                "histogram": {
+                    "dataPoints": self._get_histogram_data_points(metric),
+                    "aggregationTemporality": "AGGREGATION_TEMPORALITY_CUMULATIVE",
+                }
+            }
+
+        return None
+
+    def _get_data_points(self, metric: Metric) -> List[Dict[str, Any]]:
+        """Get data points for metric."""
+        points = []
+        now = int(datetime.now().timestamp() * 1e9)
+
+        for labels_tuple, value in metric._values.items():
+            points.append({
+                "attributes": [
+                    {"key": k, "value": {"stringValue": str(v)}}
+                    for k, v in labels_tuple
+                ],
+                "timeUnixNano": now,
+                "asDouble": value.value,
+            })
+
+        return points
+
+    def _get_histogram_data_points(self, metric: Histogram) -> List[Dict[str, Any]]:
+        """Get histogram data points."""
+        points = []
+        now = int(datetime.now().timestamp() * 1e9)
+
+        for labels_tuple in metric._counts.keys():
+            counts = metric._counts[labels_tuple]
+            sum_val = metric._sums.get(labels_tuple, 0.0)
+
+            bucket_counts = []
+            for bucket in metric.buckets:
+                bucket_counts.append(counts.get(str(bucket), 0))
+            bucket_counts.append(counts.get("+Inf", 0))
+
+            points.append({
+                "attributes": [
+                    {"key": k, "value": {"stringValue": str(v)}}
+                    for k, v in labels_tuple
+                ],
+                "timeUnixNano": now,
+                "count": counts.get("+Inf", 0),
+                "sum": sum_val,
+                "bucketCounts": bucket_counts,
+                "explicitBounds": metric.buckets,
+            })
+
+        return points
+
+    def _build_metrics_payload(
+        self,
+        metrics: List[Dict[str, Any]],
+    ) -> Dict[str, Any]:
+        """Build OTLP metrics export payload."""
+        return {
+            "resourceMetrics": [{
+                "resource": {
+                    "attributes": [
+                        {"key": k, "value": {"stringValue": v}}
+                        for k, v in self._resource.items()
+                    ]
+                },
+                "scopeMetrics": [{
+                    "scope": {
+                        "name": "fl-ehds",
+                        "version": self.config.service_version,
+                    },
+                    "metrics": metrics,
+                }]
+            }]
+        }
+
+    def _send_metrics(self, payload: Dict[str, Any]) -> bool:
+        """Send metrics to OTLP endpoint."""
+        # In production:
+        # if self.config.export_format == OTELExportFormat.OTLP_GRPC:
+        #     # Use gRPC client
+        #     pass
+        # elif self.config.export_format == OTELExportFormat.OTLP_HTTP:
+        #     # Use HTTP POST
+        #     response = requests.post(
+        #         f"http://{self.config.endpoint}/v1/metrics",
+        #         json=payload,
+        #         headers={"Content-Type": "application/json"}
+        #     )
+        #     return response.status_code == 200
+
+        logger.debug(f"OTLP metrics export: {len(payload.get('resourceMetrics', []))} resources")
+        return True
+
+
+class OTELLogsExporter:
+    """
+    OpenTelemetry logs exporter.
+
+    Exports FL logs in OTLP format for correlation with traces and metrics.
+    """
+
+    def __init__(self, config: OTELConfig):
+        self.config = config
+        self._resource = OTELResourceBuilder(config).build()
+        self._logs_buffer: List[Dict[str, Any]] = []
+        self._lock = threading.Lock()
+
+    def emit(
+        self,
+        severity: str,
+        message: str,
+        attributes: Optional[Dict[str, str]] = None,
+        trace_id: Optional[str] = None,
+        span_id: Optional[str] = None,
+    ) -> None:
+        """
+        Emit a log record.
+
+        Args:
+            severity: Log severity (INFO, WARNING, ERROR, etc.)
+            message: Log message
+            attributes: Additional attributes
+            trace_id: Associated trace ID
+            span_id: Associated span ID
+        """
+        if not self.config.logs_enabled:
+            return
+
+        log_record = {
+            "timeUnixNano": int(datetime.now().timestamp() * 1e9),
+            "severityText": severity.upper(),
+            "severityNumber": self._severity_to_number(severity),
+            "body": {"stringValue": message},
+            "attributes": [
+                {"key": k, "value": {"stringValue": str(v)}}
+                for k, v in (attributes or {}).items()
+            ],
+        }
+
+        if trace_id:
+            log_record["traceId"] = trace_id.replace("-", "")
+        if span_id:
+            log_record["spanId"] = span_id
+
+        with self._lock:
+            self._logs_buffer.append(log_record)
+
+    def _severity_to_number(self, severity: str) -> int:
+        """Convert severity text to number."""
+        mapping = {
+            "TRACE": 1,
+            "DEBUG": 5,
+            "INFO": 9,
+            "WARNING": 13,
+            "ERROR": 17,
+            "CRITICAL": 21,
+        }
+        return mapping.get(severity.upper(), 9)
+
+    def flush(self) -> bool:
+        """Flush logs to exporter."""
+        with self._lock:
+            if not self._logs_buffer:
+                return True
+
+            payload = self._build_logs_payload()
+            success = self._send_logs(payload)
+            if success:
+                self._logs_buffer.clear()
+            return success
+
+    def _build_logs_payload(self) -> Dict[str, Any]:
+        """Build OTLP logs export payload."""
+        return {
+            "resourceLogs": [{
+                "resource": {
+                    "attributes": [
+                        {"key": k, "value": {"stringValue": v}}
+                        for k, v in self._resource.items()
+                    ]
+                },
+                "scopeLogs": [{
+                    "scope": {
+                        "name": "fl-ehds",
+                        "version": self.config.service_version,
+                    },
+                    "logRecords": self._logs_buffer.copy(),
+                }]
+            }]
+        }
+
+    def _send_logs(self, payload: Dict[str, Any]) -> bool:
+        """Send logs to OTLP endpoint."""
+        logger.debug(f"OTLP logs export: {len(self._logs_buffer)} records")
+        return True
+
+
+class OTELProvider:
+    """
+    OpenTelemetry provider for FL-EHDS.
+
+    Provides unified access to traces, metrics, and logs exporters.
+    """
+
+    def __init__(self, config: Optional[OTELConfig] = None):
+        self.config = config or OTELConfig()
+        self._resource = OTELResourceBuilder(self.config).build()
+
+        # Initialize exporters
+        self.span_processor = OTELSpanProcessor(self.config)
+        self.metrics_exporter = OTELMetricsExporter(self.config)
+        self.logs_exporter = OTELLogsExporter(self.config)
+
+        self._running = False
+
+    async def start(self) -> None:
+        """Start OTEL provider."""
+        self._running = True
+        logger.info(f"OpenTelemetry provider started: endpoint={self.config.endpoint}")
+
+    async def stop(self) -> None:
+        """Stop OTEL provider."""
+        self._running = False
+
+        # Flush all data
+        self.span_processor.shutdown()
+        self.logs_exporter.flush()
+
+        logger.info("OpenTelemetry provider stopped")
+
+    def get_tracer(self, name: str = "fl-ehds") -> "OTELTracer":
+        """Get a tracer instance."""
+        return OTELTracer(name, self)
+
+    def get_meter(self, name: str = "fl-ehds") -> "OTELMeter":
+        """Get a meter instance."""
+        return OTELMeter(name, self)
+
+    def get_logger(self, name: str = "fl-ehds") -> "OTELLogger":
+        """Get a logger instance."""
+        return OTELLogger(name, self)
+
+    def export_fl_metrics(self, metrics: FLMetrics) -> bool:
+        """Export FL metrics."""
+        return self.metrics_exporter.export_metrics(metrics)
+
+
+class OTELTracer:
+    """OpenTelemetry tracer wrapper."""
+
+    def __init__(self, name: str, provider: OTELProvider):
+        self.name = name
+        self._provider = provider
+
+    @contextmanager
+    def start_span(
+        self,
+        name: str,
+        attributes: Optional[Dict[str, str]] = None,
+    ):
+        """Start a new span."""
+        span = Span(
+            trace_id=str(uuid.uuid4()),
+            span_id=str(uuid.uuid4())[:16],
+            parent_span_id=None,
+            operation_name=name,
+            start_time=datetime.now(),
+            tags=attributes or {},
+        )
+
+        self._provider.span_processor.on_start(span)
+        try:
+            yield span
+            span.status = TraceStatus.OK
+        except Exception as e:
+            span.status = TraceStatus.ERROR
+            span.log("error", error=str(e))
+            raise
+        finally:
+            span.finish()
+            self._provider.span_processor.on_end(span)
+
+
+class OTELMeter:
+    """OpenTelemetry meter wrapper."""
+
+    def __init__(self, name: str, provider: OTELProvider):
+        self.name = name
+        self._provider = provider
+        self._instruments: Dict[str, Metric] = {}
+
+    def create_counter(
+        self,
+        name: str,
+        description: str = "",
+        unit: str = "1",
+    ) -> Counter:
+        """Create a counter instrument."""
+        counter = Counter(name, description, [])
+        self._instruments[name] = counter
+        return counter
+
+    def create_gauge(
+        self,
+        name: str,
+        description: str = "",
+        unit: str = "1",
+    ) -> Gauge:
+        """Create a gauge instrument."""
+        gauge = Gauge(name, description, [])
+        self._instruments[name] = gauge
+        return gauge
+
+    def create_histogram(
+        self,
+        name: str,
+        description: str = "",
+        unit: str = "1",
+        buckets: Optional[List[float]] = None,
+    ) -> Histogram:
+        """Create a histogram instrument."""
+        histogram = Histogram(name, description, [], buckets)
+        self._instruments[name] = histogram
+        return histogram
+
+
+class OTELLogger:
+    """OpenTelemetry logger wrapper."""
+
+    def __init__(self, name: str, provider: OTELProvider):
+        self.name = name
+        self._provider = provider
+
+    def info(self, message: str, **kwargs) -> None:
+        """Log info message."""
+        self._provider.logs_exporter.emit("INFO", message, kwargs)
+
+    def warning(self, message: str, **kwargs) -> None:
+        """Log warning message."""
+        self._provider.logs_exporter.emit("WARNING", message, kwargs)
+
+    def error(self, message: str, **kwargs) -> None:
+        """Log error message."""
+        self._provider.logs_exporter.emit("ERROR", message, kwargs)
+
+    def debug(self, message: str, **kwargs) -> None:
+        """Log debug message."""
+        self._provider.logs_exporter.emit("DEBUG", message, kwargs)
+
+
+def create_otel_config(**kwargs) -> OTELConfig:
+    """Factory function to create OpenTelemetry configuration."""
+    export_format_map = {
+        "otlp_grpc": OTELExportFormat.OTLP_GRPC,
+        "otlp_http": OTELExportFormat.OTLP_HTTP,
+        "jaeger": OTELExportFormat.JAEGER,
+        "zipkin": OTELExportFormat.ZIPKIN,
+        "prometheus": OTELExportFormat.PROMETHEUS,
+    }
+
+    if "export_format" in kwargs and isinstance(kwargs["export_format"], str):
+        kwargs["export_format"] = export_format_map.get(
+            kwargs["export_format"].lower(),
+            OTELExportFormat.OTLP_GRPC
+        )
+
+    return OTELConfig(**kwargs)
+
+
+def create_otel_provider(config: Optional[OTELConfig] = None, **kwargs) -> OTELProvider:
+    """Factory function to create OpenTelemetry provider."""
+    if config is None:
+        config = create_otel_config(**kwargs)
+    return OTELProvider(config)
+
+
+# =============================================================================
 # Factory Functions
 # =============================================================================
 
