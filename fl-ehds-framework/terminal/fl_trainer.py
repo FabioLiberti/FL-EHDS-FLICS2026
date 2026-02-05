@@ -168,6 +168,10 @@ class RoundResult:
     round_num: int
     global_loss: float
     global_acc: float
+    global_f1: float
+    global_precision: float
+    global_recall: float
+    global_auc: float
     client_results: List[ClientResult]
     time_seconds: float
 
@@ -572,13 +576,15 @@ class FederatedTrainer:
                 noise = torch.randn_like(param) * noise_scale
                 param.data += noise
 
-    def _evaluate(self) -> Tuple[float, float]:
-        """Evaluate global model on all client data."""
+    def _evaluate(self) -> Dict[str, float]:
+        """Evaluate global model on all client data with comprehensive metrics."""
         self.global_model.eval()
 
         total_loss = 0.0
-        total_correct = 0
         total_samples = 0
+        all_preds = []
+        all_labels = []
+        all_probs = []
 
         criterion = nn.CrossEntropyLoss()
 
@@ -593,10 +599,58 @@ class FederatedTrainer:
 
                 total_loss += loss.item() * len(y)
                 preds = outputs.argmax(dim=1)
-                total_correct += (preds == y_tensor).sum().item()
+                probs = torch.softmax(outputs, dim=1)[:, 1]  # Probability of class 1
+
+                all_preds.extend(preds.cpu().numpy())
+                all_labels.extend(y_tensor.cpu().numpy())
+                all_probs.extend(probs.cpu().numpy())
                 total_samples += len(y)
 
-        return total_loss / total_samples, total_correct / total_samples
+        # Convert to numpy arrays
+        all_preds = np.array(all_preds)
+        all_labels = np.array(all_labels)
+        all_probs = np.array(all_probs)
+
+        # Calculate metrics
+        accuracy = (all_preds == all_labels).mean()
+
+        # True positives, false positives, false negatives
+        tp = ((all_preds == 1) & (all_labels == 1)).sum()
+        fp = ((all_preds == 1) & (all_labels == 0)).sum()
+        fn = ((all_preds == 0) & (all_labels == 1)).sum()
+
+        # Precision, Recall, F1
+        precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
+        recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
+        f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0.0
+
+        # AUC-ROC (simple calculation)
+        # Sort by probability and calculate
+        sorted_indices = np.argsort(all_probs)[::-1]
+        sorted_labels = all_labels[sorted_indices]
+        n_pos = (all_labels == 1).sum()
+        n_neg = (all_labels == 0).sum()
+
+        if n_pos > 0 and n_neg > 0:
+            tpr_sum = 0.0
+            tp_count = 0
+            for label in sorted_labels:
+                if label == 1:
+                    tp_count += 1
+                else:
+                    tpr_sum += tp_count / n_pos
+            auc = tpr_sum / n_neg
+        else:
+            auc = 0.5
+
+        return {
+            "loss": total_loss / total_samples,
+            "accuracy": float(accuracy),
+            "precision": float(precision),
+            "recall": float(recall),
+            "f1": float(f1),
+            "auc": float(auc),
+        }
 
     def train_round(self, round_num: int) -> RoundResult:
         """Execute one federated learning round."""
@@ -634,15 +688,19 @@ class FederatedTrainer:
         # Aggregate
         self._aggregate(client_results)
 
-        # Evaluate
-        global_loss, global_acc = self._evaluate()
+        # Evaluate with all metrics
+        metrics = self._evaluate()
 
         elapsed = time.time() - start_time
 
         round_result = RoundResult(
             round_num=round_num,
-            global_loss=global_loss,
-            global_acc=global_acc,
+            global_loss=metrics["loss"],
+            global_acc=metrics["accuracy"],
+            global_f1=metrics["f1"],
+            global_precision=metrics["precision"],
+            global_recall=metrics["recall"],
+            global_auc=metrics["auc"],
             client_results=client_results,
             time_seconds=elapsed
         )
@@ -653,8 +711,12 @@ class FederatedTrainer:
             self.progress_callback(
                 "round_end",
                 round_num=round_num + 1,
-                loss=global_loss,
-                acc=global_acc,
+                loss=metrics["loss"],
+                acc=metrics["accuracy"],
+                f1=metrics["f1"],
+                precision=metrics["precision"],
+                recall=metrics["recall"],
+                auc=metrics["auc"],
                 time=elapsed
             )
 

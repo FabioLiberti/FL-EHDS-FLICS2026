@@ -7,6 +7,8 @@ import sys
 from pathlib import Path
 from typing import Dict, Any, Optional
 import time
+import json
+from datetime import datetime
 
 # Add parent directories to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
@@ -341,7 +343,7 @@ class TrainingScreen:
 
             elapsed_time = time.time() - start_time
 
-            # Store results
+            # Store results with all metrics
             self.results = {
                 "config": self.config.copy(),
                 "history": [
@@ -349,6 +351,10 @@ class TrainingScreen:
                         "round": r.round_num,
                         "global_loss": r.global_loss,
                         "global_accuracy": r.global_acc,
+                        "global_f1": r.global_f1,
+                        "global_precision": r.global_precision,
+                        "global_recall": r.global_recall,
+                        "global_auc": r.global_auc,
                         "time_seconds": r.time_seconds,
                         "client_results": [
                             {
@@ -365,6 +371,10 @@ class TrainingScreen:
                 "final_metrics": {
                     "global_accuracy": trainer.history[-1].global_acc if trainer.history else 0,
                     "global_loss": trainer.history[-1].global_loss if trainer.history else 0,
+                    "global_f1": trainer.history[-1].global_f1 if trainer.history else 0,
+                    "global_precision": trainer.history[-1].global_precision if trainer.history else 0,
+                    "global_recall": trainer.history[-1].global_recall if trainer.history else 0,
+                    "global_auc": trainer.history[-1].global_auc if trainer.history else 0,
                 },
                 "elapsed_time": elapsed_time,
                 "data_stats": stats,
@@ -374,6 +384,9 @@ class TrainingScreen:
             print()
             print_success(f"Training completato in {elapsed_time:.1f} secondi")
             self._display_final_results()
+
+            # Auto-save all outputs
+            self._auto_save_training_outputs(elapsed_time)
 
         except ImportError as e:
             print_error(f"Errore import: {e}")
@@ -479,7 +492,7 @@ class TrainingScreen:
         input(f"\n{Style.MUTED}Premi Enter per continuare...{Colors.RESET}")
 
     def _display_final_results(self):
-        """Display final training results."""
+        """Display final training results with all metrics."""
         if not self.results:
             print_warning("Nessun risultato disponibile")
             return
@@ -489,7 +502,7 @@ class TrainingScreen:
         final = self.results.get("final_metrics", {})
 
         print(f"\n{Style.TITLE}{'Metrica':<20} {'Valore':<15}{Colors.RESET}")
-        print("-" * 35)
+        print("-" * 40)
 
         # Global accuracy
         acc = final.get("global_accuracy", 0)
@@ -498,6 +511,24 @@ class TrainingScreen:
         # Global loss
         loss = final.get("global_loss", 0)
         print(f"  {'Loss':<18} {loss:.4f}")
+
+        # F1 Score
+        f1 = final.get("global_f1", 0)
+        print(f"  {'F1 Score':<18} {f1:.4f}")
+
+        # Precision
+        precision = final.get("global_precision", 0)
+        print(f"  {'Precision':<18} {precision:.4f}")
+
+        # Recall
+        recall = final.get("global_recall", 0)
+        print(f"  {'Recall':<18} {recall:.4f}")
+
+        # AUC
+        auc = final.get("global_auc", 0)
+        print(f"  {'AUC-ROC':<18} {auc:.4f}")
+
+        print("-" * 40)
 
         # Training time
         elapsed = self.results.get("elapsed_time", 0)
@@ -513,6 +544,217 @@ class TrainingScreen:
             print(f"  Epsilon: {self.config['dp_epsilon']:.4f}")
             print(f"  Delta: {self.config['dp_delta']:.2e}")
             print(f"  Clip Norm: {self.config['dp_clip_norm']:.2f}")
+
+    def _auto_save_training_outputs(self, elapsed_time: float):
+        """Automatically save all training outputs."""
+        base_dir = Path(__file__).parent.parent.parent / "results"
+        base_dir.mkdir(exist_ok=True)
+
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+        # Create experiment-specific folder with descriptive name
+        algo = self.config["algorithm"]
+        dp_str = f"_DP{self.config['dp_epsilon']}" if self.config["dp_enabled"] else ""
+        dist_short = "IID" if "IID" in self.config["data_distribution"] else "NonIID"
+        folder_name = f"training_{algo}{dp_str}_{dist_short}_{self.config['num_clients']}clients_{self.config['num_rounds']}rounds_{timestamp}"
+        output_dir = base_dir / folder_name
+        output_dir.mkdir(exist_ok=True)
+
+        saved_files = []
+
+        print()
+        print_subsection("SALVATAGGIO AUTOMATICO RISULTATI")
+
+        # Build specs
+        full_specs = {
+            "experiment_type": "single_training",
+            "timestamp": timestamp,
+            "elapsed_time_seconds": elapsed_time,
+            "training_config": {
+                "algorithm": self.config["algorithm"],
+                "num_clients": self.config["num_clients"],
+                "num_rounds": self.config["num_rounds"],
+                "local_epochs": self.config["local_epochs"],
+                "batch_size": self.config["batch_size"],
+                "learning_rate": self.config["learning_rate"],
+                "data_distribution": self.config["data_distribution"],
+                "dp_enabled": self.config["dp_enabled"],
+                "seed": self.config["seed"],
+            },
+            "model_config": {
+                "architecture": "HealthcareMLP",
+                "layers": "10 -> 64 -> 32 -> 2",
+                "total_params": 2946,
+                "optimizer": "SGD",
+                "loss_function": "CrossEntropyLoss",
+            },
+        }
+
+        if self.config["dp_enabled"]:
+            full_specs["training_config"]["dp_epsilon"] = self.config["dp_epsilon"]
+            full_specs["training_config"]["dp_delta"] = self.config["dp_delta"]
+
+        # 1. Save JSON results
+        json_file = output_dir / "results.json"
+        export_data = {
+            "specs": full_specs,
+            "final_metrics": self.results.get("final_metrics", {}),
+            "history": self.results.get("history", []),
+            "data_stats": self.results.get("data_stats", {}),
+        }
+        with open(json_file, "w") as f:
+            json.dump(export_data, f, indent=2, default=str)
+        saved_files.append(("JSON (Risultati)", json_file))
+
+        # 2. Generate convergence plots with all metrics
+        try:
+            import matplotlib
+            matplotlib.use('Agg')
+            import matplotlib.pyplot as plt
+            import numpy as np
+
+            history = self.results.get("history", [])
+            if history:
+                rounds = [h["round"] + 1 for h in history]
+
+                # Plot 1: Accuracy and Loss
+                fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+                accs = [h.get("global_accuracy", 0) for h in history]
+                losses = [h.get("global_loss", 0) for h in history]
+
+                axes[0].plot(rounds, accs, 'g-', linewidth=2, marker='o', markersize=3)
+                axes[0].set_xlabel("Round")
+                axes[0].set_ylabel("Accuracy")
+                axes[0].set_title(f"Training Accuracy - {self.config['algorithm']}")
+                axes[0].grid(True, alpha=0.3)
+
+                axes[1].plot(rounds, losses, 'b-', linewidth=2, marker='o', markersize=3)
+                axes[1].set_xlabel("Round")
+                axes[1].set_ylabel("Loss")
+                axes[1].set_title(f"Training Loss - {self.config['algorithm']}")
+                axes[1].grid(True, alpha=0.3)
+
+                spec_text = f"{self.config['num_clients']} clients | {self.config['num_rounds']} rounds | lr={self.config['learning_rate']}"
+                fig.text(0.5, 0.02, spec_text, ha='center', fontsize=9, style='italic')
+                plt.tight_layout(rect=[0, 0.05, 1, 1])
+                plot_file = output_dir / "plot_accuracy_loss.png"
+                plt.savefig(plot_file, dpi=150, bbox_inches="tight")
+                plt.close()
+                saved_files.append(("PNG (Accuracy/Loss)", plot_file))
+
+                # Plot 2: F1, Precision, Recall
+                fig, axes = plt.subplots(1, 3, figsize=(18, 5))
+                f1s = [h.get("global_f1", 0) for h in history]
+                precs = [h.get("global_precision", 0) for h in history]
+                recs = [h.get("global_recall", 0) for h in history]
+
+                axes[0].plot(rounds, f1s, 'r-', linewidth=2, marker='o', markersize=3)
+                axes[0].set_xlabel("Round")
+                axes[0].set_ylabel("F1")
+                axes[0].set_title(f"F1 Score - {self.config['algorithm']}")
+                axes[0].grid(True, alpha=0.3)
+
+                axes[1].plot(rounds, precs, 'm-', linewidth=2, marker='o', markersize=3)
+                axes[1].set_xlabel("Round")
+                axes[1].set_ylabel("Precision")
+                axes[1].set_title(f"Precision - {self.config['algorithm']}")
+                axes[1].grid(True, alpha=0.3)
+
+                axes[2].plot(rounds, recs, 'c-', linewidth=2, marker='o', markersize=3)
+                axes[2].set_xlabel("Round")
+                axes[2].set_ylabel("Recall")
+                axes[2].set_title(f"Recall - {self.config['algorithm']}")
+                axes[2].grid(True, alpha=0.3)
+
+                plt.tight_layout()
+                plot_file = output_dir / "plot_f1_precision_recall.png"
+                plt.savefig(plot_file, dpi=150, bbox_inches="tight")
+                plt.close()
+                saved_files.append(("PNG (F1/Prec/Rec)", plot_file))
+
+                # Plot 3: AUC
+                fig, ax = plt.subplots(figsize=(10, 5))
+                aucs = [h.get("global_auc", 0) for h in history]
+                ax.plot(rounds, aucs, 'orange', linewidth=2, marker='o', markersize=3)
+                ax.set_xlabel("Round")
+                ax.set_ylabel("AUC")
+                ax.set_title(f"AUC-ROC - {self.config['algorithm']}")
+                ax.grid(True, alpha=0.3)
+                plt.tight_layout()
+                plot_file = output_dir / "plot_auc.png"
+                plt.savefig(plot_file, dpi=150, bbox_inches="tight")
+                plt.close()
+                saved_files.append(("PNG (AUC)", plot_file))
+
+                # Plot 4: Combined metrics
+                fig, ax = plt.subplots(figsize=(12, 6))
+                ax.plot(rounds, accs, label='Accuracy', linewidth=2)
+                ax.plot(rounds, f1s, label='F1', linewidth=2)
+                ax.plot(rounds, precs, label='Precision', linewidth=2)
+                ax.plot(rounds, recs, label='Recall', linewidth=2)
+                ax.plot(rounds, aucs, label='AUC', linewidth=2)
+                ax.set_xlabel("Round")
+                ax.set_ylabel("Score")
+                ax.set_title(f"All Metrics Convergence - {self.config['algorithm']}")
+                ax.legend()
+                ax.grid(True, alpha=0.3)
+                plt.tight_layout()
+                plot_file = output_dir / "plot_all_metrics.png"
+                plt.savefig(plot_file, dpi=150, bbox_inches="tight")
+                plt.close()
+                saved_files.append(("PNG (All Metrics)", plot_file))
+
+        except ImportError:
+            print_warning("matplotlib non disponibile - grafici non generati")
+        except Exception as e:
+            print_warning(f"Errore generazione grafici: {e}")
+
+        # 3. Generate CSV with history
+        csv_file = output_dir / "history_all_metrics.csv"
+        with open(csv_file, "w") as f:
+            f.write("round,accuracy,loss,f1,precision,recall,auc,time_seconds\n")
+            for h in self.results.get("history", []):
+                f.write(f"{h['round']+1},{h.get('global_accuracy',0):.4f},{h.get('global_loss',0):.4f},"
+                        f"{h.get('global_f1',0):.4f},{h.get('global_precision',0):.4f},"
+                        f"{h.get('global_recall',0):.4f},{h.get('global_auc',0):.4f},"
+                        f"{h.get('time_seconds',0):.2f}\n")
+        saved_files.append(("CSV (History)", csv_file))
+
+        # 4. Generate summary
+        summary_file = output_dir / "summary.txt"
+        final = self.results.get("final_metrics", {})
+        with open(summary_file, "w") as f:
+            f.write(f"FL-EHDS Training Summary\n")
+            f.write(f"{'='*50}\n\n")
+            f.write(f"Algorithm: {self.config['algorithm']}\n")
+            f.write(f"Clients: {self.config['num_clients']}\n")
+            f.write(f"Rounds: {self.config['num_rounds']}\n")
+            f.write(f"Local Epochs: {self.config['local_epochs']}\n")
+            f.write(f"Learning Rate: {self.config['learning_rate']}\n")
+            f.write(f"Distribution: {self.config['data_distribution']}\n")
+            f.write(f"DP Enabled: {self.config['dp_enabled']}\n")
+            if self.config['dp_enabled']:
+                f.write(f"DP Epsilon: {self.config['dp_epsilon']}\n")
+            f.write(f"\nFinal Metrics:\n")
+            f.write(f"  Accuracy: {final.get('global_accuracy', 0):.4f}\n")
+            f.write(f"  Loss: {final.get('global_loss', 0):.4f}\n")
+            f.write(f"  F1: {final.get('global_f1', 0):.4f}\n")
+            f.write(f"  Precision: {final.get('global_precision', 0):.4f}\n")
+            f.write(f"  Recall: {final.get('global_recall', 0):.4f}\n")
+            f.write(f"  AUC: {final.get('global_auc', 0):.4f}\n")
+            f.write(f"\nTraining Time: {elapsed_time:.1f} seconds\n")
+        saved_files.append(("TXT (Summary)", summary_file))
+
+        # === Show summary of saved files ===
+        print()
+        print(f"{Style.SUCCESS}=== RISULTATI SALVATI ==={Colors.RESET}")
+        print(f"\nDirectory: {output_dir}\n")
+        print(f"{Style.TITLE}{'Tipo':<25} {'File':<50}{Colors.RESET}")
+        print("-" * 75)
+        for file_type, file_path in saved_files:
+            print(f"  {file_type:<23} {file_path.name}")
+        print("-" * 75)
+        print(f"\n{Style.SUCCESS}Totale: {len(saved_files)} file salvati{Colors.RESET}")
 
     def _show_results(self):
         """Show detailed results."""
