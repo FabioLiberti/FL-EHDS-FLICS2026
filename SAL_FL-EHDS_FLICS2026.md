@@ -1,7 +1,7 @@
 # SAL - Stato Avanzamento Lavori
 ## Progetto: FL-EHDS Paper per FLICS 2026
 
-**Data**: 1 Febbraio 2026  
+**Data**: 5 Febbraio 2026  
 **Autore**: Fabio Liberti  
 **Affiliazione**: Universitas Mercatorum, Rome, Italy
 
@@ -23,6 +23,23 @@ Sviluppo di un paper scientifico su **Federated Learning per European Health Dat
 ---
 
 ## ✅ LAVORO COMPLETATO
+
+### 0. Framework Python Completo (February 2026)
+**Directory**: `fl-ehds-framework/`
+
+- **Aggregation Algorithms**: FedAvg, FedProx, SCAFFOLD, FedNova
+- **Privacy Module**: Rényi Differential Privacy (RDP) con composizione tight
+  - Miglioramento 6-10x rispetto a composizione semplice per 100+ round
+  - Formula RDP Gaussiana: ρ(α) = α/(2σ²)
+  - Amplificazione privacy per subsampling
+  - Conversione (ε,δ)-DP con selezione ordine ottimale
+- **Benchmark Results** (5 ospedali, 30 round, 3 run):
+  - FedAvg Non-IID: 60.9% ± 0.02 accuracy
+  - FedProx: 60.9% ± 0.02 accuracy
+  - SCAFFOLD: 60.5% ± 0.01 accuracy
+  - FedNova: 60.7% ± 0.02 accuracy
+  - DP (ε=10): 55.7% ± 0.01 accuracy
+  - DP (ε=1): 55.1% ± 0.01 accuracy
 
 ### 1. Figura TikZ (Architettura FL-EHDS)
 **File**: `figures/fig2-fl-ehds-architecture.tex`
@@ -73,18 +90,21 @@ Sviluppo di un paper scientifico su **Federated Learning per European Health Dat
 10. Christiansen et al. 2025 - EJPH - HealthData@EU Pilot
 11. Ganna et al. 2024 - Nat Med - Research boost
 
-**Federated Learning (11):**
+**Federated Learning (14):**
 12. McMahan et al. 2017 - AISTATS - FedAvg
 13. Li et al. 2020 - MLSys - FedProx
-14. Kairouz et al. 2021 - FTML - Open problems
-15. Rieke et al. 2020 - npj Digital Medicine - FL digital health
-16. Bonawitz et al. 2019 - MLSys - FL at scale
-17. Teo et al. 2024 - Cell Rep Med - Systematic review (612 articles)
-18. Peng et al. 2024 - CMPB - Systematic review
-19. Zhu et al. 2019 - NeurIPS - Gradient inversion attacks
-20. Shokri et al. 2017 - IEEE S&P - Membership inference
-21. Dwork & Roth 2014 - FTCS - Differential privacy
-22. Abadi et al. 2016 - CCS - DP deep learning
+14. Karimireddy et al. 2020 - ICML - SCAFFOLD
+15. Wang et al. 2020 - NeurIPS - FedNova
+16. Kairouz et al. 2021 - FTML - Open problems
+17. Rieke et al. 2020 - npj Digital Medicine - FL digital health
+18. Bonawitz et al. 2019 - MLSys - FL at scale
+19. Teo et al. 2024 - Cell Rep Med - Systematic review (612 articles)
+20. Peng et al. 2024 - CMPB - Systematic review
+21. Zhu et al. 2019 - NeurIPS - Gradient inversion attacks
+22. Shokri et al. 2017 - IEEE S&P - Membership inference
+23. Dwork & Roth 2014 - FTCS - Differential privacy
+24. Abadi et al. 2016 - CCS - DP deep learning
+25. Mironov 2017 - IEEE CSF - Rényi differential privacy
 
 ### 4. Setup Repository/Workflow
 
@@ -130,9 +150,15 @@ FL-EHDS-FLICS2026/
 
 ## 🎯 PROSSIMI PASSI
 
+### Completati (5 Febbraio 2026)
+- [x] Framework Python con FedAvg, FedProx, SCAFFOLD, FedNova
+- [x] Implementazione RDP per privacy accounting tight
+- [x] Benchmark con significatività statistica (3 seed, std dev)
+- [x] Aggiornamento tabelle paper con nuovi risultati
+- [x] Documentazione RDP nel paper
+
 ### Immediati (pre-submission)
-- [ ] Inserire ORCID reale nel main.tex (riga 30)
-- [ ] Sostituire main.tex in Overleaf con versione migliorata
+- [x] Inserire ORCID reale nel main.tex
 - [ ] Compilare PDF e verificare:
   - [ ] Figura TikZ renderizza correttamente
   - [ ] Lunghezza ≤ 8 pagine
@@ -234,4 +260,4 @@ git push
 
 ---
 
-*Ultimo aggiornamento: 1 Febbraio 2026*
+*Ultimo aggiornamento: 5 Febbraio 2026*

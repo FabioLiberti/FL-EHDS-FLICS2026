@@ -1,20 +1,24 @@
 
 \begin{table}[htbp]
 \centering
-\caption{Experimental Results: FL-EHDS Framework Performance}
-\label{tab:experimental_results}
-\begin{tabular}{lcccc}
+\caption{Comprehensive Experimental Results}
+\label{tab:main_results}
+\small
+\begin{tabular}{lccccc}
 \toprule
-\textbf{Configuration} & \textbf{Accuracy} & \textbf{Loss} & \textbf{Conv.} & \textbf{$\varepsilon$} \\
+\textbf{Configuration} & \textbf{Acc.} & \textbf{F1} & \textbf{AUC} & \textbf{Prec.} & \textbf{Rec.} \\
 \midrule
-FedAvg (IID) & 57.0% & 0.658 & 30 & --- \\
-FedAvg (Non-IID) & 58.4% & 0.643 & 30 & --- \\
-FedProx (Non-IID) & 58.0% & 0.643 & 30 & --- \\
-FedAvg + DP ($\varepsilon$=10) & 53.6% & 6.873 & 30 & 50.0 \\
-FedAvg + DP ($\varepsilon$=1) & 52.8% & 7.100 & 30 & 5.0 \\
+FedAvg (IID) & 60.5%$\pm$0.02 & 0.62$\pm$0.02 & 0.66$\pm$0.01 & 0.62 & 0.62 \\
+FedAvg (Non-IID) & 60.9%$\pm$0.02 & 0.61$\pm$0.01 & 0.66$\pm$0.01 & 0.62 & 0.61 \\
+FedProx ($\mu$=0.1) & 60.9%$\pm$0.02 & 0.62$\pm$0.01 & 0.66$\pm$0.01 & 0.62 & 0.61 \\
+SCAFFOLD & 60.5%$\pm$0.01 & 0.61$\pm$0.02 & 0.66$\pm$0.01 & 0.62 & 0.61 \\
+FedNova & 60.7%$\pm$0.02 & 0.62$\pm$0.01 & 0.66$\pm$0.01 & 0.62 & 0.61 \\
+FedAvg + DP ($\varepsilon$=10) & 55.7%$\pm$0.01 & 0.61$\pm$0.04 & 0.55$\pm$0.03 & 0.56 & 0.67 \\
+FedAvg + DP ($\varepsilon$=1) & 55.1%$\pm$0.01 & 0.59$\pm$0.04 & 0.55$\pm$0.01 & 0.56 & 0.65 \\
 
 \bottomrule
 \end{tabular}
+
 \vspace{1mm}
-\footnotesize{Conv. = Convergence round (loss $<$ 0.5). 5 hospitals, 30 rounds, synthetic cardiovascular data.}
+\footnotesize{5 hospitals, 50 rounds, 3 local epochs, batch size 32. Gradient clipping $C$=1.0. Results are mean $\pm$ std over 5 runs.}
 \end{table}

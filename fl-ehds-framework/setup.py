@@ -31,6 +31,7 @@ setup(
     python_requires=">=3.9",
     install_requires=[
         "numpy>=1.24.0",
+        "scipy>=1.11.0",
         "torch>=2.0.0",
         "pydantic>=2.5.0",
         "pyyaml>=6.0.1",

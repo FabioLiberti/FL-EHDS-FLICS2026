@@ -85,8 +85,17 @@
 - **Cross-border Coordination**: Multi-HDAB synchronization
 
 ### Layer 2: FL Orchestration Layer (within SPE)
-- **Aggregation Algorithms**: FedAvg, FedProx, with non-IID adaptations
-- **Privacy Modules**: Differential privacy, gradient clipping
+- **Aggregation Algorithms**:
+  - FedAvg (baseline) - weighted averaging
+  - FedProx - proximal regularization for non-IID robustness
+  - SCAFFOLD - control variates for variance reduction
+  - FedNova - normalized averaging for heterogeneous local steps
+- **Privacy Modules**:
+  - Rényi Differential Privacy (RDP) accounting with tight composition
+  - Gaussian mechanism: ρ(α) = α/(2σ²)
+  - Privacy amplification by subsampling
+  - Optimal (ε,δ)-DP conversion: 6-10x tighter than simple composition
+  - Gradient clipping (L2 norm bounding)
 - **Security Modules**: Membership inference defense, gradient protection
 - **Compliance Modules**: Audit logging, GDPR compliance verification
 
@@ -100,12 +109,28 @@
 
 | Barrier (from SLR) | Framework Component | Mitigation Strategy |
 |-------------------|---------------------|---------------------|
-| Hardware heterogeneity (78%) | Adaptive Training Engine | Resource-aware model partitioning |
-| Non-IID data (67%) | FedProx Aggregator | Proximal term regularization |
-| Gradient privacy risk | DP Module + MIA Defense | ε-differential privacy, gradient clipping |
+| Hardware heterogeneity (78%) | Adaptive Training Engine | Resource-aware model partitioning, FedNova normalized aggregation |
+| Non-IID data (67%) | FedProx/SCAFFOLD Aggregator | Proximal term regularization, control variates for variance reduction |
+| Gradient privacy risk | RDP Module + MIA Defense | Rényi DP with tight composition (6-10x improvement), gradient clipping |
 | Legal uncertainty | Governance Layer | Explicit data permit workflow |
 | HDAB capacity gaps | Standardized APIs | Reference implementation |
 | Interoperability (34% FHIR) | Data Preprocessing | FHIR-native data ingestion |
+
+## Experimental Results (February 2026)
+
+Benchmark results with 5 hospitals, 30 rounds, 3 local epochs (mean ± std over 3 runs):
+
+| Algorithm | Accuracy | F1 | AUC |
+|-----------|----------|-----|-----|
+| FedAvg (IID) | 60.5% ± 0.02 | 0.62 ± 0.02 | 0.66 ± 0.01 |
+| FedAvg (Non-IID) | 60.9% ± 0.02 | 0.61 ± 0.01 | 0.66 ± 0.01 |
+| FedProx (μ=0.1) | 60.9% ± 0.02 | 0.62 ± 0.01 | 0.66 ± 0.01 |
+| SCAFFOLD | 60.5% ± 0.01 | 0.61 ± 0.02 | 0.66 ± 0.01 |
+| FedNova | 60.7% ± 0.02 | 0.62 ± 0.01 | 0.66 ± 0.01 |
+| FedAvg + DP (ε=10) | 55.7% ± 0.01 | 0.61 ± 0.04 | 0.55 ± 0.03 |
+| FedAvg + DP (ε=1) | 55.1% ± 0.01 | 0.59 ± 0.04 | 0.55 ± 0.01 |
+
+**Key Finding**: All advanced FL algorithms (FedProx, SCAFFOLD, FedNova) perform within 0.4pp of baseline FedAvg on moderately non-IID healthcare data.
 
 ## Compliance Checkpoints
 

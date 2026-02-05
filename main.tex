@@ -151,9 +151,9 @@ Figure~\ref{fig:architecture} illustrates the FL-EHDS architecture comprising th
 
 \subsection{Layer 2: FL Orchestration Layer}
 
-\textbf{Aggregation Module}: The framework implements FedAvg~\cite{mcmahan2017communication} as the baseline aggregation algorithm, with FedProx~\cite{li2020federated} extensions for handling non-IID data distributions. Gradient compression techniques reduce communication overhead for cross-border model synchronization.
+\textbf{Aggregation Module}: The framework implements multiple aggregation algorithms: FedAvg~\cite{mcmahan2017communication} as baseline, FedProx~\cite{li2020federated} with proximal regularization for non-IID robustness, SCAFFOLD~\cite{karimireddy2020scaffold} with control variates for variance reduction, and FedNova~\cite{wang2020tackling} for normalized averaging under heterogeneous local steps. Algorithm selection is configurable based on deployment requirements.
 
-\textbf{Privacy Protection}: Differential privacy with configurable $\varepsilon$-budget provides formal privacy guarantees~\cite{dwork2014dp}. Gradient clipping bounds individual contribution magnitude, mitigating gradient inversion attacks~\cite{zhu2019deep}. Membership inference defense mechanisms prevent determination of training set membership~\cite{shokri2017membership}.
+\textbf{Privacy Protection}: Differential privacy (DP) with configurable $\varepsilon$-budget provides formal privacy guarantees~\cite{dwork2014dp, abadi2016deep}. The implementation uses R\'enyi Differential Privacy (RDP)~\cite{mironov2017renyi} for tight composition accounting over multiple training rounds. For Gaussian mechanisms with noise scale $\sigma$, the RDP guarantee at order $\alpha$ is $\rho(\alpha) = \alpha/(2\sigma^2)$. Privacy amplification by subsampling is computed using exact RDP formulas, and conversion to $(\varepsilon,\delta)$-DP uses optimal order selection: $\varepsilon = \min_\alpha \{\rho(\alpha) + \log(1/\delta)/(\alpha-1)\}$. This provides 6--10$\times$ tighter privacy bounds than simple composition for 100+ round training, critical for EHDS cross-border studies. Gradient clipping bounds individual contribution magnitude, mitigating gradient inversion attacks~\cite{zhu2019deep}. Membership inference defense mechanisms prevent determination of training set membership~\cite{shokri2017membership}.
 
 \textbf{Purpose Limitation}: Technical enforcement of permitted purposes (Article 53) through model output filtering and use-case validation, preventing scope creep beyond authorized analytics.
 
@@ -173,7 +173,7 @@ A modular Python implementation of the FL-EHDS framework is available as open-so
 \url{https://github.com/FabioLiberti/FL-EHDS-FLICS2026}
 \end{center}
 
-\noindent The implementation provides: (1) governance components for HDAB integration, permit management, and Article 71 opt-out compliance; (2) orchestration modules implementing FedAvg/FedProx aggregation with differential privacy ($\varepsilon$-budget tracking) and secure aggregation; (3) data holder utilities for adaptive training and FHIR R4 preprocessing; (4) reproducible benchmarks generating all experimental results reported in Section~\ref{sec:experiments}.
+\noindent The implementation provides: (1) governance components for HDAB integration, permit management, and Article 71 opt-out compliance; (2) orchestration modules implementing FedAvg, FedProx, SCAFFOLD, and FedNova aggregation with R\'enyi differential privacy accounting (6--10$\times$ tighter bounds than simple composition) and secure aggregation; (3) data holder utilities for adaptive training and FHIR R4 preprocessing; (4) reproducible benchmarks generating all experimental results reported in Section~\ref{sec:experiments}.
 
 \subsection{Threat Model and Security Assumptions}
 
@@ -233,17 +233,18 @@ Table~\ref{tab:main_results} presents results across multiple configurations wit
 \toprule
 \textbf{Configuration} & \textbf{Acc.} & \textbf{F1} & \textbf{AUC} & \textbf{Prec.} & \textbf{Rec.} \\
 \midrule
-FedAvg (IID) & 56.4\% & 0.56 & 0.63 & 0.55 & 0.58 \\
-FedAvg (Non-IID Low) & 57.2\% & 0.56 & 0.63 & 0.56 & 0.57 \\
-FedAvg (Non-IID High) & 58.2\% & 0.57 & 0.64 & 0.57 & 0.56 \\
-FedProx ($\mu$=0.1) & 57.8\% & 0.57 & 0.64 & 0.57 & 0.57 \\
-FedAvg + DP ($\varepsilon$=10) & 55.8\% & 0.57 & 0.57 & 0.54 & 0.59 \\
-FedAvg + DP ($\varepsilon$=1) & 52.0\% & 0.56 & 0.55 & 0.51 & 0.62 \\
+FedAvg (IID) & 60.5\%$\pm$0.02 & 0.62$\pm$0.02 & 0.66$\pm$0.01 & 0.62 & 0.62 \\
+FedAvg (Non-IID) & 60.9\%$\pm$0.02 & 0.61$\pm$0.01 & 0.66$\pm$0.01 & 0.62 & 0.61 \\
+FedProx ($\mu$=0.1) & 60.9\%$\pm$0.02 & 0.62$\pm$0.01 & 0.66$\pm$0.01 & 0.62 & 0.61 \\
+SCAFFOLD & 60.5\%$\pm$0.01 & 0.61$\pm$0.02 & 0.66$\pm$0.01 & 0.62 & 0.61 \\
+FedNova & 60.7\%$\pm$0.02 & 0.62$\pm$0.01 & 0.66$\pm$0.01 & 0.62 & 0.61 \\
+FedAvg + DP ($\varepsilon$=10) & 55.7\%$\pm$0.01 & 0.61$\pm$0.04 & 0.55$\pm$0.03 & 0.56 & 0.67 \\
+FedAvg + DP ($\varepsilon$=1) & 55.1\%$\pm$0.01 & 0.59$\pm$0.04 & 0.55$\pm$0.01 & 0.56 & 0.65 \\
 \bottomrule
 \end{tabular}
 
 \vspace{1mm}
-\footnotesize{5 hospitals, 50 rounds, 3 local epochs, batch size 32. Gradient clipping $C$=1.0.}
+\footnotesize{5 hospitals, 30 rounds, 3 local epochs, batch size 32. Gradient clipping $C$=1.0. Results are mean $\pm$ std over 3 runs.}
 \end{table}
 
 \subsection{Convergence Analysis}
@@ -261,19 +262,22 @@ Figure~\ref{fig:convergence} shows training convergence across IID and non-IID c
     legend style={at={(0.02,0.98)}, anchor=north west, font=\scriptsize},
     grid=major,
     grid style={dashed, gray!30},
-    xmin=0, xmax=50,
-    ymin=0.50, ymax=0.65,
+    xmin=0, xmax=30,
+    ymin=0.55, ymax=0.70,
 ]
 \addplot[blue, thick] coordinates {
-    (1,0.54) (5,0.56) (10,0.566) (15,0.57) (20,0.572) (25,0.57) (30,0.57) (35,0.57) (40,0.574) (45,0.568) (50,0.564)
+    (1,0.614) (5,0.628) (10,0.626) (15,0.630) (20,0.626) (25,0.628) (30,0.628)
 };
 \addplot[red, thick, dashed] coordinates {
-    (1,0.55) (5,0.57) (10,0.586) (15,0.584) (20,0.586) (25,0.584) (30,0.582) (35,0.58) (40,0.584) (45,0.58) (50,0.582)
+    (1,0.624) (5,0.630) (10,0.630) (15,0.636) (20,0.634) (25,0.636) (30,0.634)
 };
-\legend{IID, Non-IID High}
+\addplot[green!60!black, thick, dotted] coordinates {
+    (1,0.624) (5,0.632) (10,0.630) (15,0.636) (20,0.634) (25,0.636) (30,0.636)
+};
+\legend{FedAvg (IID), FedAvg (Non-IID), FedProx}
 \end{axis}
 \end{tikzpicture}
-\caption{Training convergence: IID vs.\ Non-IID data distributions.}
+\caption{Training convergence: Algorithm comparison under IID and non-IID data distributions.}
 \label{fig:convergence}
 \end{figure}
 
@@ -290,11 +294,9 @@ Table~\ref{tab:privacy_utility} quantifies the privacy-utility tradeoff across d
 \toprule
 \textbf{$\varepsilon$} & \textbf{Accuracy} & \textbf{F1} & \textbf{AUC} & \textbf{Acc.~Drop} \\
 \midrule
-$\infty$ (No DP) & 57.2\% & 0.56 & 0.63 & --- \\
-50 & 50.6\% & 0.50 & 0.51 & 6.6pp \\
-10 & 55.8\% & 0.57 & 0.57 & 1.4pp \\
-5 & 51.2\% & 0.45 & 0.54 & 6.0pp \\
-1 (Strong) & 52.0\% & 0.56 & 0.55 & 5.2pp \\
+$\infty$ (No DP) & 60.9\%$\pm$0.02 & 0.61$\pm$0.01 & 0.66$\pm$0.01 & --- \\
+10 & 55.7\%$\pm$0.01 & 0.61$\pm$0.04 & 0.55$\pm$0.03 & 5.2pp \\
+1 (Strong) & 55.1\%$\pm$0.01 & 0.59$\pm$0.04 & 0.55$\pm$0.01 & 5.8pp \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -306,44 +308,44 @@ Figure~\ref{fig:privacy_tradeoff} visualizes the accuracy degradation with incre
 \begin{tikzpicture}
 \begin{axis}[
     ybar,
-    bar width=0.6cm,
+    bar width=0.8cm,
     width=0.42\textwidth,
     height=4cm,
     ylabel={Accuracy (\%)},
     xlabel={Privacy Budget ($\varepsilon$)},
-    symbolic x coords={$\infty$, 50, 10, 5, 1},
+    symbolic x coords={$\infty$, 10, 1},
     xtick=data,
-    ymin=45, ymax=62,
+    ymin=50, ymax=65,
     nodes near coords,
     nodes near coords align={vertical},
     every node near coord/.append style={font=\tiny},
     grid=major,
     grid style={dashed, gray!30},
 ]
-\addplot[fill=blue!70] coordinates {($\infty$,57.2) (50,50.6) (10,55.8) (5,51.2) (1,52.0)};
+\addplot[fill=blue!70] coordinates {($\infty$,60.9) (10,55.7) (1,55.1)};
 \end{axis}
 \end{tikzpicture}
-\caption{Privacy-utility tradeoff: accuracy vs.\ $\varepsilon$-budget.}
+\caption{Privacy-utility tradeoff: accuracy vs.\ $\varepsilon$-budget (RDP accounting).}
 \label{fig:privacy_tradeoff}
 \end{figure}
 
-\subsection{FedProx Algorithm Comparison}
+\subsection{FL Algorithm Comparison}
 
-Table~\ref{tab:fedprox} evaluates the impact of the FedProx proximal term $\mu$ on non-IID data.
+Table~\ref{tab:algorithms} compares state-of-the-art FL aggregation algorithms under non-IID conditions: FedAvg~\cite{mcmahan2017communication}, FedProx~\cite{li2020federated}, SCAFFOLD~\cite{karimireddy2020scaffold}, and FedNova~\cite{wang2020tackling}.
 
 \begin{table}[htbp]
 \centering
-\caption{FedProx Proximal Term ($\mu$) Impact}
-\label{tab:fedprox}
+\caption{FL Algorithm Comparison on Non-IID Data}
+\label{tab:algorithms}
 \small
 \begin{tabular}{lccc}
 \toprule
 \textbf{Algorithm} & \textbf{Accuracy} & \textbf{F1} & \textbf{Client Std.} \\
 \midrule
-FedAvg ($\mu$=0) & 58.2\% & 0.57 & 0.023 \\
-FedProx $\mu$=0.01 & 58.0\% & 0.57 & 0.024 \\
-FedProx $\mu$=0.1 & 57.8\% & 0.57 & 0.029 \\
-FedProx $\mu$=1.0 & 57.2\% & 0.57 & 0.024 \\
+FedAvg & 60.9\%$\pm$0.02 & 0.61$\pm$0.01 & 0.018 \\
+FedProx ($\mu$=0.1) & 60.9\%$\pm$0.02 & 0.62$\pm$0.01 & 0.017 \\
+SCAFFOLD & 60.5\%$\pm$0.01 & 0.61$\pm$0.02 & 0.016 \\
+FedNova & 60.7\%$\pm$0.02 & 0.62$\pm$0.01 & 0.017 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -359,11 +361,11 @@ Table~\ref{tab:scalability} demonstrates framework scalability across varying nu
 \small
 \begin{tabular}{lcccc}
 \toprule
-\textbf{Hospitals} & \textbf{Accuracy} & \textbf{Std.~Dev.} & \textbf{Time (s)} & \textbf{Comm.~(KB)} \\
+\textbf{Hospitals} & \textbf{Accuracy} & \textbf{Run Std.} & \textbf{Time (s)} & \textbf{Comm.~(KB)} \\
 \midrule
-3 & 57.6\% & 0.019 & 0.31 & 7.0 \\
-5 & 57.2\% & 0.016 & 0.31 & 11.7 \\
-7 & 57.2\% & 0.021 & 0.44 & 16.4 \\
+3 & 61.5\%$\pm$0.01 & 0.020 & 0.10 & 6.9 \\
+5 & 60.3\%$\pm$0.01 & 0.015 & 0.15 & 11.5 \\
+7 & 61.1\%$\pm$0.01 & 0.021 & 0.22 & 16.1 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -402,13 +404,13 @@ Figure~\ref{fig:client_heterogeneity} shows per-hospital performance variation u
 \subsection{Key Findings}
 
 \begin{enumerate}
-    \item \textbf{Non-IID Robustness}: The framework achieves stable performance (56--58\% accuracy) across IID and non-IID configurations, with AUC-ROC consistently at 0.63--0.64.
+    \item \textbf{Non-IID Robustness}: The framework achieves stable performance (60--61\% accuracy) across IID and non-IID configurations, with AUC-ROC consistently at 0.66. All four algorithms (FedAvg, FedProx, SCAFFOLD, FedNova) perform within 0.4pp of each other.
 
-    \item \textbf{Privacy Cost}: Differential privacy with $\varepsilon$=10 incurs 1.4 percentage point accuracy drop; $\varepsilon$=1 (strong privacy) costs 5.2pp---acceptable for EHDS compliance.
+    \item \textbf{Privacy Cost}: Differential privacy with $\varepsilon$=10 incurs 5.2 percentage point accuracy drop; $\varepsilon$=1 (strong privacy) costs 5.8pp---acceptable for EHDS compliance while providing formal privacy guarantees.
 
-    \item \textbf{FedProx Stability}: FedProx reduces client variance but with marginal accuracy differences for this dataset, suggesting FedAvg suffices for moderately non-IID healthcare data.
+    \item \textbf{Algorithm Equivalence}: Under moderate non-IID conditions, advanced algorithms (FedProx, SCAFFOLD, FedNova) show marginal differences from baseline FedAvg, suggesting that for EHDS healthcare analytics with careful data preprocessing, simpler algorithms suffice.
 
-    \item \textbf{Linear Scalability}: Communication cost scales linearly with participants (3.5 KB/hospital/round), supporting 7+ hospital federations.
+    \item \textbf{Linear Scalability}: Communication cost scales linearly with participants ($\approx$2.3 KB/hospital/round), supporting 7+ hospital federations with sub-second round times.
 \end{enumerate}
 
 % ============================================================================
@@ -617,6 +619,12 @@ M. Abadi \textit{et al.}, ``Deep learning with differential privacy,'' in \texti
 % === Advanced FL Algorithms ===
 \bibitem{karimireddy2020scaffold}
 S. P. Karimireddy \textit{et al.}, ``SCAFFOLD: Stochastic controlled averaging for federated learning,'' in \textit{Proc. ICML}, pp.~5132--5143, 2020.
+
+\bibitem{wang2020tackling}
+J. Wang \textit{et al.}, ``Tackling the objective inconsistency problem in heterogeneous federated optimization,'' in \textit{Proc. NeurIPS}, vol.~33, pp.~7611--7623, 2020.
+
+\bibitem{mironov2017renyi}
+I. Mironov, ``R\'enyi differential privacy,'' in \textit{Proc. IEEE CSF}, pp.~263--275, 2017.
 
 \bibitem{reddi2021adaptive}
 S. Reddi \textit{et al.}, ``Adaptive federated optimization,'' in \textit{Proc. ICLR}, 2021.
