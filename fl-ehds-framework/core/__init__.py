@@ -26,6 +26,13 @@ Includes:
   - Incentive Mechanisms (Shapley Value, Marginal Contribution, Reputation)
   - Client Selection (Oort, Active Learning, Importance Sampling, Fairness-Aware)
   - Federated HPO (FedEx, FedBayes, Successive Halving)
+- Infrastructure Components:
+  - Model Watermarking (IP protection, provenance tracking)
+  - gRPC/WebSocket Communication (low-latency streaming)
+  - Protocol Buffers Serialization (bandwidth optimization)
+  - Redis Caching (distributed checkpoints, fast recovery)
+  - Kubernetes/Ray Orchestration (enterprise scalability)
+  - Prometheus/Grafana Monitoring (production observability)
 - Data models and configuration classes
 - Utility functions
 """
@@ -413,6 +420,163 @@ try:
 except ImportError:
     pass
 
+# =============================================================================
+# Infrastructure Components
+# =============================================================================
+
+# Model Watermarking
+try:
+    from .model_watermarking import (
+        WatermarkType,
+        WatermarkConfig,
+        WatermarkResult,
+        VerificationResult,
+        WatermarkGenerator,
+        WatermarkEmbedder,
+        SpreadSpectrumEmbedder,
+        LSBEmbedder,
+        BackdoorEmbedder,
+        PassportEmbedder,
+        WatermarkExtractor,
+        FederatedWatermarkCoordinator,
+        ModelWatermarkManager,
+        create_watermark_config,
+        create_watermark_manager,
+        create_federated_watermark_coordinator,
+    )
+except ImportError:
+    pass
+
+# gRPC/WebSocket Communication
+try:
+    from .communication import (
+        TransportType,
+        CompressionType,
+        MessageType,
+        ConnectionState,
+        RetryPolicy,
+        CommunicationConfig,
+        Message,
+        ModelChunk,
+        StreamMetrics,
+        CompressionManager,
+        ConnectionPool,
+        RetryHandler,
+        GRPCServer,
+        GRPCClient,
+        WebSocketServer,
+        WebSocketClient,
+        CommunicationManager,
+        create_communication_config,
+        create_communication_manager,
+        create_grpc_server,
+        create_grpc_client,
+    )
+except ImportError:
+    pass
+
+# Protocol Buffers Serialization
+try:
+    from .serialization import (
+        SerializationFormat,
+        DType,
+        CompressionLevel,
+        SerializationConfig,
+        TensorDescriptor,
+        SerializedModel,
+        DeltaUpdate,
+        ModelSerializer,
+        ProtobufStyleSerializer,
+        DeltaSerializer,
+        SerializationManager,
+        EHDSCompliantSerializer,
+        create_serialization_config,
+        create_serialization_manager,
+        create_ehds_serializer,
+        benchmark_serialization,
+    )
+except ImportError:
+    pass
+
+# Redis Caching
+try:
+    from .caching import (
+        CacheBackend,
+        EvictionPolicy,
+        CacheRegion,
+        CacheConfig,
+        CacheEntry,
+        CacheStats,
+        CacheBackendInterface,
+        MemoryCacheBackend,
+        RedisCacheBackend,
+        DistributedLock,
+        ModelCheckpointCache,
+        ClientStateCache,
+        MetricsCache,
+        CacheManager,
+        cached,
+        create_cache_config,
+        create_cache_manager,
+    )
+except ImportError:
+    pass
+
+# Kubernetes/Ray Orchestration
+try:
+    from .orchestration import (
+        OrchestratorType,
+        NodeType,
+        NodeStatus,
+        ScalingPolicy,
+        DeploymentStrategy,
+        ResourceRequirements,
+        NodeConfig,
+        ScalingConfig,
+        OrchestrationConfig,
+        NodeState,
+        KubernetesClient,
+        RayOrchestrator,
+        FLClientActor,
+        FLAggregatorActor,
+        AutoScaler,
+        OrchestrationManager,
+        create_orchestration_config,
+        create_orchestration_manager,
+    )
+except ImportError:
+    pass
+
+# Prometheus/Grafana Monitoring
+try:
+    from .monitoring import (
+        MetricType,
+        AlertSeverity,
+        AlertState,
+        TraceStatus,
+        MonitoringConfig,
+        MetricValue,
+        Metric,
+        Counter,
+        Gauge,
+        Histogram,
+        Summary,
+        FLMetrics,
+        AlertRule,
+        Alert,
+        AlertManager,
+        Span,
+        Tracer,
+        GrafanaDashboardGenerator,
+        MonitoringManager,
+        timed,
+        counted,
+        create_monitoring_config,
+        create_monitoring_manager,
+    )
+except ImportError:
+    pass
+
 from .models import (
     DataPermit,
     FLClient,
@@ -597,4 +761,124 @@ __all__ = [
     "FederatedHPOManager",
     "create_hpo_manager",
     "create_fl_search_space",
+    # ==========================================================================
+    # Infrastructure Components
+    # ==========================================================================
+    # Model Watermarking
+    "WatermarkType",
+    "WatermarkConfig",
+    "WatermarkResult",
+    "VerificationResult",
+    "WatermarkGenerator",
+    "WatermarkEmbedder",
+    "SpreadSpectrumEmbedder",
+    "LSBEmbedder",
+    "BackdoorEmbedder",
+    "PassportEmbedder",
+    "WatermarkExtractor",
+    "FederatedWatermarkCoordinator",
+    "ModelWatermarkManager",
+    "create_watermark_config",
+    "create_watermark_manager",
+    "create_federated_watermark_coordinator",
+    # Communication (gRPC/WebSocket)
+    "TransportType",
+    "CompressionType",
+    "MessageType",
+    "ConnectionState",
+    "RetryPolicy",
+    "CommunicationConfig",
+    "Message",
+    "ModelChunk",
+    "StreamMetrics",
+    "CompressionManager",
+    "ConnectionPool",
+    "RetryHandler",
+    "GRPCServer",
+    "GRPCClient",
+    "WebSocketServer",
+    "WebSocketClient",
+    "CommunicationManager",
+    "create_communication_config",
+    "create_communication_manager",
+    "create_grpc_server",
+    "create_grpc_client",
+    # Serialization (Protocol Buffers)
+    "SerializationFormat",
+    "DType",
+    "CompressionLevel",
+    "SerializationConfig",
+    "TensorDescriptor",
+    "SerializedModel",
+    "DeltaUpdate",
+    "ModelSerializer",
+    "ProtobufStyleSerializer",
+    "DeltaSerializer",
+    "SerializationManager",
+    "EHDSCompliantSerializer",
+    "create_serialization_config",
+    "create_serialization_manager",
+    "create_ehds_serializer",
+    "benchmark_serialization",
+    # Caching (Redis)
+    "CacheBackend",
+    "EvictionPolicy",
+    "CacheRegion",
+    "CacheConfig",
+    "CacheEntry",
+    "CacheStats",
+    "CacheBackendInterface",
+    "MemoryCacheBackend",
+    "RedisCacheBackend",
+    "DistributedLock",
+    "ModelCheckpointCache",
+    "ClientStateCache",
+    "MetricsCache",
+    "CacheManager",
+    "cached",
+    "create_cache_config",
+    "create_cache_manager",
+    # Orchestration (Kubernetes/Ray)
+    "OrchestratorType",
+    "NodeType",
+    "NodeStatus",
+    "ScalingPolicy",
+    "DeploymentStrategy",
+    "ResourceRequirements",
+    "NodeConfig",
+    "ScalingConfig",
+    "OrchestrationConfig",
+    "NodeState",
+    "KubernetesClient",
+    "RayOrchestrator",
+    "FLClientActor",
+    "FLAggregatorActor",
+    "AutoScaler",
+    "OrchestrationManager",
+    "create_orchestration_config",
+    "create_orchestration_manager",
+    # Monitoring (Prometheus/Grafana)
+    "MetricType",
+    "AlertSeverity",
+    "AlertState",
+    "TraceStatus",
+    "MonitoringConfig",
+    "MetricValue",
+    "Metric",
+    "Counter",
+    "Gauge",
+    "Histogram",
+    "Summary",
+    "FLMetrics",
+    "AlertRule",
+    "Alert",
+    "AlertManager",
+    "Span",
+    "Tracer",
+    "GrafanaDashboardGenerator",
+    "MonitoringManager",
+    "timed",
+    "counted",
+    "create_monitoring_config",
+    "create_monitoring_manager",
 ]

@@ -2456,7 +2456,7 @@ def render_guide_tab():
 
 def main():
     """Main application."""
-    st.markdown('<div class="main-header">🏥 FL-EHDS Dashboard v4.0</div>', unsafe_allow_html=True)
+    st.markdown('<div class="main-header">FL-EHDS Dashboard v4.0</div>', unsafe_allow_html=True)
     st.markdown('<div class="sub-header">Federated Learning for European Health Data Space - Complete Advanced Edition</div>',
                 unsafe_allow_html=True)
 
