@@ -62,7 +62,7 @@ The EHDS introduces novel governance mechanisms of unprecedented complexity. Hea
 
 \subsection{The Technology-Governance Divide}
 
-Federated Learning (FL) emerges as the theoretically ideal technical solution for EHDS secondary use---the model travels to distributed data sources rather than centralizing sensitive health records~\cite{rieke2020future}. This ``data stays home'' principle aligns with GDPR data minimization requirements and addresses legitimate concerns about health data sovereignty across 27 Member States~\cite{mcmahan2017communication}.
+Federated Learning (FL) emerges as the theoretically ideal technical solution for EHDS secondary use---the model travels to distributed data sources rather than centralizing sensitive health records~\cite{rieke2020future}. The COVID-19 pandemic demonstrated FL's potential at scale: Dayan et al.~\cite{dayan2021federated} trained a global model across 20 institutions in 5 countries, achieving robust predictions without data centralization. This ``data stays home'' principle aligns with GDPR data minimization requirements and addresses legitimate concerns about health data sovereignty across 27 Member States~\cite{mcmahan2017communication}.
 
 However, recent evidence reveals a sobering gap between FL's theoretical promise and operational reality. Fr\"ohlich et al.~\cite{frohlich2025reality} report that only 23\% of reviewed FL implementations achieve sustained production deployment in healthcare settings. Technical barriers persist: hardware heterogeneity affects 78\% of pilot participants; non-IID data challenges impact 67\% of tested models. Beyond technical constraints, legal uncertainties regarding gradient data status under GDPR and controller/processor responsibilities in FL architectures remain unresolved~\cite{quinn2024gdpr}, creating compliance risks that discourage organizational adoption.
 
@@ -174,6 +174,33 @@ A modular Python implementation of the FL-EHDS framework is available as open-so
 \end{center}
 
 \noindent The implementation provides: (1) governance components for HDAB integration, permit management, and Article 71 opt-out compliance; (2) orchestration modules implementing FedAvg/FedProx aggregation with differential privacy ($\varepsilon$-budget tracking) and secure aggregation; (3) data holder utilities for adaptive training and FHIR R4 preprocessing; (4) reproducible benchmarks generating all experimental results reported in Section~\ref{sec:experiments}.
+
+\subsection{Threat Model and Security Assumptions}
+
+The FL-EHDS framework assumes an \textit{honest-but-curious} threat model for the aggregation server, which follows the protocol correctly but may attempt to infer information from observed gradients. Byzantine tolerance is provided for up to $f < n/3$ malicious clients through robust aggregation mechanisms (Krum, Trimmed Mean, Bulyan). Gradient inversion attacks~\cite{zhu2019deep, carlini2022privacy} are mitigated through differential privacy ($\varepsilon$-budget enforcement) and secure aggregation protocols. The framework does not defend against collusion between the aggregation server and a majority of clients, which would require additional cryptographic protections (e.g., homomorphic encryption or trusted execution environments) beyond current scope.
+
+\subsection{EHDS Compliance Mapping}
+
+Table~\ref{tab:compliance} maps FL-EHDS framework components to specific EHDS regulatory requirements, demonstrating how technical implementation addresses legal obligations.
+
+\begin{table}[htbp]
+\caption{EHDS Compliance Mapping}
+\label{tab:compliance}
+\centering
+\small
+\begin{tabular}{lp{2.3cm}p{2.8cm}}
+\toprule
+\textbf{Article} & \textbf{Requirement} & \textbf{FL-EHDS Component} \\
+\midrule
+Art. 33 & Secondary use authorization & HDAB API + Permit validation \\
+Art. 46 & Cross-border processing & Multi-HDAB coordinator \\
+Art. 50 & Secure Processing Environment & Aggregation within SPE \\
+Art. 53 & Permitted purposes & Purpose limitation module \\
+Art. 71 & Opt-out mechanism & Registry filtering \\
+Art. 69 & Quality labels & \textit{Future: Quality scoring} \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 % ============================================================================
 % 4. EXPERIMENTAL EVALUATION
@@ -593,6 +620,22 @@ S. P. Karimireddy \textit{et al.}, ``SCAFFOLD: Stochastic controlled averaging f
 
 \bibitem{reddi2021adaptive}
 S. Reddi \textit{et al.}, ``Adaptive federated optimization,'' in \textit{Proc. ICLR}, 2021.
+
+% === FL Healthcare COVID-19 ===
+\bibitem{dayan2021federated}
+I. Dayan \textit{et al.}, ``Federated learning for predicting clinical outcomes in patients with COVID-19,'' \textit{Nature Medicine}, vol.~27, no.~10, pp.~1735--1743, 2021.
+
+% === Gradient Privacy Attacks ===
+\bibitem{carlini2022privacy}
+N. Carlini \textit{et al.}, ``Membership inference attacks from first principles,'' in \textit{Proc. IEEE S\&P}, pp.~1897--1914, 2022.
+
+% === EHDS Legal Analysis ===
+\bibitem{shabani2024ehds}
+M. Shabani and P. Borry, ``The European Health Data Space: Challenges and opportunities for health data governance,'' \textit{European Journal of Human Genetics}, vol.~32, no.~8, pp.~891--897, 2024.
+
+% === Differential Privacy Healthcare ===
+\bibitem{jordon2022synthetic}
+J. Jordon \textit{et al.}, ``Synthetic data---A privacy mirage?'' \textit{J.~Mach.~Learn.~Res.}, vol.~23, no.~1, art.~298, 2022.
 
 \end{thebibliography}
 
@@ -1121,5 +1164,641 @@ python benchmarks/algorithm_comparison.py
 \end{verbatim}
 
 \noindent Figures are generated in \texttt{./results\_algorithms/}.
+
+% ============================================================================
+% APPENDIX D - ADVANCED FL PARADIGMS
+% ============================================================================
+\section{Advanced Federated Learning Paradigms}
+\label{appendix:advanced_fl}
+
+The FL-EHDS framework implements several advanced FL paradigms addressing specific challenges in cross-border healthcare analytics. This appendix documents these components available in the reference implementation.
+
+\subsection{Vertical Federated Learning}
+
+Vertical FL (VFL) addresses scenarios where different institutions hold different features for the same patients---common in healthcare where hospitals, labs, and pharmacies maintain complementary records.
+
+\textbf{Private Set Intersection (PSI):} Before training, participating institutions must identify common patients without revealing their full patient lists. The framework implements RSA-based PSI with the following properties:
+\begin{itemize}
+    \item \textbf{Privacy}: Neither party learns patients not in the intersection
+    \item \textbf{Efficiency}: $O(n \log n)$ complexity for $n$ records
+    \item \textbf{EHDS Compliance}: Pseudonymized identifiers only
+\end{itemize}
+
+\textbf{Split Learning:} Neural networks are partitioned across institutions. Each party computes forward passes on their features up to a ``cut layer,'' exchanges activations (not raw data), and backpropagates gradients. The framework supports:
+\begin{itemize}
+    \item U-shaped splits (features split, labels at one party)
+    \item Configurable cut layer selection
+    \item Gradient compression for bandwidth optimization
+\end{itemize}
+
+\begin{figure}[htbp]
+\centering
+\fbox{\parbox{0.92\columnwidth}{
+\small
+\textbf{Algorithm D.1: Split Learning Forward Pass}\\[2pt]
+\textbf{Input:} Features $X_A$, $X_B$ at parties A, B; cut layer $k$\\
+\textbf{Output:} Prediction $\hat{y}$\\[4pt]
+// Party A: forward to cut layer\\
+$h_A \leftarrow f_{1:k}^A(X_A)$ \hfill // Local features → activations\\[2pt]
+// Party B: forward to cut layer\\
+$h_B \leftarrow f_{1:k}^B(X_B)$ \hfill // Local features → activations\\[2pt]
+// Server: aggregate and complete forward pass\\
+$h \leftarrow \text{Concat}(h_A, h_B)$\\
+$\hat{y} \leftarrow f_{k+1:L}(h)$ \hfill // Cut layer → output\\[2pt]
+\textbf{return} $\hat{y}$
+}}
+\end{figure}
+
+\subsection{Byzantine-Resilient Aggregation}
+
+In cross-border federations, some participants may be compromised, malfunctioning, or malicious. Byzantine-resilient aggregation protects model integrity against up to $f < n/3$ adversarial clients.
+
+\textbf{Implemented Defenses:}
+\begin{itemize}
+    \item \textbf{Krum}: Selects the gradient closest to its $n-f-2$ nearest neighbors, excluding outliers
+    \item \textbf{Trimmed Mean}: Discards the $\beta$ fraction of extreme values per coordinate before averaging
+    \item \textbf{Coordinate-wise Median}: Robust estimator immune to single-coordinate attacks
+    \item \textbf{Bulyan}: Two-stage defense combining Krum selection with trimmed mean
+    \item \textbf{FLTrust}: Server maintains a small trusted dataset to validate client updates
+\end{itemize}
+
+\begin{figure}[htbp]
+\centering
+\fbox{\parbox{0.92\columnwidth}{
+\small
+\textbf{Algorithm D.2: Krum Byzantine Defense}\\[2pt]
+\textbf{Input:} Gradients $\{g_1, \ldots, g_n\}$, Byzantine bound $f$\\
+\textbf{Output:} Selected gradient $g^*$\\[4pt]
+\textbf{for each} gradient $g_i$ \textbf{do}\\
+\hspace*{4mm}// Compute distances to all other gradients\\
+\hspace*{4mm}$D_i \leftarrow \{\|g_i - g_j\|^2 : j \neq i\}$\\
+\hspace*{4mm}// Sum of $n-f-2$ smallest distances\\
+\hspace*{4mm}$s_i \leftarrow \sum_{d \in \text{smallest}_{n-f-2}(D_i)} d$\\[2pt]
+// Select gradient with minimum score\\
+$g^* \leftarrow g_{\arg\min_i s_i}$\\[2pt]
+\textbf{return} $g^*$
+}}
+\end{figure}
+
+\subsection{Continual Federated Learning}
+
+Healthcare data evolves over time---new diseases emerge, treatment protocols change, and patient demographics shift. Continual FL addresses catastrophic forgetting while adapting to distribution drift.
+
+\textbf{Implemented Strategies:}
+\begin{itemize}
+    \item \textbf{Elastic Weight Consolidation (EWC)}: Protects important weights using Fisher Information as importance measure
+    \item \textbf{Learning without Forgetting (LwF)}: Knowledge distillation from previous model prevents forgetting
+    \item \textbf{Experience Replay}: Maintains memory buffer of representative past samples
+    \item \textbf{Drift Detection}: Statistical tests (ADWIN, Page-Hinkley) detect concept drift and trigger adaptation
+\end{itemize}
+
+The EWC loss function adds a quadratic penalty for deviating from important parameters:
+\[
+\mathcal{L}_{EWC}(\theta) = \mathcal{L}(\theta) + \frac{\lambda}{2} \sum_i F_i (\theta_i - \theta_i^*)^2
+\]
+where $F_i$ is the Fisher Information for parameter $i$ and $\theta^*$ are the optimal parameters for previous tasks.
+
+\subsection{Multi-Task Federated Learning}
+
+Different hospitals may have different prediction objectives (e.g., mortality, readmission, length-of-stay). Multi-Task FL learns shared representations while allowing task-specific outputs.
+
+\textbf{Architectures:}
+\begin{itemize}
+    \item \textbf{Hard Parameter Sharing}: Common feature extractor, task-specific heads
+    \item \textbf{Soft Parameter Sharing}: Separate networks with regularization encouraging similarity
+    \item \textbf{FedMTL}: Learns task relationships dynamically during training
+\end{itemize}
+
+\subsection{Hierarchical Federated Learning}
+
+The FL-EHDS framework implements a four-tier hierarchy reflecting EU governance structure:
+
+\begin{enumerate}
+    \item \textbf{Client Tier}: Individual hospitals/data holders
+    \item \textbf{Regional Tier}: Regional aggregators (e.g., Lombardy, Bavaria)
+    \item \textbf{National Tier}: National HDABs coordinate Member State aggregation
+    \item \textbf{EU Tier}: HealthData@EU central aggregator
+\end{enumerate}
+
+This hierarchy reduces communication costs (hospitals communicate with regional aggregators, not directly with EU server) and aligns with EHDS governance where HDABs have national jurisdiction.
+
+\subsection{Personalized Federated Learning}
+
+Standard FL produces a single global model, but healthcare institutions have distinct patient populations requiring personalized predictions. Personalized FL learns models adapted to each client's data distribution while benefiting from collaborative training.
+
+\textbf{Implemented Approaches:}
+\begin{itemize}
+    \item \textbf{FedPer (Federated Personalization)}: Shares base layers globally, keeps personalization layers local. Suitable when institutions have similar low-level features but different high-level patterns.
+    \item \textbf{pFedMe (Personalized FedAvg with Moreau Envelopes)}: Uses Moreau envelopes to decouple personalization from global model learning. Provides theoretical convergence guarantees.
+    \item \textbf{Per-FedAvg (Personalized FedAvg)}: Meta-learning approach where the global model serves as initialization for local fine-tuning. Based on MAML (Model-Agnostic Meta-Learning).
+    \item \textbf{APFL (Adaptive Personalized FL)}: Learns mixing coefficient $\alpha$ between global and local models per client. Automatically balances personalization vs.\ generalization.
+    \item \textbf{Ditto}: Adds personalization regularization term to local objectives, ensuring local models remain close to global while adapting to local data.
+\end{itemize}
+
+\begin{figure}[htbp]
+\centering
+\fbox{\parbox{0.92\columnwidth}{
+\small
+\textbf{Algorithm D.3: pFedMe Local Update}\\[2pt]
+\textbf{Input:} Local data $\mathcal{D}_k$, global model $\theta$, personal model $\theta_k$, $\lambda$, $\eta$\\
+\textbf{Output:} Updated personal model $\theta_k'$\\[4pt]
+// Personalization step: optimize local objective\\
+\textbf{for} $i = 1$ to $R$ \textbf{do}\\
+\hspace*{4mm}$\theta_k \leftarrow \theta_k - \eta \nabla \mathcal{L}(\theta_k; \mathcal{D}_k)$\\[2pt]
+// Moreau envelope update: balance with global\\
+$\theta_k' \leftarrow \theta_k - \lambda(\theta_k - \theta)$\\[2pt]
+// Compute gradient for global model\\
+$g_k \leftarrow \lambda(\theta - \theta_k')$\\[2pt]
+\textbf{return} $\theta_k'$, $g_k$
+}}
+\end{figure}
+
+\textbf{EHDS Relevance:} Personalized FL is critical for EHDS because Member States have different healthcare systems, disease prevalence, and clinical practices. A model trained for Finnish cardiovascular risk may not transfer directly to Italian populations due to dietary, genetic, and healthcare access differences.
+
+\subsection{Asynchronous Federated Learning}
+
+Synchronous FL requires all clients to complete local training before aggregation, creating bottlenecks when clients have heterogeneous computational resources or network connectivity. Asynchronous FL allows clients to contribute updates independently.
+
+\textbf{Implemented Strategies:}
+\begin{itemize}
+    \item \textbf{FedAsync}: Server aggregates each client update immediately upon arrival. Uses staleness-weighted averaging to discount outdated gradients.
+    \item \textbf{FedBuff (Buffered Asynchronous)}: Collects $K$ updates in a buffer before aggregating. Balances asynchrony benefits with aggregation quality.
+    \item \textbf{ASO-Fed (Adaptive Synchronization)}: Dynamically adjusts synchronization frequency based on client staleness distribution.
+    \item \textbf{Semi-Asynchronous}: Waits for a fraction $\alpha$ of clients (e.g., 70\%) before aggregating, bounding maximum staleness.
+\end{itemize}
+
+\begin{figure}[htbp]
+\centering
+\fbox{\parbox{0.92\columnwidth}{
+\small
+\textbf{Algorithm D.4: FedAsync with Staleness Weighting}\\[2pt]
+\textbf{Input:} Client update $\Delta_k$, client round $t_k$, server round $t$\\
+\textbf{Output:} Updated global model $\theta$\\[4pt]
+// Compute staleness\\
+$\tau \leftarrow t - t_k$ \hfill // How many rounds old is this update?\\[2pt]
+// Staleness-weighted coefficient (polynomial decay)\\
+$\alpha \leftarrow (1 + \tau)^{-a}$ \hfill // $a > 0$ controls decay rate\\[2pt]
+// Apply weighted update\\
+$\theta \leftarrow \theta + \alpha \cdot \eta \cdot \Delta_k$\\[2pt]
+\textbf{return} $\theta$
+}}
+\end{figure}
+
+\textbf{Staleness Functions:}
+\begin{itemize}
+    \item \textbf{Constant}: $\alpha(\tau) = 1$ (ignore staleness)
+    \item \textbf{Polynomial}: $\alpha(\tau) = (1+\tau)^{-a}$
+    \item \textbf{Exponential}: $\alpha(\tau) = e^{-a\tau}$
+    \item \textbf{Hinge}: $\alpha(\tau) = 1$ if $\tau \leq \tau_{max}$, else 0
+\end{itemize}
+
+\textbf{EHDS Relevance:} Cross-border federations span institutions with vastly different IT infrastructure. A Finnish hospital with modern HPC may complete training in minutes, while a rural clinic in another Member State may require hours. Asynchronous FL prevents fast clients from waiting for stragglers.
+
+\subsection{Fairness-Aware Federated Learning}
+
+FL can amplify existing healthcare disparities if minority populations or under-resourced institutions are underrepresented in training. Fairness-aware FL ensures equitable model performance across demographic groups and participating institutions.
+
+\textbf{Fairness Dimensions:}
+\begin{itemize}
+    \item \textbf{Client Fairness}: Equitable accuracy across participating hospitals
+    \item \textbf{Group Fairness}: Balanced performance across demographic groups (age, gender, ethnicity)
+    \item \textbf{Individual Fairness}: Similar predictions for similar patients
+\end{itemize}
+
+\textbf{Implemented Approaches:}
+\begin{itemize}
+    \item \textbf{q-FedAvg}: Reweights client contributions to minimize worst-case client loss. Parameter $q$ controls fairness-accuracy tradeoff.
+    \item \textbf{AFL (Agnostic Federated Learning)}: Optimizes for the worst-performing distribution mixture, providing robustness guarantees.
+    \item \textbf{FedMGDA+ (Multi-Gradient Descent)}: Finds Pareto-optimal update direction balancing all client objectives.
+    \item \textbf{TERM (Tilted Empirical Risk Minimization)}: Uses tilted losses to emphasize underperforming groups.
+    \item \textbf{FairFed}: Adds fairness constraints (demographic parity, equalized odds) to the federated optimization.
+\end{itemize}
+
+\begin{figure}[htbp]
+\centering
+\fbox{\parbox{0.92\columnwidth}{
+\small
+\textbf{Algorithm D.5: q-FedAvg Fair Aggregation}\\[2pt]
+\textbf{Input:} Client losses $\{L_1, \ldots, L_K\}$, updates $\{\Delta_1, \ldots, \Delta_K\}$, $q$\\
+\textbf{Output:} Fair aggregated update $\Delta$\\[4pt]
+// Compute fairness weights (emphasize high-loss clients)\\
+\textbf{for each} client $k$ \textbf{do}\\
+\hspace*{4mm}$w_k \leftarrow L_k^q$ \hfill // Higher loss → higher weight\\[2pt]
+// Normalize weights\\
+$W \leftarrow \sum_k w_k$\\
+\textbf{for each} client $k$ \textbf{do}\\
+\hspace*{4mm}$w_k \leftarrow w_k / W$\\[2pt]
+// Weighted aggregation\\
+$\Delta \leftarrow \sum_k w_k \cdot \Delta_k$\\[2pt]
+\textbf{return} $\Delta$
+}}
+\end{figure}
+
+\textbf{Fairness Metrics:}
+\begin{itemize}
+    \item \textbf{Performance Variance}: $\text{Var}(\{L_k\}_{k=1}^K)$ across clients
+    \item \textbf{Worst-case Loss}: $\max_k L_k$
+    \item \textbf{Demographic Parity Gap}: $|P(\hat{Y}=1|A=0) - P(\hat{Y}=1|A=1)|$
+    \item \textbf{Equalized Odds Gap}: Difference in TPR/FPR across groups
+\end{itemize}
+
+\textbf{EHDS Relevance:} The EHDS explicitly aims to benefit all European citizens. Models that perform well on average but poorly for specific populations (e.g., rare diseases, elderly patients, specific ethnic groups) violate the regulation's equity principles. Fairness-aware FL ensures no Member State or demographic group is systematically disadvantaged.
+
+% ============================================================================
+% APPENDIX E - INFRASTRUCTURE COMPONENTS
+% ============================================================================
+\section{Infrastructure Components}
+\label{appendix:infrastructure}
+
+Production deployment of FL-EHDS requires enterprise-grade infrastructure. This appendix documents the infrastructure modules available in the reference implementation.
+
+\subsection{Communication Layer}
+
+The framework provides two transport options optimized for different deployment scenarios:
+
+\textbf{gRPC (Google Remote Procedure Call):}
+\begin{itemize}
+    \item Bidirectional streaming for continuous gradient exchange
+    \item Protocol Buffers serialization (30\% bandwidth reduction vs.\ JSON)
+    \item HTTP/2 multiplexing reduces connection overhead
+    \item Ideal for: data center deployments, low-latency requirements
+\end{itemize}
+
+\textbf{WebSocket:}
+\begin{itemize}
+    \item Browser-compatible for web-based FL clients
+    \item Firewall-friendly (standard HTTP upgrade)
+    \item Event-driven architecture for real-time updates
+    \item Ideal for: edge deployments, browser-based participation
+\end{itemize}
+
+\begin{figure}[htbp]
+\centering
+\fbox{\parbox{0.92\columnwidth}{
+\small
+\textbf{Communication Manager Configuration}\\[2pt]
+\texttt{transport: gRPC | WebSocket}\\
+\texttt{compression: gzip | lz4 | zstd | none}\\
+\texttt{chunk\_size: 1MB} \hfill // For streaming large models\\
+\texttt{retry\_policy:}\\
+\hspace*{4mm}\texttt{max\_retries: 3}\\
+\hspace*{4mm}\texttt{backoff: exponential}\\
+\hspace*{4mm}\texttt{base\_delay: 1s}\\
+\texttt{connection\_pool:}\\
+\hspace*{4mm}\texttt{max\_connections: 100}\\
+\hspace*{4mm}\texttt{idle\_timeout: 300s}
+}}
+\end{figure}
+
+\subsection{Serialization Layer}
+
+Efficient model serialization is critical for cross-border FL where bandwidth is constrained. The framework implements:
+
+\textbf{Protocol Buffer-style Binary Format:}
+\begin{itemize}
+    \item Tensor metadata (shape, dtype) + raw binary data
+    \item 30\% smaller than JSON, 15\% smaller than pickle
+    \item Cross-platform compatibility (Python, C++, Java)
+\end{itemize}
+
+\textbf{Delta Serialization:}
+\begin{itemize}
+    \item Transmits only changed parameters between rounds
+    \item Sparse encoding for gradient updates
+    \item Up to 90\% bandwidth reduction for fine-tuning scenarios
+\end{itemize}
+
+\textbf{EHDS-Compliant Serialization:}
+\begin{itemize}
+    \item Embeds permit ID, timestamp, and provenance metadata
+    \item Cryptographic signatures for integrity verification
+    \item Audit trail fields for GDPR Article 30 compliance
+\end{itemize}
+
+\subsection{Caching Layer}
+
+Distributed caching accelerates FL operations and provides fault tolerance:
+
+\textbf{Redis-based Implementation:}
+\begin{itemize}
+    \item \textbf{Model Checkpoints}: Global model snapshots for recovery
+    \item \textbf{Client State}: Local model states, optimizer moments
+    \item \textbf{Metrics}: Real-time training metrics for monitoring
+\end{itemize}
+
+\textbf{Features:}
+\begin{itemize}
+    \item LRU/LFU/TTL eviction policies
+    \item Distributed locking for concurrent access
+    \item Automatic serialization/deserialization
+    \item Cache warming for predictable latency
+\end{itemize}
+
+\begin{figure}[htbp]
+\centering
+\fbox{\parbox{0.92\columnwidth}{
+\small
+\textbf{Algorithm E.1: Distributed Lock for Aggregation}\\[2pt]
+\textbf{Input:} Lock name, TTL, client ID\\
+\textbf{Output:} Lock acquired (boolean)\\[4pt]
+// Attempt to acquire lock atomically\\
+acquired $\leftarrow$ Redis.SET(lock\_name, client\_id, NX, EX=TTL)\\[2pt]
+\textbf{if} acquired \textbf{then}\\
+\hspace*{4mm}// Perform aggregation\\
+\hspace*{4mm}PerformAggregation()\\
+\hspace*{4mm}// Release lock only if we own it\\
+\hspace*{4mm}\textbf{if} Redis.GET(lock\_name) == client\_id \textbf{then}\\
+\hspace*{8mm}Redis.DEL(lock\_name)\\[2pt]
+\textbf{return} acquired
+}}
+\end{figure}
+
+\subsection{Orchestration Layer}
+
+Enterprise FL deployments require automated scaling and management:
+
+\textbf{Kubernetes Integration:}
+\begin{itemize}
+    \item Deploys FL clients/aggregators as Kubernetes pods
+    \item Horizontal Pod Autoscaler (HPA) for elastic scaling
+    \item ConfigMaps for FL hyperparameter injection
+    \item Secrets for credential management (HDAB API keys)
+\end{itemize}
+
+\textbf{Ray Distributed Computing:}
+\begin{itemize}
+    \item Actor-based FL client/aggregator implementation
+    \item Automatic resource management and fault tolerance
+    \item Integration with Ray Tune for federated HPO
+    \item Object store for efficient gradient sharing
+\end{itemize}
+
+\textbf{Auto-Scaling Policies:}
+\begin{itemize}
+    \item \textbf{Reactive}: Scale based on queue depth/latency
+    \item \textbf{Predictive}: ML-based workload forecasting
+    \item \textbf{Scheduled}: Time-based scaling for known patterns
+\end{itemize}
+
+\subsection{Monitoring Layer}
+
+Production observability follows the three pillars: metrics, logs, and traces.
+
+\textbf{Prometheus Metrics:}
+\begin{itemize}
+    \item \textbf{Counters}: rounds\_total, permits\_validated, gradients\_received
+    \item \textbf{Gauges}: active\_clients, global\_model\_loss, privacy\_budget\_remaining
+    \item \textbf{Histograms}: round\_duration, communication\_latency, aggregation\_time
+    \item \textbf{Summaries}: gradient\_norm\_quantiles
+\end{itemize}
+
+\textbf{Grafana Dashboards:}
+The framework auto-generates Grafana dashboard JSON for:
+\begin{itemize}
+    \item FL training progress (loss, accuracy per round)
+    \item Client participation and health
+    \item Communication latency heatmaps
+    \item Privacy budget consumption
+    \item EHDS compliance status
+\end{itemize}
+
+\textbf{Alerting:}
+\begin{itemize}
+    \item Privacy budget exhaustion warning
+    \item Client dropout rate exceeding threshold
+    \item Model divergence detection
+    \item Permit expiration alerts
+\end{itemize}
+
+\subsection{Model Watermarking}
+
+Intellectual property protection for FL models trained on EHDS data:
+
+\textbf{Watermarking Techniques:}
+\begin{itemize}
+    \item \textbf{Spread Spectrum}: Embeds watermark in frequency domain, robust to fine-tuning
+    \item \textbf{LSB (Least Significant Bit)}: Embeds in low-order bits of weights
+    \item \textbf{Backdoor-based}: Specific input-output pairs as ownership proof
+    \item \textbf{Passport Layers}: Dedicated layers encode ownership information
+\end{itemize}
+
+\textbf{EHDS Use Case:}
+Watermarking enables tracking of model provenance---which data permits, which hospitals contributed, and usage restrictions. This supports EHDS requirements for accountability in secondary use.
+
+\subsection{Cross-Silo Enhancements}
+
+Enterprise FL deployments require advanced capabilities beyond basic aggregation. The framework implements three cross-silo enhancements for production EHDS deployments.
+
+\textbf{Multi-Model Federation:}
+Ensemble learning across federated models improves robustness and generalization:
+\begin{itemize}
+    \item \textbf{Weighted Voting}: Performance-based weighting of ensemble members
+    \item \textbf{Stacking}: Meta-learner trained on base model outputs
+    \item \textbf{Mixture of Experts}: Input-dependent gating selects expert models
+    \item \textbf{Diversity Enforcement}: Ensures ensemble members capture different patterns
+\end{itemize}
+
+\textbf{Automatic Algorithm Selection:}
+Data-driven selection of the optimal FL algorithm:
+\begin{itemize}
+    \item \textbf{Task Analysis}: Automatic detection of data heterogeneity (IID vs.\ non-IID)
+    \item \textbf{Multi-Armed Bandit}: UCB/Thompson Sampling for exploration-exploitation
+    \item \textbf{Criterion-based}: Optimize for accuracy, convergence, fairness, or privacy
+\end{itemize}
+
+\textbf{Adaptive Aggregation:}
+Dynamic switching between aggregation algorithms based on runtime metrics:
+
+\begin{figure}[htbp]
+\centering
+\fbox{\parbox{0.92\columnwidth}{
+\small
+\textbf{Algorithm E.2: Adaptive Aggregation}\\[2pt]
+\textbf{Input:} Client updates, metrics history, cooldown period\\
+\textbf{Output:} Aggregated model, selected algorithm\\[4pt]
+// Evaluate current algorithm performance\\
+score $\leftarrow$ WeightedScore(loss, accuracy, variance, convergence)\\[2pt]
+// Check if switch would be beneficial\\
+\textbf{if} RoundsSinceSwitch $>$ CooldownPeriod \textbf{then}\\
+\hspace*{4mm}\textbf{for each} candidate $\in$ \{FedAvg, FedProx, SCAFFOLD, ...\} \textbf{do}\\
+\hspace*{8mm}alt\_score $\leftarrow$ EstimatePerformance(candidate)\\
+\hspace*{8mm}\textbf{if} alt\_score $>$ score + SwitchThreshold \textbf{then}\\
+\hspace*{12mm}SwitchTo(candidate)\\[2pt]
+// Perform aggregation with current algorithm\\
+aggregated $\leftarrow$ CurrentAlgorithm.Aggregate(updates)\\[2pt]
+\textbf{return} aggregated
+}}
+\end{figure}
+
+\textbf{Supported Algorithms:}
+\begin{itemize}
+    \item \textbf{Standard}: FedAvg, FedProx, SCAFFOLD, FedNova
+    \item \textbf{Adaptive}: FedAdam, FedYogi, FedAdagrad
+    \item \textbf{Byzantine-resilient}: Krum, TrimmedMean, Median, Bulyan
+\end{itemize}
+
+\textbf{EHDS Relevance:}
+Cross-border federations exhibit dynamic characteristics: client availability varies by time zone, data heterogeneity depends on participating Member States, and regulatory requirements may change. Adaptive aggregation automatically adjusts to these conditions without manual intervention.
+
+% ============================================================================
+% APPENDIX F - EXTENDED EHDS INTEROPERABILITY
+% ============================================================================
+\section{Extended EHDS Interoperability}
+\label{appendix:interoperability}
+
+Beyond the FHIR R4 preprocessing described in Algorithm~7, the FL-EHDS framework implements additional interoperability standards required for cross-border health data exchange.
+
+\subsection{OMOP Common Data Model}
+
+The Observational Medical Outcomes Partnership (OMOP) CDM provides a standardized analytical format for observational health data. Many European research networks (e.g., EHDEN, OHDSI) use OMOP.
+
+\textbf{Framework Support:}
+\begin{itemize}
+    \item \textbf{ETL Pipelines}: Transform source EHR to OMOP CDM v5.4
+    \item \textbf{Vocabulary Mapping}: Standard concepts (SNOMED, ICD10, LOINC, RxNorm)
+    \item \textbf{Cohort Definitions}: ATLAS-compatible cohort SQL generation
+    \item \textbf{Feature Extraction}: FeatureExtraction package integration for ML-ready datasets
+\end{itemize}
+
+\textbf{FL Integration:}
+OMOP standardization enables consistent feature engineering across sites:
+\begin{enumerate}
+    \item Each hospital transforms local EHR to OMOP
+    \item Feature extraction produces identical schema across sites
+    \item FL training proceeds on homogeneous feature spaces
+\end{enumerate}
+
+\subsection{IHE Integration Profiles}
+
+Integrating the Healthcare Enterprise (IHE) profiles ensure secure, auditable data exchange:
+
+\textbf{Implemented Profiles:}
+\begin{itemize}
+    \item \textbf{ATNA (Audit Trail and Node Authentication)}:
+    \begin{itemize}
+        \item TLS mutual authentication between FL nodes
+        \item Syslog audit messages for all data access events
+        \item RFC 5424 compliant audit record format
+    \end{itemize}
+
+    \item \textbf{BPPC (Basic Patient Privacy Consents)}:
+    \begin{itemize}
+        \item Maps Article 71 opt-out to BPPC consent documents
+        \item XDS.b integration for consent document sharing
+        \item Consent enforcement at FL training initiation
+    \end{itemize}
+
+    \item \textbf{XCA (Cross-Community Access)}:
+    \begin{itemize}
+        \item Cross-border document query and retrieve
+        \item Initiating/Responding Gateway implementation
+        \item Patient identity correlation across communities
+    \end{itemize}
+
+    \item \textbf{PIX/PDQ (Patient Identifier Cross-referencing/Demographics Query)}:
+    \begin{itemize}
+        \item Patient matching across institutional boundaries
+        \item Pseudonymization-aware identity management
+        \item Integration with national eHealth infrastructures
+    \end{itemize}
+
+    \item \textbf{XUA (Cross-Enterprise User Assertion)}:
+    \begin{itemize}
+        \item SAML 2.0 assertions for federated authentication
+        \item Role-based access control integration
+        \item HDAB authorization token propagation
+    \end{itemize}
+\end{itemize}
+
+\subsection{Cross-Border Data Exchange}
+
+The framework implements the technical specifications for HealthData@EU cross-border exchange:
+
+\textbf{Message Formats:}
+\begin{itemize}
+    \item EHDS Data Permit Exchange Format (JSON-LD)
+    \item Federated Query Protocol (based on SPARQL Federation)
+    \item Model Update Message Format (Protocol Buffers)
+\end{itemize}
+
+\textbf{Security Requirements:}
+\begin{itemize}
+    \item eIDAS-compliant electronic signatures for permits
+    \item TLS 1.3 for all cross-border communication
+    \item Certificate-based node authentication (EU trust framework)
+\end{itemize}
+
+\textbf{Metadata Standards:}
+\begin{itemize}
+    \item DCAT-AP Health extension for dataset cataloging
+    \item Provenance metadata (W3C PROV-O)
+    \item Data quality indicators per EMA guidelines
+\end{itemize}
+
+\subsection{Reference Implementation Architecture}
+
+Figure~\ref{fig:interop_architecture} illustrates how the interoperability components integrate within the FL-EHDS framework.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}[
+    node distance=0.8cm,
+    box/.style={draw, rounded corners, minimum width=2.5cm, minimum height=0.7cm, font=\scriptsize},
+    layer/.style={draw, dashed, rounded corners, minimum width=8cm, minimum height=1.2cm}
+]
+% Data Sources
+\node[box, fill=blue!20] (ehr) {EHR Systems};
+\node[box, fill=blue!20, right=0.3cm of ehr] (lab) {Lab Systems};
+\node[box, fill=blue!20, right=0.3cm of lab] (pharm) {Pharmacy};
+
+% Interoperability Layer
+\node[box, fill=green!20, below=0.8cm of lab] (fhir) {FHIR R4};
+\node[box, fill=green!20, left=0.3cm of fhir] (omop) {OMOP CDM};
+\node[box, fill=green!20, right=0.3cm of fhir] (ihe) {IHE Profiles};
+
+% FL Layer
+\node[box, fill=orange!20, below=0.8cm of fhir] (fl) {FL Training Engine};
+
+% Labels
+\node[left=0.1cm of ehr, font=\scriptsize] {Sources};
+\node[left=0.1cm of omop, font=\scriptsize] {Interop};
+\node[left=0.1cm of fl, font=\scriptsize] {FL};
+
+% Arrows
+\draw[->, thick] (ehr) -- (omop);
+\draw[->, thick] (lab) -- (fhir);
+\draw[->, thick] (pharm) -- (ihe);
+\draw[->, thick] (omop) -- (fl);
+\draw[->, thick] (fhir) -- (fl);
+\draw[->, thick] (ihe) -- (fl);
+\end{tikzpicture}
+\caption{Interoperability layer integrating heterogeneous data sources for FL training.}
+\label{fig:interop_architecture}
+\end{figure}
+
+\subsection{Reproducibility}
+
+All interoperability components are available in the reference implementation:
+\begin{verbatim}
+fl-ehds-framework/core/
+├── fhir_integration.py    # FHIR R4
+├── omop_cdm.py            # OMOP CDM
+├── ihe_profiles.py        # IHE Profiles
+└── hdab_api.py            # HDAB API
+\end{verbatim}
+
+\noindent Example usage for OMOP feature extraction:
+\begin{verbatim}
+from fl_ehds.core import OMOPFeatureExtractor
+
+extractor = OMOPFeatureExtractor(
+    cdm_schema="omop_cdm",
+    cohort_definition_id=123
+)
+features = extractor.extract_features(
+    feature_specs=["demographics", "conditions",
+                   "medications", "measurements"]
+)
+\end{verbatim}
 
 \end{document}

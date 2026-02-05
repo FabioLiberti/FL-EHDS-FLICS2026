@@ -577,6 +577,57 @@ try:
 except ImportError:
     pass
 
+# Cross-Silo Enhancements
+try:
+    from .cross_silo_enhancements import (
+        # Enums
+        EnsembleStrategy,
+        AggregationAlgorithm,
+        TaskType,
+        DataCharacteristic,
+        SelectionCriterion,
+        # Configs
+        EnsembleConfig,
+        ModelSelectionConfig,
+        AdaptiveAggregationConfig,
+        # Data Classes
+        ModelState,
+        AggregationMetrics,
+        AlgorithmPerformance,
+        # Multi-Model Federation
+        ModelRegistry,
+        EnsembleCombiner,
+        WeightedVotingCombiner,
+        StackingCombiner,
+        MixtureOfExpertsCombiner,
+        FederatedEnsemble,
+        # Model Selection
+        TaskAnalyzer,
+        BanditSelector,
+        FederatedModelSelector,
+        # Adaptive Aggregation
+        AggregationStrategy,
+        FedAvgStrategy,
+        FedProxStrategy,
+        SCAFFOLDStrategy,
+        FedAdamStrategy,
+        FedYogiStrategy,
+        KrumStrategy,
+        TrimmedMeanStrategy,
+        MedianStrategy,
+        FedNovaStrategy,
+        AdaptiveAggregator,
+        # Manager
+        CrossSiloManager,
+        # Factory Functions
+        create_ensemble_config,
+        create_selection_config,
+        create_adaptive_config,
+        create_cross_silo_manager,
+    )
+except ImportError:
+    pass
+
 from .models import (
     DataPermit,
     FLClient,
@@ -881,4 +932,41 @@ __all__ = [
     "counted",
     "create_monitoring_config",
     "create_monitoring_manager",
+    # Cross-Silo Enhancements
+    "EnsembleStrategy",
+    "AggregationAlgorithm",
+    "TaskType",
+    "DataCharacteristic",
+    "SelectionCriterion",
+    "EnsembleConfig",
+    "ModelSelectionConfig",
+    "AdaptiveAggregationConfig",
+    "ModelState",
+    "AggregationMetrics",
+    "AlgorithmPerformance",
+    "ModelRegistry",
+    "EnsembleCombiner",
+    "WeightedVotingCombiner",
+    "StackingCombiner",
+    "MixtureOfExpertsCombiner",
+    "FederatedEnsemble",
+    "TaskAnalyzer",
+    "BanditSelector",
+    "FederatedModelSelector",
+    "AggregationStrategy",
+    "FedAvgStrategy",
+    "FedProxStrategy",
+    "SCAFFOLDStrategy",
+    "FedAdamStrategy",
+    "FedYogiStrategy",
+    "KrumStrategy",
+    "TrimmedMeanStrategy",
+    "MedianStrategy",
+    "FedNovaStrategy",
+    "AdaptiveAggregator",
+    "CrossSiloManager",
+    "create_ensemble_config",
+    "create_selection_config",
+    "create_adaptive_config",
+    "create_cross_silo_manager",
 ]
