@@ -164,16 +164,17 @@ class MainMenu:
                 MenuItem("1", "Training Federato", self._training_menu),
                 MenuItem("2", "Confronto Algoritmi FL", self._algorithms_menu),
                 MenuItem("3", "Confronto Guidato per Caso d'Uso", self._guided_comparison_menu),
-                MenuItem("4", "Analisi Privacy (RDP)", self._privacy_menu),
-                MenuItem("5", "Vertical Federated Learning", self._vertical_menu),
-                MenuItem("6", "Byzantine Resilience", self._byzantine_menu),
-                MenuItem("7", "Continual Learning", self._continual_menu),
-                MenuItem("8", "Multi-Task FL", self._multitask_menu),
-                MenuItem("9", "Hierarchical FL", self._hierarchical_menu),
-                MenuItem("10", "EHDS Compliance", self._compliance_menu),
-                MenuItem("11", "Benchmark Suite", self._benchmark_menu),
-                MenuItem("12", "Configurazione Globale", self._config_menu),
-                MenuItem("13", "Esporta Risultati", self._export_menu),
+                MenuItem("4", "Gestione Dataset", self._datasets_menu),
+                MenuItem("5", "Analisi Privacy (RDP)", self._privacy_menu),
+                MenuItem("6", "Vertical Federated Learning", self._vertical_menu),
+                MenuItem("7", "Byzantine Resilience", self._byzantine_menu),
+                MenuItem("8", "Continual Learning", self._continual_menu),
+                MenuItem("9", "Multi-Task FL", self._multitask_menu),
+                MenuItem("10", "Hierarchical FL", self._hierarchical_menu),
+                MenuItem("11", "EHDS Compliance", self._compliance_menu),
+                MenuItem("12", "Benchmark Suite", self._benchmark_menu),
+                MenuItem("13", "Configurazione Globale", self._config_menu),
+                MenuItem("14", "Esporta Risultati", self._export_menu),
                 MenuItem("0", "Esci", self._exit),
             ])
 
@@ -196,6 +197,12 @@ class MainMenu:
         """Open guided comparison submenu."""
         from terminal.screens.guided_comparison import GuidedComparisonScreen
         screen = GuidedComparisonScreen()
+        screen.run()
+
+    def _datasets_menu(self):
+        """Open dataset management submenu."""
+        from terminal.screens.datasets import DatasetScreen
+        screen = DatasetScreen()
         screen.run()
 
     def _privacy_menu(self):

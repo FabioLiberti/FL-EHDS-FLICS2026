@@ -30,6 +30,17 @@ import matplotlib.patches as mpatches
 from matplotlib.colors import LinearSegmentedColormap
 import networkx as nx
 
+# Import dataset management page
+try:
+    from dashboard.dataset_page import render_dataset_tab
+    HAS_DATASET_PAGE = True
+except ImportError:
+    try:
+        from dataset_page import render_dataset_tab
+        HAS_DATASET_PAGE = True
+    except ImportError:
+        HAS_DATASET_PAGE = False
+
 # Page config
 st.set_page_config(
     page_title="FL-EHDS Dashboard v4",
@@ -2939,6 +2950,7 @@ def main():
         "🚀 Training",
         "🧮 Algoritmi",
         "🧠 Modelli",
+        "📁 Dataset",
         "📊 Vertical FL",
         "🛡️ Byzantine",
         "🔄 Continual",
@@ -2959,35 +2971,42 @@ def main():
         render_models_tab()
 
     with tabs[3]:
-        render_vertical_fl_tab()
+        if HAS_DATASET_PAGE:
+            render_dataset_tab()
+        else:
+            st.warning("Modulo dataset non disponibile")
+            st.info("Assicurati che dataset_page.py sia presente nella cartella dashboard/")
 
     with tabs[4]:
-        render_byzantine_tab()
+        render_vertical_fl_tab()
 
     with tabs[5]:
-        render_continual_tab()
+        render_byzantine_tab()
 
     with tabs[6]:
-        render_multitask_tab()
+        render_continual_tab()
 
     with tabs[7]:
-        render_hierarchical_tab()
+        render_multitask_tab()
 
     with tabs[8]:
-        render_ehds_tab()
+        render_hierarchical_tab()
 
     with tabs[9]:
-        render_infrastructure_tab()
+        render_ehds_tab()
 
     with tabs[10]:
+        render_infrastructure_tab()
+
+    with tabs[11]:
         render_guide_tab()
 
     st.markdown("---")
     st.markdown("""
     <div style='text-align: center; color: #888; font-size: 0.9rem;'>
         FL-EHDS Framework v4.0 | FLICS 2026 |
-        9 Algoritmi FL | 11 Architetture Modello | 13 Moduli Avanzati |
-        Vertical • Byzantine • Continual • Multi-Task • Hierarchical • EHDS • Infrastructure • Cross-Silo
+        9 Algoritmi FL | 11 Architetture Modello | 14 Moduli Avanzati |
+        Dataset • Vertical • Byzantine • Continual • Multi-Task • Hierarchical • EHDS • Infrastructure • Cross-Silo
     </div>
     """, unsafe_allow_html=True)
 

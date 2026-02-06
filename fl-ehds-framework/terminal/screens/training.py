@@ -79,7 +79,30 @@ class TrainingScreen:
             "beta1": 0.9,
             "beta2": 0.99,
             "tau": 1e-3,
+            # Dataset configuration
+            "dataset_type": "synthetic",  # "synthetic" or "imaging"
+            "dataset_name": None,  # Name of imaging dataset if selected
+            "dataset_path": None,  # Path to dataset
         }
+
+    def _get_available_datasets(self) -> Dict[str, Dict]:
+        """Get available imaging datasets."""
+        try:
+            from terminal.screens.datasets import DatasetManager
+            manager = DatasetManager()
+            return {
+                name: {
+                    "type": ds.type,
+                    "samples": ds.total_samples,
+                    "classes": ds.num_classes,
+                    "class_names": ds.class_names,
+                    "path": str(ds.path) if ds.path else None,
+                }
+                for name, ds in manager.datasets.items()
+                if ds.type == "imaging"
+            }
+        except Exception:
+            return {}
 
     def run(self):
         """Run the training screen."""
@@ -125,6 +148,47 @@ class TrainingScreen:
                 FL_ALGORITHMS,
                 default=self.config["algorithm"]
             )
+
+        # Dataset selection
+        print_subsection("Selezione Dataset")
+        available_datasets = self._get_available_datasets()
+
+        dataset_choices = ["Sintetico (Healthcare Tabular)"]
+        dataset_map = {"Sintetico (Healthcare Tabular)": "synthetic"}
+
+        if available_datasets:
+            for name, info in available_datasets.items():
+                label = f"{name} ({info['samples']:,} img, {info['classes']} classi)"
+                dataset_choices.append(label)
+                dataset_map[label] = name
+
+        if HAS_QUESTIONARY:
+            selected = questionary.select(
+                "Seleziona dataset:",
+                choices=dataset_choices,
+                style=MENU_STYLE,
+            ).ask() or dataset_choices[0]
+        else:
+            print("Dataset disponibili:")
+            for i, choice in enumerate(dataset_choices):
+                print(f"  {i + 1}. {choice}")
+            idx = get_int("Selezione", default=1, min_val=1, max_val=len(dataset_choices)) - 1
+            selected = dataset_choices[idx]
+
+        selected_key = dataset_map[selected]
+        if selected_key == "synthetic":
+            self.config["dataset_type"] = "synthetic"
+            self.config["dataset_name"] = None
+            self.config["dataset_path"] = None
+            self.config["learning_rate"] = 0.01  # Default for tabular
+        else:
+            self.config["dataset_type"] = "imaging"
+            self.config["dataset_name"] = selected_key
+            self.config["dataset_path"] = available_datasets[selected_key]["path"]
+            self.config["learning_rate"] = 0.001  # Better for CNN
+            print_info(f"Dataset imaging selezionato: {selected_key}")
+            print(f"  Path: {self.config['dataset_path']}")
+            print(f"  Classi: {available_datasets[selected_key]['class_names']}")
 
         # Basic parameters
         print_subsection("Parametri Base")
@@ -258,7 +322,7 @@ class TrainingScreen:
         supported_algorithms = FL_ALGORITHMS  # All 9 algorithms implemented
 
         try:
-            from terminal.fl_trainer import FederatedTrainer
+            from terminal.fl_trainer import FederatedTrainer, ImageFederatedTrainer
 
             # Map data distribution
             is_iid = "IID" in self.config["data_distribution"]
@@ -297,31 +361,56 @@ class TrainingScreen:
                     t = kwargs.get("time", 0)
                     print(f"  {Style.SUCCESS}Round completato: loss={loss:.4f}, acc={acc:.2%}, tempo={t:.1f}s{Colors.RESET}")
 
-            # Create trainer
+            # Create trainer based on dataset type
             print_info("Inizializzazione trainer PyTorch...")
-            print_info(f"Generazione dataset healthcare sintetico ({self.config['num_clients']} client)...")
 
-            trainer = FederatedTrainer(
-                num_clients=self.config["num_clients"],
-                samples_per_client=200,
-                algorithm=self.config["algorithm"],
-                local_epochs=self.config["local_epochs"],
-                batch_size=self.config["batch_size"],
-                learning_rate=self.config["learning_rate"],
-                is_iid=is_iid,
-                alpha=0.5,
-                mu=self.config["mu"],
-                dp_enabled=self.config["dp_enabled"],
-                dp_epsilon=self.config["dp_epsilon"],
-                dp_clip_norm=self.config["dp_clip_norm"],
-                seed=self.config["seed"],
-                progress_callback=progress_callback,
-                # Server optimizer params for FedAdam, FedYogi, FedAdagrad
-                server_lr=self.config.get("server_lr", 0.1),
-                beta1=self.config.get("beta1", 0.9),
-                beta2=self.config.get("beta2", 0.99),
-                tau=self.config.get("tau", 1e-3),
-            )
+            if self.config["dataset_type"] == "imaging" and self.config["dataset_path"]:
+                # Imaging dataset - use ImageFederatedTrainer
+                print_info(f"Caricamento dataset imaging: {self.config['dataset_name']}")
+                print_info(f"Path: {self.config['dataset_path']}")
+                print_info(f"Distribuzione su {self.config['num_clients']} client...")
+
+                trainer = ImageFederatedTrainer(
+                    data_dir=self.config["dataset_path"],
+                    num_clients=self.config["num_clients"],
+                    algorithm=self.config["algorithm"],
+                    local_epochs=self.config["local_epochs"],
+                    batch_size=self.config["batch_size"],
+                    learning_rate=self.config["learning_rate"],
+                    is_iid=is_iid,
+                    alpha=0.5,
+                    mu=self.config["mu"],
+                    dp_enabled=self.config["dp_enabled"],
+                    dp_epsilon=self.config["dp_epsilon"],
+                    dp_clip_norm=self.config["dp_clip_norm"],
+                    seed=self.config["seed"],
+                    progress_callback=progress_callback,
+                )
+            else:
+                # Synthetic tabular dataset - use FederatedTrainer
+                print_info(f"Generazione dataset healthcare sintetico ({self.config['num_clients']} client)...")
+
+                trainer = FederatedTrainer(
+                    num_clients=self.config["num_clients"],
+                    samples_per_client=200,
+                    algorithm=self.config["algorithm"],
+                    local_epochs=self.config["local_epochs"],
+                    batch_size=self.config["batch_size"],
+                    learning_rate=self.config["learning_rate"],
+                    is_iid=is_iid,
+                    alpha=0.5,
+                    mu=self.config["mu"],
+                    dp_enabled=self.config["dp_enabled"],
+                    dp_epsilon=self.config["dp_epsilon"],
+                    dp_clip_norm=self.config["dp_clip_norm"],
+                    seed=self.config["seed"],
+                    progress_callback=progress_callback,
+                    # Server optimizer params for FedAdam, FedYogi, FedAdagrad
+                    server_lr=self.config.get("server_lr", 0.1),
+                    beta1=self.config.get("beta1", 0.9),
+                    beta2=self.config.get("beta2", 0.99),
+                    tau=self.config.get("tau", 1e-3),
+                )
 
             # Show data distribution
             print_subsection("Distribuzione Dati per Client")
