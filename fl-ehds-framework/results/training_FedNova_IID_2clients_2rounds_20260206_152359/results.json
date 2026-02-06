@@ -1,0 +1,105 @@
+{
+  "specs": {
+    "experiment_type": "single_training",
+    "timestamp": "20260206_152359",
+    "elapsed_time_seconds": 3629.2543931007385,
+    "training_config": {
+      "algorithm": "FedNova",
+      "num_clients": 2,
+      "num_rounds": 2,
+      "local_epochs": 1,
+      "batch_size": 32,
+      "learning_rate": 0.001,
+      "data_distribution": "Non-IID (label skew)",
+      "dp_enabled": false,
+      "seed": 71
+    },
+    "model_config": {
+      "architecture": "HealthcareMLP",
+      "layers": "10 -> 64 -> 32 -> 2",
+      "total_params": 2946,
+      "optimizer": "SGD",
+      "loss_function": "CrossEntropyLoss"
+    }
+  },
+  "final_metrics": {
+    "global_accuracy": 0.13763066202090593,
+    "global_loss": 100.83556893112767,
+    "global_f1": 0.06049004594180704,
+    "global_precision": 0.03440766550522648,
+    "global_recall": 0.25,
+    "global_auc": 0.13763066202090593
+  },
+  "history": [
+    {
+      "round": 0,
+      "global_loss": 6.56160813723707,
+      "global_accuracy": 0.286411149825784,
+      "global_f1": 0.11132177681473455,
+      "global_precision": 0.071602787456446,
+      "global_recall": 0.25,
+      "global_auc": 0.286411149825784,
+      "time_seconds": 822.2415642738342,
+      "client_results": [
+        {
+          "client_id": 0,
+          "loss": 1.636452286002528,
+          "accuracy": 0.37282229965156793,
+          "num_samples": 1435
+        },
+        {
+          "client_id": 1,
+          "loss": 1.6853784546204145,
+          "accuracy": 0.33310104529616724,
+          "num_samples": 1435
+        }
+      ]
+    },
+    {
+      "round": 1,
+      "global_loss": 100.83556893112767,
+      "global_accuracy": 0.13763066202090593,
+      "global_f1": 0.06049004594180704,
+      "global_precision": 0.03440766550522648,
+      "global_recall": 0.25,
+      "global_auc": 0.13763066202090593,
+      "time_seconds": 2806.9102079868317,
+      "client_results": [
+        {
+          "client_id": 0,
+          "loss": 1.1882882058412771,
+          "accuracy": 0.49198606271777,
+          "num_samples": 1435
+        },
+        {
+          "client_id": 1,
+          "loss": 1.3155877897548343,
+          "accuracy": 0.3790940766550523,
+          "num_samples": 1435
+        }
+      ]
+    }
+  ],
+  "data_stats": {
+    "0": {
+      "num_samples": 1435,
+      "label_distribution": {
+        "0": 423,
+        "1": 418,
+        "2": 190,
+        "3": 404
+      },
+      "class_balance": 0.4491725768321513
+    },
+    "1": {
+      "num_samples": 1435,
+      "label_distribution": {
+        "0": 403,
+        "1": 404,
+        "2": 205,
+        "3": 423
+      },
+      "class_balance": 0.4846335697399527
+    }
+  }
+}

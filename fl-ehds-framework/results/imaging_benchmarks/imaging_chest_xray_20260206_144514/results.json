@@ -1,0 +1,87 @@
+{
+  "dataset": "chest_xray",
+  "data_dir": "/Users/fxlybs/Library/CloudStorage/OneDrive-CEI-OPBambinoGesu\u0300/__Univ Merc_PHD_2223__/_PHD_BD&AI_38_/___AA.2026__estensione/PAPER_Devs/FL-EHDS-FLICS2026/fl-ehds-framework/data/chest_xray/train",
+  "timestamp": "20260206_144514",
+  "config": {
+    "num_clients": 2,
+    "num_rounds": 3,
+    "local_epochs": 1,
+    "batch_size": 64,
+    "seeds": [
+      42
+    ],
+    "quick_mode": false
+  },
+  "results": [
+    {
+      "algorithm": "FedAvg",
+      "is_iid": false,
+      "dp_enabled": false,
+      "dp_epsilon": null,
+      "accuracy_mean": 0.7429064417177914,
+      "accuracy_std": 0.0,
+      "f1_mean": 0.4262457375426246,
+      "f1_std": 0.0,
+      "auc_mean": 0.7429064417177914,
+      "auc_std": 0.0,
+      "precision_mean": 0.3714532208588957,
+      "precision_std": 0.0,
+      "recall_mean": 0.5,
+      "recall_std": 0.0,
+      "seeds": [
+        42
+      ],
+      "per_seed_results": [
+        {
+          "algorithm": "FedAvg",
+          "is_iid": false,
+          "dp_enabled": false,
+          "dp_epsilon": null,
+          "num_clients": 2,
+          "num_rounds": 3,
+          "local_epochs": 1,
+          "seed": 42,
+          "final_accuracy": 0.7429064417177914,
+          "final_f1": 0.4262457375426246,
+          "final_precision": 0.3714532208588957,
+          "final_recall": 0.5,
+          "final_auc": 0.7429064417177914,
+          "final_loss": 200.9111929290865,
+          "total_time_seconds": 3847.0764100551605,
+          "history": [
+            {
+              "round": 1,
+              "accuracy": 0.7429064417177914,
+              "loss": 6.232301066989548,
+              "f1": 0.4262457375426246,
+              "precision": 0.3714532208588957,
+              "recall": 0.5,
+              "auc": 0.7429064417177914,
+              "time": 1215.0764605998993
+            },
+            {
+              "round": 2,
+              "accuracy": 0.8201687116564417,
+              "loss": 1.5718599197460463,
+              "f1": 0.6839988425925926,
+              "precision": 0.8774848011763529,
+              "recall": 0.656112770922037,
+              "auc": 0.8201687116564417,
+              "time": 1082.2866909503937
+            },
+            {
+              "round": 3,
+              "accuracy": 0.7429064417177914,
+              "loss": 200.9111929290865,
+              "f1": 0.4262457375426246,
+              "precision": 0.3714532208588957,
+              "recall": 0.5,
+              "auc": 0.7429064417177914,
+              "time": 1473.2111630439758
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

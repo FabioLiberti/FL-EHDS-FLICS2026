@@ -29,6 +29,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import numpy as np
 import torch
+from tqdm import tqdm
 
 from terminal.fl_trainer import ImageFederatedTrainer
 
@@ -69,9 +70,16 @@ def run_experiment(
         seed=seed,
     )
 
-    # Training loop
+    # Training loop with tqdm progress bar
     history = []
-    for round_num in range(num_rounds):
+    round_pbar = tqdm(
+        range(num_rounds),
+        desc="Rounds",
+        ncols=100,
+        bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]'
+    )
+
+    for round_num in round_pbar:
         result = trainer.train_round(round_num)
         history.append({
             "round": round_num + 1,
@@ -84,9 +92,12 @@ def run_experiment(
             "time": result.time_seconds,
         })
 
-        if (round_num + 1) % 5 == 0 or round_num == 0:
-            print(f"  Round {round_num + 1:3d}: Acc={result.global_acc:.4f}, "
-                  f"F1={result.global_f1:.4f}, Loss={result.global_loss:.4f}")
+        # Update progress bar with metrics
+        round_pbar.set_postfix(
+            acc=f"{result.global_acc:.2%}",
+            loss=f"{result.global_loss:.4f}",
+            f1=f"{result.global_f1:.2f}"
+        )
 
     total_time = time.time() - start_time
     final = history[-1]
@@ -116,31 +127,49 @@ def run_benchmark_suite(
     data_dir: str,
     output_dir: Path,
     quick: bool = False,
+    ultra_quick: bool = False,
     seeds: List[int] = [42, 123, 456],
 ) -> Dict[str, Any]:
     """Run complete benchmark suite for a dataset."""
 
-    # Configuration
-    num_clients = 5
-    num_rounds = 10 if quick else 20
-    local_epochs = 2 if quick else 3
-    batch_size = 32
-
-    configs = [
-        # (algorithm, is_iid, dp_enabled, dp_epsilon)
-        ("FedAvg", True, False, None),
-        ("FedAvg", False, False, None),
-        ("FedProx", False, False, None),
-        ("FedAvg", False, True, 10.0),
-        ("FedAvg", False, True, 1.0),
-    ]
-
-    if not quick:
-        # Add more configurations for full benchmark
-        configs.extend([
+    # Configuration based on mode
+    if ultra_quick:
+        # Ultra-quick for CPU testing: minimal configuration
+        num_clients = 2
+        num_rounds = 3
+        local_epochs = 1
+        batch_size = 64  # Larger batch = fewer iterations
+        configs = [
+            ("FedAvg", False, False, None),  # Just one config for testing
+        ]
+        print("\n[ULTRA-QUICK MODE] Minimal config for CPU testing")
+        print(f"  Clients: {num_clients}, Rounds: {num_rounds}, Epochs: {local_epochs}")
+    elif quick:
+        num_clients = 5
+        num_rounds = 10
+        local_epochs = 2
+        batch_size = 32
+        configs = [
+            ("FedAvg", True, False, None),
+            ("FedAvg", False, False, None),
+            ("FedProx", False, False, None),
+            ("FedAvg", False, True, 10.0),
+            ("FedAvg", False, True, 1.0),
+        ]
+    else:
+        num_clients = 5
+        num_rounds = 20
+        local_epochs = 3
+        batch_size = 32
+        configs = [
+            ("FedAvg", True, False, None),
+            ("FedAvg", False, False, None),
+            ("FedProx", False, False, None),
+            ("FedAvg", False, True, 10.0),
+            ("FedAvg", False, True, 1.0),
             ("FedProx", True, False, None),
             ("FedAvg", True, True, 10.0),
-        ])
+        ]
 
     all_results = []
 
@@ -289,6 +318,8 @@ def main():
                         help="Dataset to use")
     parser.add_argument("--quick", action="store_true",
                         help="Quick mode: fewer rounds and seeds")
+    parser.add_argument("--ultra-quick", action="store_true",
+                        help="Ultra-quick mode for CPU testing: 2 rounds, 1 epoch, 2 clients")
     parser.add_argument("--seeds", type=int, nargs="+", default=[42, 123, 456],
                         help="Random seeds for experiments")
     args = parser.parse_args()
@@ -313,24 +344,40 @@ def main():
 
     output_dir = framework_dir / "results" / "imaging_benchmarks"
 
-    # Run benchmark
-    if args.quick:
+    # Determine mode and seeds
+    ultra_quick = getattr(args, 'ultra_quick', False)
+
+    if ultra_quick:
         seeds = [42]
+        mode_str = "ULTRA-QUICK (CPU test)"
+    elif args.quick:
+        seeds = [42]
+        mode_str = "Quick"
     else:
         seeds = args.seeds
+        mode_str = "Full"
 
     print(f"\nFL-EHDS Imaging Benchmark")
     print(f"========================")
     print(f"Dataset: {args.dataset}")
     print(f"Data dir: {data_dir}")
-    print(f"Mode: {'Quick' if args.quick else 'Full'}")
+    print(f"Mode: {mode_str}")
     print(f"Seeds: {seeds}")
+
+    # Check for GPU
+    import torch
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    print(f"Device: {device}")
+    if device == "cpu":
+        print("\n[WARNING] Running on CPU - training will be slow!")
+        print("          Use --ultra-quick for quick testing on CPU")
 
     run_benchmark_suite(
         dataset_name=args.dataset,
         data_dir=str(data_dir),
         output_dir=output_dir,
         quick=args.quick,
+        ultra_quick=ultra_quick,
         seeds=seeds,
     )
 

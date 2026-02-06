@@ -13,6 +13,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader, TensorDataset
+from tqdm import tqdm
 
 from terminal.colors import Colors, Style
 
@@ -1059,9 +1060,17 @@ class ImageFederatedTrainer:
         total_loss = 0.0
         total_correct = 0
         total_samples = 0
+        num_batches = len(dataloader)
 
         for epoch in range(self.local_epochs):
-            for batch_X, batch_y in dataloader:
+            epoch_pbar = tqdm(
+                dataloader,
+                desc=f"    Epoch {epoch+1}/{self.local_epochs}",
+                leave=False,
+                ncols=80,
+                bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}]'
+            )
+            for batch_X, batch_y in epoch_pbar:
                 optimizer.zero_grad()
 
                 outputs = local_model(batch_X)
@@ -1075,6 +1084,9 @@ class ImageFederatedTrainer:
                     loss += (self.mu / 2) * prox_term
 
                 loss.backward()
+
+                # Update progress bar with current loss
+                epoch_pbar.set_postfix(loss=f"{loss.item():.4f}")
 
                 # DP: clip gradients
                 if self.dp_enabled:
@@ -1207,7 +1219,18 @@ class ImageFederatedTrainer:
 
         client_results = []
 
-        for client_id in range(self.num_clients):
+        # Progress bar for clients
+        client_pbar = tqdm(
+            range(self.num_clients),
+            desc=f"  Clients",
+            leave=False,
+            ncols=100,
+            bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}]'
+        )
+
+        for client_id in client_pbar:
+            client_pbar.set_description(f"  Client {client_id+1}/{self.num_clients}")
+
             if self.progress_callback:
                 self.progress_callback(
                     "client_start",
@@ -1218,6 +1241,8 @@ class ImageFederatedTrainer:
             result = self._train_client(client_id, round_num)
             client_results.append(result)
 
+            client_pbar.set_postfix(loss=f"{result.train_loss:.4f}", acc=f"{result.train_acc:.2%}")
+
             if self.progress_callback:
                 self.progress_callback(
                     "client_end",
@@ -1227,6 +1252,9 @@ class ImageFederatedTrainer:
                 )
 
         self._aggregate(client_results)
+
+        # Show evaluation progress
+        print("  Evaluating global model...", end="\r")
         metrics = self._evaluate()
         elapsed = time.time() - start_time
 

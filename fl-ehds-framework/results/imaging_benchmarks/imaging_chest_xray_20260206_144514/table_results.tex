@@ -1,0 +1,16 @@
+\begin{table}[htbp]
+\centering
+\caption{FL Results on Chest Xray Dataset}
+\label{tab:chest_xray_results}
+\small
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Configuration} & \textbf{Acc.} & \textbf{F1} & \textbf{AUC} & \textbf{Prec.} & \textbf{Rec.} \\
+\midrule
+FedAvg (Non-IID) & 74.3\%$\pm$0.0 & 0.43$\pm$0.00 & 0.74$\pm$0.00 & 0.37 & 0.50 \\
+\bottomrule
+\end{tabular}
+
+\vspace{1mm}
+\footnotesize{2 hospitals, 3 rounds, 1 local epochs. HealthcareCNN model. Results: mean $\pm$ std over 3 seeds.}
+\end{table}
