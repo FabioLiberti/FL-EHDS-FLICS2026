@@ -1,0 +1,241 @@
+{
+  "specs": {
+    "experiment_type": "single_training",
+    "timestamp": "20260206_173458",
+    "elapsed_time_seconds": 3221.247293949127,
+    "training_config": {
+      "algorithm": "FedNova",
+      "num_clients": 3,
+      "num_rounds": 5,
+      "local_epochs": 2,
+      "batch_size": 32,
+      "learning_rate": 0.001,
+      "data_distribution": "Non-IID (label skew)",
+      "dp_enabled": false,
+      "seed": 66
+    },
+    "model_config": {
+      "architecture": "HealthcareCNN (GroupNorm)",
+      "layers": "5-block CNN (32->64->128->256->512)",
+      "total_params": "~12M",
+      "optimizer": "Adam (wd=1e-5)",
+      "loss_function": "CrossEntropyLoss",
+      "normalization": "GroupNorm (FL-stable)",
+      "data_augmentation": "HFlip + Rotation(15) + Brightness",
+      "evaluation": "Held-out test set (20%)"
+    }
+  },
+  "final_metrics": {
+    "global_accuracy": 0.1610738255033557,
+    "global_loss": 1641873.1560402685,
+    "global_f1": 0.030828516377649322,
+    "global_precision": 0.017897091722595078,
+    "global_recall": 0.1111111111111111,
+    "global_auc": 0.5
+  },
+  "history": [
+    {
+      "round": 0,
+      "global_loss": 83.16198947232309,
+      "global_accuracy": 0.174496644295302,
+      "global_f1": 0.03301587301587302,
+      "global_precision": 0.019388516032811335,
+      "global_recall": 0.1111111111111111,
+      "global_auc": 0.5281956958340518,
+      "time_seconds": 628.4132628440857,
+      "client_results": [
+        {
+          "client_id": 0,
+          "loss": 2.2752944875003105,
+          "accuracy": 0.2152428810720268,
+          "num_samples": 1194
+        },
+        {
+          "client_id": 1,
+          "loss": 2.246547036833899,
+          "accuracy": 0.2102177554438861,
+          "num_samples": 1194
+        },
+        {
+          "client_id": 2,
+          "loss": 2.2918436182382513,
+          "accuracy": 0.21321070234113712,
+          "num_samples": 1196
+        }
+      ]
+    },
+    {
+      "round": 1,
+      "global_loss": 111917070.78299776,
+      "global_accuracy": 0.07158836689038031,
+      "global_f1": 0.014845743446996058,
+      "global_precision": 0.007954262987820034,
+      "global_recall": 0.1111111111111111,
+      "global_auc": 0.5,
+      "time_seconds": 647.3151397705078,
+      "client_results": [
+        {
+          "client_id": 0,
+          "loss": 29.932677760994814,
+          "accuracy": 0.22278056951423786,
+          "num_samples": 1194
+        },
+        {
+          "client_id": 1,
+          "loss": 30.838746532523253,
+          "accuracy": 0.19430485762144054,
+          "num_samples": 1194
+        },
+        {
+          "client_id": 2,
+          "loss": 31.221308658752953,
+          "accuracy": 0.18729096989966554,
+          "num_samples": 1196
+        }
+      ]
+    },
+    {
+      "round": 2,
+      "global_loss": 851203.5037751677,
+      "global_accuracy": 0.174496644295302,
+      "global_f1": 0.03301587301587302,
+      "global_precision": 0.019388516032811335,
+      "global_recall": 0.1111111111111111,
+      "global_auc": 0.5,
+      "time_seconds": 646.1166520118713,
+      "client_results": [
+        {
+          "client_id": 0,
+          "loss": 106112832.19430485,
+          "accuracy": 0.04187604690117253,
+          "num_samples": 1194
+        },
+        {
+          "client_id": 1,
+          "loss": 104925494.37855947,
+          "accuracy": 0.04271356783919598,
+          "num_samples": 1194
+        },
+        {
+          "client_id": 2,
+          "loss": 105500994.32775919,
+          "accuracy": 0.042642140468227424,
+          "num_samples": 1196
+        }
+      ]
+    },
+    {
+      "round": 3,
+      "global_loss": 84944750.58612975,
+      "global_accuracy": 0.0447427293064877,
+      "global_f1": 0.009517011658339283,
+      "global_precision": 0.004971414367387522,
+      "global_recall": 0.1111111111111111,
+      "global_auc": 0.5,
+      "time_seconds": 631.6174671649933,
+      "client_results": [
+        {
+          "client_id": 0,
+          "loss": 596490.0418498744,
+          "accuracy": 0.2185929648241206,
+          "num_samples": 1194
+        },
+        {
+          "client_id": 1,
+          "loss": 634166.4444880653,
+          "accuracy": 0.18592964824120603,
+          "num_samples": 1194
+        },
+        {
+          "client_id": 2,
+          "loss": 609119.5904055184,
+          "accuracy": 0.19816053511705686,
+          "num_samples": 1196
+        }
+      ]
+    },
+    {
+      "round": 4,
+      "global_loss": 1641873.1560402685,
+      "global_accuracy": 0.1610738255033557,
+      "global_f1": 0.030828516377649322,
+      "global_precision": 0.017897091722595078,
+      "global_recall": 0.1111111111111111,
+      "global_auc": 0.5,
+      "time_seconds": 667.7826099395752,
+      "client_results": [
+        {
+          "client_id": 0,
+          "loss": 76975043.67169179,
+          "accuracy": 0.049413735343383586,
+          "num_samples": 1194
+        },
+        {
+          "client_id": 1,
+          "loss": 76065418.03350084,
+          "accuracy": 0.06113902847571189,
+          "num_samples": 1194
+        },
+        {
+          "client_id": 2,
+          "loss": 76678544.5083612,
+          "accuracy": 0.056020066889632104,
+          "num_samples": 1196
+        }
+      ]
+    }
+  ],
+  "data_stats": {
+    "0": {
+      "num_samples": 746,
+      "num_train": 597,
+      "num_test": 149,
+      "label_distribution": {
+        "0": 28,
+        "1": 112,
+        "2": 24,
+        "3": 131,
+        "4": 98,
+        "5": 105,
+        "6": 22,
+        "7": 36,
+        "8": 41
+      },
+      "class_balance": 0.16793893129770993
+    },
+    "1": {
+      "num_samples": 746,
+      "num_train": 597,
+      "num_test": 149,
+      "label_distribution": {
+        "0": 28,
+        "1": 90,
+        "2": 25,
+        "3": 110,
+        "4": 90,
+        "5": 140,
+        "6": 19,
+        "7": 57,
+        "8": 38
+      },
+      "class_balance": 0.1357142857142857
+    },
+    "2": {
+      "num_samples": 747,
+      "num_train": 598,
+      "num_test": 149,
+      "label_distribution": {
+        "0": 26,
+        "1": 96,
+        "2": 26,
+        "3": 119,
+        "4": 97,
+        "5": 125,
+        "6": 22,
+        "7": 51,
+        "8": 36
+      },
+      "class_balance": 0.176
+    }
+  }
+}

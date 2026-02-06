@@ -43,7 +43,46 @@ class BenchmarkScreen:
                 "FedAvg", "FedProx", "SCAFFOLD", "FedNova",
                 "FedAdam", "FedYogi", "FedAdagrad", "Per-FedAvg", "Ditto"
             ],
+            # Dataset configuration
+            "dataset_type": "synthetic",
+            "dataset_name": None,
+            "dataset_path": None,
         }
+
+    def _create_trainer(self, algorithm: str, num_clients: int, is_iid: bool,
+                        dp_enabled: bool = False, dp_epsilon: float = 10.0, seed: int = 42,
+                        progress_callback=None):
+        """Create appropriate trainer based on dataset config."""
+        from terminal.fl_trainer import FederatedTrainer, ImageFederatedTrainer
+
+        if self.config["dataset_type"] == "imaging" and self.config["dataset_path"]:
+            return ImageFederatedTrainer(
+                data_dir=self.config["dataset_path"],
+                num_clients=num_clients,
+                algorithm=algorithm,
+                local_epochs=self.config["local_epochs"],
+                batch_size=self.config["batch_size"],
+                learning_rate=self.config.get("learning_rate", 0.001),
+                is_iid=is_iid,
+                dp_enabled=dp_enabled,
+                dp_epsilon=dp_epsilon,
+                seed=seed,
+                progress_callback=progress_callback,
+            )
+        else:
+            return FederatedTrainer(
+                num_clients=num_clients,
+                samples_per_client=200,
+                algorithm=algorithm,
+                local_epochs=self.config["local_epochs"],
+                batch_size=self.config["batch_size"],
+                learning_rate=self.config.get("learning_rate", 0.01),
+                is_iid=is_iid,
+                dp_enabled=dp_enabled,
+                dp_epsilon=dp_epsilon,
+                seed=seed,
+                progress_callback=progress_callback,
+            )
 
     def run(self):
         """Run the benchmark screen."""
@@ -110,13 +149,9 @@ class BenchmarkScreen:
                     for seed in range(self.config["num_seeds"]):
                         print(f"  Run {seed + 1}/{self.config['num_seeds']}...", end=" ", flush=True)
 
-                        trainer = FederatedTrainer(
-                            num_clients=self.config["num_clients"],
-                            samples_per_client=200,
+                        trainer = self._create_trainer(
                             algorithm=algorithm,
-                            local_epochs=self.config["local_epochs"],
-                            batch_size=self.config["batch_size"],
-                            learning_rate=self.config.get("learning_rate", 0.01),
+                            num_clients=self.config["num_clients"],
                             is_iid=is_iid,
                             dp_enabled=False,
                             seed=seed,
@@ -148,13 +183,9 @@ class BenchmarkScreen:
                     for seed in range(self.config["num_seeds"]):
                         print(f"  Run {seed + 1}/{self.config['num_seeds']}...", end=" ", flush=True)
 
-                        trainer = FederatedTrainer(
-                            num_clients=self.config["num_clients"],
-                            samples_per_client=200,
+                        trainer = self._create_trainer(
                             algorithm="FedAvg",
-                            local_epochs=self.config["local_epochs"],
-                            batch_size=self.config["batch_size"],
-                            learning_rate=self.config.get("learning_rate", 0.01),
+                            num_clients=self.config["num_clients"],
                             is_iid=False,
                             dp_enabled=True,
                             dp_epsilon=epsilon,
@@ -212,13 +243,9 @@ class BenchmarkScreen:
             for num_clients in client_counts:
                 print(f"\n{Style.TITLE}Testing con {num_clients} client...{Colors.RESET}")
 
-                trainer = FederatedTrainer(
-                    num_clients=num_clients,
-                    samples_per_client=200,
+                trainer = self._create_trainer(
                     algorithm="FedAvg",
-                    local_epochs=self.config["local_epochs"],
-                    batch_size=self.config["batch_size"],
-                    learning_rate=self.config.get("learning_rate", 0.01),
+                    num_clients=num_clients,
                     is_iid=False,
                     dp_enabled=False,
                     seed=42,
@@ -278,13 +305,9 @@ class BenchmarkScreen:
             for epsilon in epsilon_values:
                 print(f"\n{Style.TITLE}Testing con epsilon={epsilon}...{Colors.RESET}")
 
-                trainer = FederatedTrainer(
-                    num_clients=self.config["num_clients"],
-                    samples_per_client=200,
+                trainer = self._create_trainer(
                     algorithm="FedAvg",
-                    local_epochs=self.config["local_epochs"],
-                    batch_size=self.config["batch_size"],
-                    learning_rate=self.config.get("learning_rate", 0.01),
+                    num_clients=self.config["num_clients"],
                     is_iid=False,
                     dp_enabled=True,
                     dp_epsilon=epsilon,

@@ -385,6 +385,11 @@ class TrainingScreen:
                     dp_clip_norm=self.config["dp_clip_norm"],
                     seed=self.config["seed"],
                     progress_callback=progress_callback,
+                    # Server optimizer params for FedAdam, FedYogi, FedAdagrad
+                    server_lr=self.config.get("server_lr", 0.1),
+                    beta1=self.config.get("beta1", 0.9),
+                    beta2=self.config.get("beta2", 0.99),
+                    tau=self.config.get("tau", 1e-3),
                 )
             else:
                 # Synthetic tabular dataset - use FederatedTrainer
@@ -671,11 +676,16 @@ class TrainingScreen:
                 "seed": self.config["seed"],
             },
             "model_config": {
-                "architecture": "HealthcareMLP",
-                "layers": "10 -> 64 -> 32 -> 2",
-                "total_params": 2946,
-                "optimizer": "SGD",
+                "architecture": "HealthcareCNN (GroupNorm, GAP)" if self.config["dataset_type"] == "imaging" else "HealthcareMLP",
+                "layers": "4-block CNN (32->64->128->256) + GAP" if self.config["dataset_type"] == "imaging" else "10 -> 64 -> 32 -> 2",
+                "total_params": "~500K" if self.config["dataset_type"] == "imaging" else 2946,
+                "optimizer": "Adam (wd=1e-5)" if self.config["dataset_type"] == "imaging" else "SGD",
                 "loss_function": "CrossEntropyLoss",
+                "normalization": "GroupNorm (FL-stable)" if self.config["dataset_type"] == "imaging" else "N/A",
+                "data_augmentation": "HFlip + Brightness (vectorized)" if self.config["dataset_type"] == "imaging" else "N/A",
+                "evaluation": "Held-out test set (20%)" if self.config["dataset_type"] == "imaging" else "Training data",
+                "image_size": "128x128" if self.config["dataset_type"] == "imaging" else "N/A",
+                "gradient_clipping": "max_norm=1.0" if self.config["dataset_type"] == "imaging" else "N/A",
             },
         }
 

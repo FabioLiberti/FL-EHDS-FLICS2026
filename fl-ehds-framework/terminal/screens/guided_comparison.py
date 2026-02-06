@@ -172,7 +172,7 @@ class GuidedComparisonScreen:
         print()
 
         try:
-            from terminal.fl_trainer import FederatedTrainer, HealthcareMLP
+            from terminal.fl_trainer import FederatedTrainer, ImageFederatedTrainer, HealthcareMLP, HealthcareCNN
             import torch
             import numpy as np
 
@@ -184,23 +184,33 @@ class GuidedComparisonScreen:
             num_clients = self.config["num_clients"]
             local_epochs = self.config["local_epochs"]
 
+            # Check if imaging dataset is configured
+            is_imaging = self.config.get("dataset_type") == "imaging"
+
             # === VERIFICATION: Show that training is real ===
             print_subsection("VERIFICA TRAINING REALE")
             print(f"{Style.TITLE}Neural Network:{Colors.RESET}")
-            model = HealthcareMLP()
-            total_params = sum(p.numel() for p in model.parameters())
-            print(f"  Modello: HealthcareMLP (PyTorch nn.Module)")
-            print(f"  Architettura: 10 -> 64 -> 32 -> 2 (MLP)")
-            print(f"  Parametri totali: {total_params:,}")
-            print(f"  Device: {torch.device('cpu')}")
-            print(f"  Optimizer: SGD con lr={self.config['learning_rate']}")
+            if is_imaging:
+                print(f"  Modello: HealthcareCNN (GroupNorm, PyTorch)")
+                print(f"  Architettura: 5-block CNN (32->64->128->256->512)")
+                print(f"  Valutazione: Test set (20% held-out)")
+                print(f"  Optimizer: Adam (wd=1e-5) con lr={self.config['learning_rate']}")
+            else:
+                model = HealthcareMLP()
+                total_params = sum(p.numel() for p in model.parameters())
+                print(f"  Modello: HealthcareMLP (PyTorch nn.Module)")
+                print(f"  Architettura: 10 -> 64 -> 32 -> 2 (MLP)")
+                print(f"  Parametri totali: {total_params:,}")
+                print(f"  Optimizer: SGD con lr={self.config['learning_rate']}")
             print(f"  Loss: CrossEntropyLoss")
-            first_layer = list(model.parameters())[0]
-            print(f"  Pesi iniziali (layer 0, primi 5): {first_layer.data.flatten()[:5].tolist()}")
 
-            print(f"\n{Style.TITLE}Dataset sintetico sanitario:{Colors.RESET}")
-            print(f"  Features: age, bmi, bp_systolic, glucose, cholesterol, ...")
-            print(f"  Target: Rischio malattia (binario)")
+            if is_imaging:
+                print(f"\n{Style.TITLE}Dataset clinico:{Colors.RESET}")
+                print(f"  Nome: {self.config.get('dataset_name', 'N/A')}")
+            else:
+                print(f"\n{Style.TITLE}Dataset sintetico sanitario:{Colors.RESET}")
+                print(f"  Features: age, bmi, bp_systolic, glucose, cholesterol, ...")
+                print(f"  Target: Rischio malattia (binario)")
             print(f"  Distribuzione: {'IID' if self.config['is_iid'] else 'Non-IID (Dirichlet)'}")
             print()
 
@@ -238,25 +248,46 @@ class GuidedComparisonScreen:
 
                     progress_cb = make_progress_callback(algorithm, seed) if verbose else None
 
-                    trainer = FederatedTrainer(
-                        num_clients=num_clients,
-                        samples_per_client=200,
-                        algorithm=algorithm,
-                        local_epochs=local_epochs,
-                        batch_size=self.config["batch_size"],
-                        learning_rate=self.config["learning_rate"],
-                        is_iid=self.config["is_iid"],
-                        alpha=self.config["alpha"],
-                        mu=self.config.get("mu", 0.1),
-                        dp_enabled=self.config.get("dp_enabled", False),
-                        dp_epsilon=self.config.get("dp_epsilon", 10.0),
-                        seed=seed,
-                        server_lr=self.config.get("server_lr", 0.1),
-                        beta1=self.config.get("beta1", 0.9),
-                        beta2=self.config.get("beta2", 0.99),
-                        tau=self.config.get("tau", 1e-3),
-                        progress_callback=progress_cb,
-                    )
+                    if is_imaging:
+                        trainer = ImageFederatedTrainer(
+                            data_dir=self.config["dataset_path"],
+                            num_clients=num_clients,
+                            algorithm=algorithm,
+                            local_epochs=local_epochs,
+                            batch_size=self.config["batch_size"],
+                            learning_rate=self.config["learning_rate"],
+                            is_iid=self.config["is_iid"],
+                            alpha=self.config["alpha"],
+                            mu=self.config.get("mu", 0.1),
+                            dp_enabled=self.config.get("dp_enabled", False),
+                            dp_epsilon=self.config.get("dp_epsilon", 10.0),
+                            seed=seed,
+                            server_lr=self.config.get("server_lr", 0.1),
+                            beta1=self.config.get("beta1", 0.9),
+                            beta2=self.config.get("beta2", 0.99),
+                            tau=self.config.get("tau", 1e-3),
+                            progress_callback=progress_cb,
+                        )
+                    else:
+                        trainer = FederatedTrainer(
+                            num_clients=num_clients,
+                            samples_per_client=200,
+                            algorithm=algorithm,
+                            local_epochs=local_epochs,
+                            batch_size=self.config["batch_size"],
+                            learning_rate=self.config["learning_rate"],
+                            is_iid=self.config["is_iid"],
+                            alpha=self.config["alpha"],
+                            mu=self.config.get("mu", 0.1),
+                            dp_enabled=self.config.get("dp_enabled", False),
+                            dp_epsilon=self.config.get("dp_epsilon", 10.0),
+                            seed=seed,
+                            server_lr=self.config.get("server_lr", 0.1),
+                            beta1=self.config.get("beta1", 0.9),
+                            beta2=self.config.get("beta2", 0.99),
+                            tau=self.config.get("tau", 1e-3),
+                            progress_callback=progress_cb,
+                        )
 
                     # Show data distribution for first run
                     if seed == 0:

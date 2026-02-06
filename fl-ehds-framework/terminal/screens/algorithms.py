@@ -64,7 +64,30 @@ class AlgorithmsScreen:
             "data_distribution": "Non-IID",
             "include_dp": False,
             "dp_epsilons": [1.0, 10.0],
+            # Dataset configuration
+            "dataset_type": "synthetic",
+            "dataset_name": None,
+            "dataset_path": None,
         }
+
+    def _get_available_datasets(self) -> Dict[str, Dict]:
+        """Get available imaging datasets."""
+        try:
+            from terminal.screens.datasets import DatasetManager
+            manager = DatasetManager()
+            return {
+                name: {
+                    "type": ds.type,
+                    "samples": ds.total_samples,
+                    "classes": ds.num_classes,
+                    "class_names": ds.class_names,
+                    "path": str(ds.path) if ds.path else None,
+                }
+                for name, ds in manager.datasets.items()
+                if ds.type == "imaging"
+            }
+        except Exception:
+            return {}
 
     def run(self):
         """Run the algorithms screen."""
@@ -115,6 +138,45 @@ class AlgorithmsScreen:
                 print(f"  {selected} {i}. {alg}")
             print_info("Modifica manualmente config['algorithms'] per cambiare selezione")
 
+        # Dataset selection
+        print_subsection("Selezione Dataset")
+        available_datasets = self._get_available_datasets()
+
+        dataset_choices = ["Sintetico (Healthcare Tabular)"]
+        dataset_map = {"Sintetico (Healthcare Tabular)": "synthetic"}
+
+        if available_datasets:
+            for name, info in available_datasets.items():
+                label = f"{name} ({info['samples']:,} img, {info['classes']} classi)"
+                dataset_choices.append(label)
+                dataset_map[label] = name
+
+        if HAS_QUESTIONARY:
+            selected = questionary.select(
+                "Seleziona dataset:",
+                choices=dataset_choices,
+                style=MENU_STYLE,
+            ).ask() or dataset_choices[0]
+        else:
+            print("Dataset disponibili:")
+            for i, choice in enumerate(dataset_choices):
+                print(f"  {i + 1}. {choice}")
+            idx = get_int("Selezione", default=1, min_val=1, max_val=len(dataset_choices)) - 1
+            selected = dataset_choices[idx]
+
+        selected_key = dataset_map[selected]
+        if selected_key == "synthetic":
+            self.config["dataset_type"] = "synthetic"
+            self.config["dataset_name"] = None
+            self.config["dataset_path"] = None
+            self.config["learning_rate"] = 0.01
+        else:
+            self.config["dataset_type"] = "imaging"
+            self.config["dataset_name"] = selected_key
+            self.config["dataset_path"] = available_datasets[selected_key]["path"]
+            self.config["learning_rate"] = 0.001
+            print_info(f"Dataset imaging selezionato: {selected_key}")
+
         # Basic parameters
         print_subsection("Parametri Training")
         self.config["num_clients"] = get_int("Numero client", default=self.config["num_clients"], min_val=2, max_val=50)
@@ -157,7 +219,7 @@ class AlgorithmsScreen:
         print()
 
         try:
-            from terminal.fl_trainer import FederatedTrainer, HealthcareMLP
+            from terminal.fl_trainer import FederatedTrainer, ImageFederatedTrainer, HealthcareMLP, HealthcareCNN
             import torch
             import numpy as np
 
@@ -168,29 +230,38 @@ class AlgorithmsScreen:
             if self.config["include_dp"]:
                 total_runs += len(self.config["dp_epsilons"]) * self.config["num_seeds"]
 
+            is_imaging = self.config["dataset_type"] == "imaging"
+
             # === VERIFICATION: Show that training is real ===
             print_subsection("VERIFICA TRAINING REALE")
             print(f"{Style.TITLE}Neural Network:{Colors.RESET}")
-            model = HealthcareMLP()
-            total_params = sum(p.numel() for p in model.parameters())
-            trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
-            print(f"  Modello: HealthcareMLP (PyTorch nn.Module)")
-            print(f"  Architettura: 10 -> 64 -> 32 -> 2 (MLP)")
-            print(f"  Parametri totali: {total_params:,}")
-            print(f"  Parametri trainabili: {trainable_params:,}")
-            print(f"  Device: {torch.device('cpu')}")
-            print(f"  Optimizer: SGD con lr={self.config['learning_rate']}")
+            if is_imaging:
+                print(f"  Modello: HealthcareCNN (GroupNorm, PyTorch)")
+                print(f"  Architettura: 5-block CNN (32->64->128->256->512)")
+                print(f"  Normalizzazione: GroupNorm (FL-stable)")
+                print(f"  Augmentation: HFlip + Rotation + Brightness")
+                print(f"  Valutazione: Test set (20% held-out)")
+                print(f"  Optimizer: Adam (wd=1e-5) con lr={self.config['learning_rate']}")
+            else:
+                model = HealthcareMLP()
+                total_params = sum(p.numel() for p in model.parameters())
+                print(f"  Modello: HealthcareMLP (PyTorch nn.Module)")
+                print(f"  Architettura: 10 -> 64 -> 32 -> 2 (MLP)")
+                print(f"  Parametri totali: {total_params:,}")
+                print(f"  Optimizer: SGD con lr={self.config['learning_rate']}")
+
             print(f"  Loss: CrossEntropyLoss")
 
-            # Show sample initial weights
-            first_layer = list(model.parameters())[0]
-            print(f"  Pesi iniziali (layer 0, primi 5): {first_layer.data.flatten()[:5].tolist()}")
+            if is_imaging:
+                print(f"\n{Style.TITLE}Dataset clinico:{Colors.RESET}")
+                print(f"  Nome: {self.config['dataset_name']}")
+                print(f"  Path: {self.config['dataset_path']}")
+            else:
+                print(f"\n{Style.TITLE}Dataset sintetico sanitario:{Colors.RESET}")
+                print(f"  Features: age, bmi, bp_systolic, glucose, cholesterol, ...")
+                print(f"  Target: Rischio malattia (binario: 0=basso, 1=alto)")
+                print(f"  Campioni per client: 200")
 
-            print(f"\n{Style.TITLE}Dataset sintetico sanitario:{Colors.RESET}")
-            print(f"  Features: age, bmi, bp_systolic, glucose, cholesterol,")
-            print(f"            heart_rate, resp_rate, temperature, oxygen_sat, prev_conditions")
-            print(f"  Target: Rischio malattia (binario: 0=basso, 1=alto)")
-            print(f"  Campioni per client: 200")
             print(f"  Distribuzione: {'IID' if self.config['data_distribution'] == 'IID' else 'Non-IID (Dirichlet)'}")
             print()
 
@@ -230,18 +301,32 @@ class AlgorithmsScreen:
 
                     progress_cb = make_progress_callback(algorithm, seed) if verbose else None
 
-                    trainer = FederatedTrainer(
-                        num_clients=self.config["num_clients"],
-                        samples_per_client=200,
-                        algorithm=algorithm,
-                        local_epochs=self.config["local_epochs"],
-                        batch_size=self.config["batch_size"],
-                        learning_rate=self.config["learning_rate"],
-                        is_iid=(self.config["data_distribution"] == "IID"),
-                        dp_enabled=False,
-                        seed=seed,
-                        progress_callback=progress_cb,
-                    )
+                    if is_imaging:
+                        trainer = ImageFederatedTrainer(
+                            data_dir=self.config["dataset_path"],
+                            num_clients=self.config["num_clients"],
+                            algorithm=algorithm,
+                            local_epochs=self.config["local_epochs"],
+                            batch_size=self.config["batch_size"],
+                            learning_rate=self.config["learning_rate"],
+                            is_iid=(self.config["data_distribution"] == "IID"),
+                            dp_enabled=False,
+                            seed=seed,
+                            progress_callback=progress_cb,
+                        )
+                    else:
+                        trainer = FederatedTrainer(
+                            num_clients=self.config["num_clients"],
+                            samples_per_client=200,
+                            algorithm=algorithm,
+                            local_epochs=self.config["local_epochs"],
+                            batch_size=self.config["batch_size"],
+                            learning_rate=self.config["learning_rate"],
+                            is_iid=(self.config["data_distribution"] == "IID"),
+                            dp_enabled=False,
+                            seed=seed,
+                            progress_callback=progress_cb,
+                        )
 
                     # Show data distribution for first run
                     if seed == 0:
@@ -301,19 +386,34 @@ class AlgorithmsScreen:
 
                         progress_cb = make_progress_callback(algo_name, seed) if verbose else None
 
-                        trainer = FederatedTrainer(
-                            num_clients=self.config["num_clients"],
-                            samples_per_client=200,
-                            algorithm="FedAvg",
-                            local_epochs=self.config["local_epochs"],
-                            batch_size=self.config["batch_size"],
-                            learning_rate=self.config["learning_rate"],
-                            is_iid=False,
-                            dp_enabled=True,
-                            dp_epsilon=epsilon,
-                            seed=seed,
-                            progress_callback=progress_cb,
-                        )
+                        if is_imaging:
+                            trainer = ImageFederatedTrainer(
+                                data_dir=self.config["dataset_path"],
+                                num_clients=self.config["num_clients"],
+                                algorithm="FedAvg",
+                                local_epochs=self.config["local_epochs"],
+                                batch_size=self.config["batch_size"],
+                                learning_rate=self.config["learning_rate"],
+                                is_iid=False,
+                                dp_enabled=True,
+                                dp_epsilon=epsilon,
+                                seed=seed,
+                                progress_callback=progress_cb,
+                            )
+                        else:
+                            trainer = FederatedTrainer(
+                                num_clients=self.config["num_clients"],
+                                samples_per_client=200,
+                                algorithm="FedAvg",
+                                local_epochs=self.config["local_epochs"],
+                                batch_size=self.config["batch_size"],
+                                learning_rate=self.config["learning_rate"],
+                                is_iid=False,
+                                dp_enabled=True,
+                                dp_epsilon=epsilon,
+                                seed=seed,
+                                progress_callback=progress_cb,
+                            )
 
                         history = []
                         final_result = None

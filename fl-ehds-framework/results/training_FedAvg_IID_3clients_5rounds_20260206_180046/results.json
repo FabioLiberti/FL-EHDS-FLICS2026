@@ -1,0 +1,222 @@
+{
+  "specs": {
+    "experiment_type": "single_training",
+    "timestamp": "20260206_180046",
+    "elapsed_time_seconds": 904.5313718318939,
+    "training_config": {
+      "algorithm": "FedAvg",
+      "num_clients": 3,
+      "num_rounds": 5,
+      "local_epochs": 2,
+      "batch_size": 32,
+      "learning_rate": 0.001,
+      "data_distribution": "Non-IID (label skew)",
+      "dp_enabled": false,
+      "seed": 89
+    },
+    "model_config": {
+      "architecture": "HealthcareCNN (GroupNorm, GAP)",
+      "layers": "4-block CNN (32->64->128->256) + GAP",
+      "total_params": "~500K",
+      "optimizer": "Adam (wd=1e-5)",
+      "loss_function": "CrossEntropyLoss",
+      "normalization": "GroupNorm (FL-stable)",
+      "data_augmentation": "HFlip + Brightness (vectorized)",
+      "evaluation": "Held-out test set (20%)",
+      "image_size": "128x128",
+      "gradient_clipping": "max_norm=1.0"
+    }
+  },
+  "final_metrics": {
+    "global_accuracy": 0.8963531669865643,
+    "global_loss": 0.2539937300982951,
+    "global_f1": 0.8663036040145986,
+    "global_precision": 0.8501739004419969,
+    "global_recall": 0.8884066706851517,
+    "global_auc": 0.9459714687562788
+  },
+  "history": [
+    {
+      "round": 0,
+      "global_loss": 0.5621067004103121,
+      "global_accuracy": 0.7581573896353166,
+      "global_f1": 0.43122270742358076,
+      "global_precision": 0.3790786948176583,
+      "global_recall": 0.5,
+      "global_auc": 0.8879997990757484,
+      "time_seconds": 144.57673406600952,
+      "client_results": [
+        {
+          "client_id": 0,
+          "loss": 0.5848336012071196,
+          "accuracy": 0.7368799424874192,
+          "num_samples": 2782
+        },
+        {
+          "client_id": 1,
+          "loss": 0.5834073895905877,
+          "accuracy": 0.723939611790079,
+          "num_samples": 2782
+        },
+        {
+          "client_id": 2,
+          "loss": 0.5774650580581577,
+          "accuracy": 0.7417385057471264,
+          "num_samples": 2784
+        }
+      ]
+    },
+    {
+      "round": 1,
+      "global_loss": 0.38150118408642436,
+      "global_accuracy": 0.7581573896353166,
+      "global_f1": 0.43122270742358076,
+      "global_precision": 0.3790786948176583,
+      "global_recall": 0.5,
+      "global_auc": 0.8905615832831022,
+      "time_seconds": 144.40761065483093,
+      "client_results": [
+        {
+          "client_id": 0,
+          "loss": 0.5265256349749912,
+          "accuracy": 0.7354421279654925,
+          "num_samples": 2782
+        },
+        {
+          "client_id": 1,
+          "loss": 0.5144989606740233,
+          "accuracy": 0.7397555715312725,
+          "num_samples": 2782
+        },
+        {
+          "client_id": 2,
+          "loss": 0.48757126824609165,
+          "accuracy": 0.7579022988505747,
+          "num_samples": 2784
+        }
+      ]
+    },
+    {
+      "round": 2,
+      "global_loss": 0.3120002101770747,
+      "global_accuracy": 0.8618042226487524,
+      "global_f1": 0.8241844769403823,
+      "global_precision": 0.8076895856187409,
+      "global_recall": 0.8494072734579063,
+      "global_auc": 0.9130399839260599,
+      "time_seconds": 147.3962152004242,
+      "client_results": [
+        {
+          "client_id": 0,
+          "loss": 0.4317388743869184,
+          "accuracy": 0.7915168943206327,
+          "num_samples": 2782
+        },
+        {
+          "client_id": 1,
+          "loss": 0.4398145214698025,
+          "accuracy": 0.7854061826024443,
+          "num_samples": 2782
+        },
+        {
+          "client_id": 2,
+          "loss": 0.3917711078692442,
+          "accuracy": 0.8099856321839081,
+          "num_samples": 2784
+        }
+      ]
+    },
+    {
+      "round": 3,
+      "global_loss": 0.28332669583941145,
+      "global_accuracy": 0.8838771593090211,
+      "global_f1": 0.8524326342487094,
+      "global_precision": 0.8341589513326888,
+      "global_recall": 0.8801788225838858,
+      "global_auc": 0.9255374723729155,
+      "time_seconds": 326.0895621776581,
+      "client_results": [
+        {
+          "client_id": 0,
+          "loss": 0.39453106911854297,
+          "accuracy": 0.8152408339324227,
+          "num_samples": 2782
+        },
+        {
+          "client_id": 1,
+          "loss": 0.37127245638029427,
+          "accuracy": 0.8213515456506111,
+          "num_samples": 2782
+        },
+        {
+          "client_id": 2,
+          "loss": 0.36221891949916707,
+          "accuracy": 0.834051724137931,
+          "num_samples": 2784
+        }
+      ]
+    },
+    {
+      "round": 4,
+      "global_loss": 0.2539937300982951,
+      "global_accuracy": 0.8963531669865643,
+      "global_f1": 0.8663036040145986,
+      "global_precision": 0.8501739004419969,
+      "global_recall": 0.8884066706851517,
+      "global_auc": 0.9459714687562788,
+      "time_seconds": 142.05954694747925,
+      "client_results": [
+        {
+          "client_id": 0,
+          "loss": 0.333800098215351,
+          "accuracy": 0.8501078360891445,
+          "num_samples": 2782
+        },
+        {
+          "client_id": 1,
+          "loss": 0.3501635930125316,
+          "accuracy": 0.8447160316319194,
+          "num_samples": 2782
+        },
+        {
+          "client_id": 2,
+          "loss": 0.33017355734589454,
+          "accuracy": 0.8552442528735632,
+          "num_samples": 2784
+        }
+      ]
+    }
+  ],
+  "data_stats": {
+    "0": {
+      "num_samples": 1738,
+      "num_train": 1391,
+      "num_test": 347,
+      "label_distribution": {
+        "0": 363,
+        "1": 1028
+      },
+      "class_balance": 0.3531128404669261
+    },
+    "1": {
+      "num_samples": 1738,
+      "num_train": 1391,
+      "num_test": 347,
+      "label_distribution": {
+        "0": 374,
+        "1": 1017
+      },
+      "class_balance": 0.36774827925270404
+    },
+    "2": {
+      "num_samples": 1740,
+      "num_train": 1392,
+      "num_test": 348,
+      "label_distribution": {
+        "0": 352,
+        "1": 1040
+      },
+      "class_balance": 0.3384615384615385
+    }
+  }
+}
