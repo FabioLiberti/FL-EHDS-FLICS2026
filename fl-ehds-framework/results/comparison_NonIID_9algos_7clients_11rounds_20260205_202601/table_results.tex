@@ -1,0 +1,34 @@
+% FL-EHDS Algorithm Comparison Results
+% Generated: 20260205_202601
+% Training time: 12.4 seconds
+
+\begin{table}[htbp]
+\centering
+\caption{Federated Learning Algorithm Comparison}
+\label{tab:fl_comparison}
+\small
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Algorithm} & \textbf{Accuracy} & \textbf{F1} & \textbf{Precision} & \textbf{Recall} & \textbf{AUC} \\
+\midrule
+FedAvg & 49.5\%$\pm$1.8 & 0.661$\pm$0.017 & 0.494$\pm$0.019 & 0.999$\pm$0.001 & 0.676$\pm$0.109 \\
+FedProx & 49.5\%$\pm$1.8 & 0.661$\pm$0.017 & 0.494$\pm$0.019 & 0.999$\pm$0.001 & 0.676$\pm$0.109 \\
+SCAFFOLD & 49.5\%$\pm$1.8 & 0.661$\pm$0.017 & 0.494$\pm$0.019 & 0.999$\pm$0.001 & 0.676$\pm$0.109 \\
+FedNova & 63.2\%$\pm$5.0 & 0.607$\pm$0.164 & 0.696$\pm$0.153 & 0.706$\pm$0.333 & 0.811$\pm$0.006 \\
+\textbf{FedAdam} & \textbf{69.7\%$\pm$3.5} & \textbf{0.613$\pm$0.138} & \textbf{0.814$\pm$0.098} & \textbf{0.542$\pm$0.194} & \textbf{0.817$\pm$0.018} \\
+\textbf{FedYogi} & \textbf{69.6\%$\pm$3.5} & \textbf{0.613$\pm$0.139} & \textbf{0.809$\pm$0.095} & \textbf{0.544$\pm$0.196} & \textbf{0.817$\pm$0.018} \\
+FedAdagrad & 63.6\%$\pm$8.6 & 0.633$\pm$0.109 & 0.713$\pm$0.172 & 0.706$\pm$0.283 & 0.822$\pm$0.010 \\
+Per-FedAvg & 49.6\%$\pm$1.7 & 0.661$\pm$0.017 & 0.494$\pm$0.018 & 0.999$\pm$0.001 & 0.674$\pm$0.109 \\
+Ditto & 49.7\%$\pm$1.6 & 0.661$\pm$0.016 & 0.495$\pm$0.018 & 0.997$\pm$0.004 & 0.674$\pm$0.108 \\
+\bottomrule
+\end{tabular}
+
+\vspace{2mm}
+\begin{minipage}{\textwidth}
+\footnotesize
+\textit{Training Configuration:} \\
+Clients: 7 | Rounds: 11 | Local Epochs: 2 | Batch Size: 32 | Learning Rate: 0.01 \\
+Data Distribution: Non-IID | Samples/Client: 200 | Seeds: 3 \\
+Model: HealthcareMLP (10 -> 64 -> 32 -> 2) | Optimizer: SGD | Loss: CrossEntropyLoss
+\end{minipage}
+\end{table}

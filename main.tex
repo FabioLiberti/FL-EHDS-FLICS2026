@@ -153,7 +153,27 @@ Figure~\ref{fig:architecture} illustrates the FL-EHDS architecture comprising th
 
 \textbf{Aggregation Module}: The framework implements multiple aggregation algorithms: FedAvg~\cite{mcmahan2017communication} as baseline, FedProx~\cite{li2020federated} with proximal regularization for non-IID robustness, SCAFFOLD~\cite{karimireddy2020scaffold} with control variates for variance reduction, and FedNova~\cite{wang2020tackling} for normalized averaging under heterogeneous local steps. Algorithm selection is configurable based on deployment requirements.
 
-\textbf{Privacy Protection}: Differential privacy (DP) with configurable $\varepsilon$-budget provides formal privacy guarantees~\cite{dwork2014dp, abadi2016deep}. The implementation uses R\'enyi Differential Privacy (RDP)~\cite{mironov2017renyi} for tight composition accounting over multiple training rounds. For Gaussian mechanisms with noise scale $\sigma$, the RDP guarantee at order $\alpha$ is $\rho(\alpha) = \alpha/(2\sigma^2)$. Privacy amplification by subsampling is computed using exact RDP formulas, and conversion to $(\varepsilon,\delta)$-DP uses optimal order selection: $\varepsilon = \min_\alpha \{\rho(\alpha) + \log(1/\delta)/(\alpha-1)\}$. This provides 6--10$\times$ tighter privacy bounds than simple composition for 100+ round training, critical for EHDS cross-border studies. Gradient clipping bounds individual contribution magnitude, mitigating gradient inversion attacks~\cite{zhu2019deep}. Membership inference defense mechanisms prevent determination of training set membership~\cite{shokri2017membership}.
+\textbf{Privacy Protection}: Differential privacy (DP) with configurable $\varepsilon$-budget provides formal privacy guarantees~\cite{dwork2014dp, abadi2016deep}. The implementation uses R\'enyi Differential Privacy (RDP)~\cite{mironov2017renyi} for tight composition accounting over multiple training rounds. For Gaussian mechanisms with noise scale $\sigma$, the RDP guarantee at order $\alpha$ is $\rho(\alpha) = \alpha/(2\sigma^2)$. Privacy amplification by subsampling is computed using exact RDP formulas, and conversion to $(\varepsilon,\delta)$-DP uses optimal order selection: $\varepsilon = \min_\alpha \{\rho(\alpha) + \log(1/\delta)/(\alpha-1)\}$.
+
+Table~\ref{tab:rdp_comparison} validates the RDP advantage: for 100+ round training typical of EHDS cross-border studies, RDP provides 5--6$\times$ tighter privacy bounds than naive composition, enabling longer training with equivalent privacy guarantees.
+
+\begin{table}[htbp]
+\centering
+\caption{RDP vs.\ Simple Composition ($\sigma$=1.0, $\delta$=10$^{-5}$)}
+\label{tab:rdp_comparison}
+\small
+\begin{tabular}{lccc}
+\toprule
+\textbf{Rounds} & \textbf{Simple} & \textbf{RDP} & \textbf{Improvement} \\
+\midrule
+30 & $\varepsilon$=145 & $\varepsilon$=42 & 3.5$\times$ \\
+100 & $\varepsilon$=484 & $\varepsilon$=98 & 4.9$\times$ \\
+200 & $\varepsilon$=969 & $\varepsilon$=173 & 5.6$\times$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Gradient clipping bounds individual contribution magnitude, mitigating gradient inversion attacks~\cite{zhu2019deep}. Membership inference defense mechanisms prevent determination of training set membership~\cite{shokri2017membership}.
 
 \textbf{Purpose Limitation}: Technical enforcement of permitted purposes (Article 53) through model output filtering and use-case validation, preventing scope creep beyond authorized analytics.
 
@@ -173,7 +193,9 @@ A modular Python implementation of the FL-EHDS framework is available as open-so
 \url{https://github.com/FabioLiberti/FL-EHDS-FLICS2026}
 \end{center}
 
-\noindent The implementation provides: (1) governance components for HDAB integration, permit management, and Article 71 opt-out compliance; (2) orchestration modules implementing FedAvg, FedProx, SCAFFOLD, and FedNova aggregation with R\'enyi differential privacy accounting (6--10$\times$ tighter bounds than simple composition) and secure aggregation; (3) data holder utilities for adaptive training and FHIR R4 preprocessing; (4) reproducible benchmarks generating all experimental results reported in Section~\ref{sec:experiments}.
+\noindent The implementation provides: (1) orchestration modules implementing FedAvg, FedProx, SCAFFOLD, and FedNova aggregation with R\'enyi differential privacy accounting (validated experimentally in Section~\ref{sec:experiments}) and secure aggregation; (2) data holder utilities for adaptive training and FHIR R4 preprocessing; (3) reproducible benchmarks generating all experimental results.
+
+\textbf{Note on governance components}: HDAB integration APIs, opt-out registry synchronization, and multi-HDAB coordination modules are implemented as interface stubs designed for future integration with national EHDS infrastructure as it becomes available (expected 2027--2029). Current stubs define the API contracts and data flows; production deployment will require binding to actual Member State services.
 
 \subsection{Threat Model and Security Assumptions}
 
@@ -328,6 +350,33 @@ Figure~\ref{fig:privacy_tradeoff} visualizes the accuracy degradation with incre
 \caption{Privacy-utility tradeoff: accuracy vs.\ $\varepsilon$-budget (RDP accounting).}
 \label{fig:privacy_tradeoff}
 \end{figure}
+
+\subsection{Federated vs.\ Centralized Baseline}
+
+A critical question for FL adoption is: how much accuracy is sacrificed for privacy preservation? Table~\ref{tab:fl_vs_central} compares FL algorithms with a centralized baseline where all hospital data is pooled (upper bound, no privacy).
+
+\begin{table}[htbp]
+\centering
+\caption{FL vs.\ Centralized Training Comparison}
+\label{tab:fl_vs_central}
+\small
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Approach} & \textbf{Accuracy} & \textbf{F1} & \textbf{AUC} & \textbf{Gap} \\
+\midrule
+Centralized (Upper Bound) & $0.731 \pm 0.009$ & $0.738 \pm 0.011$ & $0.806 \pm 0.002$ & --- \\
+\midrule
+FedAvg (IID) & $0.662 \pm 0.017$ & $0.729 \pm 0.010$ & $0.785 \pm 0.014$ & 9.4\% \\
+FedAvg (Non-IID) & $0.596 \pm 0.065$ & $0.236 \pm 0.334$ & $0.777 \pm 0.033$ & 18.5\% \\
+FL + DP ($\varepsilon$=10) & $0.543 \pm 0.054$ & --- & --- & 25.7\% \\
+\bottomrule
+\end{tabular}
+
+\vspace{1mm}
+\footnotesize{5 hospitals, 200 samples each, 30 FL rounds $\times$ 3 local epochs = 90 centralized epochs. Results: mean $\pm$ std over 3 seeds.}
+\end{table}
+
+\textbf{Key finding}: Under IID conditions, FL sacrifices only 9.4\% accuracy compared to centralized training---a modest cost for preserving data sovereignty across institutions. Non-IID distributions increase this gap to 18.5\%, and adding differential privacy ($\varepsilon$=10) brings it to 25.7\%. These results quantify the privacy-utility tradeoff inherent in federated approaches.
 
 \subsection{FL Algorithm Comparison}
 

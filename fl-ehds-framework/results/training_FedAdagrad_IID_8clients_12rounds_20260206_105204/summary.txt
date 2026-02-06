@@ -1,0 +1,20 @@
+FL-EHDS Training Summary
+==================================================
+
+Algorithm: FedAdagrad
+Clients: 8
+Rounds: 12
+Local Epochs: 3
+Learning Rate: 0.01
+Distribution: Non-IID (label skew)
+DP Enabled: False
+
+Final Metrics:
+  Accuracy: 0.7212
+  Loss: 0.6371
+  F1: 0.7237
+  Precision: 0.7174
+  Recall: 0.7300
+  AUC: 0.7967
+
+Training Time: 1.6 seconds
