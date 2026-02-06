@@ -147,6 +147,230 @@ class HealthcareMLP(nn.Module):
         return self.network(x)
 
 
+class HealthcareCNN(nn.Module):
+    """
+    CNN for medical image classification.
+
+    Designed for clinical imaging datasets:
+    - Brain Tumor MRI (4 classes)
+    - Diabetic Retinopathy (5 stages)
+    - Chest X-ray (2 classes: pneumonia/normal)
+    - Skin Cancer (2+ classes)
+
+    Input: (batch, 3, 224, 224) - RGB images resized to 224x224
+    """
+
+    def __init__(
+        self,
+        num_classes: int = 2,
+        in_channels: int = 3,
+        dropout: float = 0.3
+    ):
+        super().__init__()
+
+        # Feature extraction layers
+        self.features = nn.Sequential(
+            # Block 1: 224 -> 112
+            nn.Conv2d(in_channels, 32, kernel_size=3, padding=1),
+            nn.BatchNorm2d(32),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(32, 32, kernel_size=3, padding=1),
+            nn.BatchNorm2d(32),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(2, 2),
+            nn.Dropout2d(dropout * 0.5),
+
+            # Block 2: 112 -> 56
+            nn.Conv2d(32, 64, kernel_size=3, padding=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(64, 64, kernel_size=3, padding=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(2, 2),
+            nn.Dropout2d(dropout * 0.5),
+
+            # Block 3: 56 -> 28
+            nn.Conv2d(64, 128, kernel_size=3, padding=1),
+            nn.BatchNorm2d(128),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(128, 128, kernel_size=3, padding=1),
+            nn.BatchNorm2d(128),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(2, 2),
+            nn.Dropout2d(dropout),
+
+            # Block 4: 28 -> 14
+            nn.Conv2d(128, 256, kernel_size=3, padding=1),
+            nn.BatchNorm2d(256),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(256, 256, kernel_size=3, padding=1),
+            nn.BatchNorm2d(256),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(2, 2),
+            nn.Dropout2d(dropout),
+
+            # Block 5: 14 -> 7
+            nn.Conv2d(256, 512, kernel_size=3, padding=1),
+            nn.BatchNorm2d(512),
+            nn.ReLU(inplace=True),
+            nn.AdaptiveAvgPool2d((7, 7)),
+        )
+
+        # Classifier
+        self.classifier = nn.Sequential(
+            nn.Flatten(),
+            nn.Linear(512 * 7 * 7, 512),
+            nn.ReLU(inplace=True),
+            nn.Dropout(dropout),
+            nn.Linear(512, 128),
+            nn.ReLU(inplace=True),
+            nn.Dropout(dropout),
+            nn.Linear(128, num_classes),
+        )
+
+    def forward(self, x):
+        x = self.features(x)
+        x = self.classifier(x)
+        return x
+
+
+# =============================================================================
+# IMAGE DATASET LOADER
+# =============================================================================
+
+def load_image_dataset(
+    data_dir: str,
+    num_clients: int = 5,
+    is_iid: bool = False,
+    alpha: float = 0.5,
+    img_size: int = 224,
+    seed: int = 42,
+    val_split: float = 0.2,
+) -> Tuple[Dict[int, Tuple[np.ndarray, np.ndarray]], Dict, int]:
+    """
+    Load image dataset from directory and partition for FL.
+
+    Expects directory structure:
+        data_dir/
+            class_0/
+                img1.jpg
+                img2.jpg
+            class_1/
+                img3.jpg
+                ...
+
+    Args:
+        data_dir: Path to dataset directory
+        num_clients: Number of FL clients
+        is_iid: If True, distribute data IID across clients
+        alpha: Dirichlet parameter for non-IID distribution
+        img_size: Target image size (default 224x224)
+        seed: Random seed
+        val_split: Validation split ratio
+
+    Returns:
+        client_data: Dict mapping client_id -> (X, y) arrays
+        class_names: Dict mapping class_id -> class_name
+        num_classes: Number of classes
+    """
+    from pathlib import Path
+    from PIL import Image
+
+    np.random.seed(seed)
+
+    data_path = Path(data_dir)
+
+    # Detect classes from subdirectories
+    class_dirs = sorted([d for d in data_path.iterdir() if d.is_dir()])
+    class_names = {i: d.name for i, d in enumerate(class_dirs)}
+    num_classes = len(class_names)
+
+    print(f"Loading dataset from: {data_dir}")
+    print(f"Found {num_classes} classes: {list(class_names.values())}")
+
+    # Load all images
+    all_images = []
+    all_labels = []
+
+    for class_id, class_dir in enumerate(class_dirs):
+        image_files = list(class_dir.glob("*.jpg")) + \
+                      list(class_dir.glob("*.jpeg")) + \
+                      list(class_dir.glob("*.png"))
+
+        print(f"  Class {class_id} ({class_dir.name}): {len(image_files)} images")
+
+        for img_path in image_files:
+            try:
+                img = Image.open(img_path).convert("RGB")
+                img = img.resize((img_size, img_size))
+                img_array = np.array(img, dtype=np.float32) / 255.0
+                # Convert to (C, H, W) format
+                img_array = img_array.transpose(2, 0, 1)
+
+                all_images.append(img_array)
+                all_labels.append(class_id)
+            except Exception as e:
+                print(f"    Warning: Could not load {img_path}: {e}")
+
+    X = np.array(all_images)
+    y = np.array(all_labels, dtype=np.int64)
+
+    print(f"Total: {len(y)} images loaded")
+
+    # Shuffle data
+    indices = np.random.permutation(len(y))
+    X = X[indices]
+    y = y[indices]
+
+    # Partition data for FL
+    client_data = {}
+
+    if is_iid:
+        # IID: Equal random distribution
+        samples_per_client = len(y) // num_clients
+        for i in range(num_clients):
+            start = i * samples_per_client
+            end = start + samples_per_client if i < num_clients - 1 else len(y)
+            client_data[i] = (X[start:end], y[start:end])
+    else:
+        # Non-IID: Dirichlet distribution for label skew
+        label_indices = {c: np.where(y == c)[0] for c in range(num_classes)}
+
+        # Allocate proportions using Dirichlet
+        proportions = np.random.dirichlet([alpha] * num_clients, num_classes)
+
+        client_indices = {i: [] for i in range(num_clients)}
+
+        for class_id in range(num_classes):
+            class_idx = label_indices[class_id]
+            n_class = len(class_idx)
+
+            # Distribute this class across clients
+            splits = (proportions[class_id] * n_class).astype(int)
+            splits[-1] = n_class - splits[:-1].sum()  # Ensure all samples used
+
+            current = 0
+            for client_id, count in enumerate(splits):
+                client_indices[client_id].extend(
+                    class_idx[current:current + count].tolist()
+                )
+                current += count
+
+        for client_id, indices in client_indices.items():
+            np.random.shuffle(indices)
+            client_data[client_id] = (X[indices], y[indices])
+
+    # Print distribution
+    print("\nClient data distribution:")
+    for client_id, (X_c, y_c) in client_data.items():
+        unique, counts = np.unique(y_c, return_counts=True)
+        dist = dict(zip(unique.tolist(), counts.tolist()))
+        print(f"  Client {client_id}: {len(y_c)} samples, distribution: {dist}")
+
+    return client_data, class_names, num_classes
+
+
 # =============================================================================
 # FEDERATED LEARNING TRAINER
 # =============================================================================
@@ -717,6 +941,316 @@ class FederatedTrainer:
                 precision=metrics["precision"],
                 recall=metrics["recall"],
                 auc=metrics["auc"],
+                time=elapsed
+            )
+
+        return round_result
+
+    def get_client_data_stats(self) -> Dict[int, Dict]:
+        """Get statistics about client data distribution."""
+        stats = {}
+        for client_id, (X, y) in self.client_data.items():
+            unique, counts = np.unique(y, return_counts=True)
+            stats[client_id] = {
+                "num_samples": len(y),
+                "label_distribution": dict(zip(unique.tolist(), counts.tolist())),
+                "class_balance": counts.min() / counts.max() if len(counts) > 1 else 1.0
+            }
+        return stats
+
+
+# =============================================================================
+# IMAGE FEDERATED LEARNING TRAINER
+# =============================================================================
+
+class ImageFederatedTrainer:
+    """
+    Federated Learning trainer for medical image classification.
+
+    Uses HealthcareCNN model and supports loading image datasets from disk.
+    Implements FedAvg, FedProx for image FL experiments.
+    """
+
+    def __init__(
+        self,
+        data_dir: str,
+        num_clients: int = 5,
+        algorithm: str = "FedAvg",
+        local_epochs: int = 3,
+        batch_size: int = 32,
+        learning_rate: float = 0.001,
+        is_iid: bool = False,
+        alpha: float = 0.5,
+        mu: float = 0.1,
+        dp_enabled: bool = False,
+        dp_epsilon: float = 10.0,
+        dp_clip_norm: float = 1.0,
+        seed: int = 42,
+        device: str = None,
+        img_size: int = 224,
+        progress_callback: Optional[Callable] = None,
+    ):
+        self.algorithm = algorithm
+        self.local_epochs = local_epochs
+        self.batch_size = batch_size
+        self.learning_rate = learning_rate
+        self.mu = mu
+        self.dp_enabled = dp_enabled
+        self.dp_epsilon = dp_epsilon
+        self.dp_clip_norm = dp_clip_norm
+        self.seed = seed
+        self.progress_callback = progress_callback
+
+        # Auto-detect device
+        if device is None:
+            device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.device = torch.device(device)
+
+        torch.manual_seed(seed)
+        np.random.seed(seed)
+
+        # Load image dataset
+        self.client_data, self.class_names, self.num_classes = load_image_dataset(
+            data_dir=data_dir,
+            num_clients=num_clients,
+            is_iid=is_iid,
+            alpha=alpha,
+            img_size=img_size,
+            seed=seed,
+        )
+        self.num_clients = len(self.client_data)
+
+        # Initialize CNN model
+        self.global_model = HealthcareCNN(num_classes=self.num_classes).to(self.device)
+
+        print(f"\nModel: HealthcareCNN ({self.num_classes} classes)")
+        print(f"Device: {self.device}")
+        total_params = sum(p.numel() for p in self.global_model.parameters())
+        print(f"Parameters: {total_params:,}")
+
+        # History
+        self.history = []
+
+    def _get_client_dataloader(self, client_id: int) -> DataLoader:
+        """Create DataLoader for client."""
+        X, y = self.client_data[client_id]
+        X_tensor = torch.FloatTensor(X).to(self.device)
+        y_tensor = torch.LongTensor(y).to(self.device)
+        dataset = TensorDataset(X_tensor, y_tensor)
+        return DataLoader(dataset, batch_size=self.batch_size, shuffle=True)
+
+    def _train_client(self, client_id: int, round_num: int) -> ClientResult:
+        """Train one client locally."""
+        local_model = deepcopy(self.global_model)
+        local_model.train()
+
+        optimizer = torch.optim.Adam(local_model.parameters(), lr=self.learning_rate)
+        criterion = nn.CrossEntropyLoss()
+
+        dataloader = self._get_client_dataloader(client_id)
+
+        # For FedProx
+        if self.algorithm == "FedProx":
+            global_params = {
+                name: param.clone().detach()
+                for name, param in self.global_model.named_parameters()
+            }
+
+        total_loss = 0.0
+        total_correct = 0
+        total_samples = 0
+
+        for epoch in range(self.local_epochs):
+            for batch_X, batch_y in dataloader:
+                optimizer.zero_grad()
+
+                outputs = local_model(batch_X)
+                loss = criterion(outputs, batch_y)
+
+                # FedProx: add proximal term
+                if self.algorithm == "FedProx":
+                    prox_term = 0.0
+                    for name, param in local_model.named_parameters():
+                        prox_term += torch.sum((param - global_params[name]) ** 2)
+                    loss += (self.mu / 2) * prox_term
+
+                loss.backward()
+
+                # DP: clip gradients
+                if self.dp_enabled:
+                    torch.nn.utils.clip_grad_norm_(
+                        local_model.parameters(),
+                        self.dp_clip_norm
+                    )
+
+                optimizer.step()
+
+                total_loss += loss.item() * len(batch_y)
+                preds = outputs.argmax(dim=1)
+                total_correct += (preds == batch_y).sum().item()
+                total_samples += len(batch_y)
+
+        # Compute model update
+        model_update = {}
+        for name, param in local_model.named_parameters():
+            global_param = dict(self.global_model.named_parameters())[name]
+            model_update[name] = param.data - global_param.data
+
+        return ClientResult(
+            client_id=client_id,
+            model_update=model_update,
+            num_samples=total_samples,
+            train_loss=total_loss / total_samples,
+            train_acc=total_correct / total_samples,
+            epochs_completed=self.local_epochs
+        )
+
+    def _aggregate(self, client_results: List[ClientResult]) -> None:
+        """FedAvg aggregation."""
+        total_samples = sum(cr.num_samples for cr in client_results)
+
+        for name, param in self.global_model.named_parameters():
+            weighted_update = torch.zeros_like(param)
+            for cr in client_results:
+                weight = cr.num_samples / total_samples
+                weighted_update += cr.model_update[name] * weight
+            param.data += weighted_update
+
+        # DP noise
+        if self.dp_enabled:
+            noise_scale = self.dp_clip_norm / self.dp_epsilon
+            for param in self.global_model.parameters():
+                noise = torch.randn_like(param) * noise_scale
+                param.data += noise
+
+    def _evaluate(self) -> Dict[str, float]:
+        """Evaluate global model on all client data."""
+        self.global_model.eval()
+
+        total_loss = 0.0
+        total_samples = 0
+        all_preds = []
+        all_labels = []
+        all_probs = []
+
+        criterion = nn.CrossEntropyLoss()
+
+        with torch.no_grad():
+            for client_id in range(self.num_clients):
+                X, y = self.client_data[client_id]
+
+                # Process in batches for memory efficiency
+                for i in range(0, len(y), self.batch_size):
+                    X_batch = torch.FloatTensor(X[i:i+self.batch_size]).to(self.device)
+                    y_batch = torch.LongTensor(y[i:i+self.batch_size]).to(self.device)
+
+                    outputs = self.global_model(X_batch)
+                    loss = criterion(outputs, y_batch)
+
+                    total_loss += loss.item() * len(y_batch)
+                    preds = outputs.argmax(dim=1)
+
+                    # For multi-class AUC, use max probability
+                    probs = torch.softmax(outputs, dim=1)
+                    max_probs, _ = probs.max(dim=1)
+
+                    all_preds.extend(preds.cpu().numpy())
+                    all_labels.extend(y_batch.cpu().numpy())
+                    all_probs.extend(max_probs.cpu().numpy())
+                    total_samples += len(y_batch)
+
+        all_preds = np.array(all_preds)
+        all_labels = np.array(all_labels)
+
+        # Calculate metrics
+        accuracy = (all_preds == all_labels).mean()
+
+        # Macro-averaged metrics for multi-class
+        unique_classes = np.unique(all_labels)
+        precisions, recalls, f1s = [], [], []
+
+        for cls in unique_classes:
+            tp = ((all_preds == cls) & (all_labels == cls)).sum()
+            fp = ((all_preds == cls) & (all_labels != cls)).sum()
+            fn = ((all_preds != cls) & (all_labels == cls)).sum()
+
+            p = tp / (tp + fp) if (tp + fp) > 0 else 0.0
+            r = tp / (tp + fn) if (tp + fn) > 0 else 0.0
+            f = 2 * p * r / (p + r) if (p + r) > 0 else 0.0
+
+            precisions.append(p)
+            recalls.append(r)
+            f1s.append(f)
+
+        precision = np.mean(precisions)
+        recall = np.mean(recalls)
+        f1 = np.mean(f1s)
+
+        # Simple AUC approximation for multi-class
+        auc = accuracy  # Use accuracy as proxy for multi-class
+
+        return {
+            "loss": total_loss / total_samples,
+            "accuracy": float(accuracy),
+            "precision": float(precision),
+            "recall": float(recall),
+            "f1": float(f1),
+            "auc": float(auc),
+        }
+
+    def train_round(self, round_num: int) -> RoundResult:
+        """Execute one federated learning round."""
+        start_time = time.time()
+
+        if self.progress_callback:
+            self.progress_callback("round_start", round_num=round_num + 1)
+
+        client_results = []
+
+        for client_id in range(self.num_clients):
+            if self.progress_callback:
+                self.progress_callback(
+                    "client_start",
+                    client_id=client_id,
+                    total_clients=self.num_clients
+                )
+
+            result = self._train_client(client_id, round_num)
+            client_results.append(result)
+
+            if self.progress_callback:
+                self.progress_callback(
+                    "client_end",
+                    client_id=client_id,
+                    loss=result.train_loss,
+                    acc=result.train_acc
+                )
+
+        self._aggregate(client_results)
+        metrics = self._evaluate()
+        elapsed = time.time() - start_time
+
+        round_result = RoundResult(
+            round_num=round_num,
+            global_loss=metrics["loss"],
+            global_acc=metrics["accuracy"],
+            global_f1=metrics["f1"],
+            global_precision=metrics["precision"],
+            global_recall=metrics["recall"],
+            global_auc=metrics["auc"],
+            client_results=client_results,
+            time_seconds=elapsed
+        )
+
+        self.history.append(round_result)
+
+        if self.progress_callback:
+            self.progress_callback(
+                "round_end",
+                round_num=round_num + 1,
+                loss=metrics["loss"],
+                acc=metrics["accuracy"],
+                f1=metrics["f1"],
                 time=elapsed
             )
 

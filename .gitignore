@@ -124,4 +124,19 @@ secrets.yaml
 # *.pkl
 # *.h5
 # *.hdf5
-# data/
+
+# -----------------------------------------------------------------------------
+# Large Clinical Imaging Datasets (too large for Git)
+# -----------------------------------------------------------------------------
+fl-ehds-framework/data/Brain Tumor MRI/
+fl-ehds-framework/data/Brain_Tumor/
+fl-ehds-framework/data/Retinopatia/
+fl-ehds-framework/data/Skin Cancer/
+fl-ehds-framework/data/chest_xray/
+fl-ehds-framework/data/ISIC/
+fl-ehds-framework/data/svhn/
+
+# Large model checkpoints
+*.pt
+*.pth
+*.ckpt
