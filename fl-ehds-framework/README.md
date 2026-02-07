@@ -1,159 +1,145 @@
 # FL-EHDS Framework
 
-**Privacy-Preserving Federated Learning Framework for the European Health Data Space**
+**Privacy-Preserving Federated Learning for the European Health Data Space**
 
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![PyTorch 2.0+](https://img.shields.io/badge/pytorch-2.0+-ee4c2c.svg)](https://pytorch.org/)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-green.svg)](https://opensource.org/licenses/Apache-2.0)
 
-## Overview
+This directory contains the full implementation of the FL-EHDS framework. For the project overview, paper details, and benchmark results, see the [root README](../README.md).
 
-FL-EHDS is a three-layer compliance framework designed for cross-border health analytics under the European Health Data Space (EHDS) Regulation (EU) 2025/327. The framework bridges the technology-governance divide by integrating technical FL capabilities with regulatory compliance requirements.
-
-## Architecture
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    LAYER 1: GOVERNANCE                          │
-│  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌───────────┐ │
-│  │    HDAB     │ │    Data     │ │   Opt-out   │ │ Compliance│ │
-│  │ Integration │ │   Permits   │ │  Registry   │ │  Logging  │ │
-│  └─────────────┘ └─────────────┘ └─────────────┘ └───────────┘ │
-├─────────────────────────────────────────────────────────────────┤
-│              LAYER 2: FL ORCHESTRATION (within SPE)             │
-│  ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐   │
-│  │   Aggregation   │ │     Privacy     │ │   Compliance    │   │
-│  │  FedAvg/FedProx │ │ DP, SecAgg, Clip│ │ Purpose Limit.  │   │
-│  └─────────────────┘ └─────────────────┘ └─────────────────┘   │
-├─────────────────────────────────────────────────────────────────┤
-│                   LAYER 3: DATA HOLDERS                         │
-│  ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐   │
-│  │ Training Engine │ │ FHIR Preprocess │ │ Secure Comms    │   │
-│  │   (Adaptive)    │ │  (Healthcare)   │ │ (E2E Encrypted) │   │
-│  └─────────────────┘ └─────────────────┘ └─────────────────┘   │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-## Project Structure
-
-```
-fl-ehds-framework/
-├── config/                 # Configuration files
-│   └── config.yaml        # Main configuration
-├── core/                   # Core utilities and base classes
-│   ├── models.py          # Data models and schemas
-│   ├── utils.py           # Utility functions
-│   └── exceptions.py      # Custom exceptions
-├── governance/             # Layer 1: Governance
-│   ├── hdab_integration.py    # HDAB API integration
-│   ├── data_permits.py        # Data permit management
-│   ├── optout_registry.py     # Opt-out registry (Art. 71)
-│   └── compliance_logging.py  # Audit trail logging
-├── orchestration/          # Layer 2: FL Orchestration
-│   ├── aggregation/           # Aggregation algorithms
-│   │   ├── fedavg.py         # FedAvg implementation
-│   │   └── fedprox.py        # FedProx for non-IID data
-│   ├── privacy/               # Privacy protection
-│   │   ├── differential_privacy.py
-│   │   ├── gradient_clipping.py
-│   │   └── secure_aggregation.py
-│   └── compliance/            # Compliance enforcement
-│       └── purpose_limitation.py
-├── data_holders/           # Layer 3: Data Holders
-│   ├── training_engine.py     # Adaptive local training
-│   ├── fhir_preprocessing.py  # FHIR data transformation
-│   └── secure_communication.py # Encrypted gradient exchange
-├── tests/                  # Test suite
-└── examples/               # Usage examples
-```
-
-## Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/your-org/fl-ehds-framework.git
-cd fl-ehds-framework
-
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# or: venv\Scripts\activate  # Windows
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Install in development mode
-pip install -e .
-```
+---
 
 ## Quick Start
 
-```python
-from fl_ehds import FLEHDSFramework
-from fl_ehds.governance import DataPermit, HDABClient
-from fl_ehds.orchestration import FedAvgAggregator
-from fl_ehds.data_holders import TrainingEngine
+```bash
+# Install
+conda create -n flics2026 python=3.11 -y && conda activate flics2026
+pip install -e .
 
-# Initialize framework
-framework = FLEHDSFramework(config_path="config/config.yaml")
+# Terminal CLI
+python -m terminal
 
-# Layer 1: Verify data permit
-permit = DataPermit(
-    permit_id="EHDS-2026-001",
-    purpose="scientific_research",
-    data_categories=["ehr", "lab_results"]
-)
-framework.governance.verify_permit(permit)
+# Web Dashboard
+streamlit run dashboard/app.py
 
-# Layer 2: Configure FL orchestration
-aggregator = FedAvgAggregator(
-    num_rounds=100,
-    min_clients=3,
-    privacy_budget=1.0  # epsilon for DP
-)
-
-# Layer 3: Initialize data holders
-training_engine = TrainingEngine(
-    model_type="neural_network",
-    adaptive_batching=True
-)
-
-# Run federated training
-results = framework.run(
-    aggregator=aggregator,
-    training_engine=training_engine,
-    permit=permit
-)
+# Run experiments
+python -m experiments.centralized_vs_federated --dataset chest_xray --quick
 ```
 
-## Key Features
+---
 
-### Layer 1: Governance
-- **HDAB Integration**: Standardized API for Health Data Access Body communication
-- **Data Permits**: Automated permit verification and lifecycle management
-- **Opt-out Registry**: Article 71 compliance with granular opt-out checking
-- **Compliance Logging**: GDPR Article 30 audit trail generation
+## Directory Structure
 
-### Layer 2: FL Orchestration
-- **FedAvg/FedProx**: Standard aggregation with non-IID data handling
-- **Differential Privacy**: Configurable ε-budget with automatic noise calibration
-- **Gradient Clipping**: Bounded sensitivity for privacy guarantees
-- **Secure Aggregation**: Cryptographic protection of individual gradients
-- **Purpose Limitation**: Technical enforcement of permitted uses (Article 53)
+```
+fl-ehds-framework/
+|
+|-- core/                           # Core FL engine
+|   |-- fl_algorithms.py            # 10 aggregation algorithms
+|   |-- orchestration.py            # FL orchestration logic
+|   |-- models.py                   # Data models (Pydantic)
+|   |-- secure_aggregation.py       # TenSEAL CKKS secure aggregation
+|   |-- byzantine_resilience.py     # Byzantine fault tolerance
+|   |-- async_fl.py                 # Asynchronous FL support
+|   |-- utils.py                    # Utility functions
+|   +-- exceptions.py               # Custom exceptions
+|
+|-- orchestration/                  # Layer 2: FL Orchestration
+|   |-- aggregation/
+|   |   |-- fedavg.py               # FedAvg strategy
+|   |   +-- fedprox.py              # FedProx strategy
+|   |-- privacy/
+|   |   |-- differential_privacy.py # DP with RDP accounting
+|   |   |-- gradient_clipping.py    # Gradient norm clipping
+|   |   +-- secure_aggregation.py   # Cryptographic SecAgg
+|   +-- compliance/
+|       +-- purpose_limitation.py   # EHDS Art. 53 enforcement
+|
+|-- governance/                     # Layer 1: Governance
+|   |-- hdab_integration.py         # Health Data Access Body API
+|   |-- data_permits.py             # Data permit lifecycle
+|   |-- optout_registry.py          # Art. 71 opt-out registry
+|   +-- compliance_logging.py       # GDPR Art. 30 audit trails
+|
+|-- data_holders/                   # Layer 3: Data Holders
+|   |-- training_engine.py          # Adaptive local training
+|   |-- fhir_preprocessing.py       # HL7 FHIR R4 transformation
+|   +-- secure_communication.py     # E2E encrypted gradients
+|
+|-- terminal/                       # Terminal CLI Interface
+|   |-- __main__.py                 # Entry point
+|   |-- fl_trainer.py               # FL trainer (10 algos + imaging)
+|   +-- screens/
+|       |-- training.py             # Training screen
+|       |-- comparison.py           # Algorithm comparison
+|       |-- guided_comparison.py    # Pre-configured scenarios
+|       |-- algorithms.py           # Algorithm explorer
+|       |-- datasets.py             # Dataset management
+|       |-- privacy.py              # Privacy dashboard
+|       |-- benchmark.py            # Benchmark suite
+|       +-- byzantine.py            # Byzantine resilience
+|
+|-- dashboard/                      # Streamlit Web Dashboard
+|   |-- app.py                      # Main dashboard
+|   |-- dataset_page.py             # Dataset browser
+|   +-- real_trainer_bridge.py      # Terminal-Web bridge
+|
+|-- models/                         # Neural Network Models
+|   |-- cnn_fl_trainer.py           # HealthcareCNN (5-block, GroupNorm)
+|   +-- model_zoo.py                # Model registry
+|
+|-- benchmarks/                     # Experiment Scripts
+|   |-- run_experiments.py          # Main benchmark (9 algorithms)
+|   |-- run_imaging_experiments.py  # Clinical imaging benchmarks
+|   |-- run_extended_experiments.py # Scalability analysis
+|   +-- run_heterogeneity_experiments.py # Non-IID studies
+|
+|-- experiments/                    # Specialized Experiments
+|   +-- centralized_vs_federated/   # CvF comparison suite
+|       |-- run_comparison.py       # Main script
+|       +-- visualizations.py       # 10-chart visualization suite
+|
+|-- tests/                          # Unit Tests (pytest)
+|   |-- test_governance.py
+|   |-- test_differential_privacy.py
+|   |-- test_orchestration.py
+|   +-- test_data_holders.py
+|
+|-- data/                           # Clinical Datasets (not in repo)
+|   |-- chest_xray/                 # 5,856 images, 2 classes
+|   |-- Brain_Tumor/                # 7,023 images, 4 classes
+|   |-- Retinopatia/                # 35,126 images, 5 classes
+|   |-- Skin Cancer/                # 3,297 images, 2 classes
+|   |-- Brain Tumor MRI/            # 3,264 images, 4 classes
+|   +-- ISIC/                       # 2,357 images, 9 classes
+|
+|-- results/                        # Auto-generated outputs
+|-- config/                         # YAML configuration
+|-- docs/                           # Documentation
+|-- notebooks/                      # Jupyter notebooks
++-- setup.py                        # Package configuration
+```
 
-### Layer 3: Data Holders
-- **Adaptive Training**: Resource-aware model partitioning for heterogeneous hardware
-- **FHIR Preprocessing**: Healthcare data normalization and transformation
-- **Secure Communication**: End-to-end encrypted gradient transmission
+---
 
-## EHDS Compliance
+## FL Algorithms
 
-| EHDS Requirement | Framework Component | Implementation |
-|------------------|---------------------|----------------|
-| Article 53 (Purposes) | `purpose_limitation.py` | Purpose validation before training |
-| Article 71 (Opt-out) | `optout_registry.py` | Per-record opt-out checking |
-| GDPR Article 30 | `compliance_logging.py` | Complete audit trail |
-| SPE requirement | `orchestration/` | All processing within SPE boundaries |
-| Data minimization | `privacy/` | DP + gradient clipping |
+All 10 algorithms are implemented in `terminal/fl_trainer.py` with real PyTorch training:
+
+| # | Algorithm | Line | Key Parameter |
+|---|-----------|------|---------------|
+| 1 | FedAvg | L700 | -- |
+| 2 | FedProx | L720 | mu=0.1 |
+| 3 | SCAFFOLD | L730 | control variates |
+| 4 | FedNova | L750 | tau_eff normalization |
+| 5 | FedDyn | L836 | alpha regularization |
+| 6 | FedAdam | L765 | server_lr=0.1, beta1=0.9 |
+| 7 | FedYogi | L791 | beta2=0.99, tau=1e-3 |
+| 8 | FedAdagrad | L819 | server_lr=0.1 |
+| 9 | Per-FedAvg | L850 | local fine-tuning step |
+| 10 | Ditto | L860 | lambda=0.1 |
+
+---
 
 ## Configuration
 
@@ -164,15 +150,10 @@ framework:
   name: "FL-EHDS"
   version: "1.0.0"
 
-governance:
-  hdab_endpoint: "https://hdab.example.eu/api/v1"
-  permit_cache_ttl: 3600
-  optout_sync_interval: 300
-
 orchestration:
   aggregation:
-    algorithm: "fedavg"  # or "fedprox"
-    num_rounds: 100
+    algorithm: "fedavg"
+    num_rounds: 30
     min_clients: 3
   privacy:
     differential_privacy:
@@ -180,7 +161,6 @@ orchestration:
       epsilon: 1.0
       delta: 1e-5
     gradient_clipping:
-      enabled: true
       max_norm: 1.0
     secure_aggregation:
       enabled: true
@@ -189,41 +169,21 @@ data_holders:
   training:
     batch_size: 32
     local_epochs: 5
-    adaptive_batching: true
-  preprocessing:
-    fhir_version: "R4"
-    normalize: true
+    learning_rate: 0.001
 ```
+
+---
 
 ## Testing
 
 ```bash
-# Run all tests
 pytest tests/ -v
-
-# Run specific layer tests
-pytest tests/test_governance.py -v
-pytest tests/test_orchestration.py -v
-pytest tests/test_data_holders.py -v
-
-# Run with coverage
 pytest tests/ --cov=fl_ehds --cov-report=html
 ```
 
-## References
-
-- EHDS Regulation: [EU 2025/327](https://eur-lex.europa.eu/)
-- FedAvg: McMahan et al., "Communication-Efficient Learning of Deep Networks from Decentralized Data" (2017)
-- FedProx: Li et al., "Federated Optimization in Heterogeneous Networks" (2020)
-- Differential Privacy: Dwork & Roth, "The Algorithmic Foundations of Differential Privacy" (2014)
-
-## License
-
-Apache License 2.0
+---
 
 ## Author
 
-Fabio Liberti, PhD
-Department of Computer Science
-Universitas Mercatorum, Rome, Italy
-ORCID: [0000-0003-3019-5411](https://orcid.org/0000-0003-3019-5411)
+**Fabio Liberti, PhD** -- Universitas Mercatorum, Rome, Italy
+[ORCID: 0000-0003-3019-5411](https://orcid.org/0000-0003-3019-5411)
