@@ -41,6 +41,44 @@ except ImportError:
     except ImportError:
         HAS_DATASET_PAGE = False
 
+# Import real PyTorch training bridge
+try:
+    from dashboard.real_trainer_bridge import (
+        RealFLTrainer, RealImageFLTrainer,
+        discover_datasets, check_pytorch_available,
+        create_streamlit_progress_callback,
+    )
+    HAS_REAL_TRAINING = True
+except ImportError:
+    try:
+        from real_trainer_bridge import (
+            RealFLTrainer, RealImageFLTrainer,
+            discover_datasets, check_pytorch_available,
+            create_streamlit_progress_callback,
+        )
+        HAS_REAL_TRAINING = True
+    except ImportError:
+        HAS_REAL_TRAINING = False
+
+# Import governance modules (HDAB + Opt-out Registry)
+import sys as _sys
+_framework_root = str(Path(__file__).parent.parent)
+if _framework_root not in _sys.path:
+    _sys.path.insert(0, _framework_root)
+try:
+    import asyncio
+    from governance.hdab_integration import (
+        HDABClient, HDABConfig, PermitStore, get_shared_permit_store,
+        MultiHDABCoordinator,
+    )
+    from governance.optout_registry import OptOutRegistry, OptOutChecker
+    from core.models import (
+        DataPermit, PermitStatus, PermitPurpose, DataCategory, OptOutRecord,
+    )
+    HAS_GOVERNANCE = True
+except ImportError:
+    HAS_GOVERNANCE = False
+
 # Page config
 st.set_page_config(
     page_title="FL-EHDS Dashboard v4",
@@ -1345,6 +1383,64 @@ def create_config_panel() -> Dict:
             help="Seed per riproducibilità degli esperimenti"
         )
 
+    # === TRAINING MODE ===
+    training_mode = "simulation"
+    selected_dataset = None
+    img_size = 64
+
+    if HAS_REAL_TRAINING:
+        with st.sidebar.expander("🔬 MODALITA' TRAINING", expanded=False):
+            st.markdown("""
+            <div class="success-box">
+            <strong>Training Reale</strong><br>
+            Passa dal simulatore NumPy al training PyTorch reale
+            con reti neurali CNN su dataset clinici.
+            </div>
+            """, unsafe_allow_html=True)
+
+            training_mode = st.radio(
+                "Modalita'",
+                options=["simulation", "real_tabular", "real_imaging"],
+                format_func=lambda x: {
+                    "simulation": "Simulazione (NumPy)",
+                    "real_tabular": "Reale - Dati Tabulari (PyTorch)",
+                    "real_imaging": "Reale - Imaging Clinico (PyTorch CNN)",
+                }[x],
+                help="Simulazione usa NumPy; Reale usa PyTorch con reti neurali",
+                key="training_mode_radio"
+            )
+
+            if training_mode == "real_imaging":
+                datasets = discover_datasets()
+                if datasets:
+                    ds_options = {d["name"]: d for d in datasets}
+                    selected_ds_name = st.selectbox(
+                        "Dataset Clinico",
+                        options=list(ds_options.keys()),
+                        help="Seleziona il dataset di imaging clinico"
+                    )
+                    selected_dataset = ds_options[selected_ds_name]
+                    st.caption(
+                        f"Classi: {selected_dataset['num_classes']} | "
+                        f"Immagini: {selected_dataset['total_images']:,}"
+                    )
+                else:
+                    st.warning("Nessun dataset trovato in data/")
+
+                img_size = st.select_slider(
+                    "Dimensione Immagine",
+                    options=[32, 64, 128, 224],
+                    value=64,
+                    help="Immagini ridimensionate a NxN pixel"
+                )
+
+            if training_mode.startswith("real"):
+                available, msg = check_pytorch_available()
+                if available:
+                    st.success(f"PyTorch: {msg}")
+                else:
+                    st.error(f"PyTorch non disponibile: {msg}")
+
     return {
         "num_nodes": num_nodes,
         "total_samples": total_samples,
@@ -1367,7 +1463,10 @@ def create_config_panel() -> Dict:
         "epsilon": epsilon,
         "delta": delta,
         "clip_norm": clip_norm,
-        "random_seed": random_seed
+        "random_seed": random_seed,
+        "training_mode": training_mode,
+        "selected_dataset": selected_dataset,
+        "img_size": img_size,
     }
 
 
@@ -1379,6 +1478,13 @@ def render_training_tab(config: Dict):
     """Render training tab."""
     st.markdown("### 🚀 Federated Learning Training")
 
+    mode = config.get("training_mode", "simulation")
+    mode_labels = {
+        "simulation": "Simulazione NumPy",
+        "real_tabular": "PyTorch Reale (Tabulare)",
+        "real_imaging": "PyTorch Reale (Imaging CNN)",
+    }
+
     col1, col2, col3, col4, col5 = st.columns(5)
 
     with col1:
@@ -1386,12 +1492,21 @@ def render_training_tab(config: Dict):
     with col2:
         st.metric("Algoritmo", config['algorithm'])
     with col3:
-        st.metric("Modello", config['model'])
+        st.metric("Modalita'", mode_labels.get(mode, mode))
     with col4:
         st.metric("Rounds", config['num_rounds'])
     with col5:
         dp_str = f"ε={config['epsilon']}" if config['use_dp'] else "Off"
         st.metric("DP", dp_str)
+
+    if mode == "real_imaging" and config.get("selected_dataset"):
+        ds = config["selected_dataset"]
+        st.info(
+            f"Dataset: **{ds['name']}** | "
+            f"Classi: {ds['num_classes']} | "
+            f"Immagini: {ds['total_images']:,} | "
+            f"Img Size: {config.get('img_size', 64)}px"
+        )
 
     st.markdown("---")
 
@@ -1402,11 +1517,16 @@ def render_training_tab(config: Dict):
         show_model_help(config['model'])
 
     if st.button("▶️ Avvia Training", type="primary", use_container_width=True):
-        run_training_v4(config)
+        if mode == "simulation":
+            run_training_v4(config)
+        elif mode == "real_tabular":
+            run_training_real_tabular(config)
+        elif mode == "real_imaging":
+            run_training_real_imaging(config)
 
 
 def run_training_v4(config: Dict):
-    """Run training with visualization."""
+    """Run training with NumPy simulation."""
     simulator = FLSimulatorV4(config)
 
     progress = st.progress(0)
@@ -1436,7 +1556,7 @@ def run_training_v4(config: Dict):
             ax.fill_between(range(1, len(accs) + 1), accs, alpha=0.3)
             ax.set_xlabel("Round")
             ax.set_ylabel("Accuracy")
-            ax.set_title(f"{config['algorithm']} - Training Convergence")
+            ax.set_title(f"{config['algorithm']} - Training Convergence (Simulation)")
             ax.set_ylim(0.4, 0.85)
             ax.grid(True, alpha=0.3)
             acc_chart.pyplot(fig)
@@ -1458,6 +1578,194 @@ def run_training_v4(config: Dict):
             for i in range(config['num_nodes'])
         ])
         st.dataframe(df, use_container_width=True)
+
+
+def run_training_real_tabular(config: Dict):
+    """Run real PyTorch training on synthetic tabular data."""
+    if not HAS_REAL_TRAINING:
+        st.error("Modulo real_trainer_bridge non disponibile.")
+        return
+
+    bridge_config = {
+        "num_clients": config["num_nodes"],
+        "samples_per_client": config["total_samples"] // config["num_nodes"],
+        "algorithm": config["algorithm"],
+        "local_epochs": config["local_epochs"],
+        "batch_size": 32,
+        "learning_rate": config["learning_rate"],
+        "is_iid": config.get("label_skew_alpha", 0.5) > 5.0,
+        "alpha": config.get("label_skew_alpha", 0.5),
+        "use_dp": config["use_dp"],
+        "epsilon": config["epsilon"],
+        "clip_norm": config["clip_norm"],
+        "seed": config["random_seed"],
+        "fedprox_mu": config.get("fedprox_mu", 0.1),
+        "server_lr": config.get("server_lr", 0.1),
+        "beta1": config.get("beta1", 0.9),
+        "beta2": config.get("beta2", 0.99),
+        "tau": config.get("tau", 1e-3),
+    }
+
+    progress = st.progress(0)
+    status = st.empty()
+    col1, col2 = st.columns(2)
+    with col1:
+        chart_area = st.empty()
+    with col2:
+        metrics_area = st.empty()
+
+    history = []
+
+    def progress_callback(round_num, total, metrics):
+        history.append(metrics)
+        progress.progress(round_num / total)
+        status.markdown(
+            f"**Round {round_num}/{total}** | "
+            f"Acc: {metrics['accuracy']:.3f} | "
+            f"Loss: {metrics['loss']:.4f} | "
+            f"F1: {metrics['f1']:.3f} | "
+            f"AUC: {metrics['auc']:.3f}"
+        )
+        if round_num % 3 == 0 or round_num == total:
+            _update_real_training_chart(chart_area, history, config["algorithm"])
+
+    try:
+        trainer = RealFLTrainer(bridge_config)
+        results = trainer.train(config["num_rounds"], progress_callback)
+        _show_real_training_results(status, metrics_area, results)
+    except Exception as e:
+        st.error(f"Errore training: {e}")
+
+
+def run_training_real_imaging(config: Dict):
+    """Run real PyTorch CNN training on clinical imaging dataset."""
+    if not HAS_REAL_TRAINING:
+        st.error("Modulo real_trainer_bridge non disponibile.")
+        return
+
+    ds = config.get("selected_dataset")
+    if not ds:
+        st.error("Nessun dataset selezionato. Scegli un dataset nella sidebar.")
+        return
+
+    bridge_config = {
+        "data_dir": ds["path"],
+        "num_clients": config["num_nodes"],
+        "algorithm": config["algorithm"],
+        "local_epochs": config["local_epochs"],
+        "batch_size": 32,
+        "learning_rate": 0.001,
+        "is_iid": config.get("label_skew_alpha", 0.5) > 5.0,
+        "alpha": config.get("label_skew_alpha", 0.5),
+        "use_dp": config["use_dp"],
+        "epsilon": config["epsilon"],
+        "clip_norm": config["clip_norm"],
+        "seed": config["random_seed"],
+        "fedprox_mu": config.get("fedprox_mu", 0.1),
+        "img_size": config.get("img_size", 64),
+        "server_lr": config.get("server_lr", 0.1),
+        "beta1": config.get("beta1", 0.9),
+        "beta2": config.get("beta2", 0.99),
+        "tau": config.get("tau", 1e-3),
+    }
+
+    st.warning(
+        f"Training CNN su **{ds['name']}** ({ds['total_images']:,} immagini). "
+        f"Questo puo' richiedere diversi minuti su CPU."
+    )
+
+    progress = st.progress(0)
+    status = st.empty()
+    col1, col2 = st.columns(2)
+    with col1:
+        chart_area = st.empty()
+    with col2:
+        metrics_area = st.empty()
+
+    history = []
+
+    def progress_callback(round_num, total, metrics):
+        history.append(metrics)
+        progress.progress(round_num / total)
+        status.markdown(
+            f"**Round {round_num}/{total}** | "
+            f"Acc: {metrics['accuracy']:.3f} | "
+            f"Loss: {metrics['loss']:.4f} | "
+            f"F1: {metrics['f1']:.3f} | "
+            f"AUC: {metrics['auc']:.3f}"
+        )
+        _update_real_training_chart(chart_area, history, config["algorithm"])
+
+    try:
+        trainer = RealImageFLTrainer(bridge_config)
+        results = trainer.train(config["num_rounds"], progress_callback)
+        _show_real_training_results(status, metrics_area, results)
+    except Exception as e:
+        st.error(f"Errore training imaging: {e}")
+
+
+def _update_real_training_chart(chart_area, history, algorithm):
+    """Update live training chart with 6 metrics."""
+    fig, axes = plt.subplots(2, 3, figsize=(12, 6))
+
+    rounds = list(range(1, len(history) + 1))
+    metrics_map = [
+        ("accuracy", "Accuracy", axes[0, 0], "tab:blue"),
+        ("loss", "Loss", axes[0, 1], "tab:red"),
+        ("f1", "F1 Score", axes[0, 2], "tab:green"),
+        ("precision", "Precision", axes[1, 0], "tab:orange"),
+        ("recall", "Recall", axes[1, 1], "tab:purple"),
+        ("auc", "AUC", axes[1, 2], "tab:brown"),
+    ]
+
+    for key, title, ax, color in metrics_map:
+        vals = [h.get(key, 0) for h in history]
+        ax.plot(rounds, vals, color=color, linewidth=2)
+        ax.fill_between(rounds, vals, alpha=0.15, color=color)
+        ax.set_title(title, fontsize=10)
+        ax.set_xlabel("Round", fontsize=8)
+        ax.grid(True, alpha=0.3)
+
+    fig.suptitle(f"{algorithm} - Real PyTorch Training", fontsize=12, fontweight="bold")
+    fig.tight_layout()
+    chart_area.pyplot(fig)
+    plt.close(fig)
+
+
+def _show_real_training_results(status_area, metrics_area, results):
+    """Display final results after real training."""
+    status_area.success(
+        f"✅ Training Completato! "
+        f"Acc: {results['final_accuracy']:.3f} | "
+        f"F1: {results['final_f1']:.3f} | "
+        f"AUC: {results['final_auc']:.3f}"
+    )
+
+    with metrics_area:
+        st.markdown("#### Metriche Finali")
+        final = results["history"][-1] if results.get("history") else {}
+
+        col_a, col_b, col_c = st.columns(3)
+        col_a.metric("Accuracy", f"{final.get('accuracy', 0):.3f}")
+        col_b.metric("F1 Score", f"{final.get('f1', 0):.3f}")
+        col_c.metric("AUC", f"{final.get('auc', 0):.3f}")
+
+        col_d, col_e, col_f = st.columns(3)
+        col_d.metric("Loss", f"{final.get('loss', 0):.4f}")
+        col_e.metric("Precision", f"{final.get('precision', 0):.3f}")
+        col_f.metric("Recall", f"{final.get('recall', 0):.3f}")
+
+        if final.get("node_metrics"):
+            st.markdown("#### Metriche per Nodo")
+            node_data = []
+            for node_id, nm in sorted(final["node_metrics"].items()):
+                node_data.append({
+                    "Nodo": f"Hospital {node_id}",
+                    "Accuracy": f"{nm.get('accuracy', 0):.3f}",
+                    "Loss": f"{nm.get('loss', 0):.4f}",
+                    "Campioni": nm.get("samples", 0),
+                })
+            st.dataframe(pd.DataFrame(node_data), use_container_width=True)
 
 
 def render_algorithms_tab():
@@ -2292,124 +2600,333 @@ permitted, excluded = consent_mgr.filter_patients_by_consent(
         }
         st.dataframe(pd.DataFrame(permit_steps), use_container_width=True)
 
-        st.markdown("##### Esempio: Richiesta Permit FL")
-        st.code("""
-from fl_ehds.core import (
-    FLEHDSPermitManager,
-    HDABServiceSimulator,
-    DatasetDescriptor,
-    DataCategory,
-    PurposeOfUse
-)
+        if HAS_GOVERNANCE:
+            _render_hdab_interactive()
+        else:
+            st.warning("Moduli governance non disponibili. Mostro solo documentazione.")
+            _render_hdab_static()
 
-# Setup HDAB client
-hdab = HDABServiceSimulator("HDAB-IT", "Italy", auto_approve=True)
-permit_mgr = FLEHDSPermitManager(
-    hdab_client=hdab,
-    organization_id="univ-roma",
-    organization_name="Università di Roma",
-    country="Italy"
-)
+        st.markdown("---")
 
-# Definisci dataset richiesti
-datasets = [
-    DatasetDescriptor(
-        dataset_id="opbg-ehr-2024",
-        data_holder_id="opbg",
-        data_holder_name="Ospedale Bambino Gesù",
-        data_holder_country="Italy",
-        data_categories=[DataCategory.EHR],
-        population_description="Pazienti pediatrici diabetici"
-    )
-]
-
-# Submit application
-app_id = permit_mgr.request_fl_permit(
-    research_question="Predictive model for T1DM complications",
-    justification="Early detection improves outcomes...",
-    methodology="Federated Learning with DP (ε=1.0)",
-    datasets=datasets,
-    fl_algorithm="FedAvg",
-    fl_rounds=100,
-    privacy_budget=1.0
-)
-        """, language="python")
-
-        col1, col2 = st.columns(2)
-
-        with col1:
-            st.markdown("##### Condizioni Permit FL")
-            conditions = {
-                "Condizione": [
-                    "Privacy Budget",
-                    "Max Rounds",
-                    "Min Clients",
-                    "Aggregation Threshold",
-                    "Output Review"
-                ],
-                "Descrizione": [
-                    "Budget ε totale disponibile",
-                    "Numero massimo round FL",
-                    "Minimo client per round",
-                    "k-anonymity sull'aggregato",
-                    "Review output prima export"
-                ],
-                "Esempio": [
-                    "ε ≤ 1.0",
-                    "≤ 100 rounds",
-                    "≥ 3 client",
-                    "k ≥ 5",
-                    "Required"
-                ]
-            }
-            st.dataframe(pd.DataFrame(conditions), use_container_width=True)
-
-        with col2:
-            st.markdown("##### Cross-Border FL")
-            st.markdown("""
-            Per FL che coinvolge più paesi EU:
-
-            1. **Lead HDAB**: Paese del richiedente
-            2. **Participating HDABs**: Paesi con data holder
-            3. **Coordinated Permit**: Un permit master + permit nazionali
-
-            ```python
-            coordinator = CrossBorderHDABCoordinator(
-                lead_country="Italy"
-            )
-            coordinator.add_participating_hdab("Germany", hdab_de)
-            coordinator.add_participating_hdab("France", hdab_fr)
-
-            permits = coordinator.request_cross_border_permit(
-                application, ["Italy", "Germany", "France"]
-            )
-            ```
-            """)
-
-        st.markdown("##### Opt-Out Registry (Art. 33)")
+        st.markdown("##### Opt-Out Registry (Art. 33/71)")
         st.markdown("""
         <div class="warning-box">
         <strong>Importante:</strong> I pazienti possono esercitare il diritto di opt-out
-        per l'uso secondario dei loro dati. Il sistema FL deve verificare l'opt-out
+        per l'uso secondario dei loro dati (Art. 71). Il sistema FL deve verificare l'opt-out
         PRIMA di includere i dati nel training.
         </div>
         """, unsafe_allow_html=True)
 
-        st.code("""
-# Verifica opt-out prima del training
-opted_out = hdab.check_opt_out(patient_pseudonyms)
+        if HAS_GOVERNANCE:
+            _render_optout_interactive()
+        else:
+            st.info("Moduli governance non disponibili per demo interattiva.")
 
-# Rimuovi pazienti opt-out dal training set
-training_patients = [p for p in all_patients if p not in opted_out]
 
-# Log per compliance
-permit_mgr.log_fl_round(
-    permit_id=permit_id,
-    round_number=1,
-    client_ids=training_patients,
-    epsilon_cost=0.01
+def _render_hdab_interactive():
+    """Interactive HDAB permit management using real governance modules."""
+    import uuid as _uuid
+    from datetime import datetime as _dt, timedelta as _td
+
+    st.markdown("##### Gestione Permit Interattiva (Live)")
+
+    # Initialize session state for HDAB
+    if "hdab_client" not in st.session_state:
+        config = HDABConfig(
+            endpoint="https://hdab-it.ehds.eu/api/v1",
+            simulation_mode=True,
+            auth_method="oauth2",
+            client_id="fl-ehds-demo",
+            client_secret="demo-secret",
+        )
+        st.session_state.hdab_client = HDABClient(config=config)
+        st.session_state.permit_store = get_shared_permit_store()
+        st.session_state.hdab_connected = False
+
+    client = st.session_state.hdab_client
+    store = st.session_state.permit_store
+
+    # Connection
+    col_conn1, col_conn2 = st.columns([1, 3])
+    with col_conn1:
+        if st.button("🔗 Connetti HDAB-IT", key="hdab_connect"):
+            connected = asyncio.run(client.connect())
+            st.session_state.hdab_connected = connected
+    with col_conn2:
+        if st.session_state.hdab_connected:
+            st.success("Connesso a HDAB-IT (simulation mode) | OAuth2 authenticated")
+        else:
+            st.info("HDAB non ancora connesso. Clicca per connettere.")
+
+    st.markdown("---")
+
+    # Permit request form
+    with st.expander("📝 Richiedi Nuovo Data Permit", expanded=False):
+        with st.form("permit_request_form"):
+            req_org = st.text_input("Organizzazione", value="Universita degli Studi Roma")
+            req_question = st.text_input(
+                "Research Question",
+                value="Predictive model for diabetic retinopathy progression"
+            )
+            req_purpose = st.selectbox(
+                "Purpose",
+                options=["RESEARCH", "PUBLIC_HEALTH", "POLICY", "INNOVATION"],
+            )
+            req_algo = st.selectbox(
+                "Algoritmo FL",
+                options=["FedAvg", "FedProx", "SCAFFOLD", "FedAdam"],
+            )
+            col_p1, col_p2 = st.columns(2)
+            with col_p1:
+                req_rounds = st.number_input("FL Rounds", 10, 200, 50)
+                req_epsilon = st.number_input("Privacy Budget (epsilon)", 0.1, 10.0, 1.0)
+            with col_p2:
+                req_clients = st.number_input("Min Clients", 2, 10, 3)
+                req_duration = st.number_input("Durata (giorni)", 30, 365, 180)
+
+            submitted = st.form_submit_button("Invia Richiesta Permit")
+            if submitted:
+                permit_id = str(_uuid.uuid4())[:12]
+                purpose_map = {
+                    "RESEARCH": PermitPurpose.SCIENTIFIC_RESEARCH,
+                    "PUBLIC_HEALTH": PermitPurpose.PUBLIC_HEALTH_SURVEILLANCE,
+                    "POLICY": PermitPurpose.HEALTH_POLICY,
+                    "INNOVATION": PermitPurpose.AI_SYSTEM_DEVELOPMENT,
+                }
+                permit = DataPermit(
+                    permit_id=permit_id,
+                    hdab_id="HDAB-IT",
+                    requester_id=req_org.lower().replace(" ", "-"),
+                    purpose=purpose_map.get(req_purpose, PermitPurpose.SCIENTIFIC_RESEARCH),
+                    status=PermitStatus.ACTIVE,
+                    issued_at=_dt.utcnow(),
+                    valid_from=_dt.utcnow(),
+                    valid_until=_dt.utcnow() + _td(days=req_duration),
+                    conditions={
+                        "max_rounds": req_rounds,
+                        "privacy_budget": req_epsilon,
+                        "min_clients": req_clients,
+                        "algorithm": req_algo,
+                        "research_question": req_question,
+                    },
+                    data_categories=[DataCategory.EHR],
+                    metadata={"organization": req_org},
+                )
+                store.register(permit)
+                st.success(f"Permit **{permit_id}** creato e attivo!")
+
+    # Show existing permits
+    all_permits = store.list_all()
+    if all_permits:
+        st.markdown(f"##### Permit Attivi ({len(all_permits)})")
+        permit_data = []
+        for p in all_permits:
+            permit_data.append({
+                "ID": p.permit_id[:12],
+                "Richiedente": p.requester_id,
+                "Stato": p.status.value if hasattr(p.status, "value") else str(p.status),
+                "Purpose": p.purpose.value if hasattr(p.purpose, "value") else str(p.purpose),
+                "Scadenza": str(p.valid_until)[:10] if p.valid_until else "N/A",
+                "Max Rounds": p.conditions.get("max_rounds", "N/A"),
+                "Privacy ε": p.conditions.get("privacy_budget", "N/A"),
+            })
+        st.dataframe(pd.DataFrame(permit_data), use_container_width=True)
+
+        # Permit actions
+        col_act1, col_act2 = st.columns(2)
+        with col_act1:
+            sel_permit = st.selectbox(
+                "Seleziona Permit",
+                options=[p.permit_id[:12] for p in all_permits],
+                key="permit_action_select",
+            )
+        with col_act2:
+            action = st.selectbox(
+                "Azione",
+                options=["Verifica", "Sospendi", "Revoca"],
+                key="permit_action_type",
+            )
+            if st.button("Esegui", key="permit_action_btn"):
+                full_id = next(
+                    (p.permit_id for p in all_permits if p.permit_id[:12] == sel_permit),
+                    None,
+                )
+                if full_id:
+                    if action == "Verifica":
+                        p = store.get(full_id)
+                        if p:
+                            is_valid = p.status == PermitStatus.ACTIVE
+                            if is_valid:
+                                st.success(f"Permit {sel_permit} VALIDO e ATTIVO")
+                            else:
+                                st.warning(f"Permit {sel_permit} stato: {p.status}")
+                    elif action == "Sospendi":
+                        ok = store.suspend(full_id, "Sospeso da dashboard")
+                        if ok:
+                            st.warning(f"Permit {sel_permit} SOSPESO")
+                    elif action == "Revoca":
+                        ok = store.revoke(full_id, "Revocato da dashboard")
+                        if ok:
+                            st.error(f"Permit {sel_permit} REVOCATO")
+
+        # Audit log
+        audit = store.audit_log
+        if audit:
+            with st.expander(f"📋 Audit Log ({len(audit)} eventi)"):
+                audit_df = pd.DataFrame(audit[-20:])
+                st.dataframe(audit_df, use_container_width=True)
+    else:
+        st.info("Nessun permit presente. Crea un nuovo permit con il form sopra.")
+
+    # Cross-border
+    st.markdown("##### Cross-Border FL Coordination")
+    st.markdown("""
+    Per FL che coinvolge piu' paesi EU, il `MultiHDABCoordinator` gestisce
+    i permit coordinati con gli HDAB nazionali di ogni stato membro coinvolto.
+    """)
+
+    col_cb1, col_cb2, col_cb3 = st.columns(3)
+    with col_cb1:
+        st.markdown("**HDAB-IT** (Lead)")
+        st.markdown("Italia - Roma")
+    with col_cb2:
+        st.markdown("**HDAB-DE**")
+        st.markdown("Germania - Berlin")
+    with col_cb3:
+        st.markdown("**HDAB-FR**")
+        st.markdown("Francia - Paris")
+
+
+def _render_hdab_static():
+    """Static HDAB documentation (fallback when governance modules unavailable)."""
+    st.code("""
+# Setup HDAB client (simulation mode)
+from governance.hdab_integration import HDABClient, HDABConfig
+
+config = HDABConfig(endpoint="https://hdab-it.ehds.eu/api/v1", simulation_mode=True)
+client = HDABClient(config=config, member_state="Italy")
+await client.connect()
+
+# Request permit
+permit = await client.request_new_permit(
+    requester_id="univ-roma",
+    purpose=PermitPurpose.RESEARCH,
+    data_categories=[DataCategory.EHR],
+    conditions={"max_rounds": 100, "privacy_budget": 1.0}
 )
-        """, language="python")
+    """, language="python")
+
+
+def _render_optout_interactive():
+    """Interactive opt-out registry using real governance modules."""
+    import uuid as _uuid
+    from datetime import datetime as _dt
+
+    # Initialize session state
+    if "optout_registry" not in st.session_state:
+        st.session_state.optout_registry = OptOutRegistry(
+            cache_ttl=600,
+            max_cache_size=1000,
+        )
+        # Pre-populate with sample opt-outs
+        sample_patients = [
+            ("IT-PAT-001", "Italy", "all"),
+            ("IT-PAT-042", "Italy", "category"),
+            ("DE-PAT-017", "Germany", "all"),
+            ("FR-PAT-099", "France", "purpose"),
+        ]
+        for pid, state, scope in sample_patients:
+            record = OptOutRecord(
+                record_id=f"OPT-{pid}",
+                patient_id=pid,
+                member_state=state,
+                scope=scope,
+                is_active=True,
+                opt_out_date=_dt.utcnow(),
+                metadata={},
+            )
+            st.session_state.optout_registry.register_optout(record)
+
+    registry = st.session_state.optout_registry
+
+    col_opt1, col_opt2 = st.columns(2)
+
+    with col_opt1:
+        st.markdown("##### Registra Opt-Out")
+        with st.form("optout_form"):
+            patient_id = st.text_input("Patient ID (pseudonimo)", value="IT-PAT-")
+            member_state = st.selectbox(
+                "Stato Membro",
+                options=["Italy", "Germany", "France", "Spain", "Netherlands"],
+            )
+            scope = st.selectbox(
+                "Scope Opt-Out",
+                options=["all", "category", "purpose"],
+                help="all=nessun uso secondario; category=specifiche categorie; purpose=specifici scopi",
+            )
+            if st.form_submit_button("Registra Opt-Out"):
+                record = OptOutRecord(
+                    record_id=f"OPT-{patient_id}",
+                    patient_id=patient_id,
+                    member_state=member_state,
+                    scope=scope,
+                    is_active=True,
+                    opt_out_date=_dt.utcnow(),
+                    metadata={},
+                )
+                registry.register_optout(record)
+                st.success(f"Opt-out registrato per {patient_id}")
+
+    with col_opt2:
+        st.markdown("##### Verifica Opt-Out")
+        check_id = st.text_input("Patient ID da verificare", value="IT-PAT-001", key="optout_check")
+        if st.button("Verifica", key="optout_check_btn"):
+            is_out = registry.is_opted_out(check_id)
+            if is_out:
+                st.error(f"OPTED OUT: {check_id} ha esercitato il diritto di opt-out")
+            else:
+                st.success(f"OK: {check_id} NON ha opt-out attivo - dati utilizzabili")
+
+    # Registry stats
+    stats = registry.get_stats()
+    st.markdown("##### Statistiche Registry")
+    col_s1, col_s2, col_s3, col_s4 = st.columns(4)
+    col_s1.metric("Opt-Out Totali", stats.total_opted_out)
+    col_s2.metric("Cache Size", stats.cache_size)
+    col_s3.metric("Cache Hit Rate", f"{stats.cache_hit_rate:.0%}")
+    col_s4.metric("Lookup Totali", stats.total_lookups)
+
+    if stats.by_member_state:
+        st.markdown("##### Opt-Out per Stato Membro")
+        state_df = pd.DataFrame(
+            [{"Stato": k, "Opt-Out": v} for k, v in stats.by_member_state.items()]
+        )
+        st.dataframe(state_df, use_container_width=True)
+
+    # FL data filtering demo
+    st.markdown("##### Filtraggio Dati per FL Training")
+    st.markdown("""
+    Il `OptOutChecker` filtra automaticamente i record paziente prima di ogni round FL,
+    garantendo che nessun dato di pazienti con opt-out venga incluso nel training.
+    """)
+    demo_patients = ["IT-PAT-001", "IT-PAT-002", "IT-PAT-042", "IT-PAT-100", "DE-PAT-017", "DE-PAT-050"]
+    if st.button("Simula Filtraggio Pre-Round", key="optout_filter_btn"):
+        permitted = []
+        excluded = []
+        for pid in demo_patients:
+            if registry.is_opted_out(pid):
+                excluded.append(pid)
+            else:
+                permitted.append(pid)
+        col_f1, col_f2 = st.columns(2)
+        with col_f1:
+            st.success(f"Pazienti ammessi: {len(permitted)}")
+            for p in permitted:
+                st.markdown(f"  - {p}")
+        with col_f2:
+            st.error(f"Pazienti esclusi (opt-out): {len(excluded)}")
+            for p in excluded:
+                st.markdown(f"  - {p}")
 
 
 def render_infrastructure_tab():

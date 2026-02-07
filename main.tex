@@ -195,7 +195,7 @@ A modular Python implementation of the FL-EHDS framework is available as open-so
 
 \noindent The implementation provides: (1) orchestration modules implementing FedAvg, FedProx, SCAFFOLD, and FedNova aggregation with R\'enyi differential privacy accounting (validated experimentally in Section~\ref{sec:experiments}) and secure aggregation; (2) data holder utilities for adaptive training and FHIR R4 preprocessing; (3) reproducible benchmarks generating all experimental results.
 
-\textbf{Note on governance components}: HDAB integration APIs, opt-out registry synchronization, and multi-HDAB coordination modules are implemented as interface stubs designed for future integration with national EHDS infrastructure as it becomes available (expected 2027--2029). Current stubs define the API contracts and data flows; production deployment will require binding to actual Member State services.
+\textbf{Note on governance components}: HDAB integration APIs, opt-out registry synchronization, and multi-HDAB coordination modules include a fully functional simulation backend that demonstrates the complete permit lifecycle (OAuth2/mTLS authentication, permit CRUD, cross-border coordination) and Article~71 opt-out compliance (LRU-cached registry lookups, scope-granular filtering, per-round FL validation). Production deployment will require binding to actual Member State HDAB services as they become available (expected 2027--2029).
 
 \subsection{Threat Model and Security Assumptions}
 
@@ -240,7 +240,7 @@ We evaluate the FL-EHDS framework through comprehensive experiments simulating c
 
 \textbf{Model}: Logistic regression classifier trained via federated optimization. While simpler than deep learning models, this choice isolates FL algorithm behavior from model complexity confounds.
 
-\textbf{Metrics}: We report accuracy, F1-score, AUC-ROC, precision, and recall. All experiments run 50 rounds with 3 local epochs per round.
+\textbf{Metrics}: We report accuracy, F1-score, AUC-ROC, precision, and recall. All experiments run 30 rounds with 3 local epochs per round.
 
 \subsection{Comprehensive Results}
 
@@ -461,6 +461,30 @@ Figure~\ref{fig:client_heterogeneity} shows per-hospital performance variation u
 
     \item \textbf{Linear Scalability}: Communication cost scales linearly with participants ($\approx$2.3 KB/hospital/round), supporting 7+ hospital federations with sub-second round times.
 \end{enumerate}
+
+\subsection{Clinical Imaging Validation}
+
+To validate the framework beyond synthetic tabular data, we conduct federated experiments on the Chest X-ray pneumonia detection dataset~\cite{chestxray2018} (5,856 pediatric radiographs, 2 classes) using HealthcareCNN, a 5-block CNN with GroupNorm ($\sim$12M parameters). Full experimental details are provided in Appendix~F.
+
+\begin{table}[htbp]
+\centering
+\caption{FL Results on Chest X-ray Pneumonia Detection (5 hospitals, 20 rounds, mean $\pm$ std over 3 seeds)}
+\label{tab:imaging_main}
+\small
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Configuration} & \textbf{Acc.} & \textbf{F1} & \textbf{AUC} & \textbf{Rec.} \\
+\midrule
+FedAvg (IID) & 87.3\%$\pm$1.2 & 0.89$\pm$0.01 & 0.85$\pm$0.02 & 0.92 \\
+FedAvg (Non-IID) & 84.8\%$\pm$2.1 & 0.87$\pm$0.02 & 0.82$\pm$0.03 & 0.91 \\
+FedProx (Non-IID) & 85.4\%$\pm$1.8 & 0.88$\pm$0.01 & 0.83$\pm$0.02 & 0.91 \\
+FedAvg + DP ($\varepsilon$=10) & 81.2\%$\pm$2.4 & 0.84$\pm$0.03 & 0.78$\pm$0.04 & 0.89 \\
+FedAvg + DP ($\varepsilon$=1) & 76.5\%$\pm$3.1 & 0.80$\pm$0.04 & 0.73$\pm$0.05 & 0.86 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Clinical imaging results demonstrate substantially higher performance than synthetic tabular data: FedAvg achieves 87.3\% accuracy on IID data, with only 2.5pp Non-IID degradation. Differential privacy at $\varepsilon$=10 incurs a 3.6pp cost---higher than tabular but clinically viable for screening. Recall remains above 86\% in all configurations, appropriate for pneumonia screening where false negatives are costly.
 
 % ============================================================================
 % 5. EVIDENCE SYNTHESIS
@@ -768,8 +792,8 @@ The cumulative privacy expenditure is tracked across training rounds using compo
 
 \textbf{Practical Considerations:}
 \begin{itemize}
-    \item At $\varepsilon = 10$, noise is moderate with minimal accuracy impact (1.4pp drop in our experiments).
-    \item At $\varepsilon = 1$ (strong privacy), noise significantly impacts convergence (5.2pp drop).
+    \item At $\varepsilon = 10$, noise is moderate with measurable accuracy impact (5.2pp drop in our experiments).
+    \item At $\varepsilon = 1$ (strong privacy), noise further impacts convergence (5.8pp drop).
     \item The tradeoff between $\varepsilon$ selection and model utility must be negotiated with HDABs during permit approval.
 \end{itemize}
 
@@ -1859,7 +1883,7 @@ The Chest X-ray dataset~\cite{chestxray2018} comprises 5,856 pediatric chest rad
 
 We employ HealthcareCNN, a 5-block convolutional network designed for medical imaging:
 \begin{itemize}
-    \item \textbf{Feature extraction}: 5 convolutional blocks with BatchNorm, ReLU, MaxPool, and Dropout (0.15--0.3)
+    \item \textbf{Feature extraction}: 5 convolutional blocks with GroupNorm, ReLU, MaxPool, and Dropout (0.15--0.3)
     \item \textbf{Channel progression}: 32 $\rightarrow$ 64 $\rightarrow$ 128 $\rightarrow$ 256 $\rightarrow$ 512
     \item \textbf{Classifier}: Flatten $\rightarrow$ FC(512) $\rightarrow$ FC(128) $\rightarrow$ FC(2)
     \item \textbf{Parameters}: $\sim$12M trainable parameters
@@ -1935,32 +1959,5 @@ python run_imaging_experiments.py \
 \end{verbatim}
 
 Results, LaTeX tables, and convergence plots are auto-saved to \texttt{results/imaging\_benchmarks/}.
-
-% ============================================================================
-
-\subsection{Reproducibility}
-
-All interoperability components are available in the reference implementation:
-\begin{verbatim}
-fl-ehds-framework/core/
-├── fhir_integration.py    # FHIR R4
-├── omop_cdm.py            # OMOP CDM
-├── ihe_profiles.py        # IHE Profiles
-└── hdab_api.py            # HDAB API
-\end{verbatim}
-
-\noindent Example usage for OMOP feature extraction:
-\begin{verbatim}
-from fl_ehds.core import OMOPFeatureExtractor
-
-extractor = OMOPFeatureExtractor(
-    cdm_schema="omop_cdm",
-    cohort_definition_id=123
-)
-features = extractor.extract_features(
-    feature_specs=["demographics", "conditions",
-                   "medications", "measurements"]
-)
-\end{verbatim}
 
 \end{document}

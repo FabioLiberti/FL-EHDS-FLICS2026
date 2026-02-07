@@ -1,0 +1,3 @@
+method,accuracy,f1,auc,precision,recall,time_s
+Centralized,0.9538,0.9385,0.9849,0.9514,0.9274,164.5
+FedAvg,0.9119,0.8897,0.9597,0.8780,0.9043,149.1

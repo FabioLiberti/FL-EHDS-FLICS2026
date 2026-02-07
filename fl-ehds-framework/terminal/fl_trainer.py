@@ -1775,6 +1775,250 @@ class CentralizedTrainer:
 
 
 # =============================================================================
+# CENTRALIZED IMAGE TRAINER (for imaging datasets)
+# =============================================================================
+
+
+class CentralizedImageTrainer:
+    """
+    Centralized baseline trainer for medical image classification.
+    Pools all hospital image data into a single central model.
+    Serves as the upper bound for FL performance comparison.
+    """
+
+    def __init__(
+        self,
+        data_dir: str,
+        num_clients: int = 5,
+        batch_size: int = 32,
+        learning_rate: float = 0.001,
+        is_iid: bool = False,
+        alpha: float = 0.5,
+        seed: int = 42,
+        device: str = None,
+        img_size: int = 128,
+        progress_callback: Optional[Callable] = None,
+    ):
+        self.batch_size = batch_size
+        self.learning_rate = learning_rate
+        self.seed = seed
+        self.progress_callback = progress_callback
+        self.img_size = img_size
+
+        torch.manual_seed(seed)
+        np.random.seed(seed)
+
+        if device is None:
+            self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        else:
+            self.device = torch.device(device)
+
+        # Load data using same function as ImageFederatedTrainer
+        client_train, client_test, class_names, num_classes = load_image_dataset(
+            data_dir=data_dir,
+            num_clients=num_clients,
+            is_iid=is_iid,
+            alpha=alpha,
+            img_size=img_size,
+            seed=seed,
+            test_split=0.2,
+        )
+
+        self.num_classes = num_classes
+        self.class_names = class_names
+        self.num_clients = num_clients
+        self.client_train_data = client_train
+        self.client_test_data = client_test
+
+        # Pool ALL client data into single centralized dataset
+        all_X_train = [client_train[c][0] for c in sorted(client_train.keys())]
+        all_y_train = [client_train[c][1] for c in sorted(client_train.keys())]
+        all_X_test = [client_test[c][0] for c in sorted(client_test.keys())]
+        all_y_test = [client_test[c][1] for c in sorted(client_test.keys())]
+
+        self.X_train = np.concatenate(all_X_train, axis=0)
+        self.y_train = np.concatenate(all_y_train, axis=0)
+        self.X_test = np.concatenate(all_X_test, axis=0)
+        self.y_test = np.concatenate(all_y_test, axis=0)
+
+        print(f"  Centralized: {len(self.y_train)} train + {len(self.y_test)} test samples pooled")
+
+        # Same model as federated
+        self.model = HealthcareCNN(num_classes=num_classes).to(self.device)
+        self.optimizer = torch.optim.Adam(
+            self.model.parameters(), lr=learning_rate, weight_decay=1e-5
+        )
+        self.criterion = nn.CrossEntropyLoss()
+        self.history: List[CentralizedResult] = []
+
+    def train_epoch(self, epoch: int) -> CentralizedResult:
+        """Train for one epoch on pooled data."""
+        start_time = time.time()
+
+        if self.progress_callback:
+            self.progress_callback("epoch_start", epoch=epoch + 1)
+
+        self.model.train()
+
+        # Shuffle training data
+        perm = np.random.permutation(len(self.y_train))
+        X_shuffled = self.X_train[perm]
+        y_shuffled = self.y_train[perm]
+
+        total_loss = 0.0
+        total_correct = 0
+        total_samples = 0
+
+        for i in range(0, len(y_shuffled), self.batch_size):
+            X_batch = torch.FloatTensor(X_shuffled[i:i+self.batch_size]).to(self.device)
+            y_batch = torch.LongTensor(y_shuffled[i:i+self.batch_size]).to(self.device)
+
+            # Same augmentation as federated training
+            X_batch = ImageFederatedTrainer._augment_batch(X_batch)
+
+            self.optimizer.zero_grad()
+            outputs = self.model(X_batch)
+            loss = self.criterion(outputs, y_batch)
+            loss.backward()
+            self.optimizer.step()
+
+            total_loss += loss.item() * len(y_batch)
+            preds = outputs.argmax(dim=1)
+            total_correct += (preds == y_batch).sum().item()
+            total_samples += len(y_batch)
+
+        train_loss = total_loss / max(total_samples, 1)
+        train_acc = total_correct / max(total_samples, 1)
+
+        # Evaluate on held-out test set
+        val_metrics = self._evaluate()
+        elapsed = time.time() - start_time
+
+        result = CentralizedResult(
+            epoch=epoch,
+            train_loss=train_loss,
+            train_acc=train_acc,
+            val_loss=val_metrics["loss"],
+            val_acc=val_metrics["accuracy"],
+            val_f1=val_metrics["f1"],
+            val_precision=val_metrics["precision"],
+            val_recall=val_metrics["recall"],
+            val_auc=val_metrics["auc"],
+            time_seconds=elapsed,
+        )
+        self.history.append(result)
+
+        if self.progress_callback:
+            self.progress_callback(
+                "epoch_end", epoch=epoch + 1,
+                train_loss=train_loss, train_acc=train_acc,
+                val_acc=val_metrics["accuracy"], val_f1=val_metrics["f1"],
+                val_auc=val_metrics["auc"], time=elapsed,
+            )
+
+        return result
+
+    def _evaluate(self) -> Dict[str, float]:
+        """Evaluate model on held-out test data."""
+        self.model.eval()
+        total_loss = 0.0
+        all_preds, all_labels, all_probs = [], [], []
+
+        with torch.no_grad():
+            for i in range(0, len(self.y_test), self.batch_size):
+                X_batch = torch.FloatTensor(self.X_test[i:i+self.batch_size]).to(self.device)
+                y_batch = torch.LongTensor(self.y_test[i:i+self.batch_size]).to(self.device)
+
+                outputs = self.model(X_batch)
+                loss = self.criterion(outputs, y_batch)
+                total_loss += loss.item() * len(y_batch)
+
+                preds = outputs.argmax(dim=1)
+                probs = torch.softmax(outputs, dim=1)
+                all_preds.extend(preds.cpu().numpy())
+                all_labels.extend(y_batch.cpu().numpy())
+                all_probs.extend(probs.cpu().numpy())
+
+        all_preds = np.array(all_preds)
+        all_labels = np.array(all_labels)
+        all_probs = np.array(all_probs)
+
+        accuracy = (all_preds == all_labels).mean()
+        unique_classes = np.unique(all_labels)
+        precisions, recalls, f1s = [], [], []
+        for cls in unique_classes:
+            tp = ((all_preds == cls) & (all_labels == cls)).sum()
+            fp = ((all_preds == cls) & (all_labels != cls)).sum()
+            fn = ((all_preds != cls) & (all_labels == cls)).sum()
+            p = tp / (tp + fp) if (tp + fp) > 0 else 0.0
+            r = tp / (tp + fn) if (tp + fn) > 0 else 0.0
+            f = 2 * p * r / (p + r) if (p + r) > 0 else 0.0
+            precisions.append(p)
+            recalls.append(r)
+            f1s.append(f)
+
+        auc = 0.5
+        try:
+            from sklearn.metrics import roc_auc_score
+            if len(unique_classes) == 2:
+                auc = roc_auc_score(all_labels, all_probs[:, 1])
+            elif len(unique_classes) > 2 and all_probs.shape[1] >= len(unique_classes):
+                auc = roc_auc_score(all_labels, all_probs, multi_class='ovr', average='macro')
+        except Exception:
+            auc = float(accuracy)
+
+        return {
+            "loss": total_loss / max(len(all_labels), 1),
+            "accuracy": float(accuracy),
+            "precision": float(np.mean(precisions)),
+            "recall": float(np.mean(recalls)),
+            "f1": float(np.mean(f1s)),
+            "auc": float(auc),
+        }
+
+    def get_predictions(self) -> tuple:
+        """Run inference on test set. Returns (preds, probs, labels)."""
+        self.model.eval()
+        all_preds, all_probs, all_labels = [], [], []
+        with torch.no_grad():
+            for i in range(0, len(self.y_test), self.batch_size):
+                X_batch = torch.FloatTensor(self.X_test[i:i+self.batch_size]).to(self.device)
+                y_batch = self.y_test[i:i+self.batch_size]
+                outputs = self.model(X_batch)
+                all_preds.extend(outputs.argmax(dim=1).cpu().numpy())
+                all_probs.extend(torch.softmax(outputs, dim=1).cpu().numpy())
+                all_labels.extend(y_batch)
+        return np.array(all_preds), np.array(all_probs), np.array(all_labels)
+
+    def get_model(self) -> nn.Module:
+        """Return the trained model."""
+        return self.model
+
+    def get_data_stats(self) -> Dict:
+        """Get per-client and overall data statistics."""
+        per_client = {}
+        for cid in sorted(self.client_train_data.keys()):
+            _, y_tr = self.client_train_data[cid]
+            _, y_te = self.client_test_data[cid]
+            unique, counts = np.unique(y_tr, return_counts=True)
+            per_client[cid] = {
+                "train_samples": len(y_tr),
+                "test_samples": len(y_te),
+                "class_distribution": dict(zip(unique.tolist(), counts.tolist())),
+            }
+
+        unique_all, counts_all = np.unique(self.y_train, return_counts=True)
+        return {
+            "total_train": len(self.y_train),
+            "total_test": len(self.y_test),
+            "num_classes": self.num_classes,
+            "class_names": self.class_names,
+            "overall_distribution": dict(zip(unique_all.tolist(), counts_all.tolist())),
+            "per_client": per_client,
+        }
+
+
+# =============================================================================
 # FL vs CENTRALIZED COMPARISON
 # =============================================================================
 

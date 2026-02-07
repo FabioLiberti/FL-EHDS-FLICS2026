@@ -1,0 +1,19 @@
+\begin{table}[htbp]
+\centering
+\caption{Centralized vs.\ Federated Learning on chest_xray}
+\label{tab:centralized_vs_federated}
+\small
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Method} & \textbf{Acc.} & \textbf{F1} & \textbf{AUC} & \textbf{Prec.} & \textbf{Rec.} & \textbf{Time} \\
+\midrule
+Centralized & $95.4\%$ & $0.939$ & $0.985$ & $0.951$ & $0.927$ & $154$s \\
+\midrule
+FedAvg & $91.2\%$ & $0.890$ & $0.960$ & $0.878$ & $0.904$ & $145$s \\
+\midrule
+\textit{Gap (Cent. - FedAvg)} & \textit{+4.2pp} & \textit{+0.049} & \textit{+0.025} & & & \\
+\bottomrule
+\end{tabular}
+
+\footnotesize{Non-IID (Dirichlet $\alpha$=0.5), 5 hospitals, img\_size=64. Centralized: 10 epochs. Federated: 5 rounds $\times$ 2 epochs. Mean over 1 seeds.}
+\end{table}
