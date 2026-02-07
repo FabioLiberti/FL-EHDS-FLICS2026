@@ -35,6 +35,7 @@ COMPARISON_ALGORITHMS = [
     "FedProx",
     "SCAFFOLD",
     "FedNova",
+    "FedDyn",
     "FedAdam",
     "FedYogi",
     "FedAdagrad",

@@ -1,3 +1,11 @@
+
+
+a questo punto esegui nuova completa analisi del framework (web-streamlit e terminal) e del relativo paper e dammi anlisi profonda e consigli di miglioramento. 
+Considera che il paper è focalizzato su Federated Learning e European Health Data Space (EHDS) e deve essere inviato per candidatura a conference FLICS2026 (https://www.flics-conference.org/).
+
+
+----------------------------------------------------------------------------------------------
+
 Conference alla quale inviare il paper:
 https://flics-conference.org/
 

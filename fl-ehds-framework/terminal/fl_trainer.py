@@ -28,8 +28,9 @@ def generate_healthcare_data(
     num_features: int = 10,
     is_iid: bool = False,
     alpha: float = 0.5,
-    seed: int = 42
-) -> Dict[int, Tuple[np.ndarray, np.ndarray]]:
+    seed: int = 42,
+    test_split: float = 0.2
+) -> Tuple[Dict[int, Tuple[np.ndarray, np.ndarray]], Dict[int, Tuple[np.ndarray, np.ndarray]]]:
     """
     Generate synthetic healthcare data for FL experiments.
 
@@ -46,6 +47,9 @@ def generate_healthcare_data(
     - Previous conditions count
 
     Target: Binary classification (disease risk: 0 = low, 1 = high)
+
+    Returns:
+        (client_train_data, client_test_data) - each is Dict[int, (X, y)]
     """
     np.random.seed(seed)
 
@@ -118,7 +122,23 @@ def generate_healthcare_data(
             np.random.shuffle(client_indices)
             client_data[i] = (X[client_indices], y[client_indices])
 
-    return client_data
+    # Split each client's data into train/test
+    client_train_data = {}
+    client_test_data = {}
+
+    for client_id, (X_c, y_c) in client_data.items():
+        n = len(y_c)
+        n_test = max(1, int(n * test_split))
+        n_train = n - n_test
+
+        perm = np.random.permutation(n)
+        train_idx = perm[:n_train]
+        test_idx = perm[n_train:]
+
+        client_train_data[client_id] = (X_c[train_idx], y_c[train_idx])
+        client_test_data[client_id] = (X_c[test_idx], y_c[test_idx])
+
+    return client_train_data, client_test_data
 
 
 # =============================================================================
@@ -456,8 +476,8 @@ class FederatedTrainer:
         torch.manual_seed(seed)
         np.random.seed(seed)
 
-        # Generate data
-        self.client_data = generate_healthcare_data(
+        # Generate data (with train/test split)
+        self.client_data, self.client_test_data = generate_healthcare_data(
             num_clients=num_clients,
             samples_per_client=samples_per_client,
             is_iid=is_iid,
@@ -498,6 +518,18 @@ class FederatedTrainer:
                 for i in range(num_clients)
             }
 
+        # FedDyn: server state h and per-client gradient corrections
+        if algorithm == "FedDyn":
+            self.server_h = {
+                name: torch.zeros_like(param)
+                for name, param in self.global_model.named_parameters()
+            }
+            self.client_grad_corrections = {
+                i: {name: torch.zeros_like(param)
+                    for name, param in self.global_model.named_parameters()}
+                for i in range(num_clients)
+            }
+
         # FedNova: track local steps
         self.client_steps = {i: 0 for i in range(num_clients)}
 
@@ -527,8 +559,8 @@ class FederatedTrainer:
 
         dataloader = self._get_client_dataloader(client_id)
 
-        # Store initial params for FedProx and Ditto
-        if self.algorithm in ["FedProx", "Ditto"]:
+        # Store initial params for FedProx, Ditto, and FedDyn
+        if self.algorithm in ["FedProx", "Ditto", "FedDyn"]:
             global_params = {
                 name: param.clone().detach()
                 for name, param in self.global_model.named_parameters()
@@ -564,14 +596,25 @@ class FederatedTrainer:
                         prox_term += torch.sum((param - global_params[name]) ** 2)
                     loss += (self.mu / 2) * prox_term
 
-                # SCAFFOLD: apply control variate correction
+                # FedDyn: proximal + dynamic linear correction (Acar et al. 2021)
+                if self.algorithm == "FedDyn":
+                    prox_term = 0.0
+                    linear_term = 0.0
+                    for name, param in local_model.named_parameters():
+                        prox_term += torch.sum((param - global_params[name]) ** 2)
+                        linear_term += torch.sum(
+                            self.client_grad_corrections[client_id][name] * param
+                        )
+                    loss += (self.mu / 2) * prox_term - linear_term
+
+                loss.backward()
+
+                # SCAFFOLD: apply control variate correction after backward
                 if self.algorithm == "SCAFFOLD":
                     for name, param in local_model.named_parameters():
                         if param.grad is not None:
                             correction = self.client_controls[client_id][name] - self.server_control[name]
                             param.grad.data += correction
-
-                loss.backward()
 
                 # DP: clip gradients
                 if self.dp_enabled:
@@ -624,6 +667,14 @@ class FederatedTrainer:
                 # c_i_new = c_i - c + (init - local) / (K * lr)
                 self.client_controls[client_id][name] = (
                     c_i - c + (init_param - local_param) / (K * self.learning_rate)
+                )
+
+        # FedDyn: update client gradient correction
+        if self.algorithm == "FedDyn":
+            for name, param in local_model.named_parameters():
+                global_param = dict(self.global_model.named_parameters())[name]
+                self.client_grad_corrections[client_id][name] -= (
+                    self.mu * (param.data - global_param.data)
                 )
 
         # Ditto: train personalized model with regularization towards global
@@ -782,6 +833,20 @@ class FederatedTrainer:
                     torch.sqrt(self.server_velocity[name]) + self.tau
                 )
 
+        elif self.algorithm == "FedDyn":
+            # FedDyn (Acar et al. 2021): weighted avg + server correction
+            for name, param in self.global_model.named_parameters():
+                weighted_update = torch.zeros_like(param)
+                for cr in client_results:
+                    weight = cr.num_samples / total_samples
+                    weighted_update += cr.model_update[name] * weight
+
+                # Update server state: h = h - alpha * weighted_update
+                self.server_h[name] -= self.mu * weighted_update
+
+                # Apply: global += weighted_update - (1/alpha) * h
+                param.data += weighted_update - (1.0 / self.mu) * self.server_h[name]
+
         else:
             # FedAvg, FedProx, SCAFFOLD, Per-FedAvg, Ditto: weighted average by samples
             for name, param in self.global_model.named_parameters():
@@ -792,14 +857,17 @@ class FederatedTrainer:
 
                 param.data += weighted_update
 
-        # SCAFFOLD: update server control variate
+        # SCAFFOLD: update server control variate using proper delta
         if self.algorithm == "SCAFFOLD":
             n = len(client_results)
             for name in self.server_control:
                 delta_c = torch.zeros_like(self.server_control[name])
                 for cr in client_results:
-                    # c_new - c_old for each client
-                    delta_c += self.client_controls[cr.client_id][name]
+                    # delta_c_i = c_i_new - c_i_old
+                    delta_c += (
+                        self.client_controls[cr.client_id][name]
+                        - self._old_client_controls[cr.client_id][name]
+                    )
                 self.server_control[name] += delta_c / n
 
         # DP: add noise to aggregated model
@@ -810,7 +878,7 @@ class FederatedTrainer:
                 param.data += noise
 
     def _evaluate(self) -> Dict[str, float]:
-        """Evaluate global model on all client data with comprehensive metrics."""
+        """Evaluate global model on held-out TEST data (not training data)."""
         self.global_model.eval()
 
         total_loss = 0.0
@@ -823,7 +891,7 @@ class FederatedTrainer:
 
         with torch.no_grad():
             for client_id in range(self.num_clients):
-                X, y = self.client_data[client_id]
+                X, y = self.client_test_data[client_id]
                 X_tensor = torch.FloatTensor(X).to(self.device)
                 y_tensor = torch.LongTensor(y).to(self.device)
 
@@ -897,6 +965,13 @@ class FederatedTrainer:
             )
 
         client_results = []
+
+        # SCAFFOLD: save old client controls before training (for delta computation)
+        if self.algorithm == "SCAFFOLD":
+            self._old_client_controls = {
+                cid: {name: val.clone() for name, val in self.client_controls[cid].items()}
+                for cid in range(self.num_clients)
+            }
 
         # Train each client
         for client_id in range(self.num_clients):
@@ -1078,6 +1153,18 @@ class ImageFederatedTrainer:
                 for i in range(self.num_clients)
             }
 
+        # FedDyn: server state h and per-client gradient corrections
+        if algorithm == "FedDyn":
+            self.server_h = {
+                name: torch.zeros_like(param)
+                for name, param in self.global_model.named_parameters()
+            }
+            self.client_grad_corrections = {
+                i: {name: torch.zeros_like(param)
+                    for name, param in self.global_model.named_parameters()}
+                for i in range(self.num_clients)
+            }
+
         # FedNova: track local steps
         self.client_steps = {i: 0 for i in range(self.num_clients)}
 
@@ -1126,8 +1213,8 @@ class ImageFederatedTrainer:
 
         dataloader = self._get_client_dataloader(client_id)
 
-        # Store initial params for FedProx and Ditto
-        if self.algorithm in ["FedProx", "Ditto"]:
+        # Store initial params for FedProx, Ditto, and FedDyn
+        if self.algorithm in ["FedProx", "Ditto", "FedDyn"]:
             global_params = {
                 name: param.clone().detach()
                 for name, param in self.global_model.named_parameters()
@@ -1165,6 +1252,17 @@ class ImageFederatedTrainer:
                     for name, param in local_model.named_parameters():
                         prox_term += torch.sum((param - global_params[name]) ** 2)
                     loss += (self.mu / 2) * prox_term
+
+                # FedDyn: proximal + dynamic linear correction (Acar et al. 2021)
+                if self.algorithm == "FedDyn":
+                    prox_term = 0.0
+                    linear_term = 0.0
+                    for name, param in local_model.named_parameters():
+                        prox_term += torch.sum((param - global_params[name]) ** 2)
+                        linear_term += torch.sum(
+                            self.client_grad_corrections[client_id][name] * param
+                        )
+                    loss += (self.mu / 2) * prox_term - linear_term
 
                 # SCAFFOLD: apply control variate correction after backward
                 loss.backward()
@@ -1208,6 +1306,14 @@ class ImageFederatedTrainer:
                 c = self.server_control[name]
                 self.client_controls[client_id][name] = (
                     c_i - c + (init_param - local_param) / (K * self.learning_rate)
+                )
+
+        # FedDyn: update client gradient correction
+        if self.algorithm == "FedDyn":
+            for name, param in local_model.named_parameters():
+                global_param = dict(self.global_model.named_parameters())[name]
+                self.client_grad_corrections[client_id][name] -= (
+                    self.mu * (param.data - global_param.data)
                 )
 
         # Ditto: train personalized model with regularization towards global
@@ -1341,6 +1447,20 @@ class ImageFederatedTrainer:
                     torch.sqrt(self.server_velocity[name]) + self.tau
                 )
 
+        elif self.algorithm == "FedDyn":
+            # FedDyn (Acar et al. 2021): weighted avg + server correction
+            for name, param in self.global_model.named_parameters():
+                weighted_update = torch.zeros_like(param)
+                for cr in client_results:
+                    weight = cr.num_samples / total_samples
+                    weighted_update += cr.model_update[name] * weight
+
+                # Update server state: h = h - alpha * weighted_update
+                self.server_h[name] -= self.mu * weighted_update
+
+                # Apply: global += weighted_update - (1/alpha) * h
+                param.data += weighted_update - (1.0 / self.mu) * self.server_h[name]
+
         else:
             # FedAvg, FedProx, SCAFFOLD, Per-FedAvg, Ditto: weighted average
             for name, param in self.global_model.named_parameters():
@@ -1350,13 +1470,17 @@ class ImageFederatedTrainer:
                     weighted_update += cr.model_update[name] * weight
                 param.data += weighted_update
 
-        # SCAFFOLD: update server control variate
+        # SCAFFOLD: update server control variate using proper delta
         if self.algorithm == "SCAFFOLD":
             n = len(client_results)
             for name in self.server_control:
                 delta_c = torch.zeros_like(self.server_control[name])
                 for cr in client_results:
-                    delta_c += self.client_controls[cr.client_id][name]
+                    # delta_c_i = c_i_new - c_i_old
+                    delta_c += (
+                        self.client_controls[cr.client_id][name]
+                        - self._old_client_controls[cr.client_id][name]
+                    )
                 self.server_control[name] += delta_c / n
 
         # DP noise
@@ -1457,6 +1581,13 @@ class ImageFederatedTrainer:
             self.progress_callback("round_start", round_num=round_num + 1)
 
         client_results = []
+
+        # SCAFFOLD: save old client controls before training (for delta computation)
+        if self.algorithm == "SCAFFOLD":
+            self._old_client_controls = {
+                cid: {name: val.clone() for name, val in self.client_controls[cid].items()}
+                for cid in range(self.num_clients)
+            }
 
         # Progress bar for clients
         client_pbar = tqdm(
@@ -1591,7 +1722,7 @@ class CentralizedTrainer:
         np.random.seed(seed)
 
         # Generate data using same function as FL
-        client_data = generate_healthcare_data(
+        client_train_data, client_test_data = generate_healthcare_data(
             num_clients=num_clients,
             samples_per_client=samples_per_client,
             is_iid=is_iid,
@@ -1603,7 +1734,7 @@ class CentralizedTrainer:
         all_X = []
         all_y = []
         for client_id in range(num_clients):
-            X, y = client_data[client_id]
+            X, y = client_train_data[client_id]
             all_X.append(X)
             all_y.append(y)
 

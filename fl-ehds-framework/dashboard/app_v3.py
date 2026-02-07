@@ -169,7 +169,7 @@ ALGORITHMS = {
         "paper": "Acar et al., 2021",
         "description": "Regolarizzazione dinamica basata sul modello globale. Allinea obiettivi locali e globali.",
         "pros": ["Forti garanzie di convergenza", "Gestisce partecipazione parziale"],
-        "cons": ["Memoria extra per termini di gradiente", "Sensibilità agli iperparametri"],
+        "cons": ["Memoria extra per termini di gradiente", "Sensibilita' agli iperparametri"],
         "params": ["learning_rate", "alpha"],
         "best_for": "Partecipazione parziale dei client, garanzie teoriche",
         "complexity": "⭐⭐⭐ Alta"

@@ -913,7 +913,7 @@ def generate_latex_table(results: Dict[str, ExperimentResult]) -> str:
 \end{tabular}
 
 \vspace{1mm}
-\footnotesize{5 hospitals, 50 rounds, 3 local epochs, batch size 32. Gradient clipping $C$=1.0. Results are mean $\pm$ std over 5 runs.}
+\footnotesize{5 hospitals, 30 rounds, 3 local epochs, batch size 32. Gradient clipping $C$=1.0. Results are mean $\pm$ std over 3 runs.}
 \end{table}
 """
     return table
