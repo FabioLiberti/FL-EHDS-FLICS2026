@@ -730,6 +730,131 @@ class FLNodeDataManager:
 
 
 # =============================================================================
+# FHIR DATA BRIDGE FOR FL TRAINING
+# =============================================================================
+
+DEFAULT_HOSPITAL_PROFILES = ['general', 'cardiac', 'pediatric', 'geriatric', 'oncology']
+
+DEFAULT_FEATURE_SPEC = [
+    'age', 'gender', 'bmi', 'systolic_bp', 'diastolic_bp',
+    'heart_rate', 'glucose', 'cholesterol', 'num_conditions', 'num_medications'
+]
+
+
+def load_fhir_data(
+    num_clients: int = 5,
+    samples_per_client: int = 500,
+    hospital_profiles: Optional[List[str]] = None,
+    bundle_paths: Optional[Dict[int, str]] = None,
+    feature_spec: Optional[List[str]] = None,
+    label_name: str = 'mortality_30day',
+    opt_out_registry_path: Optional[str] = None,
+    purpose: str = 'ai_training',
+    test_split: float = 0.2,
+    seed: int = 42,
+) -> Tuple[Dict[int, Tuple[np.ndarray, np.ndarray]],
+           Dict[int, Tuple[np.ndarray, np.ndarray]],
+           Dict[str, Any]]:
+    """
+    Load FHIR data for federated learning, returning the same format
+    as generate_healthcare_data().
+
+    Hospital profiles create natural non-IID distributions:
+    - general: age~55, mortality~8%
+    - cardiac: age~65, mortality~12%
+    - pediatric: age~8, mortality~2%
+    - geriatric: age~78, mortality~15%
+    - oncology: age~60, mortality~20%
+
+    Args:
+        num_clients: Number of FL clients (hospitals)
+        samples_per_client: Patients per hospital
+        hospital_profiles: Profile per client (cycles if fewer than num_clients)
+        bundle_paths: Optional dict mapping client_id -> FHIR Bundle JSON path
+        feature_spec: Features to extract from FHIR records
+        label_name: Target label (mortality_30day, readmission, icu_admission)
+        opt_out_registry_path: Path to EHDS Article 71 opt-out registry
+        purpose: EHDS purpose for data access
+        test_split: Fraction of data for testing (per client)
+        seed: Random seed
+
+    Returns:
+        (client_train_data, client_test_data, metadata)
+        where each data dict maps client_id -> (X: np.ndarray, y: np.ndarray)
+    """
+    profiles = hospital_profiles or DEFAULT_HOSPITAL_PROFILES
+    features = feature_spec or DEFAULT_FEATURE_SPEC
+    bundle_paths = bundle_paths or {}
+
+    # Assign profiles to clients (cycle if fewer profiles than clients)
+    assigned_profiles = [profiles[i % len(profiles)] for i in range(num_clients)]
+
+    # Create node manager
+    manager = FLNodeDataManager(
+        opt_out_registry_path=opt_out_registry_path,
+        purpose=purpose
+    )
+
+    # Configure nodes
+    for node_id in range(num_clients):
+        if node_id in bundle_paths:
+            manager.add_node_bundle(node_id, bundle_paths[node_id])
+        else:
+            manager.add_node_synthetic(
+                node_id=node_id,
+                num_patients=samples_per_client,
+                hospital_profile=assigned_profiles[node_id],
+                random_seed=seed + node_id * 100
+            )
+
+    # Load all node datasets
+    datasets = manager.load_all_nodes(
+        feature_spec=features,
+        label_name=label_name,
+        normalize=True
+    )
+
+    # Split each node's data into train/test
+    rng = np.random.RandomState(seed)
+    client_train_data = {}
+    client_test_data = {}
+    total_opted_out = 0
+
+    for node_id, dataset in datasets.items():
+        n = dataset.n_samples
+        n_test = max(1, int(n * test_split))
+        perm = rng.permutation(n)
+        train_idx = perm[:-n_test]
+        test_idx = perm[-n_test:]
+
+        client_train_data[node_id] = (
+            dataset.X[train_idx].astype(np.float32),
+            dataset.y[train_idx].astype(np.int64)
+        )
+        client_test_data[node_id] = (
+            dataset.X[test_idx].astype(np.float32),
+            dataset.y[test_idx].astype(np.int64)
+        )
+
+        # Track opt-out stats from metadata
+        opted_out = dataset.metadata.get('original_count', n) - dataset.metadata.get('filtered_count', n)
+        total_opted_out += opted_out
+
+    metadata = {
+        'feature_names': features,
+        'num_features': len(features),
+        'label_name': label_name,
+        'profiles_assigned': assigned_profiles,
+        'samples_per_client': samples_per_client,
+        'total_opted_out': total_opted_out,
+        'source': 'fhir_loader',
+        'test_split': test_split,
+    }
+
+    return client_train_data, client_test_data, metadata
+
+
+# =============================================================================
 # USAGE EXAMPLE
 # =============================================================================
 

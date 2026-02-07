@@ -453,6 +453,10 @@ class FederatedTrainer:
         beta1: float = 0.9,
         beta2: float = 0.99,
         tau: float = 1e-3,
+        # External data (e.g. from FHIR pipeline)
+        external_data: Optional[Dict[int, tuple]] = None,
+        external_test_data: Optional[Dict[int, tuple]] = None,
+        input_dim: Optional[int] = None,
     ):
         self.num_clients = num_clients
         self.algorithm = algorithm
@@ -476,17 +480,25 @@ class FederatedTrainer:
         torch.manual_seed(seed)
         np.random.seed(seed)
 
-        # Generate data (with train/test split)
-        self.client_data, self.client_test_data = generate_healthcare_data(
-            num_clients=num_clients,
-            samples_per_client=samples_per_client,
-            is_iid=is_iid,
-            alpha=alpha,
-            seed=seed
-        )
+        # Load data: external (FHIR) or generate synthetic
+        if external_data is not None and external_test_data is not None:
+            self.client_data = external_data
+            self.client_test_data = external_test_data
+            self.num_clients = len(external_data)
+            first_X = next(iter(external_data.values()))[0]
+            _input_dim = input_dim or first_X.shape[1]
+        else:
+            self.client_data, self.client_test_data = generate_healthcare_data(
+                num_clients=num_clients,
+                samples_per_client=samples_per_client,
+                is_iid=is_iid,
+                alpha=alpha,
+                seed=seed
+            )
+            _input_dim = input_dim or 10
 
         # Initialize global model
-        self.global_model = HealthcareMLP().to(self.device)
+        self.global_model = HealthcareMLP(input_dim=_input_dim).to(self.device)
 
         # SCAFFOLD control variates
         if algorithm == "SCAFFOLD":
@@ -614,6 +626,13 @@ class FederatedTrainer:
                     for name, param in local_model.named_parameters():
                         if param.grad is not None:
                             correction = self.client_controls[client_id][name] - self.server_control[name]
+                            # Clamp correction to prevent divergence with adaptive optimizers
+                            grad_norm = param.grad.data.norm()
+                            corr_norm = correction.norm()
+                            if corr_norm > 0 and grad_norm > 0:
+                                max_corr = grad_norm * 2.0
+                                if corr_norm > max_corr:
+                                    correction = correction * (max_corr / corr_norm)
                             param.grad.data += correction
 
                 # DP: clip gradients
@@ -665,9 +684,10 @@ class FederatedTrainer:
                 c = self.server_control[name]
 
                 # c_i_new = c_i - c + (init - local) / (K * lr)
-                self.client_controls[client_id][name] = (
-                    c_i - c + (init_param - local_param) / (K * self.learning_rate)
-                )
+                new_ci = c_i - c + (init_param - local_param) / (K * self.learning_rate)
+                # Clamp control variates to prevent unbounded growth
+                max_cv = 10.0
+                self.client_controls[client_id][name] = torch.clamp(new_ci, -max_cv, max_cv)
 
         # FedDyn: update client gradient correction
         if self.algorithm == "FedDyn":
@@ -1095,6 +1115,7 @@ class ImageFederatedTrainer:
         self.beta1 = beta1
         self.beta2 = beta2
         self.tau = tau
+        self.num_rounds = None  # Set externally for cosine LR decay
 
         # Auto-detect device
         if device is None:
@@ -1202,12 +1223,22 @@ class ImageFederatedTrainer:
 
         return images
 
+    def _get_round_lr(self, round_num: int) -> float:
+        """Cosine annealing learning rate decay based on current round."""
+        if self.num_rounds is None or self.num_rounds <= 1:
+            return self.learning_rate
+        import math
+        # Cosine decay from lr to lr * 0.1
+        progress = round_num / max(self.num_rounds - 1, 1)
+        return self.learning_rate * (0.1 + 0.9 * (1 + math.cos(math.pi * progress)) / 2)
+
     def _train_client(self, client_id: int, round_num: int) -> ClientResult:
         """Train one client locally. Supports all 9 FL algorithms."""
         local_model = deepcopy(self.global_model)
         local_model.train()
 
-        optimizer = torch.optim.Adam(local_model.parameters(), lr=self.learning_rate,
+        current_lr = self._get_round_lr(round_num)
+        optimizer = torch.optim.Adam(local_model.parameters(), lr=current_lr,
                                      weight_decay=1e-5)
         criterion = nn.CrossEntropyLoss()
 
@@ -1271,6 +1302,13 @@ class ImageFederatedTrainer:
                     for name, param in local_model.named_parameters():
                         if param.grad is not None:
                             correction = self.client_controls[client_id][name] - self.server_control[name]
+                            # Clamp correction to prevent divergence with adaptive optimizers
+                            grad_norm = param.grad.data.norm()
+                            corr_norm = correction.norm()
+                            if corr_norm > 0 and grad_norm > 0:
+                                max_corr = grad_norm * 2.0
+                                if corr_norm > max_corr:
+                                    correction = correction * (max_corr / corr_norm)
                             param.grad.data += correction
 
                 # Update progress bar with current loss
@@ -1304,9 +1342,10 @@ class ImageFederatedTrainer:
                 init_param = init_params[name]
                 c_i = self.client_controls[client_id][name]
                 c = self.server_control[name]
-                self.client_controls[client_id][name] = (
-                    c_i - c + (init_param - local_param) / (K * self.learning_rate)
-                )
+                new_ci = c_i - c + (init_param - local_param) / (K * current_lr)
+                # Clamp control variates to prevent unbounded growth
+                max_cv = 10.0
+                self.client_controls[client_id][name] = torch.clamp(new_ci, -max_cv, max_cv)
 
         # FedDyn: update client gradient correction
         if self.algorithm == "FedDyn":
@@ -1980,7 +2019,15 @@ class CentralizedImageTrainer:
             self.model.parameters(), lr=learning_rate, weight_decay=1e-5
         )
         self.criterion = nn.CrossEntropyLoss()
+        self.scheduler = None  # Set via set_total_epochs()
         self.history: List[CentralizedResult] = []
+
+    def set_total_epochs(self, total_epochs: int):
+        """Enable cosine LR scheduler over total_epochs."""
+        from torch.optim.lr_scheduler import CosineAnnealingLR
+        self.scheduler = CosineAnnealingLR(
+            self.optimizer, T_max=total_epochs, eta_min=self.learning_rate * 0.1
+        )
 
     def train_epoch(self, epoch: int) -> CentralizedResult:
         """Train for one epoch on pooled data."""
@@ -2020,6 +2067,10 @@ class CentralizedImageTrainer:
 
         train_loss = total_loss / max(total_samples, 1)
         train_acc = total_correct / max(total_samples, 1)
+
+        # Step LR scheduler after each epoch
+        if self.scheduler is not None:
+            self.scheduler.step()
 
         # Evaluate on held-out test set
         val_metrics = self._evaluate()

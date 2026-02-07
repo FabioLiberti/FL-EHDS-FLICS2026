@@ -332,6 +332,7 @@ class DatasetScreen:
                 MenuItem("5", "Simula Distribuzione FL", self._simulate_fl_distribution, enabled=HAS_NUMPY),
                 MenuItem("6", "Seleziona Dataset per Training", self._select_dataset),
                 MenuItem("7", "Esporta Info Dataset", self._export_info),
+                MenuItem("8", "Tabella Parametri Ottimali", self._show_parameter_table),
                 MenuItem("0", "Torna al Menu Principale", lambda: "back"),
             ])
 
@@ -890,6 +891,52 @@ class DatasetScreen:
         print(f"  Dataset totali: {len(export_data['datasets'])}")
         print(f"  Tabulari: {sum(1 for d in export_data['datasets'].values() if d['type'] == 'tabular')}")
         print(f"  Imaging: {sum(1 for d in export_data['datasets'].values() if d['type'] == 'imaging')}")
+
+    def _show_parameter_table(self):
+        """Show optimal parameters table for all datasets."""
+        clear_screen()
+        print_section("PARAMETRI OTTIMALI PER DATASET")
+
+        try:
+            from config.config_loader import get_dataset_parameters
+            all_params = get_dataset_parameters()
+        except (ImportError, Exception):
+            all_params = {}
+
+        if not all_params:
+            print_warning("Tabella parametri non trovata in config.yaml")
+            return
+
+        # Table 1: Training parameters
+        print(f"\n  {Style.TITLE}{'Dataset':<22} {'Tipo':<8} {'LR':<9} {'Batch':<7} "
+              f"{'Rounds':<8} {'Epochs':<8} {'Alpha':<7} {'ImgSize':<8} {'ClassW':<7}{Colors.RESET}")
+        print("  " + "-" * 94)
+
+        for ds_name, params in all_params.items():
+            ds_type = params.get("type", "?")[:6]
+            lr = str(params.get("learning_rate", "-"))
+            batch = str(params.get("batch_size", "-"))
+            rounds = str(params.get("num_rounds", "-"))
+            epochs = str(params.get("local_epochs", "-"))
+            alpha = str(params.get("alpha", "-"))
+            img_size = str(params.get("img_size", "-")) if params.get("img_size") else "-"
+            cw = "Si" if params.get("class_weight") else "No"
+            print(f"  {ds_name:<22} {ds_type:<8} {lr:<9} {batch:<7} "
+                  f"{rounds:<8} {epochs:<8} {alpha:<7} {img_size:<8} {cw:<7}")
+
+        print("  " + "-" * 94)
+
+        # Table 2: Recommended algorithms and notes
+        print(f"\n  {Style.TITLE}{'Dataset':<22} {'Algoritmi Raccomandati':<40} {'Note'}{Colors.RESET}")
+        print("  " + "-" * 94)
+        for ds_name, params in all_params.items():
+            algos = ", ".join(params.get("recommended_algorithms", []))
+            notes = params.get("notes", "")
+            print(f"  {ds_name:<22} {algos:<40} {notes}")
+
+        print("  " + "-" * 94)
+        print(f"\n  {Style.MUTED}Fonte: config/config.yaml -> dataset_parameters{Colors.RESET}")
+        print(f"  {Style.MUTED}Questi parametri vengono suggeriti automaticamente alla selezione del dataset.{Colors.RESET}")
 
     def _select_dataset_dialog(self, filter_type: Optional[str] = None) -> Optional[str]:
         """Show dataset selection dialog."""

@@ -140,13 +140,31 @@ HEALTHCARE_USE_CASES = [
 
 
 def get_use_cases() -> List[UseCase]:
-    """Return all healthcare use cases."""
+    """Return all healthcare use cases. Loads from YAML if available."""
+    try:
+        from config.config_loader import get_clinical_use_cases
+        yaml_cases = get_clinical_use_cases()
+        if yaml_cases:
+            cases = []
+            for uc_id, uc_data in yaml_cases.items():
+                cases.append(UseCase(
+                    id=uc_id,
+                    name=uc_data.get("name", ""),
+                    description=uc_data.get("description", ""),
+                    data_characteristics=uc_data.get("data_characteristics", ""),
+                    recommended_algorithms=uc_data.get("recommended_algorithms", []),
+                    recommended_params=uc_data.get("parameters", {}),
+                    rationale=uc_data.get("rationale", ""),
+                ))
+            return cases
+    except (ImportError, Exception):
+        pass
     return HEALTHCARE_USE_CASES
 
 
 def get_use_case_by_id(use_case_id: str) -> UseCase:
     """Get a specific use case by ID."""
-    for uc in HEALTHCARE_USE_CASES:
+    for uc in get_use_cases():
         if uc.id == use_case_id:
             return uc
     return None

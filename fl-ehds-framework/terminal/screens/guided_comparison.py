@@ -184,8 +184,9 @@ class GuidedComparisonScreen:
             num_clients = self.config["num_clients"]
             local_epochs = self.config["local_epochs"]
 
-            # Check if imaging dataset is configured
+            # Check if imaging or FHIR dataset is configured
             is_imaging = self.config.get("dataset_type") == "imaging"
+            is_fhir = self.config.get("dataset_type") == "fhir"
 
             # === VERIFICATION: Show that training is real ===
             print_subsection("VERIFICA TRAINING REALE")
@@ -195,6 +196,14 @@ class GuidedComparisonScreen:
                 print(f"  Architettura: 5-block CNN (32->64->128->256->512)")
                 print(f"  Valutazione: Test set (20% held-out)")
                 print(f"  Optimizer: Adam (wd=1e-5) con lr={self.config['learning_rate']}")
+            elif is_fhir:
+                model = HealthcareMLP(input_dim=10)
+                total_params = sum(p.numel() for p in model.parameters())
+                print(f"  Modello: HealthcareMLP (PyTorch nn.Module)")
+                print(f"  Architettura: 10 -> 64 -> 32 -> 2 (MLP)")
+                print(f"  Parametri totali: {total_params:,}")
+                print(f"  Valutazione: Test set (20% held-out)")
+                print(f"  Optimizer: SGD con lr={self.config['learning_rate']}")
             else:
                 model = HealthcareMLP()
                 total_params = sum(p.numel() for p in model.parameters())
@@ -207,11 +216,17 @@ class GuidedComparisonScreen:
             if is_imaging:
                 print(f"\n{Style.TITLE}Dataset clinico:{Colors.RESET}")
                 print(f"  Nome: {self.config.get('dataset_name', 'N/A')}")
+            elif is_fhir:
+                print(f"\n{Style.TITLE}Dataset FHIR R4:{Colors.RESET}")
+                print(f"  Sorgente: Ospedali sintetici (profili FHIR)")
+                print(f"  Features: age, gender, bmi, bp, heart_rate, glucose, ...")
+                print(f"  Target: mortality_30day (binario)")
+                print(f"  Non-IID naturale da profili ospedalieri")
             else:
                 print(f"\n{Style.TITLE}Dataset sintetico sanitario:{Colors.RESET}")
                 print(f"  Features: age, bmi, bp_systolic, glucose, cholesterol, ...")
                 print(f"  Target: Rischio malattia (binario)")
-            print(f"  Distribuzione: {'IID' if self.config['is_iid'] else 'Non-IID (Dirichlet)'}")
+            print(f"  Distribuzione: {'IID' if self.config['is_iid'] else 'Non-IID (Dirichlet)' if not is_fhir else 'Non-IID (profili ospedalieri)'}")
             print()
 
             total_runs = len(algorithms) * num_seeds
@@ -267,6 +282,40 @@ class GuidedComparisonScreen:
                             beta2=self.config.get("beta2", 0.99),
                             tau=self.config.get("tau", 1e-3),
                             progress_callback=progress_cb,
+                        )
+                    elif is_fhir:
+                        from data.fhir_loader import load_fhir_data
+                        fhir_cfg = {}
+                        try:
+                            from config.config_loader import get_fhir_config
+                            fhir_cfg = get_fhir_config()
+                        except (ImportError, Exception):
+                            pass
+                        fhir_train, fhir_test, _ = load_fhir_data(
+                            num_clients=num_clients,
+                            samples_per_client=fhir_cfg.get("samples_per_client", 500),
+                            hospital_profiles=fhir_cfg.get("profiles"),
+                            feature_spec=fhir_cfg.get("feature_spec"),
+                            label_name=fhir_cfg.get("label", "mortality_30day"),
+                            seed=seed,
+                        )
+                        trainer = FederatedTrainer(
+                            num_clients=num_clients,
+                            algorithm=algorithm,
+                            local_epochs=local_epochs,
+                            batch_size=self.config["batch_size"],
+                            learning_rate=self.config["learning_rate"],
+                            mu=self.config.get("mu", 0.1),
+                            dp_enabled=self.config.get("dp_enabled", False),
+                            dp_epsilon=self.config.get("dp_epsilon", 10.0),
+                            seed=seed,
+                            server_lr=self.config.get("server_lr", 0.1),
+                            beta1=self.config.get("beta1", 0.9),
+                            beta2=self.config.get("beta2", 0.99),
+                            tau=self.config.get("tau", 1e-3),
+                            progress_callback=progress_cb,
+                            external_data=fhir_train,
+                            external_test_data=fhir_test,
                         )
                     else:
                         trainer = FederatedTrainer(
@@ -413,7 +462,7 @@ class GuidedComparisonScreen:
 
         # Create experiment-specific folder with descriptive name
         use_case_short = self.selected_use_case.id.replace("_", "")[:15] if self.selected_use_case else "unknown"
-        dist_short = "IID" if self.config["is_iid"] else "NonIID"
+        dist_short = "FHIR" if self.config.get("dataset_type") == "fhir" else ("IID" if self.config["is_iid"] else "NonIID")
         n_algos = len(self.config["algorithms"])
         folder_name = f"guided_{use_case_short}_{dist_short}_{n_algos}algos_{self.config['num_clients']}clients_{timestamp}"
         output_dir = base_dir / folder_name

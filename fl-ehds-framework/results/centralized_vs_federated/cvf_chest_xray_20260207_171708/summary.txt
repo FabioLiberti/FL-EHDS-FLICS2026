@@ -1,0 +1,19 @@
+CENTRALIZED vs FEDERATED LEARNING COMPARISON
+==================================================
+
+Dataset: /Users/fxlybs/Library/CloudStorage/OneDrive-CEI-OPBambinoGesù/__Univ Merc_PHD_2223__/_PHD_BD&AI_38_/___AA.2026__estensione/PAPER_Devs/FL-EHDS-FLICS2026/fl-ehds-framework/data/chest_xray
+Hospitals: 5
+Non-IID: alpha=0.5
+Image size: 64x64
+Seeds: [42, 123, 456]
+Centralized epochs: 45
+Federated: 15 rounds x 3 epochs
+
+RESULTS
+--------------------------------------------------
+Centralized:  Acc=0.965  F1=0.955  AUC=0.992  Time=770.3s
+FedAvg      :  Acc=0.875  F1=0.768  AUC=0.982  Time=715.2s  (gap: +8.9pp)
+FedProx     :  Acc=0.858  F1=0.795  AUC=0.945  Time=725.8s  (gap: +10.6pp)
+SCAFFOLD    :  Acc=0.730  F1=0.422  AUC=0.500  Time=727.0s  (gap: +23.4pp)
+
+Total experiment time: 14706s

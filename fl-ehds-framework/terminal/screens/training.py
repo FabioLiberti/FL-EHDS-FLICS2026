@@ -154,12 +154,47 @@ class TrainingScreen:
                 default=self.config["algorithm"]
             )
 
+        # Algorithm profile suggestion
+        try:
+            from config.config_loader import get_algorithm_profile
+            profile = get_algorithm_profile(self.config["algorithm"])
+            if profile:
+                print()
+                print_info(f"Profilo suggerito per {self.config['algorithm']}:")
+                print(f"  {profile.get('description', '')}")
+                is_img = self.config.get("dataset_type") == "imaging"
+                lr_key = "learning_rate_imaging" if is_img else "learning_rate"
+                lr_val = profile.get(lr_key, profile.get("learning_rate"))
+                print(f"  LR={lr_val}  Epochs={profile.get('local_epochs')}  "
+                      f"Rounds={profile.get('num_rounds')}  Batch={profile.get('batch_size')}")
+                if "mu" in profile:
+                    print(f"  mu={profile['mu']}")
+                if "server_lr" in profile:
+                    print(f"  server_lr={profile['server_lr']}  "
+                          f"beta1={profile.get('beta1')}  beta2={profile.get('beta2')}")
+                print(f"  Consigliato per: {', '.join(profile.get('recommended_for', []))}")
+                if confirm("\nApplicare profilo suggerito?", default=True):
+                    self.config["learning_rate"] = lr_val
+                    for k in ["local_epochs", "num_rounds", "batch_size", "mu",
+                              "server_lr", "beta1", "beta2", "tau"]:
+                        if k in profile:
+                            self.config[k] = profile[k]
+                    print_success("Profilo applicato. Puoi modificare i parametri di seguito.")
+        except (ImportError, Exception):
+            pass
+
         # Dataset selection
         print_subsection("Selezione Dataset")
         available_datasets = self._get_available_datasets()
 
-        dataset_choices = ["Sintetico (Healthcare Tabular)"]
-        dataset_map = {"Sintetico (Healthcare Tabular)": "synthetic"}
+        dataset_choices = [
+            "Sintetico (Healthcare Tabular)",
+            "FHIR R4 (Ospedali Sintetici)",
+        ]
+        dataset_map = {
+            "Sintetico (Healthcare Tabular)": "synthetic",
+            "FHIR R4 (Ospedali Sintetici)": "fhir",
+        }
 
         if available_datasets:
             for name, info in available_datasets.items():
@@ -186,6 +221,24 @@ class TrainingScreen:
             self.config["dataset_name"] = None
             self.config["dataset_path"] = None
             self.config["learning_rate"] = 0.01  # Default for tabular
+        elif selected_key == "fhir":
+            self.config["dataset_type"] = "fhir"
+            self.config["dataset_name"] = "fhir_synthetic"
+            self.config["dataset_path"] = None
+            self.config["learning_rate"] = 0.01  # Tabular data
+            # Load FHIR config and show info
+            try:
+                from config.config_loader import get_fhir_config
+                fhir_cfg = get_fhir_config()
+                profiles = fhir_cfg.get("profiles", [])
+                num_c = self.config.get("num_clients", 5)
+                assigned = [profiles[i % len(profiles)] for i in range(num_c)]
+                print_info("FHIR R4: dati generati da profili ospedalieri (non-IID naturale)")
+                print(f"  Profili: {', '.join(assigned)}")
+                print(f"  Pazienti/ospedale: {fhir_cfg.get('samples_per_client', 500)}")
+                print(f"  Features: {len(fhir_cfg.get('feature_spec', []))} ({fhir_cfg.get('label', 'mortality_30day')})")
+            except (ImportError, Exception):
+                print_info("FHIR R4: ospedali sintetici con profili diversi")
         else:
             self.config["dataset_type"] = "imaging"
             self.config["dataset_name"] = selected_key
@@ -194,6 +247,32 @@ class TrainingScreen:
             print_info(f"Dataset imaging selezionato: {selected_key}")
             print(f"  Path: {self.config['dataset_path']}")
             print(f"  Classi: {available_datasets[selected_key]['class_names']}")
+
+        # Dataset parameter suggestion
+        if self.config["dataset_type"] in ("imaging", "fhir") and self.config.get("dataset_name"):
+            try:
+                from config.config_loader import get_dataset_parameters
+                ds_params = get_dataset_parameters(self.config["dataset_name"])
+                if ds_params:
+                    print()
+                    print_info(f"Parametri suggeriti per {self.config['dataset_name']}:")
+                    print(f"  LR={ds_params.get('learning_rate')}  "
+                          f"Batch={ds_params.get('batch_size')}  "
+                          f"Rounds={ds_params.get('num_rounds')}  "
+                          f"ImgSize={ds_params.get('img_size')}")
+                    print(f"  Algoritmi consigliati: "
+                          f"{', '.join(ds_params.get('recommended_algorithms', []))}")
+                    if ds_params.get("notes"):
+                        print(f"  Note: {ds_params['notes']}")
+                    if ds_params.get("class_weight"):
+                        print(f"  Class weighting: consigliato (dataset sbilanciato)")
+                    if confirm("\nApplicare parametri dataset?", default=True):
+                        for k in ["learning_rate", "batch_size", "num_rounds", "local_epochs"]:
+                            if k in ds_params:
+                                self.config[k] = ds_params[k]
+                        print_success("Parametri dataset applicati.")
+            except (ImportError, Exception):
+                pass
 
         # Basic parameters
         print_subsection("Parametri Base")
@@ -395,6 +474,62 @@ class TrainingScreen:
                     beta1=self.config.get("beta1", 0.9),
                     beta2=self.config.get("beta2", 0.99),
                     tau=self.config.get("tau", 1e-3),
+                )
+            elif self.config["dataset_type"] == "fhir":
+                # FHIR R4 dataset - use FederatedTrainer with external data
+                from data.fhir_loader import load_fhir_data
+                print_info("Caricamento dati FHIR R4 (ospedali sintetici)...")
+
+                fhir_cfg = {}
+                try:
+                    from config.config_loader import get_fhir_config
+                    fhir_cfg = get_fhir_config()
+                except (ImportError, Exception):
+                    pass
+
+                fhir_train, fhir_test, fhir_meta = load_fhir_data(
+                    num_clients=self.config["num_clients"],
+                    samples_per_client=fhir_cfg.get("samples_per_client", 500),
+                    hospital_profiles=fhir_cfg.get("profiles"),
+                    feature_spec=fhir_cfg.get("feature_spec"),
+                    label_name=fhir_cfg.get("label", "mortality_30day"),
+                    opt_out_registry_path=fhir_cfg.get("opt_out_registry_path"),
+                    purpose=fhir_cfg.get("purpose", "ai_training"),
+                    seed=self.config["seed"],
+                )
+
+                profiles_assigned = fhir_meta.get("profiles_assigned", [])
+                print_info(f"FHIR: {len(fhir_train)} ospedali, "
+                           f"{fhir_meta.get('num_features', 10)} features, "
+                           f"label={fhir_meta.get('label_name', '?')}")
+                for nid in range(len(profiles_assigned)):
+                    profile = profiles_assigned[nid]
+                    train_n = len(fhir_train[nid][1])
+                    test_n = len(fhir_test[nid][1])
+                    pos_rate = fhir_train[nid][1].mean()
+                    print(f"  Client {nid}: {profile} ({train_n} train, {test_n} test, pos_rate={pos_rate:.1%})")
+
+                if fhir_meta.get("total_opted_out", 0) > 0:
+                    print_info(f"  Opt-out EHDS Art.71: {fhir_meta['total_opted_out']} record esclusi")
+
+                trainer = FederatedTrainer(
+                    num_clients=self.config["num_clients"],
+                    algorithm=self.config["algorithm"],
+                    local_epochs=self.config["local_epochs"],
+                    batch_size=self.config["batch_size"],
+                    learning_rate=self.config["learning_rate"],
+                    mu=self.config["mu"],
+                    dp_enabled=self.config["dp_enabled"],
+                    dp_epsilon=self.config["dp_epsilon"],
+                    dp_clip_norm=self.config["dp_clip_norm"],
+                    seed=self.config["seed"],
+                    progress_callback=progress_callback,
+                    server_lr=self.config.get("server_lr", 0.1),
+                    beta1=self.config.get("beta1", 0.9),
+                    beta2=self.config.get("beta2", 0.99),
+                    tau=self.config.get("tau", 1e-3),
+                    external_data=fhir_train,
+                    external_test_data=fhir_test,
                 )
             else:
                 # Synthetic tabular dataset - use FederatedTrainer
@@ -654,7 +789,8 @@ class TrainingScreen:
         # Create experiment-specific folder with descriptive name
         algo = self.config["algorithm"]
         dp_str = f"_DP{self.config['dp_epsilon']}" if self.config["dp_enabled"] else ""
-        dist_short = "IID" if "IID" in self.config["data_distribution"] else "NonIID"
+        dist_short = "FHIR" if self.config["dataset_type"] == "fhir" else (
+            "IID" if "IID" in self.config["data_distribution"] else "NonIID")
         folder_name = f"training_{algo}{dp_str}_{dist_short}_{self.config['num_clients']}clients_{self.config['num_rounds']}rounds_{timestamp}"
         output_dir = base_dir / folder_name
         output_dir.mkdir(exist_ok=True)
@@ -688,7 +824,7 @@ class TrainingScreen:
                 "loss_function": "CrossEntropyLoss",
                 "normalization": "GroupNorm (FL-stable)" if self.config["dataset_type"] == "imaging" else "N/A",
                 "data_augmentation": "HFlip + Brightness (vectorized)" if self.config["dataset_type"] == "imaging" else "N/A",
-                "evaluation": "Held-out test set (20%)" if self.config["dataset_type"] == "imaging" else "Training data",
+                "evaluation": "Held-out test set (20%)" if self.config["dataset_type"] in ("imaging", "fhir") else "Training data",
                 "image_size": "128x128" if self.config["dataset_type"] == "imaging" else "N/A",
                 "gradient_clipping": "max_norm=1.0" if self.config["dataset_type"] == "imaging" else "N/A",
             },

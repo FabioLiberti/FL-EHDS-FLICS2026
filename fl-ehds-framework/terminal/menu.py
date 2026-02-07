@@ -171,7 +171,7 @@ class MainMenu:
                 MenuItem("8", "Continual Learning", self._continual_menu),
                 MenuItem("9", "Multi-Task FL", self._multitask_menu),
                 MenuItem("10", "Hierarchical FL", self._hierarchical_menu),
-                MenuItem("11", "EHDS Compliance", self._compliance_menu),
+                MenuItem("11", "Cross-Border Federation (EHDS)", self._compliance_menu),
                 MenuItem("12", "Benchmark Suite", self._benchmark_menu),
                 MenuItem("13", "Configurazione Globale", self._config_menu),
                 MenuItem("14", "Esporta Risultati", self._export_menu),
@@ -238,9 +238,10 @@ class MainMenu:
         input(f"\n{Style.MUTED}Premi Enter per continuare...{Colors.RESET}")
 
     def _compliance_menu(self):
-        """Open EHDS compliance submenu."""
-        print_info("EHDS Compliance - In sviluppo")
-        input(f"\n{Style.MUTED}Premi Enter per continuare...{Colors.RESET}")
+        """Open EHDS cross-border compliance submenu."""
+        from terminal.screens.cross_border import CrossBorderScreen
+        screen = CrossBorderScreen()
+        screen.run()
 
     def _benchmark_menu(self):
         """Open benchmark suite submenu."""

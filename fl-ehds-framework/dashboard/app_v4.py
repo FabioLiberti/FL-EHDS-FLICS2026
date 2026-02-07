@@ -1480,6 +1480,29 @@ def create_config_panel() -> Dict:
                 else:
                     st.error(f"PyTorch non disponibile: {msg}")
 
+    # Dataset parameters reference table
+    try:
+        from config.config_loader import get_dataset_parameters as _get_ds_params
+        _all_ds_params = _get_ds_params()
+        if _all_ds_params:
+            with st.sidebar.expander("Parametri Suggeriti per Dataset", expanded=False):
+                import pandas as pd
+                _rows = []
+                for _name, _p in _all_ds_params.items():
+                    _rows.append({
+                        "Dataset": _name,
+                        "LR": _p.get("learning_rate", "-"),
+                        "Batch": _p.get("batch_size", "-"),
+                        "Rounds": _p.get("num_rounds", "-"),
+                        "Alpha": _p.get("alpha", "-"),
+                        "ImgSize": _p.get("img_size") or "-",
+                        "Algoritmi": ", ".join(_p.get("recommended_algorithms", [])[:2]),
+                    })
+                st.dataframe(pd.DataFrame(_rows), use_container_width=True, hide_index=True)
+                st.caption("Parametri suggeriti automaticamente alla selezione del dataset")
+    except Exception:
+        pass
+
     return {
         "num_nodes": num_nodes,
         "total_samples": total_samples,
@@ -2386,6 +2409,195 @@ def render_hierarchical_tab():
         """)
 
 
+def _render_cross_border_tab():
+    """Render Cross-Border Federation simulation sub-tab."""
+    st.markdown("#### Cross-Border Federation Simulation")
+
+    st.markdown("""
+    Simulazione di Federated Learning tra ospedali in diverse giurisdizioni EU,
+    ciascuna con regole DP, policy HDAB e latenza di rete differenti.
+    """)
+
+    try:
+        from terminal.cross_border import EU_COUNTRY_PROFILES, CrossBorderFederatedTrainer
+        _has_cb = True
+    except ImportError:
+        _has_cb = False
+
+    if not _has_cb:
+        st.warning("Modulo cross-border non disponibile.")
+        return
+
+    # Country profiles table
+    st.markdown("##### Profili Regolamentari EU")
+    profiles_data = {
+        "Paese": [], "Nome": [], "Epsilon Max": [], "HDAB Strictness": [],
+        "Opt-out Rate": [], "Latenza (ms)": [], "Scopi Ammessi": [],
+    }
+    for cc, p in sorted(EU_COUNTRY_PROFILES.items(), key=lambda x: x[1].hdab_strictness, reverse=True):
+        profiles_data["Paese"].append(cc)
+        profiles_data["Nome"].append(p.name)
+        profiles_data["Epsilon Max"].append(p.dp_epsilon_max)
+        profiles_data["HDAB Strictness"].append("*" * p.hdab_strictness)
+        profiles_data["Opt-out Rate"].append(f"{p.opt_out_rate:.0%}")
+        profiles_data["Latenza (ms)"].append(f"{p.latency_ms[0]}-{p.latency_ms[1]}")
+        profiles_data["Scopi Ammessi"].append(len(p.allowed_purposes))
+    st.dataframe(pd.DataFrame(profiles_data), use_container_width=True, hide_index=True)
+
+    st.markdown("---")
+
+    # Simulation configuration
+    st.markdown("##### Configurazione Simulazione")
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        available_countries = list(EU_COUNTRY_PROFILES.keys())
+        selected_countries = st.multiselect(
+            "Paesi", available_countries, default=["DE", "FR", "IT", "ES", "NL"],
+        )
+        cb_purpose = st.selectbox("Scopo EHDS (Art. 53)", [
+            "scientific_research", "public_health_surveillance",
+            "health_policy", "ai_system_development",
+        ], index=0)
+
+    with col2:
+        cb_algorithm = st.selectbox("Algoritmo FL", [
+            "FedAvg", "FedProx", "SCAFFOLD", "FedNova", "FedDyn",
+            "FedAdam", "FedYogi", "FedAdagrad", "Per-FedAvg", "Ditto",
+        ], index=0)
+        cb_rounds = st.slider("Round FL", 5, 50, 15)
+        cb_epsilon = st.slider("Epsilon Globale", 1.0, 50.0, 10.0, 0.5)
+
+    with col3:
+        cb_hospitals_per = st.slider("Ospedali per Paese", 1, 3, 1)
+        cb_lr = st.select_slider("Learning Rate", [0.0001, 0.0005, 0.001, 0.005, 0.01], value=0.01)
+        cb_latency = st.checkbox("Simula Latenza Rete", value=True)
+
+    # Show effective epsilon per country
+    if selected_countries:
+        st.markdown("##### Epsilon Effettivo per Giurisdizione")
+        eps_data = {"Paese": [], "Nome": [], "Eps Max Nazionale": [], "Eps Effettivo": [], "Stato": []}
+        for cc in selected_countries:
+            p = EU_COUNTRY_PROFILES[cc]
+            eff = min(cb_epsilon, p.dp_epsilon_max)
+            status = "OK" if eff == cb_epsilon else f"Limitato a {eff:.1f}"
+            eps_data["Paese"].append(cc)
+            eps_data["Nome"].append(p.name)
+            eps_data["Eps Max Nazionale"].append(p.dp_epsilon_max)
+            eps_data["Eps Effettivo"].append(eff)
+            eps_data["Stato"].append(status)
+        st.dataframe(pd.DataFrame(eps_data), use_container_width=True, hide_index=True)
+
+    # Purpose violations preview
+    violations = []
+    for cc in selected_countries:
+        p = EU_COUNTRY_PROFILES[cc]
+        if cb_purpose not in p.allowed_purposes:
+            violations.append(f"**{p.name} ({cc})**: scopo '{cb_purpose}' non ammesso da HDAB")
+    if violations:
+        st.warning("**Violazioni Scopo HDAB:**\n" + "\n".join(f"- {v}" for v in violations))
+
+    st.markdown("---")
+
+    # Run simulation
+    if st.button("Avvia Simulazione Cross-Border", type="primary", disabled=len(selected_countries) < 2):
+        if len(selected_countries) < 2:
+            st.error("Selezionare almeno 2 paesi.")
+            return
+
+        progress_bar = st.progress(0)
+        status_text = st.empty()
+        metrics_container = st.empty()
+
+        try:
+            trainer = CrossBorderFederatedTrainer(
+                countries=selected_countries,
+                hospitals_per_country=cb_hospitals_per,
+                algorithm=cb_algorithm,
+                num_rounds=cb_rounds,
+                local_epochs=3,
+                batch_size=32,
+                learning_rate=cb_lr,
+                global_epsilon=cb_epsilon,
+                purpose=cb_purpose,
+                dataset_type="synthetic",
+                seed=42,
+                simulate_latency=cb_latency,
+            )
+
+            def cb_progress(round_num, total_rounds, result):
+                progress_bar.progress((round_num + 1) / total_rounds)
+                status_text.text(
+                    f"Round {round_num+1}/{total_rounds} | "
+                    f"Acc: {result.global_acc:.3f} | F1: {result.global_f1:.3f} | "
+                    f"[{result.compliance_status.upper()}]"
+                )
+
+            trainer.progress_callback = cb_progress
+            results = trainer.train()
+            progress_bar.progress(1.0)
+            status_text.text("Simulazione completata!")
+
+            # Display results
+            st.markdown("##### Risultati Cross-Border")
+            last = trainer.history[-1]
+            r1, r2, r3, r4 = st.columns(4)
+            r1.metric("Accuracy", f"{last.global_acc:.2%}")
+            r2.metric("F1 Score", f"{last.global_f1:.4f}")
+            r3.metric("AUC-ROC", f"{last.global_auc:.4f}")
+            r4.metric("Loss", f"{last.global_loss:.4f}")
+
+            # Per-country analysis
+            st.markdown("##### Analisi per Giurisdizione")
+            country_summary = trainer.audit_log.summary_by_country()
+            cs_data = {
+                "Paese": [], "HDAB": [], "Eps Max": [], "Eps Usato": [],
+                "Campioni": [], "Opt-out": [], "Latenza Media": [], "Stato": [],
+            }
+            for cc in selected_countries:
+                if cc in country_summary:
+                    d = country_summary[cc]
+                    p = EU_COUNTRY_PROFILES[cc]
+                    avg_lat = d["total_latency_ms"] / max(d["total_rounds"], 1)
+                    cs_data["Paese"].append(cc)
+                    cs_data["HDAB"].append("*" * p.hdab_strictness)
+                    cs_data["Eps Max"].append(p.dp_epsilon_max)
+                    cs_data["Eps Usato"].append(f"{d['epsilon_spent']:.3f}")
+                    cs_data["Campioni"].append(d["total_samples_used"])
+                    cs_data["Opt-out"].append(d["total_opted_out"])
+                    cs_data["Latenza Media"].append(f"{avg_lat:.1f}ms")
+                    cs_data["Stato"].append("OK" if d["epsilon_spent"] <= p.dp_epsilon_max else "OVER")
+            st.dataframe(pd.DataFrame(cs_data), use_container_width=True, hide_index=True)
+
+            # Convergence chart
+            if trainer.history:
+                st.markdown("##### Convergenza")
+                chart_data = pd.DataFrame({
+                    "Round": [h.round_num + 1 for h in trainer.history],
+                    "Accuracy": [h.global_acc for h in trainer.history],
+                    "Loss": [h.global_loss for h in trainer.history],
+                    "F1": [h.global_f1 for h in trainer.history],
+                })
+                c1, c2 = st.columns(2)
+                with c1:
+                    st.line_chart(chart_data.set_index("Round")[["Accuracy", "F1"]])
+                with c2:
+                    st.line_chart(chart_data.set_index("Round")[["Loss"]])
+
+            # Audit trail summary
+            st.markdown("##### Compliance Summary")
+            audit_violations = trainer.audit_log.get_violations()
+            m1, m2, m3 = st.columns(3)
+            m1.metric("Audit Entries", len(trainer.audit_log.entries))
+            m2.metric("Violations", len(audit_violations))
+            m3.metric("Tempo Totale", f"{results['total_time']:.1f}s")
+
+        except Exception as e:
+            st.error(f"Errore simulazione: {e}")
+            import traceback
+            st.code(traceback.format_exc())
+
+
 def render_ehds_tab():
     """Render EHDS Interoperability tab."""
     st.markdown("### 🇪🇺 EHDS Interoperability")
@@ -2398,16 +2610,21 @@ def render_ehds_tab():
     </div>
     """, unsafe_allow_html=True)
 
-    # Four sub-tabs for each interoperability component
+    # Five sub-tabs for interoperability + cross-border simulation
     ehds_tabs = st.tabs([
+        "🌍 Cross-Border FL",
         "🔗 HL7 FHIR",
         "📊 OMOP CDM",
         "📋 IHE Profiles",
         "🏛️ HDAB API"
     ])
 
-    # HL7 FHIR Tab
+    # Cross-Border Federation Simulation Tab
     with ehds_tabs[0]:
+        _render_cross_border_tab()
+
+    # HL7 FHIR Tab
+    with ehds_tabs[1]:
         st.markdown("#### HL7 FHIR R4 Integration")
 
         st.markdown("""
@@ -2466,7 +2683,7 @@ X, y = dataset.to_tensors()
         st.dataframe(pd.DataFrame(vocab_data), use_container_width=True)
 
     # OMOP CDM Tab
-    with ehds_tabs[1]:
+    with ehds_tabs[2]:
         st.markdown("#### OMOP Common Data Model")
 
         st.markdown("""
@@ -2514,7 +2731,7 @@ features = query.get_features(["age", "gender", "hba1c"])
         st.dataframe(pd.DataFrame(concept_data), use_container_width=True)
 
     # IHE Profiles Tab
-    with ehds_tabs[2]:
+    with ehds_tabs[3]:
         st.markdown("#### IHE Integration Profiles")
 
         st.markdown("""
@@ -2609,7 +2826,7 @@ permitted, excluded = consent_mgr.filter_patients_by_consent(
         """)
 
     # HDAB API Tab
-    with ehds_tabs[3]:
+    with ehds_tabs[4]:
         st.markdown("#### Health Data Access Body (HDAB) API")
 
         st.markdown("""

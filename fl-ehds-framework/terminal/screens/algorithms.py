@@ -155,8 +155,14 @@ class AlgorithmsScreen:
         print_subsection("Selezione Dataset")
         available_datasets = self._get_available_datasets()
 
-        dataset_choices = ["Sintetico (Healthcare Tabular)"]
-        dataset_map = {"Sintetico (Healthcare Tabular)": "synthetic"}
+        dataset_choices = [
+            "Sintetico (Healthcare Tabular)",
+            "FHIR R4 (Ospedali Sintetici)",
+        ]
+        dataset_map = {
+            "Sintetico (Healthcare Tabular)": "synthetic",
+            "FHIR R4 (Ospedali Sintetici)": "fhir",
+        }
 
         if available_datasets:
             for name, info in available_datasets.items():
@@ -183,12 +189,42 @@ class AlgorithmsScreen:
             self.config["dataset_name"] = None
             self.config["dataset_path"] = None
             self.config["learning_rate"] = 0.01
+        elif selected_key == "fhir":
+            self.config["dataset_type"] = "fhir"
+            self.config["dataset_name"] = "fhir_synthetic"
+            self.config["dataset_path"] = None
+            self.config["learning_rate"] = 0.01
+            print_info("FHIR R4: distribuzione naturalmente Non-IID (profili ospedalieri)")
         else:
             self.config["dataset_type"] = "imaging"
             self.config["dataset_name"] = selected_key
             self.config["dataset_path"] = available_datasets[selected_key]["path"]
             self.config["learning_rate"] = 0.001
             print_info(f"Dataset imaging selezionato: {selected_key}")
+
+        # Dataset parameter suggestion
+        if self.config["dataset_type"] in ("imaging", "fhir") and self.config.get("dataset_name"):
+            try:
+                from config.config_loader import get_dataset_parameters
+                ds_params = get_dataset_parameters(self.config["dataset_name"])
+                if ds_params:
+                    print()
+                    print_info(f"Parametri suggeriti per {self.config['dataset_name']}:")
+                    print(f"  LR={ds_params.get('learning_rate')}  "
+                          f"Batch={ds_params.get('batch_size')}  "
+                          f"Rounds={ds_params.get('num_rounds')}  "
+                          f"Alpha={ds_params.get('alpha')}")
+                    print(f"  Algoritmi consigliati: "
+                          f"{', '.join(ds_params.get('recommended_algorithms', []))}")
+                    if ds_params.get("notes"):
+                        print(f"  Note: {ds_params['notes']}")
+                    if confirm("\nApplicare parametri dataset?", default=True):
+                        for k in ["learning_rate", "batch_size", "num_rounds", "local_epochs"]:
+                            if k in ds_params:
+                                self.config[k] = ds_params[k]
+                        print_success("Parametri dataset applicati.")
+            except (ImportError, Exception):
+                pass
 
         # Basic parameters
         print_subsection("Parametri Training")
@@ -244,6 +280,7 @@ class AlgorithmsScreen:
                 total_runs += len(self.config["dp_epsilons"]) * self.config["num_seeds"]
 
             is_imaging = self.config["dataset_type"] == "imaging"
+            is_fhir = self.config["dataset_type"] == "fhir"
 
             # === VERIFICATION: Show that training is real ===
             print_subsection("VERIFICA TRAINING REALE")
@@ -255,6 +292,14 @@ class AlgorithmsScreen:
                 print(f"  Augmentation: HFlip + Rotation + Brightness")
                 print(f"  Valutazione: Test set (20% held-out)")
                 print(f"  Optimizer: Adam (wd=1e-5) con lr={self.config['learning_rate']}")
+            elif is_fhir:
+                model = HealthcareMLP(input_dim=10)
+                total_params = sum(p.numel() for p in model.parameters())
+                print(f"  Modello: HealthcareMLP (PyTorch nn.Module)")
+                print(f"  Architettura: 10 -> 64 -> 32 -> 2 (MLP)")
+                print(f"  Parametri totali: {total_params:,}")
+                print(f"  Valutazione: Test set (20% held-out)")
+                print(f"  Optimizer: SGD con lr={self.config['learning_rate']}")
             else:
                 model = HealthcareMLP()
                 total_params = sum(p.numel() for p in model.parameters())
@@ -269,13 +314,19 @@ class AlgorithmsScreen:
                 print(f"\n{Style.TITLE}Dataset clinico:{Colors.RESET}")
                 print(f"  Nome: {self.config['dataset_name']}")
                 print(f"  Path: {self.config['dataset_path']}")
+            elif is_fhir:
+                print(f"\n{Style.TITLE}Dataset FHIR R4:{Colors.RESET}")
+                print(f"  Sorgente: Ospedali sintetici (profili FHIR)")
+                print(f"  Features: age, gender, bmi, bp, heart_rate, glucose, ...")
+                print(f"  Target: mortality_30day (binario)")
+                print(f"  Non-IID naturale da profili ospedalieri")
             else:
                 print(f"\n{Style.TITLE}Dataset sintetico sanitario:{Colors.RESET}")
                 print(f"  Features: age, bmi, bp_systolic, glucose, cholesterol, ...")
                 print(f"  Target: Rischio malattia (binario: 0=basso, 1=alto)")
                 print(f"  Campioni per client: 200")
 
-            print(f"  Distribuzione: {'IID' if self.config['data_distribution'] == 'IID' else 'Non-IID (Dirichlet)'}")
+            print(f"  Distribuzione: {'IID' if self.config['data_distribution'] == 'IID' else 'Non-IID (Dirichlet)' if not is_fhir else 'Non-IID (profili ospedalieri)'}")
             print()
 
             print_info(f"Totale run da eseguire: {total_runs}")
@@ -326,6 +377,34 @@ class AlgorithmsScreen:
                             dp_enabled=False,
                             seed=seed,
                             progress_callback=progress_cb,
+                        )
+                    elif is_fhir:
+                        from data.fhir_loader import load_fhir_data
+                        fhir_cfg = {}
+                        try:
+                            from config.config_loader import get_fhir_config
+                            fhir_cfg = get_fhir_config()
+                        except (ImportError, Exception):
+                            pass
+                        fhir_train, fhir_test, _ = load_fhir_data(
+                            num_clients=self.config["num_clients"],
+                            samples_per_client=fhir_cfg.get("samples_per_client", 500),
+                            hospital_profiles=fhir_cfg.get("profiles"),
+                            feature_spec=fhir_cfg.get("feature_spec"),
+                            label_name=fhir_cfg.get("label", "mortality_30day"),
+                            seed=seed,
+                        )
+                        trainer = FederatedTrainer(
+                            num_clients=self.config["num_clients"],
+                            algorithm=algorithm,
+                            local_epochs=self.config["local_epochs"],
+                            batch_size=self.config["batch_size"],
+                            learning_rate=self.config["learning_rate"],
+                            dp_enabled=False,
+                            seed=seed,
+                            progress_callback=progress_cb,
+                            external_data=fhir_train,
+                            external_test_data=fhir_test,
                         )
                     else:
                         trainer = FederatedTrainer(
@@ -412,6 +491,35 @@ class AlgorithmsScreen:
                                 dp_epsilon=epsilon,
                                 seed=seed,
                                 progress_callback=progress_cb,
+                            )
+                        elif is_fhir:
+                            from data.fhir_loader import load_fhir_data
+                            fhir_cfg = {}
+                            try:
+                                from config.config_loader import get_fhir_config
+                                fhir_cfg = get_fhir_config()
+                            except (ImportError, Exception):
+                                pass
+                            fhir_train, fhir_test, _ = load_fhir_data(
+                                num_clients=self.config["num_clients"],
+                                samples_per_client=fhir_cfg.get("samples_per_client", 500),
+                                hospital_profiles=fhir_cfg.get("profiles"),
+                                feature_spec=fhir_cfg.get("feature_spec"),
+                                label_name=fhir_cfg.get("label", "mortality_30day"),
+                                seed=seed,
+                            )
+                            trainer = FederatedTrainer(
+                                num_clients=self.config["num_clients"],
+                                algorithm="FedAvg",
+                                local_epochs=self.config["local_epochs"],
+                                batch_size=self.config["batch_size"],
+                                learning_rate=self.config["learning_rate"],
+                                dp_enabled=True,
+                                dp_epsilon=epsilon,
+                                seed=seed,
+                                progress_callback=progress_cb,
+                                external_data=fhir_train,
+                                external_test_data=fhir_test,
                             )
                         else:
                             trainer = FederatedTrainer(
@@ -519,7 +627,7 @@ class AlgorithmsScreen:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
         # Create experiment-specific folder with descriptive name
-        dist_short = "IID" if self.config["data_distribution"] == "IID" else "NonIID"
+        dist_short = "FHIR" if self.config.get("dataset_type") == "fhir" else ("IID" if self.config["data_distribution"] == "IID" else "NonIID")
         n_algos = len(self.config["algorithms"])
         folder_name = f"comparison_{dist_short}_{n_algos}algos_{self.config['num_clients']}clients_{self.config['num_rounds']}rounds_{timestamp}"
         output_dir = base_dir / folder_name

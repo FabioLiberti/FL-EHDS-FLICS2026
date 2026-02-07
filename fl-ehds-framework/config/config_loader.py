@@ -221,3 +221,43 @@ def reload_config():
     """Force reload of config (clears cache)."""
     global _cached_config
     _cached_config = None
+
+
+def get_algorithm_profile(algorithm: str) -> Dict[str, Any]:
+    """Get recommended hyperparameters for a specific FL algorithm."""
+    cfg = load_config()
+    profiles = cfg.get("algorithm_profiles", {})
+    return profiles.get(algorithm, {})
+
+
+def get_clinical_use_cases() -> Dict[str, Dict]:
+    """Get all clinical use case profiles from config."""
+    cfg = load_config()
+    return cfg.get("clinical_use_cases", {})
+
+
+def get_dataset_parameters(dataset_name: Optional[str] = None) -> Dict:
+    """Get dataset-specific optimal parameters. None = all datasets."""
+    cfg = load_config()
+    params = cfg.get("dataset_parameters", {})
+    if dataset_name is None:
+        return params
+    return params.get(dataset_name, {})
+
+
+def get_fhir_config() -> Dict[str, Any]:
+    """Get FHIR pipeline configuration."""
+    cfg = load_config()
+    fhir = cfg.get("fhir", {})
+    return {
+        "profiles": fhir.get("default_profiles",
+            ["general", "cardiac", "pediatric", "geriatric", "oncology"]),
+        "samples_per_client": fhir.get("samples_per_client", 500),
+        "feature_spec": fhir.get("feature_spec", [
+            "age", "gender", "bmi", "systolic_bp", "diastolic_bp",
+            "heart_rate", "glucose", "cholesterol",
+            "num_conditions", "num_medications"]),
+        "label": fhir.get("label", "mortality_30day"),
+        "opt_out_registry_path": fhir.get("opt_out", {}).get("registry_path"),
+        "purpose": fhir.get("opt_out", {}).get("purpose", "ai_training"),
+    }

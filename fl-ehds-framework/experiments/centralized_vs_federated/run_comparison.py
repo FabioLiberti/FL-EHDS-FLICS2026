@@ -73,11 +73,10 @@ def collect_confusion_matrix(
     return confusion_matrix(all_labels, all_preds, labels=list(range(num_classes)))
 
 
-# ---- Single experiment ----
+# ---- Centralized baseline (trained ONCE per seed) ----
 
-def run_single_experiment(
+def _train_centralized_once(
     data_dir: str,
-    algorithm: str,
     num_clients: int,
     num_rounds: int,
     local_epochs: int,
@@ -87,19 +86,11 @@ def run_single_experiment(
     seed: int,
     img_size: int,
 ) -> Dict:
-    """
-    Run one complete Centralized vs Federated experiment for a single seed+algorithm.
-
-    Returns dict with histories, final metrics, confusion matrices, times, data stats.
-    """
+    """Train centralized baseline once for a given seed. Reused across algorithms."""
     device = "cuda" if torch.cuda.is_available() else "cpu"
     centralized_epochs = num_rounds * local_epochs
 
-    print(f"\n  Seed={seed}, Algorithm={algorithm}")
-    print(f"  Centralized: {centralized_epochs} epochs | Federated: {num_rounds} rounds x {local_epochs} epochs")
-
-    # --- Centralized training ---
-    print(f"  [Centralized] Training...")
+    print(f"\n  [Centralized] Training {centralized_epochs} epochs (seed={seed})...")
     cent_trainer = CentralizedImageTrainer(
         data_dir=data_dir,
         num_clients=num_clients,
@@ -111,6 +102,7 @@ def run_single_experiment(
         device=device,
         img_size=img_size,
     )
+    cent_trainer.set_total_epochs(centralized_epochs)
 
     t0 = time.time()
     cent_pbar = tqdm(range(centralized_epochs), desc="  Centralized", ncols=80,
@@ -145,7 +137,6 @@ def run_single_experiment(
         'auc': result.val_auc,
     }
 
-    # Confusion matrix for centralized
     cent_cm = collect_confusion_matrix(
         cent_trainer.get_model(), cent_trainer.X_test, cent_trainer.y_test,
         cent_trainer.num_classes, cent_trainer.device, batch_size,
@@ -153,8 +144,35 @@ def run_single_experiment(
 
     data_stats = cent_trainer.get_data_stats()
 
-    # --- Federated training ---
-    print(f"  [Federated: {algorithm}] Training...")
+    return {
+        'centralized_history': cent_history,
+        'centralized_final': cent_final,
+        'centralized_cm': cent_cm.tolist(),
+        'centralized_time': cent_time,
+        'data_stats': data_stats,
+        '_cent_trainer': cent_trainer,  # Keep reference for confusion matrix eval
+    }
+
+
+# ---- Federated training (per algorithm, reuses centralized result) ----
+
+def _train_federated_only(
+    data_dir: str,
+    algorithm: str,
+    num_clients: int,
+    num_rounds: int,
+    local_epochs: int,
+    batch_size: int,
+    lr: float,
+    alpha: float,
+    seed: int,
+    img_size: int,
+    cent_run: Dict,
+) -> Dict:
+    """Train one federated algorithm, reusing the pre-computed centralized result."""
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+
+    print(f"  [Federated: {algorithm}] Training {num_rounds} rounds (seed={seed})...")
 
     fed_trainer = ImageFederatedTrainer(
         data_dir=data_dir,
@@ -169,6 +187,7 @@ def run_single_experiment(
         device=device,
         img_size=img_size,
     )
+    fed_trainer.num_rounds = num_rounds  # Enable cosine LR decay
 
     t0 = time.time()
     fed_pbar = tqdm(range(num_rounds), desc=f"  {algorithm}", ncols=80,
@@ -202,6 +221,7 @@ def run_single_experiment(
     }
 
     # Confusion matrix for federated (on same pooled test set)
+    cent_trainer = cent_run['_cent_trainer']
     fed_cm = collect_confusion_matrix(
         fed_trainer.global_model, cent_trainer.X_test, cent_trainer.y_test,
         cent_trainer.num_classes, fed_trainer.device, batch_size,
@@ -210,16 +230,43 @@ def run_single_experiment(
     return {
         'seed': seed,
         'algorithm': algorithm,
-        'centralized_history': cent_history,
+        'centralized_history': cent_run['centralized_history'],
         'federated_history': fed_history,
-        'centralized_final': cent_final,
+        'centralized_final': cent_run['centralized_final'],
         'federated_final': fed_final,
-        'centralized_cm': cent_cm.tolist(),
+        'centralized_cm': cent_run['centralized_cm'],
         'federated_cm': fed_cm.tolist(),
-        'centralized_time': cent_time,
+        'centralized_time': cent_run['centralized_time'],
         'federated_time': fed_time,
-        'data_stats': data_stats,
+        'data_stats': cent_run['data_stats'],
     }
+
+
+# ---- Legacy single experiment (kept for backward compatibility) ----
+
+def run_single_experiment(
+    data_dir: str,
+    algorithm: str,
+    num_clients: int,
+    num_rounds: int,
+    local_epochs: int,
+    batch_size: int,
+    lr: float,
+    alpha: float,
+    seed: int,
+    img_size: int,
+) -> Dict:
+    """Run one complete Centralized vs Federated experiment for a single seed+algorithm."""
+    cent_run = _train_centralized_once(
+        data_dir=data_dir, num_clients=num_clients, num_rounds=num_rounds,
+        local_epochs=local_epochs, batch_size=batch_size, lr=lr,
+        alpha=alpha, seed=seed, img_size=img_size,
+    )
+    return _train_federated_only(
+        data_dir=data_dir, algorithm=algorithm, num_clients=num_clients,
+        num_rounds=num_rounds, local_epochs=local_epochs, batch_size=batch_size,
+        lr=lr, alpha=alpha, seed=seed, img_size=img_size, cent_run=cent_run,
+    )
 
 
 # ---- Full comparison (multi-seed, multi-algo) ----
@@ -236,7 +283,11 @@ def run_full_comparison(
     seeds: List[int],
     img_size: int,
 ) -> Dict:
-    """Run full comparison across seeds and algorithms. Aggregate results."""
+    """Run full comparison across seeds and algorithms.
+
+    Centralized baseline is trained ONCE per seed (not per algorithm),
+    then reused for all FL algorithm comparisons within that seed.
+    """
     all_runs = []
     total_start = time.time()
 
@@ -245,8 +296,26 @@ def run_full_comparison(
         print(f"  SEED {seed_idx+1}/{len(seeds)}: {seed}")
         print(f"{'='*60}")
 
+        # Train centralized baseline ONCE per seed
+        cent_run = _train_centralized_once(
+            data_dir=data_dir,
+            num_clients=num_clients,
+            num_rounds=num_rounds,
+            local_epochs=local_epochs,
+            batch_size=batch_size,
+            lr=lr,
+            alpha=alpha,
+            seed=seed,
+            img_size=img_size,
+        )
+
+        print(f"    Centralized: Acc={cent_run['centralized_final']['accuracy']:.3f}  "
+              f"F1={cent_run['centralized_final']['f1']:.3f}  "
+              f"AUC={cent_run['centralized_final']['auc']:.3f}  ({cent_run['centralized_time']:.1f}s)")
+
+        # Run each FL algorithm, reusing the centralized result
         for algo in algorithms:
-            run = run_single_experiment(
+            run = _train_federated_only(
                 data_dir=data_dir,
                 algorithm=algo,
                 num_clients=num_clients,
@@ -257,12 +326,10 @@ def run_full_comparison(
                 alpha=alpha,
                 seed=seed,
                 img_size=img_size,
+                cent_run=cent_run,
             )
             all_runs.append(run)
 
-            print(f"    Centralized: Acc={run['centralized_final']['accuracy']:.3f}  "
-                  f"F1={run['centralized_final']['f1']:.3f}  "
-                  f"AUC={run['centralized_final']['auc']:.3f}  ({run['centralized_time']:.1f}s)")
             print(f"    {algo}:    Acc={run['federated_final']['accuracy']:.3f}  "
                   f"F1={run['federated_final']['f1']:.3f}  "
                   f"AUC={run['federated_final']['auc']:.3f}  ({run['federated_time']:.1f}s)")
