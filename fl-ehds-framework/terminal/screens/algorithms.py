@@ -53,8 +53,8 @@ class AlgorithmsScreen:
         self.histories = {}  # Store convergence history for all algorithms
 
     def _default_config(self) -> Dict[str, Any]:
-        """Return default configuration."""
-        return {
+        """Return default configuration from config.yaml with hardcoded fallbacks."""
+        fallback = {
             "algorithms": COMPARISON_ALGORITHMS.copy(),
             "num_clients": 5,
             "num_rounds": 30,
@@ -65,11 +65,23 @@ class AlgorithmsScreen:
             "data_distribution": "Non-IID",
             "include_dp": False,
             "dp_epsilons": [1.0, 10.0],
-            # Dataset configuration
             "dataset_type": "synthetic",
             "dataset_name": None,
             "dataset_path": None,
         }
+        try:
+            from config.config_loader import get_training_defaults
+            yaml_defaults = get_training_defaults()
+            # Map relevant keys (preserve algorithms list and comparison-specific keys)
+            for key in ["num_clients", "num_rounds", "local_epochs", "batch_size",
+                        "learning_rate", "dataset_type", "dataset_path", "seed"]:
+                if key in yaml_defaults:
+                    fallback[key] = yaml_defaults[key]
+            if yaml_defaults.get("dp_enabled"):
+                fallback["include_dp"] = True
+        except (ImportError, Exception):
+            pass
+        return fallback
 
     def _get_available_datasets(self) -> Dict[str, Dict]:
         """Get available imaging datasets."""

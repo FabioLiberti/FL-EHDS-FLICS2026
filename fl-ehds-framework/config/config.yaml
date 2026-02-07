@@ -296,3 +296,64 @@ monitoring:
     enabled: false
     # Alert destinations
     destinations: []
+
+# =============================================================================
+# TRAINING EXPERIMENT DEFAULTS
+# =============================================================================
+# Suggested defaults loaded by both Terminal CLI and Web Dashboard.
+# Each interface allows interactive override of any value at runtime.
+# Environment variables FL_EHDS_* take highest precedence over YAML values.
+# These values reflect the conservative terminal defaults.
+
+training:
+  # Random seed for reproducibility
+  seed: 42
+
+  # Federated learning parameters
+  federated:
+    # Algorithm: FedAvg, FedProx, SCAFFOLD, FedNova, FedDyn,
+    #            FedAdam, FedYogi, FedAdagrad, Per-FedAvg, Ditto
+    algorithm: "FedAvg"
+    # Number of hospitals/nodes (2-100)
+    num_clients: 5
+    # Communication rounds (1-1000)
+    num_rounds: 30
+    # Local training epochs per round (1-50)
+    local_epochs: 3
+    # Mini-batch size (1-512)
+    batch_size: 32
+    # Client-side learning rate (0.0001-1.0)
+    learning_rate: 0.01
+    # Proximal term for FedProx / regularization for Ditto (0.0-1.0)
+    mu: 0.1
+
+    # Server-side optimizer parameters (FedAdam, FedYogi, FedAdagrad)
+    server_optimizer:
+      lr: 0.1
+      beta1: 0.9
+      beta2: 0.99
+      tau: 0.001
+
+  # Differential privacy configuration
+  privacy:
+    # Enable DP noise injection during training
+    enabled: false
+    # Privacy budget epsilon (0.1-100, lower = more private)
+    epsilon: 10.0
+    # Failure probability delta
+    delta: 1.0e-5
+    # Maximum gradient norm for sensitivity bounding
+    clip_norm: 1.0
+
+  # Data configuration
+  data:
+    # Dataset type: "synthetic" (generated tabular) or "imaging" (clinical images)
+    type: "synthetic"
+    # Path to imaging dataset root (null = auto-discover from data/ directory)
+    path: null
+    # Data distribution: "iid" or "non_iid"
+    distribution: "non_iid"
+    # Dirichlet alpha for non-IID partitioning (0.1-10.0, lower = more skewed)
+    alpha: 0.5
+    # Image resize dimension for imaging datasets (32, 64, 128, 224)
+    img_size: 128

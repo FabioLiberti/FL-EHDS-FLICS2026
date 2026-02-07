@@ -1,0 +1,66 @@
+# =============================================================================
+# FL-EHDS Framework - Docker Compose
+# =============================================================================
+# Services:
+#   terminal:  Interactive CLI      -> docker compose run --rm terminal
+#   dashboard: Streamlit web UI     -> docker compose up dashboard
+#   benchmark: Experiment runner    -> docker compose --profile benchmark run --rm benchmark
+#
+# Volumes:
+#   data/    - Clinical datasets (read-only, not included in image)
+#   results/ - Experiment outputs (read-write)
+#   config/  - YAML configuration (read-only)
+# =============================================================================
+
+services:
+  # ---------------------------------------------------------------------------
+  # Terminal CLI - Interactive federated learning experiments
+  # ---------------------------------------------------------------------------
+  terminal:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - FL_EHDS_MODE=terminal
+      - FL_EHDS_CONFIG=/app/config/config.yaml
+    volumes:
+      - ./data:/app/data:ro
+      - ./results:/app/results
+      - ./config:/app/config:ro
+    stdin_open: true
+    tty: true
+
+  # ---------------------------------------------------------------------------
+  # Streamlit Dashboard - Web-based FL experimentation
+  # ---------------------------------------------------------------------------
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - FL_EHDS_MODE=dashboard
+      - FL_EHDS_CONFIG=/app/config/config.yaml
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./data:/app/data:ro
+      - ./results:/app/results
+      - ./config:/app/config:ro
+    restart: unless-stopped
+
+  # ---------------------------------------------------------------------------
+  # Benchmark Runner - Automated experiment execution (on demand)
+  # ---------------------------------------------------------------------------
+  benchmark:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - FL_EHDS_MODE=benchmark
+      - FL_EHDS_CONFIG=/app/config/config.yaml
+    volumes:
+      - ./data:/app/data:ro
+      - ./results:/app/results
+      - ./config:/app/config:ro
+    profiles:
+      - benchmark

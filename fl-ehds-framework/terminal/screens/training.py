@@ -59,8 +59,8 @@ class TrainingScreen:
         self.results = None
 
     def _default_config(self) -> Dict[str, Any]:
-        """Return default configuration."""
-        return {
+        """Return default configuration from config.yaml with hardcoded fallbacks."""
+        fallback = {
             "algorithm": "FedAvg",
             "num_clients": 5,
             "num_rounds": 30,
@@ -72,18 +72,23 @@ class TrainingScreen:
             "dp_delta": 1e-5,
             "dp_clip_norm": 1.0,
             "data_distribution": "Non-IID (label skew)",
-            "mu": 0.1,  # FedProx proximal term, Ditto regularization
+            "mu": 0.1,
             "seed": 42,
-            # Server optimizer params for FedAdam, FedYogi, FedAdagrad
             "server_lr": 0.1,
             "beta1": 0.9,
             "beta2": 0.99,
             "tau": 1e-3,
-            # Dataset configuration
-            "dataset_type": "synthetic",  # "synthetic" or "imaging"
-            "dataset_name": None,  # Name of imaging dataset if selected
-            "dataset_path": None,  # Path to dataset
+            "dataset_type": "synthetic",
+            "dataset_name": None,
+            "dataset_path": None,
         }
+        try:
+            from config.config_loader import get_training_defaults
+            yaml_defaults = get_training_defaults()
+            fallback.update(yaml_defaults)
+        except (ImportError, Exception):
+            pass
+        return fallback
 
     def _get_available_datasets(self) -> Dict[str, Dict]:
         """Get available imaging datasets."""

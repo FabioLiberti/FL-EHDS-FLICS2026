@@ -1,0 +1,50 @@
+# Git
+.git
+.github
+.gitignore
+
+# Python cache
+__pycache__
+*.pyc
+*.pyo
+.pytest_cache
+.mypy_cache
+
+# Data (mounted as volume, not in image)
+data/
+
+# Results (mounted as volume)
+results/
+
+# IDE and OS
+.DS_Store
+.vscode
+.idea
+*.swp
+
+# Model checkpoints
+*.pt
+*.pth
+*.ckpt
+
+# Documentation and paper files
+*.aux
+*.log
+*.pdf
+*.rtf
+*.synctex.gz
+figures/
+paper_prec/
+_BK&OLDS/
+_DEVS_info/
+notebooks/
+
+# LaTeX
+main*.tex
+main*.aux
+main*.out
+
+# Docker (avoid recursive context)
+Dockerfile
+docker-compose.yml
+.dockerignore

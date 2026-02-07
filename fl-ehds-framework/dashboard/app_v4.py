@@ -1140,8 +1140,39 @@ def plot_hierarchy_tree():
 # CONFIGURATION PANEL (Complete from v3)
 # =============================================================================
 
+def _load_yaml_defaults() -> Dict:
+    """Load suggested defaults from config.yaml."""
+    try:
+        import sys
+        from pathlib import Path
+        sys.path.insert(0, str(Path(__file__).parent.parent))
+        from config.config_loader import get_dashboard_defaults
+        return get_dashboard_defaults()
+    except (ImportError, Exception):
+        return {}
+
+def _cfg_default(defaults: Dict, key: str, fallback, min_val=None, max_val=None, options=None):
+    """Get default value from YAML config with clamping for widget constraints."""
+    val = defaults.get(key, fallback)
+    try:
+        if options is not None:
+            val = min(options, key=lambda x: abs(x - val))
+        if min_val is not None:
+            val = max(min_val, val)
+        if max_val is not None:
+            val = min(max_val, val)
+    except (TypeError, ValueError):
+        val = fallback
+    return val
+
+
 def create_config_panel() -> Dict:
     """Create comprehensive configuration panel with explanations."""
+    _yaml_defaults = _load_yaml_defaults()
+
+    def d(key, fallback, min_val=None, max_val=None, options=None):
+        return _cfg_default(_yaml_defaults, key, fallback, min_val, max_val, options)
+
     st.sidebar.markdown("# ⚙️ Configurazione FL")
 
     # === NODES ===
@@ -1156,13 +1187,13 @@ def create_config_panel() -> Dict:
 
         num_nodes = st.slider(
             "Numero di Nodi",
-            min_value=2, max_value=15, value=5,
+            min_value=2, max_value=15, value=d("num_nodes", 5, 2, 15),
             help="Numero di ospedali/istituzioni nel network FL"
         )
 
         total_samples = st.number_input(
             "Campioni Totali",
-            min_value=500, max_value=10000, value=2000, step=100,
+            min_value=500, max_value=10000, value=d("total_samples", 2000, 500, 10000), step=100,
             help="Numero totale di record paziente distribuiti tra i nodi"
         )
 
@@ -1190,34 +1221,37 @@ def create_config_panel() -> Dict:
         if algorithm == 'FedProx':
             fedprox_mu = st.slider(
                 "μ (Proximal)",
-                min_value=0.001, max_value=1.0, value=0.1, step=0.01,
+                min_value=0.001, max_value=1.0, value=d("fedprox_mu", 0.1, 0.001, 1.0), step=0.01,
                 help="Coefficiente prossimale. Più alto = più regolarizzazione verso il modello globale"
             )
         else:
-            fedprox_mu = 0.1
+            fedprox_mu = d("fedprox_mu", 0.1)
 
         if algorithm in ['FedAdam', 'FedYogi', 'FedAdagrad']:
             col1, col2 = st.columns(2)
             with col1:
                 server_lr = st.number_input(
-                    "Server LR", 0.01, 1.0, 0.1,
+                    "Server LR", 0.01, 1.0, d("server_lr", 0.1, 0.01, 1.0),
                     help="Learning rate lato server"
                 )
                 beta1 = st.number_input(
-                    "β1", 0.0, 1.0, 0.9,
+                    "β1", 0.0, 1.0, d("beta1", 0.9, 0.0, 1.0),
                     help="Decadimento primo momento"
                 )
             with col2:
                 beta2 = st.number_input(
-                    "β2", 0.0, 1.0, 0.99,
+                    "β2", 0.0, 1.0, d("beta2", 0.99, 0.0, 1.0),
                     help="Decadimento secondo momento"
                 )
                 tau = st.number_input(
-                    "τ", 1e-8, 1e-1, 1e-3, format="%.0e",
+                    "τ", 1e-8, 1e-1, d("tau", 1e-3, 1e-8, 1e-1), format="%.0e",
                     help="Parametro di adattività"
                 )
         else:
-            server_lr, beta1, beta2, tau = 0.1, 0.9, 0.99, 1e-3
+            server_lr = d("server_lr", 0.1)
+            beta1 = d("beta1", 0.9)
+            beta2 = d("beta2", 0.99)
+            tau = d("tau", 1e-3)
 
     # === MODEL ===
     with st.sidebar.expander("🧠 MODELLO", expanded=True):
@@ -1253,20 +1287,21 @@ def create_config_panel() -> Dict:
 
         num_rounds = st.slider(
             "Training Rounds",
-            min_value=10, max_value=200, value=50,
+            min_value=10, max_value=200, value=d("num_rounds", 50, 10, 200),
             help="Numero di round di comunicazione server-client"
         )
 
         local_epochs = st.slider(
             "Local Epochs",
-            min_value=1, max_value=10, value=3,
+            min_value=1, max_value=10, value=d("local_epochs", 3, 1, 10),
             help="Epoche di training locale per round (E). Più epoche = meno comunicazione ma più drift"
         )
 
+        _lr_options = [0.001, 0.01, 0.05, 0.1, 0.2, 0.5]
         learning_rate = st.select_slider(
             "Learning Rate (η)",
-            options=[0.001, 0.01, 0.05, 0.1, 0.2, 0.5],
-            value=0.1,
+            options=_lr_options,
+            value=d("learning_rate", 0.1, options=_lr_options),
             help="Tasso di apprendimento per SGD locale"
         )
 
@@ -1291,7 +1326,7 @@ def create_config_panel() -> Dict:
 
         label_skew_alpha = st.slider(
             "α Dirichlet (Label Skew)",
-            min_value=0.1, max_value=10.0, value=0.5, step=0.1,
+            min_value=0.1, max_value=10.0, value=d("label_skew_alpha", 0.5, 0.1, 10.0), step=0.1,
             help="α piccolo = non-IID estremo (ogni nodo ha principalmente una classe). α grande = IID"
         )
 
@@ -1338,7 +1373,7 @@ def create_config_panel() -> Dict:
 
         use_dp = st.checkbox(
             "Abilita DP",
-            value=True,
+            value=d("use_dp", True),
             help="Abilita protezione Differential Privacy"
         )
 
@@ -1348,7 +1383,7 @@ def create_config_panel() -> Dict:
             with col1:
                 epsilon = st.number_input(
                     "Budget ε",
-                    min_value=0.1, max_value=100.0, value=10.0, step=0.5,
+                    min_value=0.1, max_value=100.0, value=d("epsilon", 10.0, 0.1, 100.0), step=0.5,
                     help="Privacy budget. Più basso = privacy più forte ma meno accuratezza"
                 )
 
@@ -1360,26 +1395,29 @@ def create_config_panel() -> Dict:
                 """)
 
             with col2:
+                _delta_options = [1e-3, 1e-4, 1e-5, 1e-6]
                 delta = st.select_slider(
                     "δ (Failure Prob)",
-                    options=[1e-3, 1e-4, 1e-5, 1e-6],
-                    value=1e-5,
+                    options=_delta_options,
+                    value=d("delta", 1e-5, options=_delta_options),
                     help="Probabilità di fallimento privacy"
                 )
 
                 clip_norm = st.slider(
                     "Clip Norm C",
-                    min_value=0.1, max_value=5.0, value=1.0, step=0.1,
+                    min_value=0.1, max_value=5.0, value=d("clip_norm", 1.0, 0.1, 5.0), step=0.1,
                     help="Norma massima del gradiente (sensibilità)"
                 )
         else:
-            epsilon, delta, clip_norm = 10.0, 1e-5, 1.0
+            epsilon = d("epsilon", 10.0)
+            delta = d("delta", 1e-5)
+            clip_norm = d("clip_norm", 1.0)
 
     # === SEED ===
     with st.sidebar.expander("🎲 RIPRODUCIBILITÀ", expanded=False):
         random_seed = st.number_input(
             "Random Seed",
-            min_value=0, max_value=9999, value=42,
+            min_value=0, max_value=9999, value=d("random_seed", 42, 0, 9999),
             help="Seed per riproducibilità degli esperimenti"
         )
 
@@ -1427,10 +1465,11 @@ def create_config_panel() -> Dict:
                 else:
                     st.warning("Nessun dataset trovato in data/")
 
+                _img_options = [32, 64, 128, 224]
                 img_size = st.select_slider(
                     "Dimensione Immagine",
-                    options=[32, 64, 128, 224],
-                    value=64,
+                    options=_img_options,
+                    value=d("img_size", 64, options=_img_options),
                     help="Immagini ridimensionate a NxN pixel"
                 )
 
