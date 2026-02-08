@@ -477,6 +477,21 @@ cross_border:
     include_evidence: true                  # Include detailed evidence per article
     fee_model_simulation: true              # Art. 42 fee model via comm cost tracking
 
+  # Governance Lifecycle (EHDS Chapter IV, Art. 33-44)
+  # Full HDAB simulation, permit lifecycle, data minimization
+  governance_lifecycle:
+    enabled: false                          # Enable full governance lifecycle
+    hdab_simulation: true                   # Simulate HDAB connect/auth
+    hdab_auth_method: "oauth2"              # oauth2 | mtls | api_key
+    permit_validity_days: 365               # Permit valid for N days
+    data_minimization:
+      enabled: false                        # Art. 44 purpose-based feature selection
+      importance_threshold: 0.01            # MI threshold for feature filtering
+      method: "mutual_info"                 # Feature importance method
+    audit_trail:
+      backend: "structured_file"            # Audit trail storage backend
+      retention_days: 2555                  # 7 years (GDPR Art. 30)
+
 # =============================================================================
 # FHIR R4 DATA PIPELINE
 # =============================================================================

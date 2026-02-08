@@ -381,3 +381,23 @@ def get_governance_training_config() -> Dict[str, Any]:
         "minimization_enabled": minimization.get("enabled", False),
         "importance_threshold": minimization.get("importance_threshold", 0.01),
     }
+
+
+def get_governance_lifecycle_config() -> Dict[str, Any]:
+    """Get Governance Lifecycle configuration (EHDS Ch. IV, Art. 33-44)."""
+    cfg = load_config()
+    cb = cfg.get("cross_border", {})
+    gl = cb.get("governance_lifecycle", {})
+    dm = gl.get("data_minimization", {})
+    at = gl.get("audit_trail", {})
+    return {
+        "enabled": gl.get("enabled", False),
+        "hdab_simulation": gl.get("hdab_simulation", True),
+        "hdab_auth_method": gl.get("hdab_auth_method", "oauth2"),
+        "permit_validity_days": gl.get("permit_validity_days", 365),
+        "data_minimization_enabled": dm.get("enabled", False),
+        "importance_threshold": dm.get("importance_threshold", 0.01),
+        "minimization_method": dm.get("method", "mutual_info"),
+        "audit_backend": at.get("backend", "structured_file"),
+        "audit_retention_days": at.get("retention_days", 2555),
+    }

@@ -282,6 +282,30 @@ class EHDSComplianceReport:
         """Art. 33: Permitted purposes for secondary use."""
         purpose = config.get("purpose", "scientific_research")
         violations = getattr(trainer, "purpose_violations", [])
+
+        # If governance bridge active, use real HDAB permit results
+        gov = getattr(trainer, "governance_bridge", None)
+        if gov is not None:
+            permits = gov.get_permits_summary()
+            total = permits.get("total_permits", 0)
+            if violations:
+                return ArticleAssessment(
+                    status=ComplianceStatus.NON_COMPLIANT,
+                    evidence=f"HDAB: {len(violations)} violations, {total} permits",
+                    details={"violations": violations, "purpose": purpose,
+                             "hdab_permits": total},
+                    module_name="governance_lifecycle",
+                    regulation_ref="EHDS Art. 33",
+                )
+            return ArticleAssessment(
+                status=ComplianceStatus.COMPLIANT,
+                evidence=f"HDAB validated: {total} permits, purpose={purpose}",
+                details={"purpose": purpose, "hdab_permits": total},
+                module_name="governance_lifecycle",
+                regulation_ref="EHDS Art. 33",
+            )
+
+        # Fallback: existing logic (string check only)
         if violations:
             return ArticleAssessment(
                 status=ComplianceStatus.NON_COMPLIANT,
@@ -355,7 +379,26 @@ class EHDSComplianceReport:
         self, trainer, config: Dict
     ) -> ArticleAssessment:
         """Art. 44: Data minimization principle."""
-        # Check governance training config for minimization
+        # If governance bridge ran minimization, use real results
+        report = getattr(trainer, "_minimization_report", None)
+        if report is not None:
+            return ArticleAssessment(
+                status=ComplianceStatus.COMPLIANT,
+                evidence=(
+                    f"{report['original_features']} -> {report['kept_features']} "
+                    f"features (-{report['reduction_pct']}%)"
+                ),
+                details={
+                    "method": "mutual_info",
+                    "original": report["original_features"],
+                    "kept": report["kept_features"],
+                    "reduction_pct": report["reduction_pct"],
+                },
+                module_name="data_minimization",
+                regulation_ref="EHDS Art. 44",
+            )
+
+        # Fallback: check governance training config
         try:
             from config.config_loader import get_governance_training_config
             gov_cfg = get_governance_training_config()
@@ -504,9 +547,49 @@ class EHDSComplianceReport:
         self, trainer, config: Dict
     ) -> ArticleAssessment:
         """Art. 53: Data permit validation."""
+        # If governance bridge active, use real HDAB permits
+        gov = getattr(trainer, "governance_bridge", None)
+        if gov is not None:
+            permits = gov.get_permits_summary()
+            budget = gov.get_budget_status()
+            violations = getattr(trainer, "purpose_violations", [])
+            n_permits = permits.get("total_permits", 0)
+            if violations:
+                return ArticleAssessment(
+                    status=ComplianceStatus.NON_COMPLIANT,
+                    evidence=(
+                        f"{len(violations)} violations, "
+                        f"{n_permits} HDAB permits"
+                    ),
+                    details={
+                        "hdab_permits": n_permits,
+                        "violations": len(violations),
+                        "budget_used": budget.get("used", 0),
+                        "budget_total": budget.get("total", 0),
+                    },
+                    module_name="governance_lifecycle",
+                    regulation_ref="EHDS Art. 53",
+                )
+            return ArticleAssessment(
+                status=ComplianceStatus.COMPLIANT,
+                evidence=(
+                    f"{n_permits} HDAB permits, "
+                    f"budget {budget['used']:.2f}/{budget['total']:.1f}"
+                ),
+                details={
+                    "hdab_permits": n_permits,
+                    "violations": 0,
+                    "budget_used": budget.get("used", 0),
+                    "budget_total": budget.get("total", 0),
+                },
+                module_name="governance_lifecycle",
+                regulation_ref="EHDS Art. 53",
+            )
+
+        # Fallback: simple hospital count as permits
         hospitals = getattr(trainer, "hospitals", [])
         violations = getattr(trainer, "purpose_violations", [])
-        n_permits = len(hospitals)  # Each hospital = simulated permit
+        n_permits = len(hospitals)
         if violations:
             return ArticleAssessment(
                 status=ComplianceStatus.NON_COMPLIANT,

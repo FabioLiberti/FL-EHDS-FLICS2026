@@ -345,6 +345,9 @@ class CrossBorderFederatedTrainer:
         # MyHealth@EU / NCPeH Integration (EHDS Art. 5-12)
         myhealth_eu_enabled: bool = False,
         myhealth_eu_config: Optional[Dict[str, Any]] = None,
+        # Governance Lifecycle (EHDS Chapter IV, Art. 33-44)
+        governance_lifecycle_enabled: bool = False,
+        governance_config: Optional[Dict[str, Any]] = None,
     ):
         self.countries = countries
         self.hospitals_per_country = hospitals_per_country
@@ -391,6 +394,12 @@ class CrossBorderFederatedTrainer:
         self.myhealth_eu_enabled = myhealth_eu_enabled
         self.myhealth_eu_config = myhealth_eu_config or {}
         self.myhealth_bridge = None
+
+        # Governance Lifecycle (EHDS Chapter IV, Art. 33-44)
+        self.governance_lifecycle_enabled = governance_lifecycle_enabled
+        self.governance_config = governance_config or {}
+        self.governance_bridge = None
+        self._minimization_report = None
 
         self.rng = np.random.RandomState(seed)
         self.audit_log = CrossBorderAuditLog()
@@ -627,6 +636,62 @@ class CrossBorderFederatedTrainer:
             )
             self.myhealth_bridge.start_session()
 
+        # Initialize Governance Lifecycle (if enabled) - EHDS Ch. IV, Art. 33-44
+        if self.governance_lifecycle_enabled:
+            from governance.governance_lifecycle import GovernanceLifecycleBridge
+            self.governance_bridge = GovernanceLifecycleBridge(
+                hospitals=self.hospitals,
+                countries=self.countries,
+                purpose=self.purpose,
+                global_epsilon=self.global_epsilon,
+                num_rounds=self.num_rounds,
+                config=self.governance_config,
+                seed=self.seed,
+            )
+
+            # Feature names for minimization (synthetic tabular data)
+            feature_names = self.governance_config.get("feature_names")
+            if feature_names is None and self.dataset_type == "synthetic":
+                feature_names = [
+                    'age', 'bmi', 'systolic_bp', 'glucose', 'cholesterol',
+                    'heart_rate', 'resp_rate', 'temperature', 'oxygen_sat',
+                    'prev_conditions',
+                ]
+
+            # Phase 1: pre-training (HDAB connect, permits, minimization)
+            train_data = getattr(self._trainer, 'client_data', None)
+            test_data = getattr(self._trainer, 'client_test_data', None)
+            gov_result = self.governance_bridge.pre_training(
+                train_data=train_data if self.dataset_type != "imaging" else None,
+                test_data=test_data if self.dataset_type != "imaging" else None,
+                feature_names=feature_names,
+            )
+
+            # Apply minimized data if features were reduced
+            if gov_result.get("minimized_train") is not None:
+                self._trainer.client_data = gov_result["minimized_train"]
+                if gov_result.get("minimized_test"):
+                    self._trainer.client_test_data = gov_result["minimized_test"]
+                # Rebuild model with new input_dim
+                new_dim = gov_result["input_dim"]
+                self._trainer._rebuild_model(new_dim)
+
+            self._minimization_report = gov_result.get("minimization_report")
+
+            # Log purpose violations from HDAB permits
+            for v in gov_result.get("purpose_violations", []):
+                self.purpose_violations.append(v)
+                self.audit_log.log(
+                    round_num=-1, hospital_id=-1, hospital_name="GOVERNANCE",
+                    country_code="EU", jurisdiction="EU HDAB",
+                    action="permit_purpose_rejection",
+                    epsilon_this_round=0, epsilon_cumulative=0,
+                    epsilon_budget_remaining=self.global_epsilon,
+                    samples_used=0, samples_opted_out=0,
+                    latency_ms=0, compliance_status="violation",
+                    details=v,
+                )
+
         # Training loop
         total_start = time.time()
         for round_num in range(self.num_rounds):
@@ -832,6 +897,12 @@ class CrossBorderFederatedTrainer:
                     success=True,
                 )
 
+            # Governance: log round completion (EHDS Ch. IV)
+            if self.governance_bridge:
+                self.governance_bridge.log_round_completion(
+                    round_num, round_result, per_round_epsilon
+                )
+
             # Build per-hospital info for this round
             per_hospital_info = []
             for hospital in self.hospitals:
@@ -887,6 +958,24 @@ class CrossBorderFederatedTrainer:
         if self.myhealth_bridge:
             self.myhealth_bridge.end_session()
 
+        # End governance session (EHDS Ch. IV)
+        governance_report = None
+        if self.governance_bridge:
+            final_metrics = {}
+            if self.history:
+                last = self.history[-1]
+                final_metrics = {
+                    "accuracy": last.global_acc,
+                    "f1": last.global_f1,
+                    "auc": last.global_auc,
+                    "loss": last.global_loss,
+                }
+            self.governance_bridge.end_session(
+                total_rounds=len(self.history),
+                final_metrics=final_metrics,
+            )
+            governance_report = self.governance_bridge.export_report()
+
         # Quality report in return dict
         quality_report = None
         if self.quality_manager:
@@ -906,6 +995,8 @@ class CrossBorderFederatedTrainer:
             "purpose_violations": self.purpose_violations,
             "quality_report": quality_report,
             "myhealth_eu_report": myhealth_eu_report,
+            "governance_report": governance_report,
+            "minimization_report": self._minimization_report,
         }
 
     def save_results(self, output_dir: str):
@@ -1099,6 +1190,22 @@ class CrossBorderFederatedTrainer:
                 for c1 in codes:
                     row = [c1] + [f"{matrix[c1][c2]:.1f}" for c2 in codes]
                     writer.writerow(row)
+
+        # 18. Governance lifecycle report (if enabled) - EHDS Ch. IV
+        if self.governance_bridge:
+            gov_report = self.governance_bridge.export_report()
+            with open(out / "governance_lifecycle.json", "w") as f:
+                json.dump(gov_report, f, indent=2, default=str)
+
+            # 19. Permits summary
+            permits = self.governance_bridge.get_permits_summary()
+            with open(out / "permits_summary.json", "w") as f:
+                json.dump(permits, f, indent=2, default=str)
+
+        # 20. Data minimization report (if applied)
+        if self._minimization_report:
+            with open(out / "minimization_report.json", "w") as f:
+                json.dump(self._minimization_report, f, indent=2, default=str)
 
     def _save_latex_table(self, out: Path):
         """Generate LaTeX table for cross-border results."""

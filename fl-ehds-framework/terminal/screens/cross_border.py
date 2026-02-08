@@ -118,6 +118,9 @@ class CrossBorderScreen:
             # MyHealth@EU / NCPeH Integration (EHDS Art. 5-12)
             "myhealth_eu_enabled": False,
             "myhealth_eu_config": {},
+            # Governance Lifecycle (EHDS Chapter IV, Art. 33-44)
+            "governance_lifecycle_enabled": False,
+            "governance_config": {},
         }
 
     def run(self):
@@ -136,9 +139,10 @@ class CrossBorderScreen:
             print(f"  {Style.TITLE}6{Colors.RESET} - Report IHE Compliance")
             print(f"  {Style.TITLE}7{Colors.RESET} - MyHealth@EU NCPeH Topology")
             print(f"  {Style.TITLE}8{Colors.RESET} - EHDS Compliance Report")
+            print(f"  {Style.TITLE}9{Colors.RESET} - Governance Lifecycle (Art. 33-44)")
             print(f"  {Style.TITLE}0{Colors.RESET} - Torna al menu principale")
 
-            choice = get_choice("\nScegli opzione", ["1", "2", "3", "4", "5", "6", "7", "8", "0"], default="1")
+            choice = get_choice("\nScegli opzione", ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"], default="1")
 
             if choice == "1":
                 self._configure()
@@ -156,6 +160,8 @@ class CrossBorderScreen:
                 self._show_ncpeh_topology()
             elif choice == "8":
                 self._show_ehds_compliance()
+            elif choice == "9":
+                self._show_governance_info()
             elif choice == "0":
                 return
 
@@ -385,6 +391,30 @@ class CrossBorderScreen:
 
             self.config["myhealth_eu_config"] = mheu_cfg
 
+        # Governance Lifecycle (EHDS Chapter IV, Art. 33-44)
+        print_subsection("Governance Layer (EHDS Chapter IV, Art. 33-44)")
+        self.config["governance_lifecycle_enabled"] = confirm(
+            "Abilitare HDAB + Permit Lifecycle + Data Minimization?",
+            default=False,
+        )
+        if self.config["governance_lifecycle_enabled"]:
+            print_info("Moduli attivati: HDAB simulation, Permit validation,")
+            print_info("                 Purpose limitation, Audit trail GDPR Art. 30")
+
+            gov_cfg = self.config.get("governance_config", {})
+
+            # Data Minimization (Art. 44)
+            gov_cfg["data_minimization_enabled"] = confirm(
+                "  Abilitare Data Minimization (Art. 44)?", default=True
+            )
+            if gov_cfg["data_minimization_enabled"]:
+                print_info("  Rimuove features non necessarie per lo scopo dichiarato.")
+                gov_cfg["importance_threshold"] = get_float(
+                    "  Soglia importanza MI", default=0.01, min_val=0.0, max_val=0.5,
+                )
+
+            self.config["governance_config"] = gov_cfg
+
         # Dataset
         print_subsection("Dataset")
         self.config["dataset_type"] = "synthetic"
@@ -440,6 +470,11 @@ class CrossBorderScreen:
             print(f"  {'MyHealth@EU':<22} Si (NCPeH, {strategy})")
         else:
             print(f"  {'MyHealth@EU':<22} No")
+        if c.get("governance_lifecycle_enabled"):
+            min_str = "SI" if c.get("governance_config", {}).get("data_minimization_enabled") else "NO"
+            print(f"  {'Governance':<22} HDAB + Permits + Minimization={min_str}")
+        else:
+            print(f"  {'Governance':<22} No")
 
         # Show per-country effective epsilon
         print_subsection("EPSILON EFFETTIVO PER GIURISDIZIONE")
@@ -518,6 +553,8 @@ class CrossBorderScreen:
                 data_quality_config=c.get("data_quality_config", {}),
                 myhealth_eu_enabled=c.get("myhealth_eu_enabled", False),
                 myhealth_eu_config=c.get("myhealth_eu_config", {}),
+                governance_lifecycle_enabled=c.get("governance_lifecycle_enabled", False),
+                governance_config=c.get("governance_config", {}),
             )
 
             # Show hospital mapping
@@ -704,6 +741,31 @@ class CrossBorderScreen:
             if summary['ep_total'] > 0:
                 print(f"  ePrescriptions processed: {summary['ep_total']}")
 
+        # Governance Lifecycle (EHDS Ch. IV)
+        if hasattr(trainer, 'governance_bridge') and trainer.governance_bridge:
+            print_subsection("GOVERNANCE LIFECYCLE (EHDS Ch. IV)")
+
+            budget = trainer.governance_bridge.get_budget_status()
+            print(f"  Privacy Budget: {budget['used']:.4f} / {budget['total']:.1f} "
+                  f"({budget['utilization_pct']:.1f}% used)")
+
+            permits = trainer.governance_bridge.get_permits_summary()
+            print(f"  Permits issued: {permits.get('total_permits', 0)}")
+            for cc, pinfo in permits.get('per_country', {}).items():
+                status_str = pinfo.get('status', '?')
+                pid = pinfo.get('permit_id', '')[:12]
+                print(f"    {cc}: [{status_str}] {pid}...")
+
+            if trainer._minimization_report:
+                print_subsection("DATA MINIMIZATION (Art. 44)")
+                mr = trainer._minimization_report
+                print(f"  Features: {mr['original_features']} -> {mr['kept_features']} "
+                      f"(-{mr['reduction_pct']}%)")
+                print(f"  Purpose: {mr['purpose']}")
+                print(f"  Kept: {', '.join(mr['kept_feature_names'])}")
+                if mr.get('purpose_removed'):
+                    print(f"  Removed (purpose filter): {', '.join(mr['purpose_removed'])}")
+
         # Compliance summary
         violations = trainer.audit_log.get_violations()
         print_subsection("COMPLIANCE SUMMARY")
@@ -758,6 +820,11 @@ class CrossBorderScreen:
                 print(f"  - myhealth_eu_report.json")
                 print(f"  - ncpeh_topology.csv")
                 print(f"  - inter_ncp_latency.csv")
+            if hasattr(trainer, 'governance_bridge') and trainer.governance_bridge:
+                print(f"  - governance_lifecycle.json")
+                print(f"  - permits_summary.json")
+            if hasattr(trainer, '_minimization_report') and trainer._minimization_report:
+                print(f"  - minimization_report.json")
             # EHDS Compliance Report
             if self._last_compliance_report:
                 import json as _json
@@ -848,6 +915,8 @@ class CrossBorderScreen:
                 data_quality_config=c.get("data_quality_config", {}),
                 myhealth_eu_enabled=c.get("myhealth_eu_enabled", False),
                 myhealth_eu_config=c.get("myhealth_eu_config", {}),
+                governance_lifecycle_enabled=c.get("governance_lifecycle_enabled", False),
+                governance_config=c.get("governance_config", {}),
             )
 
             # Schedule opt-out: will be triggered during training
@@ -1093,6 +1162,58 @@ class CrossBorderScreen:
             print_error(f"Errore: {e}")
             import traceback
             traceback.print_exc()
+
+        input(f"\n{Style.MUTED}Premi Enter per continuare...{Colors.RESET}")
+
+    def _show_governance_info(self):
+        """Display governance lifecycle info (menu item 9)."""
+        clear_screen()
+        print_section("HDAB GOVERNANCE LIFECYCLE (EHDS Chapter IV)")
+
+        print_info("Full EHDS Chapter IV lifecycle for secondary use of health data\n")
+
+        print_subsection("LIFECYCLE STEPS")
+        steps = [
+            ("1", "HDAB Connect & Auth (Art. 50)", "MultiHDABCoordinator", "governance/hdab_integration.py"),
+            ("2", "Permit Request (Art. 53)", "HDABClient.request_new_permit()", "governance/hdab_integration.py"),
+            ("3", "Purpose Validation (Art. 33-34)", "PermitValidator", "governance/data_permits.py"),
+            ("4", "Data Minimization (Art. 44)", "DataMinimizer", "governance/data_minimization.py"),
+            ("5", "Training with Budget (Art. 42)", "PermitAwareTrainingContext", "governance/permit_training.py"),
+            ("6", "Per-Round Audit (GDPR Art. 30)", "ComplianceLogger", "governance/compliance_logging.py"),
+            ("7", "Session Closure", "GovernanceLifecycleBridge", "governance/governance_lifecycle.py"),
+        ]
+
+        print(f"\n  {'#':<4} {'Step':<38} {'Module':<32} {'File'}")
+        print("  " + "-" * 105)
+        for num, step, module, filepath in steps:
+            print(f"  {num:<4} {step:<38} {module:<32} {filepath}")
+
+        print_subsection("DATA MINIMIZATION (Art. 44)")
+        print_info("Purpose-based feature selection in two phases:")
+        print_info("  Phase 1: Remove features not relevant to declared purpose")
+        print_info("  Phase 2: MI-based importance filtering (threshold-based)")
+        print_info("")
+        print_info("Supported purposes (EHDS Art. 53):")
+        purposes = [
+            "scientific_research", "public_health_surveillance",
+            "health_policy", "education_training",
+            "ai_system_development", "personalized_medicine",
+            "official_statistics", "patient_safety",
+        ]
+        for p in purposes:
+            print(f"    - {p}")
+
+        print_subsection("PERMIT-AWARE TRAINING")
+        print_info("Privacy budget tracked per-round under HDAB permit:")
+        print_info("  - Each round consumes epsilon_spent from total budget")
+        print_info("  - Training halts if budget exhausted or permit expired")
+        print_info("  - Audit trail written in GDPR Art. 30 format")
+
+        print_subsection("COME USARE")
+        print_info("1. Menu 1 (Configura) -> Abilita 'Governance Layer'")
+        print_info("2. Menu 4 (Esegui simulazione) -> Governance attivato automaticamente")
+        print_info("3. Output: governance_lifecycle.json, permits_summary.json,")
+        print_info("   minimization_report.json (if minimization enabled)")
 
         input(f"\n{Style.MUTED}Premi Enter per continuare...{Colors.RESET}")
 

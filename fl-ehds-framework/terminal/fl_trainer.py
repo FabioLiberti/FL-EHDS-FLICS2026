@@ -549,6 +549,52 @@ class FederatedTrainer:
         # History
         self.history = []
 
+    def _rebuild_model(self, new_input_dim: int):
+        """Rebuild model and algorithm state after data minimization changes input_dim."""
+        self.global_model = HealthcareMLP(input_dim=new_input_dim).to(self.device)
+
+        # Reinit SCAFFOLD control variates
+        if self.algorithm == "SCAFFOLD":
+            self.server_control = {
+                name: torch.zeros_like(param)
+                for name, param in self.global_model.named_parameters()
+            }
+            self.client_controls = {
+                i: {name: torch.zeros_like(param)
+                    for name, param in self.global_model.named_parameters()}
+                for i in range(self.num_clients)
+            }
+
+        # Reinit FedAdam/FedYogi/FedAdagrad momentum/velocity
+        if self.algorithm in ["FedAdam", "FedYogi", "FedAdagrad"]:
+            self.server_momentum = {
+                name: torch.zeros_like(param)
+                for name, param in self.global_model.named_parameters()
+            }
+            self.server_velocity = {
+                name: torch.ones_like(param) * (self.tau ** 2)
+                for name, param in self.global_model.named_parameters()
+            }
+
+        # Reinit personalized models
+        if self.algorithm in ["Per-FedAvg", "Ditto"]:
+            self.personalized_models = {
+                i: deepcopy(self.global_model)
+                for i in range(self.num_clients)
+            }
+
+        # Reinit FedDyn state
+        if self.algorithm == "FedDyn":
+            self.server_h = {
+                name: torch.zeros_like(param)
+                for name, param in self.global_model.named_parameters()
+            }
+            self.client_grad_corrections = {
+                i: {name: torch.zeros_like(param)
+                    for name, param in self.global_model.named_parameters()}
+                for i in range(self.num_clients)
+            }
+
     def _get_client_dataloader(self, client_id: int) -> DataLoader:
         """Create DataLoader for client."""
         X, y = self.client_data[client_id]
