@@ -507,6 +507,17 @@ cross_border:
       enabled: true                         # Permit deadline enforcement
       permit_duration_hours: 24.0           # Hours before permit expires
 
+  # Fee Model and Sustainability (EHDS Art. 42)
+  # Simulates HDAB cost-recovery fees and budget optimization
+  fee_model:
+    enabled: false
+    max_budget_eur: null                    # null = no budget limit
+    enable_optimization: true               # Budget constraint optimization
+    model_size_mb: 2.0                      # FL model update size (MB)
+    min_hospitals: 2                        # Min hospitals for optimization
+    min_rounds: 3                           # Min rounds for optimization
+    min_sampling_factor: 0.25               # Min sampling factor (25%)
+
 # =============================================================================
 # FHIR R4 DATA PIPELINE
 # =============================================================================

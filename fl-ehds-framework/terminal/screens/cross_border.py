@@ -124,6 +124,9 @@ class CrossBorderScreen:
             # Secure Processing Environment (EHDS Art. 50)
             "secure_processing_enabled": False,
             "secure_processing_config": {},
+            # Fee Model (EHDS Art. 42)
+            "fee_model_enabled": False,
+            "fee_model_config": {},
         }
 
     def run(self):
@@ -445,6 +448,28 @@ class CrossBorderScreen:
                 )
             self.config["secure_processing_config"] = sp_cfg
 
+        # Fee Model and Sustainability (EHDS Art. 42)
+        print_subsection("Fee Model and Sustainability (EHDS Art. 42)")
+        self.config["fee_model_enabled"] = confirm(
+            "Abilitare Fee Model (costi HDAB + budget optimization)?",
+            default=False,
+        )
+        if self.config["fee_model_enabled"]:
+            fm_cfg = self.config.get("fee_model_config", {})
+            fm_cfg["model_size_mb"] = get_float(
+                "  Model update size (MB)", default=2.0, min_val=0.1, max_val=100.0
+            )
+            if confirm("  Impostare budget massimo?", default=False):
+                fm_cfg["max_budget_eur"] = get_float(
+                    "  Budget massimo (EUR)",
+                    default=5000.0, min_val=100.0, max_val=1000000.0,
+                )
+                fm_cfg["enable_optimization"] = True
+            else:
+                fm_cfg["max_budget_eur"] = None
+                fm_cfg["enable_optimization"] = False
+            self.config["fee_model_config"] = fm_cfg
+
         # Dataset
         print_subsection("Dataset")
         self.config["dataset_type"] = "synthetic"
@@ -517,6 +542,13 @@ class CrossBorderScreen:
             print(f"  {'Secure Processing':<22} {', '.join(parts)}")
         else:
             print(f"  {'Secure Processing':<22} No")
+
+        if c.get("fee_model_enabled"):
+            fm = c.get("fee_model_config", {})
+            budget_str = f"{fm.get('max_budget_eur'):.0f} EUR" if fm.get("max_budget_eur") else "No limit"
+            print(f"  {'Fee Model':<22} Budget={budget_str}, Model={fm.get('model_size_mb', 2.0)}MB")
+        else:
+            print(f"  {'Fee Model':<22} No")
 
         # Show per-country effective epsilon
         print_subsection("EPSILON EFFETTIVO PER GIURISDIZIONE")
@@ -599,6 +631,8 @@ class CrossBorderScreen:
                 governance_config=c.get("governance_config", {}),
                 secure_processing_enabled=c.get("secure_processing_enabled", False),
                 secure_processing_config=c.get("secure_processing_config", {}),
+                fee_model_enabled=c.get("fee_model_enabled", False),
+                fee_model_config=c.get("fee_model_config", {}),
             )
 
             # Show hospital mapping
@@ -838,6 +872,35 @@ class CrossBorderScreen:
                 print(f"  Time Guard: {tg.get('remaining_hours', 0):.1f}h remaining, "
                       f"expired={tg.get('expired', False)}")
 
+        # Fee Model (Art. 42)
+        if hasattr(trainer, 'fee_model_bridge') and trainer.fee_model_bridge:
+            print_subsection("FEE MODEL (EHDS Art. 42)")
+            fee_report = trainer.fee_model_bridge.export_report()
+            bd = fee_report["cost_breakdown"]
+            print(f"  Total Cost:      {Style.HIGHLIGHT}{fee_report['total_cost_eur']:.2f} EUR{Colors.RESET}")
+            print(f"  Base Access:     {bd['base_access']:.2f} EUR")
+            print(f"  Data Volume:     {bd['data_volume']:.2f} EUR")
+            print(f"  Computation:     {bd['computation']:.2f} EUR")
+            print(f"  Transfer:        {bd['transfer']:.2f} EUR")
+
+            # Per-country breakdown
+            print(f"\n  {'Country':<6} {'Total EUR':>10} {'Hospitals':>10}")
+            print("  " + "-" * 30)
+            for cc, cf in sorted(fee_report.get("fees_by_country", {}).items()):
+                print(f"  {cc:<6} {cf['total']:>10.2f} {cf['hospitals']:>10}")
+
+            # Budget optimization result
+            if fee_report.get("budget_optimization"):
+                opt = fee_report["budget_optimization"]
+                print_subsection("BUDGET OPTIMIZATION")
+                status = "FEASIBLE" if opt["feasible"] else "INFEASIBLE"
+                status_color = Style.SUCCESS if opt["feasible"] else Style.ERROR
+                print(f"  Status:          {status_color}{status}{Colors.RESET}")
+                print(f"  Original Cost:   {opt['original_cost_eur']:.2f} EUR")
+                print(f"  Optimized Cost:  {opt['optimized_cost_eur']:.2f} EUR")
+                print(f"  Strategy:        {opt['strategy']}")
+                print(f"  {opt['explanation']}")
+
         # Compliance summary
         violations = trainer.audit_log.get_violations()
         print_subsection("COMPLIANCE SUMMARY")
@@ -899,6 +962,9 @@ class CrossBorderScreen:
                 print(f"  - minimization_report.json")
             if hasattr(trainer, 'secure_processing_bridge') and trainer.secure_processing_bridge:
                 print(f"  - secure_processing.json")
+            if hasattr(trainer, 'fee_model_bridge') and trainer.fee_model_bridge:
+                print(f"  - fee_model.json")
+                print(f"  - fee_breakdown.csv")
             # EHDS Compliance Report
             if self._last_compliance_report:
                 import json as _json
@@ -993,6 +1059,8 @@ class CrossBorderScreen:
                 governance_config=c.get("governance_config", {}),
                 secure_processing_enabled=c.get("secure_processing_enabled", False),
                 secure_processing_config=c.get("secure_processing_config", {}),
+                fee_model_enabled=c.get("fee_model_enabled", False),
+                fee_model_config=c.get("fee_model_config", {}),
             )
 
             # Schedule opt-out: will be triggered during training

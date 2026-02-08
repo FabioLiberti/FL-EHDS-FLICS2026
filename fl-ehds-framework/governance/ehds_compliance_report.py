@@ -356,6 +356,35 @@ class EHDSComplianceReport:
         self, trainer, config: Dict
     ) -> ArticleAssessment:
         """Art. 42: Fee model and cost tracking."""
+        # Check FeeModelBridge first (full fee simulation)
+        fee_bridge = getattr(trainer, "fee_model_bridge", None)
+        if fee_bridge is not None:
+            report = fee_bridge.export_report()
+            total_eur = report.get("total_cost_eur", 0.0)
+            bd = report.get("cost_breakdown", {})
+            parts = [
+                f"Total: {total_eur:.2f} EUR",
+                f"Base: {bd.get('base_access', 0):.0f}",
+                f"Data: {bd.get('data_volume', 0):.0f}",
+                f"Compute: {bd.get('computation', 0):.0f}",
+                f"Transfer: {bd.get('transfer', 0):.0f}",
+            ]
+            opt = report.get("budget_optimization")
+            if opt:
+                parts.append(f"Optimization: {opt['strategy']}")
+            return ArticleAssessment(
+                status=ComplianceStatus.COMPLIANT,
+                evidence=" | ".join(parts),
+                details={
+                    "total_cost_eur": total_eur,
+                    "cost_breakdown": bd,
+                    "budget_optimization": opt,
+                },
+                module_name="fee_model",
+                regulation_ref="EHDS Art. 42",
+            )
+
+        # Fallback: MyHealth@EU communication tracking
         bridge = getattr(trainer, "myhealth_bridge", None)
         if bridge and bridge.round_metrics:
             total_bytes = sum(
@@ -363,14 +392,14 @@ class EHDSComplianceReport:
             total_kb = total_bytes / 1024
             return ArticleAssessment(
                 status=ComplianceStatus.PARTIAL,
-                evidence=f"{total_kb:.1f} KB tracked (cost simulation)",
+                evidence=f"{total_kb:.1f} KB tracked (via MyHealth@EU)",
                 details={"communication_kb": round(total_kb, 1)},
                 module_name="fee_model",
                 regulation_ref="EHDS Art. 42",
             )
         return ArticleAssessment(
             status=ComplianceStatus.NOT_ASSESSED,
-            evidence="Communication cost tracking not active",
+            evidence="Fee model not enabled",
             module_name="fee_model",
             regulation_ref="EHDS Art. 42",
         )

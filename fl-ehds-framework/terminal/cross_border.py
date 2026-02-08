@@ -49,6 +49,11 @@ class EUCountryProfile:
     # Geographic center (for distance calc)
     lat: float
     lon: float
+    # Fee model (EHDS Art. 42) - cost-recovery fees
+    fee_base_eur: float = 0.0           # Fixed session access fee
+    fee_per_record_eur: float = 0.0     # Per patient record per round
+    fee_per_round_eur: float = 0.0      # Computation fee per round
+    fee_per_mb_eur: float = 0.0         # Transfer fee per MB
 
 
 # Realistic EU country profiles based on GDPR enforcement history,
@@ -62,6 +67,7 @@ EU_COUNTRY_PROFILES: Dict[str, EUCountryProfile] = {
         data_retention_days=365,
         opt_out_rate=0.12,
         latency_ms=(15, 35), lat=51.2, lon=10.4,
+        fee_base_eur=500.0, fee_per_record_eur=0.05, fee_per_round_eur=50.0, fee_per_mb_eur=0.10,
     ),
     "FR": EUCountryProfile(
         code="FR", name="France",
@@ -71,6 +77,7 @@ EU_COUNTRY_PROFILES: Dict[str, EUCountryProfile] = {
         data_retention_days=730,
         opt_out_rate=0.08,
         latency_ms=(12, 30), lat=46.6, lon=2.2,
+        fee_base_eur=400.0, fee_per_record_eur=0.04, fee_per_round_eur=40.0, fee_per_mb_eur=0.08,
     ),
     "IT": EUCountryProfile(
         code="IT", name="Italy",
@@ -81,6 +88,7 @@ EU_COUNTRY_PROFILES: Dict[str, EUCountryProfile] = {
         data_retention_days=1095,
         opt_out_rate=0.05,
         latency_ms=(18, 40), lat=42.5, lon=12.5,
+        fee_base_eur=300.0, fee_per_record_eur=0.03, fee_per_round_eur=30.0, fee_per_mb_eur=0.06,
     ),
     "ES": EUCountryProfile(
         code="ES", name="Spain",
@@ -91,6 +99,7 @@ EU_COUNTRY_PROFILES: Dict[str, EUCountryProfile] = {
         data_retention_days=1825,
         opt_out_rate=0.04,
         latency_ms=(20, 45), lat=40.4, lon=-3.7,
+        fee_base_eur=250.0, fee_per_record_eur=0.025, fee_per_round_eur=25.0, fee_per_mb_eur=0.05,
     ),
     "NL": EUCountryProfile(
         code="NL", name="Netherlands",
@@ -100,6 +109,7 @@ EU_COUNTRY_PROFILES: Dict[str, EUCountryProfile] = {
         data_retention_days=730,
         opt_out_rate=0.10,
         latency_ms=(10, 25), lat=52.4, lon=4.9,
+        fee_base_eur=450.0, fee_per_record_eur=0.045, fee_per_round_eur=45.0, fee_per_mb_eur=0.09,
     ),
     "SE": EUCountryProfile(
         code="SE", name="Sweden",
@@ -109,6 +119,7 @@ EU_COUNTRY_PROFILES: Dict[str, EUCountryProfile] = {
         data_retention_days=365,
         opt_out_rate=0.06,
         latency_ms=(25, 50), lat=59.3, lon=18.1,
+        fee_base_eur=350.0, fee_per_record_eur=0.035, fee_per_round_eur=35.0, fee_per_mb_eur=0.07,
     ),
     "PL": EUCountryProfile(
         code="PL", name="Poland",
@@ -120,6 +131,7 @@ EU_COUNTRY_PROFILES: Dict[str, EUCountryProfile] = {
         data_retention_days=1825,
         opt_out_rate=0.03,
         latency_ms=(30, 60), lat=52.2, lon=21.0,
+        fee_base_eur=100.0, fee_per_record_eur=0.01, fee_per_round_eur=10.0, fee_per_mb_eur=0.02,
     ),
     "AT": EUCountryProfile(
         code="AT", name="Austria",
@@ -129,6 +141,7 @@ EU_COUNTRY_PROFILES: Dict[str, EUCountryProfile] = {
         data_retention_days=365,
         opt_out_rate=0.11,
         latency_ms=(12, 30), lat=48.2, lon=16.4,
+        fee_base_eur=480.0, fee_per_record_eur=0.048, fee_per_round_eur=48.0, fee_per_mb_eur=0.095,
     ),
     "BE": EUCountryProfile(
         code="BE", name="Belgium",
@@ -139,6 +152,7 @@ EU_COUNTRY_PROFILES: Dict[str, EUCountryProfile] = {
         data_retention_days=1095,
         opt_out_rate=0.07,
         latency_ms=(10, 25), lat=50.8, lon=4.4,
+        fee_base_eur=320.0, fee_per_record_eur=0.032, fee_per_round_eur=32.0, fee_per_mb_eur=0.065,
     ),
     "PT": EUCountryProfile(
         code="PT", name="Portugal",
@@ -149,6 +163,7 @@ EU_COUNTRY_PROFILES: Dict[str, EUCountryProfile] = {
         data_retention_days=1460,
         opt_out_rate=0.04,
         latency_ms=(25, 55), lat=38.7, lon=-9.1,
+        fee_base_eur=200.0, fee_per_record_eur=0.02, fee_per_round_eur=20.0, fee_per_mb_eur=0.04,
     ),
 }
 
@@ -351,6 +366,9 @@ class CrossBorderFederatedTrainer:
         # Secure Processing Environment (EHDS Art. 50)
         secure_processing_enabled: bool = False,
         secure_processing_config: Optional[Dict[str, Any]] = None,
+        # Fee Model and Sustainability (EHDS Art. 42)
+        fee_model_enabled: bool = False,
+        fee_model_config: Optional[Dict[str, Any]] = None,
     ):
         self.countries = countries
         self.hospitals_per_country = hospitals_per_country
@@ -408,6 +426,11 @@ class CrossBorderFederatedTrainer:
         self.secure_processing_enabled = secure_processing_enabled
         self.secure_processing_config = secure_processing_config or {}
         self.secure_processing_bridge = None
+
+        # Fee Model (EHDS Art. 42)
+        self.fee_model_enabled = fee_model_enabled
+        self.fee_model_config = fee_model_config or {}
+        self.fee_model_bridge = None
 
         self.rng = np.random.RandomState(seed)
         self.audit_log = CrossBorderAuditLog()
@@ -709,6 +732,21 @@ class CrossBorderFederatedTrainer:
             )
             self.secure_processing_bridge.start_session()
 
+        # Initialize Fee Model bridge (EHDS Art. 42)
+        if self.fee_model_enabled:
+            from governance.fee_model import FeeModelBridge
+            self.fee_model_bridge = FeeModelBridge(
+                hospitals=self.hospitals,
+                config=self.fee_model_config,
+                num_rounds=self.num_rounds,
+                model_size_mb=self.fee_model_config.get("model_size_mb", 2.0),
+            )
+            max_budget = self.fee_model_config.get("max_budget_eur")
+            if max_budget and self.fee_model_config.get("enable_optimization", True):
+                self.fee_model_bridge.optimization_result = (
+                    self.fee_model_bridge.optimize_for_budget(max_budget)
+                )
+
         # Training loop
         total_start = time.time()
         for round_num in range(self.num_rounds):
@@ -933,6 +971,10 @@ class CrossBorderFederatedTrainer:
                 )
                 self._trainer.global_model.load_state_dict(updated_state)
 
+            # Fee Model: record round fees (EHDS Art. 42)
+            if self.fee_model_bridge:
+                self.fee_model_bridge.record_round(round_num, self.hospitals)
+
             # Build per-hospital info for this round
             per_hospital_info = []
             for hospital in self.hospitals:
@@ -1025,6 +1067,11 @@ class CrossBorderFederatedTrainer:
         if self.myhealth_bridge:
             myhealth_eu_report = self.myhealth_bridge.export_report()
 
+        # Fee Model report (EHDS Art. 42)
+        fee_model_report = None
+        if self.fee_model_bridge:
+            fee_model_report = self.fee_model_bridge.export_report()
+
         return {
             "history": self.history,
             "hospitals": self.hospitals,
@@ -1037,6 +1084,7 @@ class CrossBorderFederatedTrainer:
             "governance_report": governance_report,
             "minimization_report": self._minimization_report,
             "secure_processing_report": secure_processing_report,
+            "fee_model_report": fee_model_report,
         }
 
     def save_results(self, output_dir: str):
@@ -1252,6 +1300,27 @@ class CrossBorderFederatedTrainer:
             sp_report = self.secure_processing_bridge.export_report()
             with open(out / "secure_processing.json", "w") as f:
                 json.dump(sp_report, f, indent=2, default=str)
+
+        # 22. Fee Model report (EHDS Art. 42)
+        if self.fee_model_bridge:
+            fee_report = self.fee_model_bridge.export_report()
+            with open(out / "fee_model.json", "w") as f:
+                json.dump(fee_report, f, indent=2, default=str)
+            # Fee breakdown CSV
+            with open(out / "fee_breakdown.csv", "w", newline="") as f:
+                writer = csv.writer(f)
+                writer.writerow([
+                    "hospital_id", "name", "country",
+                    "base_access_eur", "data_volume_eur",
+                    "computation_eur", "transfer_eur", "total_eur",
+                ])
+                for hid, hf in fee_report.get("fees_by_hospital", {}).items():
+                    writer.writerow([
+                        hid, hf["name"], hf["country"],
+                        f"{hf['base_access']:.2f}", f"{hf['data_volume']:.2f}",
+                        f"{hf['computation']:.2f}", f"{hf['transfer']:.2f}",
+                        f"{hf['total']:.2f}",
+                    ])
 
     def _save_latex_table(self, out: Path):
         """Generate LaTeX table for cross-border results."""

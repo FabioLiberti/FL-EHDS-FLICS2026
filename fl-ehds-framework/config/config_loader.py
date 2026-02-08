@@ -423,3 +423,19 @@ def get_secure_processing_config() -> Dict[str, Any]:
         "time_limited_enabled": tl.get("enabled", True),
         "permit_duration_hours": tl.get("permit_duration_hours", 24.0),
     }
+
+
+def get_fee_model_config() -> Dict[str, Any]:
+    """Get Fee Model configuration (EHDS Art. 42)."""
+    cfg = load_config()
+    cb = cfg.get("cross_border", {})
+    fm = cb.get("fee_model", {})
+    return {
+        "enabled": fm.get("enabled", False),
+        "max_budget_eur": fm.get("max_budget_eur"),
+        "enable_optimization": fm.get("enable_optimization", True),
+        "model_size_mb": fm.get("model_size_mb", 2.0),
+        "min_hospitals": fm.get("min_hospitals", 2),
+        "min_rounds": fm.get("min_rounds", 3),
+        "min_sampling_factor": fm.get("min_sampling_factor", 0.25),
+    }
