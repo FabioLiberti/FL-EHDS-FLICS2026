@@ -407,6 +407,24 @@ cross_border:
     #   DE: {epsilon_max: 1.0, delta: 1e-6}
     #   IT: {epsilon_max: 5.0, delta: 1e-5}
 
+  # IHE Integration Profiles for FL
+  # Maps standard IHE profiles (ATNA, XDS-I.b, CT, XUA, BPPC) to FL operations
+  # for EHDS compliance. See governance/ihe_fl_bridge.py for implementation.
+  ihe:
+    enabled: false                     # Off by default (backward compatible)
+    atna_audit: true                   # ATNA audit trail per FL round
+    xds_imaging_simulation: true       # XDS-I.b DICOM retrieve simulation
+    consistent_time: true              # CT profile: NTP sync simulation
+    mtls_simulation: true              # mTLS between FL nodes
+    xua_authentication: true           # XUA SAML assertion per session
+    bppc_consent_check: true           # BPPC consent verification
+    # NTP server for CT profile (simulated)
+    ntp_server: "ntp.ehds.europa.eu"
+    max_clock_drift_ms: 50             # Max tolerated drift between nodes (ms)
+    # Certificate simulation
+    certificate_authority: "EHDS-CA"
+    certificate_validity_days: 365
+
 # =============================================================================
 # FHIR R4 DATA PIPELINE
 # =============================================================================

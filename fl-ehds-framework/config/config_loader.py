@@ -294,6 +294,26 @@ def get_jurisdiction_privacy_config() -> Dict[str, Any]:
     }
 
 
+def get_ihe_config() -> Dict[str, Any]:
+    """Get IHE Integration Profiles configuration for cross-border FL."""
+    cfg = load_config()
+    cb = cfg.get("cross_border", {})
+    ihe = cb.get("ihe", {})
+    return {
+        "enabled": ihe.get("enabled", False),
+        "atna_audit": ihe.get("atna_audit", True),
+        "xds_imaging_simulation": ihe.get("xds_imaging_simulation", True),
+        "consistent_time": ihe.get("consistent_time", True),
+        "mtls_simulation": ihe.get("mtls_simulation", True),
+        "xua_authentication": ihe.get("xua_authentication", True),
+        "bppc_consent_check": ihe.get("bppc_consent_check", True),
+        "ntp_server": ihe.get("ntp_server", "ntp.ehds.europa.eu"),
+        "max_clock_drift_ms": ihe.get("max_clock_drift_ms", 50),
+        "certificate_authority": ihe.get("certificate_authority", "EHDS-CA"),
+        "certificate_validity_days": ihe.get("certificate_validity_days", 365),
+    }
+
+
 def get_governance_training_config() -> Dict[str, Any]:
     """Get governance training integration configuration."""
     cfg = load_config()

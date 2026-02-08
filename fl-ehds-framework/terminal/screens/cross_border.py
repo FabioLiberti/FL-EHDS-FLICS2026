@@ -106,6 +106,9 @@ class CrossBorderScreen:
             "hospital_allocation_fraction": 1.0,
             "min_active_clients": 2,
             "country_overrides": {},
+            # IHE Integration
+            "ihe_enabled": False,
+            "ihe_config": {},
         }
 
     def run(self):
@@ -121,9 +124,10 @@ class CrossBorderScreen:
             print(f"  {Style.TITLE}3{Colors.RESET} - Mostra profili paesi EU")
             print(f"  {Style.TITLE}4{Colors.RESET} - Esegui simulazione")
             print(f"  {Style.TITLE}5{Colors.RESET} - Simula opt-out paese (Art. 48)")
+            print(f"  {Style.TITLE}6{Colors.RESET} - Report IHE Compliance")
             print(f"  {Style.TITLE}0{Colors.RESET} - Torna al menu principale")
 
-            choice = get_choice("\nScegli opzione", ["1", "2", "3", "4", "5", "0"], default="1")
+            choice = get_choice("\nScegli opzione", ["1", "2", "3", "4", "5", "6", "0"], default="1")
 
             if choice == "1":
                 self._configure()
@@ -135,6 +139,8 @@ class CrossBorderScreen:
                 self._run_simulation()
             elif choice == "5":
                 self._simulate_optout()
+            elif choice == "6":
+                self._show_ihe_report()
             elif choice == "0":
                 return
 
@@ -281,6 +287,28 @@ class CrossBorderScreen:
         # Latency
         self.config["simulate_latency"] = confirm("Simulare latenza di rete?", default=True)
 
+        # IHE Integration Profiles
+        print_subsection("IHE Integration Profiles")
+        self.config["ihe_enabled"] = confirm(
+            "Abilitare profili IHE per FL?", default=False
+        )
+        if self.config["ihe_enabled"]:
+            print_info("Profili IHE: ATNA (audit), XDS-I.b (imaging),")
+            print_info("CT (time sync), mTLS (security), XUA (auth), BPPC (consent)\n")
+
+            ihe_cfg = {}
+            ihe_cfg["atna_audit"] = confirm("  ATNA audit trail?", default=True)
+            ihe_cfg["xds_imaging_simulation"] = confirm("  XDS-I.b imaging retrieve?", default=True)
+            ihe_cfg["consistent_time"] = confirm("  CT time synchronization?", default=True)
+            ihe_cfg["mtls_simulation"] = confirm("  mTLS security?", default=True)
+
+            if ihe_cfg.get("consistent_time", True):
+                ihe_cfg["max_clock_drift_ms"] = get_float(
+                    "  Max clock drift (ms)", default=50.0, min_val=1.0, max_val=500.0
+                )
+
+            self.config["ihe_config"] = ihe_cfg
+
         # Dataset
         print_subsection("Dataset")
         self.config["dataset_type"] = "synthetic"
@@ -325,6 +353,7 @@ class CrossBorderScreen:
         print(f"  {'Epsilon globale':<22} {c['global_epsilon']}")
         print(f"  {'Latenza simulata':<22} {'Si' if c['simulate_latency'] else 'No'}")
         print(f"  {'Dataset':<22} {c['dataset_type']}")
+        print(f"  {'IHE Profiles':<22} {'Si' if c.get('ihe_enabled') else 'No'}")
 
         # Show per-country effective epsilon
         print_subsection("EPSILON EFFETTIVO PER GIURISDIZIONE")
@@ -397,6 +426,8 @@ class CrossBorderScreen:
                 hospital_allocation_fraction=c.get("hospital_allocation_fraction", 1.0),
                 noise_strategy=c.get("noise_strategy", "global"),
                 min_active_clients=c.get("min_active_clients", 2),
+                ihe_enabled=c.get("ihe_enabled", False),
+                ihe_config=c.get("ihe_config", {}),
             )
 
             # Show hospital mapping
@@ -491,6 +522,21 @@ class CrossBorderScreen:
                     print(f"  Round {event['round']:3d}: {event['hospital']:<30} "
                           f"({event['country']}) - {reason}")
 
+        # IHE Compliance section
+        if hasattr(trainer, 'ihe_bridge') and trainer.ihe_bridge:
+            print_subsection("IHE COMPLIANCE REPORT")
+            summary = trainer.ihe_bridge.get_audit_summary()
+            print(f"  ATNA Audit Events:     {summary['total_events']}")
+            print(f"  CT Sync Rounds:        {summary['ct_syncs']}")
+            print(f"  XDS-I.b Retrieves:     {summary['xds_retrieves']}")
+            print(f"  mTLS Certificates:     {summary['certificates_valid']}/{summary['certificates_total']}")
+            print(f"  Max Clock Drift:       {summary['max_drift_ms']:.1f} ms")
+
+            if summary.get('events_by_type'):
+                print()
+                for evt_type, count in sorted(summary['events_by_type'].items()):
+                    print(f"    {evt_type:<30} {count:>4}")
+
         # Compliance summary
         violations = trainer.audit_log.get_violations()
         print_subsection("COMPLIANCE SUMMARY")
@@ -524,6 +570,10 @@ class CrossBorderScreen:
             print(f"  - plot_epsilon_by_country.png")
             print(f"  - plot_hdab_vs_optout.png")
             print(f"  - plot_latency_per_hospital.png")
+            if hasattr(trainer, 'ihe_bridge') and trainer.ihe_bridge:
+                print(f"  - ihe_compliance_report.json")
+                print(f"  - atna_audit_trail.json")
+                print(f"  - atna_audit_trail.xml")
         except Exception as e:
             print_error(f"Errore salvataggio: {e}")
 
@@ -596,6 +646,8 @@ class CrossBorderScreen:
                 jurisdiction_privacy_enabled=True,
                 country_overrides=c.get("country_overrides", {}),
                 min_active_clients=c.get("min_active_clients", 2),
+                ihe_enabled=c.get("ihe_enabled", False),
+                ihe_config=c.get("ihe_config", {}),
             )
 
             # Schedule opt-out: will be triggered during training
@@ -645,5 +697,60 @@ class CrossBorderScreen:
             print_error(f"Errore: {e}")
             import traceback
             traceback.print_exc()
+
+        input(f"\n{Style.MUTED}Premi Enter per continuare...{Colors.RESET}")
+
+    def _show_ihe_report(self):
+        """Display IHE Integration Profiles mapping and compliance info."""
+        clear_screen()
+        print_section("IHE INTEGRATION PROFILES PER FL")
+
+        print_info("Mapping tra profili IHE standard e operazioni Federated Learning\n")
+
+        # Academic mapping table
+        print_subsection("MAPPING IHE PROFILE -> FL OPERATION")
+        print(f"\n  {'Profile':<10} {'FL Operation':<45} {'EHDS Art.':<10}")
+        print("  " + "-" * 68)
+        mapping = [
+            ("ATNA", "Node authentication + audit per FL round", "Art. 50"),
+            ("XDS-I.b", "DICOM study retrieve before local training", "Art. 12"),
+            ("CT", "NTP sync for round ordering across countries", "Art. 50"),
+            ("XUA", "Researcher SAML assertion per FL session", "Art. 46"),
+            ("BPPC", "Patient consent for secondary use training", "Art. 33"),
+            ("mTLS", "Mutual TLS between FL nodes and aggregator", "Art. 50"),
+            ("PIXm/PDQm", "Patient ID cross-referencing (optional)", "Art. 12"),
+            ("XCA", "Cross-community document query", "Art. 12"),
+        ]
+        for profile, operation, article in mapping:
+            print(f"  {profile:<10} {operation:<45} {article:<10}")
+
+        # Implementation status
+        print_subsection("STATO IMPLEMENTAZIONE")
+        print(f"  {'Profile':<10} {'Classe':<35} {'File':<35}")
+        print("  " + "-" * 78)
+        impl = [
+            ("ATNA", "ATNAAuditLogger", "core/ihe_profiles.py"),
+            ("XDS-I.b", "XDSImagingSimulator", "governance/ihe_fl_bridge.py"),
+            ("CT", "ConsistentTimeSynchronizer", "governance/ihe_fl_bridge.py"),
+            ("XUA", "XUASecurityContext", "core/ihe_profiles.py"),
+            ("BPPC", "BPPCConsentManager", "core/ihe_profiles.py"),
+            ("mTLS", "NodeCertificate", "governance/ihe_fl_bridge.py"),
+            ("PIXm/PDQm", "PIXPDQManager", "core/ihe_profiles.py"),
+            ("XCA", "XCAGateway", "core/ihe_profiles.py"),
+        ]
+        for profile, cls, filepath in impl:
+            print(f"  {profile:<10} {cls:<35} {filepath:<35}")
+
+        print_subsection("COME USARE")
+        print_info("1. Menu 1 (Configura) -> Abilita 'IHE Integration Profiles'")
+        print_info("2. Menu 4 (Esegui simulazione) -> I profili IHE vengono attivati")
+        print_info("3. I risultati includono: ihe_compliance_report.json,")
+        print_info("   atna_audit_trail.json, atna_audit_trail.xml")
+        print_info("")
+        print_info("Ogni round FL genera automaticamente:")
+        print_info("  - ATNA: audit events per round start/end + model updates")
+        print_info("  - CT: time sync tra tutti i nodi prima di ogni round")
+        print_info("  - XDS-I.b: simulazione retrieve DICOM per ospedali imaging")
+        print_info("  - mTLS: verifica validita certificati nodo")
 
         input(f"\n{Style.MUTED}Premi Enter per continuare...{Colors.RESET}")

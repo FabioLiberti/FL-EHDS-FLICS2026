@@ -336,6 +336,9 @@ class CrossBorderFederatedTrainer:
         hospital_allocation_fraction: float = 1.0,
         noise_strategy: str = "global",
         min_active_clients: int = 2,
+        # IHE Integration Profiles
+        ihe_enabled: bool = False,
+        ihe_config: Optional[Dict[str, Any]] = None,
     ):
         self.countries = countries
         self.hospitals_per_country = hospitals_per_country
@@ -367,6 +370,11 @@ class CrossBorderFederatedTrainer:
         self.jurisdiction_manager = None
         # Opt-out schedule: {country_code: round_number}
         self.optout_schedule: Dict[str, int] = {}
+
+        # IHE Integration Profiles
+        self.ihe_enabled = ihe_enabled
+        self.ihe_config = ihe_config or {}
+        self.ihe_bridge = None
 
         self.rng = np.random.RandomState(seed)
         self.audit_log = CrossBorderAuditLog()
@@ -546,6 +554,15 @@ class CrossBorderFederatedTrainer:
                 min_active_clients=self.min_active_clients,
             )
 
+        # Initialize IHE bridge (if enabled)
+        if self.ihe_enabled:
+            from governance.ihe_fl_bridge import IHEFLBridge
+            self.ihe_bridge = IHEFLBridge(
+                hospitals=self.hospitals,
+                config=self.ihe_config,
+            )
+            self.ihe_bridge.start_session(purpose=self.purpose)
+
         # Training loop
         total_start = time.time()
         for round_num in range(self.num_rounds):
@@ -605,6 +622,10 @@ class CrossBorderFederatedTrainer:
                 active_hospitals = [
                     h for h in self.hospitals if h.hospital_id in active_set
                 ]
+
+            # IHE: pre-round operations (CT sync, XDS retrieve, mTLS verify)
+            if self.ihe_bridge:
+                self.ihe_bridge.pre_round(round_num, active_hospitals)
 
             # Simulate per-hospital latency and log audit entries
             for hospital in active_hospitals:
@@ -679,6 +700,18 @@ class CrossBorderFederatedTrainer:
                     round_num, active_client_ids, eff_noise
                 )
 
+            # IHE: post-round operations (ATNA audit)
+            if self.ihe_bridge:
+                self.ihe_bridge.post_round(
+                    round_num, active_hospitals,
+                    metrics={
+                        "accuracy": round_result.global_acc,
+                        "loss": round_result.global_loss,
+                        "f1": round_result.global_f1,
+                    },
+                    success=True,
+                )
+
             # Build per-hospital info for this round
             per_hospital_info = []
             for hospital in self.hospitals:
@@ -725,6 +758,10 @@ class CrossBorderFederatedTrainer:
                 )
 
         total_time = time.time() - total_start
+
+        # End IHE session
+        if self.ihe_bridge:
+            self.ihe_bridge.end_session()
 
         return {
             "history": self.history,
@@ -841,6 +878,26 @@ class CrossBorderFederatedTrainer:
 
             # 11. Jurisdiction budget consumption plot
             self._save_jurisdiction_budget_plot(out)
+
+        # 12. IHE compliance report (if enabled)
+        if self.ihe_bridge:
+            ihe_report = self.ihe_bridge.export_ihe_report()
+            with open(out / "ihe_compliance_report.json", "w") as f:
+                json.dump(ihe_report, f, indent=2, default=str)
+
+            # 13. ATNA audit trail (FHIR JSON)
+            audit_json = self.ihe_bridge.ihe_manager.audit_logger.export_audit_trail(
+                format="json"
+            )
+            with open(out / "atna_audit_trail.json", "w") as f:
+                f.write(audit_json)
+
+            # 14. ATNA audit trail (DICOM XML)
+            audit_xml = self.ihe_bridge.ihe_manager.audit_logger.export_audit_trail(
+                format="xml"
+            )
+            with open(out / "atna_audit_trail.xml", "w") as f:
+                f.write(audit_xml)
 
     def _save_latex_table(self, out: Path):
         """Generate LaTeX table for cross-border results."""
