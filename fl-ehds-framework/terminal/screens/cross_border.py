@@ -143,9 +143,10 @@ class CrossBorderScreen:
             print(f"  {Style.TITLE}7{Colors.RESET} - MyHealth@EU NCPeH Topology")
             print(f"  {Style.TITLE}8{Colors.RESET} - EHDS Compliance Report")
             print(f"  {Style.TITLE}9{Colors.RESET} - Governance Lifecycle (Art. 33-44)")
+            print(f"  {Style.TITLE}A{Colors.RESET} - EHDS Benchmark (Privacy-Utility-Cost)")
             print(f"  {Style.TITLE}0{Colors.RESET} - Torna al menu principale")
 
-            choice = get_choice("\nScegli opzione", ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"], default="1")
+            choice = get_choice("\nScegli opzione", ["1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "a", "0"], default="1")
 
             if choice == "1":
                 self._configure()
@@ -165,6 +166,8 @@ class CrossBorderScreen:
                 self._show_ehds_compliance()
             elif choice == "9":
                 self._show_governance_info()
+            elif choice.upper() == "A":
+                self._run_ehds_benchmark()
             elif choice == "0":
                 return
 
@@ -1366,3 +1369,173 @@ class CrossBorderScreen:
             print_error(f"Errore scenario B: {e}")
             import traceback
             traceback.print_exc()
+
+    # -----------------------------------------------------------------
+    # EHDS BENCHMARK (Menu A)
+    # -----------------------------------------------------------------
+
+    def _run_ehds_benchmark(self):
+        """Run EHDS benchmark: Privacy-Utility-Cost tradeoff analysis."""
+        clear_screen()
+        print_section("EHDS BENCHMARK - PRIVACY-UTILITY-COST TRADEOFF")
+
+        print(f"\n{Style.INFO}Esegue un benchmark EHDS-nativo su una griglia di configurazioni:{Colors.RESET}")
+        print(f"  - Epsilon (privacy budget) x Algoritmi FL x Livelli Governance")
+        print(f"  - Genera: 5 plot, 2 tabelle LaTeX, CSV, JSON\n")
+
+        from benchmarks.ehds_benchmark import (
+            EHDSBenchmarkConfig, run_ehds_benchmark, save_results,
+        )
+
+        # --- Interactive config ---
+        print_subsection("CONFIGURAZIONE BENCHMARK")
+
+        eps_str = input(f"  Epsilon values (comma-separated) [{Style.MUTED}1,5,10,50,100{Colors.RESET}]: ").strip()
+        if eps_str:
+            epsilons = [float(x.strip()) for x in eps_str.split(",")]
+        else:
+            epsilons = [1.0, 5.0, 10.0, 50.0, 100.0]
+
+        print(f"\n  Algoritmi disponibili: {', '.join(FL_ALGORITHMS)}")
+        algo_str = input(f"  Algoritmi (comma-separated) [{Style.MUTED}FedAvg,FedProx,SCAFFOLD{Colors.RESET}]: ").strip()
+        if algo_str:
+            algorithms = [a.strip() for a in algo_str.split(",")]
+        else:
+            algorithms = ["FedAvg", "FedProx", "SCAFFOLD"]
+
+        gov_str = input(f"  Governance levels (comma-separated) [{Style.MUTED}minimal,full{Colors.RESET}]: ").strip()
+        if gov_str:
+            governance_configs = [g.strip() for g in gov_str.split(",")]
+        else:
+            governance_configs = ["minimal", "full"]
+
+        num_rounds = get_int("  Rounds per config", default=10, min_val=3, max_val=100)
+
+        total_runs = len(epsilons) * len(algorithms) * len(governance_configs)
+        est_time = total_runs * 8  # ~8 sec per run
+
+        print(f"\n{Style.HIGHLIGHT}Riepilogo benchmark:{Colors.RESET}")
+        print(f"  Epsilons:     {epsilons}")
+        print(f"  Algoritmi:    {algorithms}")
+        print(f"  Governance:   {governance_configs}")
+        print(f"  Rounds:       {num_rounds}")
+        print(f"  Paesi:        {self.config['countries']}")
+        print(f"  Totale runs:  {total_runs}")
+        print(f"  Tempo stimato: ~{est_time // 60}m {est_time % 60}s")
+
+        if not confirm("\nAvviare il benchmark?", default=True):
+            return
+
+        config = EHDSBenchmarkConfig(
+            epsilons=epsilons,
+            algorithms=algorithms,
+            countries=self.config["countries"],
+            hospitals_per_country=self.config.get("hospitals_per_country", 1),
+            num_rounds=num_rounds,
+            local_epochs=self.config.get("local_epochs", 3),
+            batch_size=self.config.get("batch_size", 32),
+            learning_rate=self.config.get("learning_rate", 0.01),
+            purpose=self.config.get("purpose", "scientific_research"),
+            dataset_type=self.config.get("dataset_type", "synthetic"),
+            governance_configs=governance_configs,
+            min_acceptable_accuracy=0.55,
+            seeds=[self.config.get("seed", 42)],
+        )
+
+        print()
+        print_info("Avvio benchmark EHDS...")
+        print()
+
+        def progress_cb(current, total, label, accuracy, compliance):
+            pct = current / total * 100
+            bar_len = 30
+            filled = int(bar_len * current / total)
+            bar = "#" * filled + "-" * (bar_len - filled)
+            print(f"  [{bar}] {pct:5.1f}% | {current}/{total} | "
+                  f"{label:<35} | Acc={accuracy:.2%} | Compl={compliance:.1f}%")
+
+        try:
+            results = run_ehds_benchmark(config, progress_callback=progress_cb)
+
+            # Display summary
+            self._display_benchmark_summary(results)
+
+            # Auto-save
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            base_dir = Path(__file__).parent.parent.parent / "results" / "ehds_benchmark"
+            folder = f"benchmark_{len(algorithms)}algo_{len(epsilons)}eps_{timestamp}"
+            output_dir = base_dir / folder
+
+            saved = save_results(results, str(output_dir))
+
+            print_success(f"\nRisultati salvati in: results/ehds_benchmark/{folder}/")
+            for f_name in saved:
+                print(f"  - {f_name}")
+
+        except Exception as e:
+            print_error(f"Errore benchmark: {e}")
+            import traceback
+            traceback.print_exc()
+
+        input(f"\n{Style.MUTED}Premi Enter per continuare...{Colors.RESET}")
+
+    def _display_benchmark_summary(self, results):
+        """Display benchmark summary with best configs and Pareto analysis."""
+        from benchmarks.ehds_benchmark import EHDSBenchmarkResults
+
+        runs = results.runs
+        if not runs:
+            print_warning("Nessun run completato.")
+            return
+
+        print()
+        print_section("RISULTATI BENCHMARK EHDS")
+
+        # Best by accuracy
+        best_acc = max(runs, key=lambda r: r.final_accuracy)
+        print_subsection("MIGLIORE PER ACCURACY")
+        print(f"  {best_acc.config_label}: {Style.HIGHLIGHT}{best_acc.final_accuracy:.2%}{Colors.RESET} "
+              f"(F1={best_acc.final_f1:.3f}, Compliance={best_acc.compliance_score:.1f}%)")
+
+        # Best by compliance
+        best_comp = max(runs, key=lambda r: r.compliance_score)
+        print_subsection("MIGLIORE PER COMPLIANCE")
+        print(f"  {best_comp.config_label}: {Style.HIGHLIGHT}{best_comp.compliance_score:.1f}%{Colors.RESET} "
+              f"(Acc={best_comp.final_accuracy:.2%})")
+
+        # Best by combined (normalized sum)
+        best_combined = max(runs, key=lambda r: r.final_accuracy + r.compliance_score / 100)
+        print_subsection("MIGLIORE COMBINATO (Acc + Compliance)")
+        print(f"  {best_combined.config_label}: Acc={best_combined.final_accuracy:.2%}, "
+              f"Compliance={best_combined.compliance_score:.1f}%")
+
+        # Privacy-Utility analysis
+        print_subsection("ANALISI PRIVACY-UTILITY")
+        eps_groups = {}
+        for r in runs:
+            eps_groups.setdefault(r.effective_epsilon, []).append(r.final_accuracy)
+
+        print(f"\n  {'Epsilon':>10} {'Avg Accuracy':>14} {'Std':>8}")
+        print("  " + "-" * 35)
+        for eps in sorted(eps_groups.keys()):
+            accs = eps_groups[eps]
+            avg = sum(accs) / len(accs)
+            std = (sum((a - avg) ** 2 for a in accs) / len(accs)) ** 0.5
+            print(f"  {eps:>10.1f} {avg:>13.2%} {std:>8.4f}")
+
+        # Time-to-compliance
+        reached = [r for r in runs if r.rounds_to_compliance is not None]
+        print_subsection("TIME-TO-COMPLIANCE")
+        print(f"  Configurazioni che raggiungono threshold: {len(reached)}/{len(runs)}")
+        if reached:
+            fastest = min(reached, key=lambda r: r.rounds_to_compliance)
+            print(f"  Piu veloce: {fastest.config_label} (round {fastest.rounds_to_compliance})")
+
+        # Overall stats
+        print_subsection("STATISTICHE GENERALI")
+        print(f"  Runs completati:  {len(runs)}")
+        print(f"  Tempo totale:     {results.total_time_seconds:.1f}s")
+        avg_acc = sum(r.final_accuracy for r in runs) / len(runs)
+        avg_comp = sum(r.compliance_score for r in runs) / len(runs)
+        print(f"  Media accuracy:   {avg_acc:.2%}")
+        print(f"  Media compliance: {avg_comp:.1f}%")
