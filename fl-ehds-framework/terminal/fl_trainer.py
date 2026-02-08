@@ -762,7 +762,8 @@ class FederatedTrainer:
             loss.backward()
             optimizer.step()
 
-    def _aggregate(self, client_results: List[ClientResult]) -> None:
+    def _aggregate(self, client_results: List[ClientResult],
+                   noise_scale_override: Optional[float] = None) -> None:
         """Aggregate client updates to global model."""
         # First compute weighted pseudo-gradient (delta)
         total_samples = sum(cr.num_samples for cr in client_results)
@@ -892,7 +893,10 @@ class FederatedTrainer:
 
         # DP: add noise to aggregated model
         if self.dp_enabled:
-            noise_scale = self.dp_clip_norm / self.dp_epsilon
+            if noise_scale_override is not None:
+                noise_scale = noise_scale_override
+            else:
+                noise_scale = self.dp_clip_norm / self.dp_epsilon
             for param in self.global_model.parameters():
                 noise = torch.randn_like(param) * noise_scale
                 param.data += noise
@@ -973,9 +977,21 @@ class FederatedTrainer:
             "auc": float(auc),
         }
 
-    def train_round(self, round_num: int) -> RoundResult:
-        """Execute one federated learning round."""
+    def train_round(self, round_num: int,
+                    active_clients: Optional[List[int]] = None) -> RoundResult:
+        """Execute one federated learning round.
+
+        Args:
+            round_num: Current round number.
+            active_clients: If provided, only train these client IDs.
+                Clients not in this list are skipped (e.g., budget exhausted).
+                If None, all clients participate (backward compatible).
+        """
         start_time = time.time()
+
+        # Determine which clients to train
+        clients_to_train = (active_clients if active_clients is not None
+                            else list(range(self.num_clients)))
 
         # Progress callback for round start
         if self.progress_callback:
@@ -990,16 +1006,16 @@ class FederatedTrainer:
         if self.algorithm == "SCAFFOLD":
             self._old_client_controls = {
                 cid: {name: val.clone() for name, val in self.client_controls[cid].items()}
-                for cid in range(self.num_clients)
+                for cid in clients_to_train
             }
 
         # Train each client
-        for client_id in range(self.num_clients):
+        for client_id in clients_to_train:
             if self.progress_callback:
                 self.progress_callback(
                     "client_start",
                     client_id=client_id,
-                    total_clients=self.num_clients
+                    total_clients=len(clients_to_train)
                 )
 
             result = self._train_client(client_id, round_num)
@@ -1013,8 +1029,11 @@ class FederatedTrainer:
                     acc=result.train_acc
                 )
 
-        # Aggregate
-        self._aggregate(client_results)
+        # Aggregate (weights auto-renormalize with fewer clients)
+        self._aggregate(
+            client_results,
+            noise_scale_override=getattr(self, '_noise_scale_override', None),
+        )
 
         # Evaluate with all metrics
         metrics = self._evaluate()
@@ -1414,7 +1433,8 @@ class ImageFederatedTrainer:
             loss.backward()
             optimizer.step()
 
-    def _aggregate(self, client_results: List[ClientResult]) -> None:
+    def _aggregate(self, client_results: List[ClientResult],
+                   noise_scale_override: Optional[float] = None) -> None:
         """Aggregate client updates. Supports all 9 FL algorithms."""
         total_samples = sum(cr.num_samples for cr in client_results)
 
@@ -1524,7 +1544,10 @@ class ImageFederatedTrainer:
 
         # DP noise
         if self.dp_enabled:
-            noise_scale = self.dp_clip_norm / self.dp_epsilon
+            if noise_scale_override is not None:
+                noise_scale = noise_scale_override
+            else:
+                noise_scale = self.dp_clip_norm / self.dp_epsilon
             for param in self.global_model.parameters():
                 noise = torch.randn_like(param) * noise_scale
                 param.data += noise
@@ -1612,9 +1635,20 @@ class ImageFederatedTrainer:
             "auc": float(auc),
         }
 
-    def train_round(self, round_num: int) -> RoundResult:
-        """Execute one federated learning round."""
+    def train_round(self, round_num: int,
+                    active_clients: Optional[List[int]] = None) -> RoundResult:
+        """Execute one federated learning round.
+
+        Args:
+            round_num: Current round number.
+            active_clients: If provided, only train these client IDs.
+                If None, all clients participate (backward compatible).
+        """
         start_time = time.time()
+
+        # Determine which clients to train
+        clients_to_train = (active_clients if active_clients is not None
+                            else list(range(self.num_clients)))
 
         if self.progress_callback:
             self.progress_callback("round_start", round_num=round_num + 1)
@@ -1625,12 +1659,12 @@ class ImageFederatedTrainer:
         if self.algorithm == "SCAFFOLD":
             self._old_client_controls = {
                 cid: {name: val.clone() for name, val in self.client_controls[cid].items()}
-                for cid in range(self.num_clients)
+                for cid in clients_to_train
             }
 
         # Progress bar for clients
         client_pbar = tqdm(
-            range(self.num_clients),
+            clients_to_train,
             desc=f"  Clients",
             leave=False,
             ncols=100,
@@ -1638,13 +1672,13 @@ class ImageFederatedTrainer:
         )
 
         for client_id in client_pbar:
-            client_pbar.set_description(f"  Client {client_id+1}/{self.num_clients}")
+            client_pbar.set_description(f"  Client {client_id+1}/{len(clients_to_train)}")
 
             if self.progress_callback:
                 self.progress_callback(
                     "client_start",
                     client_id=client_id,
-                    total_clients=self.num_clients
+                    total_clients=len(clients_to_train)
                 )
 
             result = self._train_client(client_id, round_num)
@@ -1660,7 +1694,10 @@ class ImageFederatedTrainer:
                     acc=result.train_acc
                 )
 
-        self._aggregate(client_results)
+        self._aggregate(
+            client_results,
+            noise_scale_override=getattr(self, '_noise_scale_override', None),
+        )
 
         # Show evaluation progress
         print("  Evaluating global model...", end="\r")

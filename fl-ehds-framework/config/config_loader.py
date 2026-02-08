@@ -279,6 +279,21 @@ def get_omop_config() -> Dict[str, Any]:
     }
 
 
+def get_jurisdiction_privacy_config() -> Dict[str, Any]:
+    """Get jurisdiction-level privacy budget configuration."""
+    cfg = load_config()
+    cb = cfg.get("cross_border", {})
+    jp = cb.get("jurisdiction_privacy", {})
+    return {
+        "enabled": jp.get("enabled", False),
+        "noise_strategy": jp.get("noise_strategy", "global"),
+        "accountant_type": jp.get("accountant_type", "rdp"),
+        "hospital_allocation_fraction": jp.get("hospital_allocation_fraction", 1.0),
+        "min_active_clients": jp.get("min_active_clients", 2),
+        "country_overrides": jp.get("country_overrides", {}),
+    }
+
+
 def get_governance_training_config() -> Dict[str, Any]:
     """Get governance training integration configuration."""
     cfg = load_config()

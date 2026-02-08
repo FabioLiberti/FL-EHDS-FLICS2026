@@ -100,6 +100,12 @@ class CrossBorderScreen:
             "beta1": yaml_defaults.get("beta1", 0.9),
             "beta2": yaml_defaults.get("beta2", 0.99),
             "tau": yaml_defaults.get("tau", 1e-3),
+            # Jurisdiction privacy
+            "jurisdiction_privacy_enabled": False,
+            "noise_strategy": "global",
+            "hospital_allocation_fraction": 1.0,
+            "min_active_clients": 2,
+            "country_overrides": {},
         }
 
     def run(self):
@@ -114,9 +120,10 @@ class CrossBorderScreen:
             print(f"  {Style.TITLE}2{Colors.RESET} - Scenari pre-configurati")
             print(f"  {Style.TITLE}3{Colors.RESET} - Mostra profili paesi EU")
             print(f"  {Style.TITLE}4{Colors.RESET} - Esegui simulazione")
+            print(f"  {Style.TITLE}5{Colors.RESET} - Simula opt-out paese (Art. 48)")
             print(f"  {Style.TITLE}0{Colors.RESET} - Torna al menu principale")
 
-            choice = get_choice("\nScegli opzione", ["1", "2", "3", "4", "0"], default="1")
+            choice = get_choice("\nScegli opzione", ["1", "2", "3", "4", "5", "0"], default="1")
 
             if choice == "1":
                 self._configure()
@@ -126,6 +133,8 @@ class CrossBorderScreen:
                 self._show_country_profiles()
             elif choice == "4":
                 self._run_simulation()
+            elif choice == "5":
+                self._simulate_optout()
             elif choice == "0":
                 return
 
@@ -233,6 +242,41 @@ class CrossBorderScreen:
             default=self.config["global_epsilon"],
             min_val=0.1, max_val=100.0
         )
+
+        # Jurisdiction privacy
+        print_subsection("Privacy per Giurisdizione (HDAB)")
+        self.config["jurisdiction_privacy_enabled"] = confirm(
+            "Abilitare privacy budget per giurisdizione?", default=False
+        )
+        if self.config["jurisdiction_privacy_enabled"]:
+            print_info("Ogni paese ha un epsilon massimo nazionale (HDAB ceiling).")
+            print_info("I client di quel paese non possono superare il ceiling.")
+            print_info("Quando esauriscono il budget, smettono di partecipare.\n")
+
+            # Show national ceilings
+            for cc in self.config["countries"]:
+                p = EU_COUNTRY_PROFILES[cc]
+                print(f"  {cc} ({p.name}): eps_max = {p.dp_epsilon_max}")
+
+            if confirm("\nModificare i ceiling nazionali?", default=False):
+                overrides = {}
+                for cc in self.config["countries"]:
+                    p = EU_COUNTRY_PROFILES[cc]
+                    new_eps = get_float(
+                        f"  {cc} ({p.name}) epsilon max",
+                        default=p.dp_epsilon_max, min_val=0.1, max_val=100.0
+                    )
+                    if new_eps != p.dp_epsilon_max:
+                        overrides[cc] = {
+                            "epsilon_max": new_eps,
+                            "delta": p.dp_delta_max,
+                        }
+                self.config["country_overrides"] = overrides
+
+            self.config["min_active_clients"] = get_int(
+                "Min client attivi per continuare",
+                default=2, min_val=1, max_val=10
+            )
 
         # Latency
         self.config["simulate_latency"] = confirm("Simulare latenza di rete?", default=True)
@@ -348,6 +392,11 @@ class CrossBorderScreen:
                 beta2=c.get("beta2", 0.99),
                 tau=c.get("tau", 1e-3),
                 progress_callback=progress_callback,
+                jurisdiction_privacy_enabled=c.get("jurisdiction_privacy_enabled", False),
+                country_overrides=c.get("country_overrides", {}),
+                hospital_allocation_fraction=c.get("hospital_allocation_fraction", 1.0),
+                noise_strategy=c.get("noise_strategy", "global"),
+                min_active_clients=c.get("min_active_clients", 2),
             )
 
             # Show hospital mapping
@@ -421,6 +470,27 @@ class CrossBorderScreen:
             for v in results["purpose_violations"]:
                 print(f"  {Style.WARNING}{v}{Colors.RESET}")
 
+        # Jurisdiction privacy status
+        if hasattr(trainer, 'jurisdiction_manager') and trainer.jurisdiction_manager:
+            print_subsection("BUDGET PRIVACY PER GIURISDIZIONE (RDP)")
+            jstatus = trainer.jurisdiction_manager.get_jurisdiction_status()
+            print(f"\n  {'Country':<6} {'Ceiling':>8} {'Spent':>10} "
+                  f"{'Active':>8} {'Exhausted':>10} {'Opt-out':>8}")
+            print("  " + "-" * 55)
+            for cc, info in sorted(jstatus.items()):
+                print(f"  {cc:<6} {info['epsilon_ceiling']:>8.1f} "
+                      f"{info['epsilon_spent_max']:>10.4f} "
+                      f"{info['active']}/{info['total']:>5} "
+                      f"{info['exhausted']:>10} {info['opted_out']:>8}")
+
+            timeline = trainer.jurisdiction_manager.get_dropout_timeline()
+            if timeline:
+                print_subsection("TIMELINE DROPOUT CLIENT")
+                for event in timeline:
+                    reason = event['reason'].replace('_', ' ')
+                    print(f"  Round {event['round']:3d}: {event['hospital']:<30} "
+                          f"({event['country']}) - {reason}")
+
         # Compliance summary
         violations = trainer.audit_log.get_violations()
         print_subsection("COMPLIANCE SUMMARY")
@@ -456,3 +526,124 @@ class CrossBorderScreen:
             print(f"  - plot_latency_per_hospital.png")
         except Exception as e:
             print_error(f"Errore salvataggio: {e}")
+
+    def _simulate_optout(self):
+        """Simulate Art. 48 EHDS country opt-out during training."""
+        clear_screen()
+        print_section("SIMULAZIONE OPT-OUT PAESE (Art. 48 EHDS)")
+
+        print_info("Simula cosa succede quando un intero paese si ritira")
+        print_info("dal training federato ad un determinato round.\n")
+
+        # Select country to opt out
+        print_subsection("Seleziona paese da escludere")
+        for i, cc in enumerate(self.config["countries"], 1):
+            p = EU_COUNTRY_PROFILES[cc]
+            print(f"  {i}. {cc} ({p.name}) - eps_max={p.dp_epsilon_max}, "
+                  f"HDAB={'*'*p.hdab_strictness}")
+
+        country_idx = get_int("Paese", default=1,
+                              min_val=1, max_val=len(self.config["countries"]))
+        optout_country = self.config["countries"][country_idx - 1]
+
+        # Select opt-out round
+        optout_round = get_int(
+            f"Round di opt-out per {optout_country}",
+            default=self.config["num_rounds"] // 2,
+            min_val=1, max_val=self.config["num_rounds"] - 1,
+        )
+
+        print_info(f"\nSimulazione: {optout_country} esce al round {optout_round}")
+        print_info("Jurisdiction privacy verra abilitato automaticamente.\n")
+
+        if not confirm("Procedere con la simulazione?", default=True):
+            return
+
+        c = self.config.copy()
+        c["jurisdiction_privacy_enabled"] = True
+
+        def progress_callback(round_num, total_rounds, result):
+            active_str = ""
+            if hasattr(trainer, 'jurisdiction_manager') and trainer.jurisdiction_manager:
+                active = trainer.jurisdiction_manager.get_active_clients()
+                active_str = f" | Attivi={len(active)}/{len(trainer.hospitals)}"
+            print(f"  Round {round_num+1:3d}/{total_rounds} | "
+                  f"Acc={result.global_acc:.2%} | F1={result.global_f1:.3f} | "
+                  f"Loss={result.global_loss:.4f}{active_str}")
+
+        try:
+            trainer = CrossBorderFederatedTrainer(
+                countries=c["countries"],
+                hospitals_per_country=c["hospitals_per_country"],
+                algorithm=c["algorithm"],
+                num_rounds=c["num_rounds"],
+                local_epochs=c["local_epochs"],
+                batch_size=c.get("batch_size", 32),
+                learning_rate=c["learning_rate"],
+                global_epsilon=c["global_epsilon"],
+                purpose=c["purpose"],
+                dataset_type=c.get("dataset_type", "synthetic"),
+                dataset_path=c.get("dataset_path"),
+                img_size=c.get("img_size", 128),
+                seed=c["seed"],
+                simulate_latency=c.get("simulate_latency", True),
+                mu=c.get("mu", 0.1),
+                server_lr=c.get("server_lr", 0.1),
+                beta1=c.get("beta1", 0.9),
+                beta2=c.get("beta2", 0.99),
+                tau=c.get("tau", 1e-3),
+                progress_callback=progress_callback,
+                jurisdiction_privacy_enabled=True,
+                country_overrides=c.get("country_overrides", {}),
+                min_active_clients=c.get("min_active_clients", 2),
+            )
+
+            # Schedule opt-out: will be triggered during training
+            # We need to hook into the training loop
+            # Override the progress callback to trigger opt-out at the right round
+            original_train = trainer.train
+
+            def train_with_optout():
+                result = original_train()
+                return result
+
+            # Instead, we trigger opt-out before training starts by modifying
+            # the jurisdiction manager after it's created during train()
+            # Schedule the opt-out in the trainer
+            trainer.optout_schedule = {optout_country: optout_round}
+
+            print_info(f"Avvio training con opt-out di {optout_country} al round {optout_round}...")
+            print()
+
+            # Run training (opt-out will trigger at scheduled round)
+            results = trainer.train()
+
+            # Display results
+            print()
+            self._display_results(trainer, results)
+
+            # Show opt-out impact
+            print_subsection(f"IMPATTO OPT-OUT {optout_country} (ROUND {optout_round})")
+            if trainer.history:
+                # Find metrics before and after opt-out
+                pre_optout = [r for r in trainer.history if r.round_num < optout_round]
+                post_optout = [r for r in trainer.history if r.round_num >= optout_round]
+
+                if pre_optout and post_optout:
+                    pre_acc = pre_optout[-1].global_acc
+                    post_acc = post_optout[-1].global_acc
+                    delta_acc = post_acc - pre_acc
+                    sign = "+" if delta_acc >= 0 else ""
+                    print(f"  Accuracy pre-optout (round {optout_round-1}):  {pre_acc:.2%}")
+                    print(f"  Accuracy post-optout (round {len(trainer.history)-1}): {post_acc:.2%}")
+                    print(f"  Delta: {sign}{delta_acc:.2%}")
+
+            # Auto-save
+            self._auto_save(trainer, results)
+
+        except Exception as e:
+            print_error(f"Errore: {e}")
+            import traceback
+            traceback.print_exc()
+
+        input(f"\n{Style.MUTED}Premi Enter per continuare...{Colors.RESET}")

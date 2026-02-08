@@ -330,6 +330,12 @@ class CrossBorderFederatedTrainer:
         beta2: float = 0.99,
         tau: float = 1e-3,
         progress_callback=None,
+        # Jurisdiction privacy parameters
+        jurisdiction_privacy_enabled: bool = False,
+        country_overrides: Optional[Dict[str, Dict]] = None,
+        hospital_allocation_fraction: float = 1.0,
+        noise_strategy: str = "global",
+        min_active_clients: int = 2,
     ):
         self.countries = countries
         self.hospitals_per_country = hospitals_per_country
@@ -351,6 +357,16 @@ class CrossBorderFederatedTrainer:
         self.beta2 = beta2
         self.tau = tau
         self.progress_callback = progress_callback
+
+        # Jurisdiction privacy
+        self.jurisdiction_privacy_enabled = jurisdiction_privacy_enabled
+        self.country_overrides = country_overrides or {}
+        self.hospital_allocation_fraction = hospital_allocation_fraction
+        self.noise_strategy = noise_strategy
+        self.min_active_clients = min_active_clients
+        self.jurisdiction_manager = None
+        # Opt-out schedule: {country_code: round_number}
+        self.optout_schedule: Dict[str, int] = {}
 
         self.rng = np.random.RandomState(seed)
         self.audit_log = CrossBorderAuditLog()
@@ -499,14 +515,99 @@ class CrossBorderFederatedTrainer:
                 details=v,
             )
 
+        # Initialize jurisdiction privacy manager (if enabled)
+        if self.jurisdiction_privacy_enabled:
+            from governance.jurisdiction_privacy import JurisdictionPrivacyManager
+            client_jurisdictions = {
+                h.hospital_id: h.country_code for h in self.hospitals
+            }
+            jurisdiction_budgets = {
+                cc: {
+                    "epsilon_max": EU_COUNTRY_PROFILES[cc].dp_epsilon_max,
+                    "delta": EU_COUNTRY_PROFILES[cc].dp_delta_max,
+                }
+                for cc in set(h.country_code for h in self.hospitals)
+            }
+            # Apply per-country overrides from config
+            for cc, override in self.country_overrides.items():
+                if cc in jurisdiction_budgets:
+                    jurisdiction_budgets[cc].update(override)
+                else:
+                    jurisdiction_budgets[cc] = override
+            hospital_names = {h.hospital_id: h.name for h in self.hospitals}
+            self.jurisdiction_manager = JurisdictionPrivacyManager(
+                client_jurisdictions=client_jurisdictions,
+                jurisdiction_budgets=jurisdiction_budgets,
+                global_epsilon=self.global_epsilon,
+                num_rounds=self.num_rounds,
+                hospital_names=hospital_names,
+                hospital_allocation_fraction=self.hospital_allocation_fraction,
+                noise_strategy=self.noise_strategy,
+                min_active_clients=self.min_active_clients,
+            )
+
         # Training loop
         total_start = time.time()
         for round_num in range(self.num_rounds):
             round_start = time.time()
             total_latency = 0.0
 
+            # Apply scheduled opt-outs for this round
+            if self.jurisdiction_manager and self.optout_schedule:
+                for cc, opt_round in self.optout_schedule.items():
+                    if round_num == opt_round:
+                        removed = self.jurisdiction_manager.simulate_optout(
+                            cc, round_num
+                        )
+                        if removed:
+                            self.audit_log.log(
+                                round_num=round_num, hospital_id=-1,
+                                hospital_name="SYSTEM",
+                                country_code=cc, jurisdiction=f"{cc} HDAB",
+                                action="art48_optout",
+                                epsilon_this_round=0, epsilon_cumulative=0,
+                                epsilon_budget_remaining=0,
+                                samples_used=0, samples_opted_out=0,
+                                latency_ms=0, compliance_status="compliant",
+                                details=f"Art. 48 opt-out: {cc} withdrew, "
+                                        f"{len(removed)} clients removed",
+                            )
+
+            # Jurisdiction privacy: determine active clients for this round
+            active_client_ids = None
+            eff_noise = None
+            if self.jurisdiction_manager:
+                active_client_ids, eff_noise = (
+                    self.jurisdiction_manager.pre_round_check(round_num)
+                )
+                if len(active_client_ids) < self.min_active_clients:
+                    # Not enough clients to continue
+                    self.audit_log.log(
+                        round_num=round_num, hospital_id=-1,
+                        hospital_name="SYSTEM",
+                        country_code="EU", jurisdiction="EU-wide",
+                        action="training_terminated",
+                        epsilon_this_round=0, epsilon_cumulative=0,
+                        epsilon_budget_remaining=0,
+                        samples_used=0, samples_opted_out=0,
+                        latency_ms=0, compliance_status="compliant",
+                        details=f"Only {len(active_client_ids)} active clients, "
+                                f"min={self.min_active_clients}",
+                    )
+                    break
+                # Set noise override on underlying trainer
+                self._trainer._noise_scale_override = eff_noise
+
+            # Determine which hospitals are active this round
+            active_hospitals = self.hospitals
+            if active_client_ids is not None:
+                active_set = set(active_client_ids)
+                active_hospitals = [
+                    h for h in self.hospitals if h.hospital_id in active_set
+                ]
+
             # Simulate per-hospital latency and log audit entries
-            for hospital in self.hospitals:
+            for hospital in active_hospitals:
                 latency = self._simulate_latency(hospital)
                 total_latency += latency
 
@@ -542,12 +643,41 @@ class CrossBorderFederatedTrainer:
                             f"country_max_eps={hospital.country_profile.dp_epsilon_max}",
                 )
 
+            # Log skipped hospitals (budget exhausted)
+            if active_client_ids is not None:
+                for hospital in self.hospitals:
+                    if hospital.hospital_id not in active_set:
+                        self.audit_log.log(
+                            round_num=round_num,
+                            hospital_id=hospital.hospital_id,
+                            hospital_name=hospital.name,
+                            country_code=hospital.country_code,
+                            jurisdiction=f"{hospital.country_profile.name} HDAB",
+                            action="skipped",
+                            epsilon_this_round=0,
+                            epsilon_cumulative=hospital.cumulative_epsilon_spent,
+                            epsilon_budget_remaining=0,
+                            samples_used=0,
+                            samples_opted_out=hospital.opted_out_samples,
+                            latency_ms=0,
+                            compliance_status="compliant",
+                            details="Budget exhausted or opted out",
+                        )
+
             # Simulate latency delay (scaled down: real ms -> sleep in ms/100)
             if self.simulate_latency and total_latency > 0:
                 time.sleep(total_latency / 5000.0)  # Subtle delay
 
             # Run actual FL round via underlying trainer
-            round_result = self._trainer.train_round(round_num)
+            round_result = self._trainer.train_round(
+                round_num, active_clients=active_client_ids
+            )
+
+            # Post-round: record jurisdiction privacy spending
+            if self.jurisdiction_manager and active_client_ids and eff_noise:
+                self.jurisdiction_manager.record_round(
+                    round_num, active_client_ids, eff_noise
+                )
 
             # Build per-hospital info for this round
             per_hospital_info = []
@@ -692,6 +822,25 @@ class CrossBorderFederatedTrainer:
 
         # 8. Plots
         self._save_plots(out)
+
+        # 9. Jurisdiction privacy report (if enabled)
+        if self.jurisdiction_manager:
+            report = self.jurisdiction_manager.export_report()
+            with open(out / "jurisdiction_privacy.json", "w") as f:
+                json.dump(report, f, indent=2, default=str)
+
+            # 10. Dropout timeline CSV
+            timeline = self.jurisdiction_manager.get_dropout_timeline()
+            if timeline:
+                with open(out / "dropout_timeline.csv", "w", newline="") as f:
+                    writer = csv.DictWriter(
+                        f, fieldnames=list(timeline[0].keys())
+                    )
+                    writer.writeheader()
+                    writer.writerows(timeline)
+
+            # 11. Jurisdiction budget consumption plot
+            self._save_jurisdiction_budget_plot(out)
 
     def _save_latex_table(self, out: Path):
         """Generate LaTeX table for cross-border results."""
@@ -891,3 +1040,76 @@ class CrossBorderFederatedTrainer:
 
         except ImportError:
             pass  # matplotlib not available
+
+    def _save_jurisdiction_budget_plot(self, out: Path):
+        """Plot per-client epsilon consumption over rounds with HDAB ceiling lines."""
+        if not self.jurisdiction_manager:
+            return
+        try:
+            import matplotlib
+            matplotlib.use("Agg")
+            import matplotlib.pyplot as plt
+
+            fig, ax = plt.subplots(figsize=(12, 6))
+
+            # Country colors
+            country_colors = {
+                "DE": "#000000", "FR": "#0055A4", "IT": "#008C45",
+                "ES": "#AA151B", "NL": "#FF6600", "SE": "#006AA7",
+                "PL": "#DC143C", "AT": "#ED2939", "BE": "#FDDA24",
+                "PT": "#006600",
+            }
+
+            # Plot per-client epsilon history
+            for cid, state in self.jurisdiction_manager.client_states.items():
+                if not state.epsilon_history:
+                    continue
+                cc = state.jurisdiction
+                color = country_colors.get(cc, "#888888")
+                rounds = list(range(len(state.epsilon_history)))
+                ax.plot(
+                    rounds, state.epsilon_history,
+                    color=color, linewidth=1.5, alpha=0.8,
+                    label=f"{state.hospital_name} ({cc})",
+                )
+                # Mark dropout point
+                if state.deactivation_round is not None:
+                    dr = min(state.deactivation_round, len(state.epsilon_history) - 1)
+                    marker = "X" if state.opted_out else "s"
+                    ax.scatter(
+                        [dr], [state.epsilon_history[dr]],
+                        color=color, marker=marker, s=100, zorder=5,
+                        edgecolors="black", linewidth=1,
+                    )
+
+            # Draw HDAB ceiling lines
+            drawn_ceilings = set()
+            for cid, state in self.jurisdiction_manager.client_states.items():
+                cc = state.jurisdiction
+                if cc not in drawn_ceilings:
+                    color = country_colors.get(cc, "#888888")
+                    ax.axhline(
+                        y=state.epsilon_ceiling, color=color,
+                        linestyle="--", alpha=0.5, linewidth=1,
+                    )
+                    ax.text(
+                        len(self.history) * 0.98, state.epsilon_ceiling,
+                        f"{cc} ceiling={state.epsilon_ceiling:.1f}",
+                        ha="right", va="bottom", fontsize=8, color=color,
+                    )
+                    drawn_ceilings.add(cc)
+
+            ax.set_xlabel("Round")
+            ax.set_ylabel("Cumulative Epsilon (RDP)")
+            ax.set_title("Per-Client Privacy Budget Consumption by Jurisdiction")
+            ax.legend(loc="upper left", fontsize=7, ncol=2)
+            ax.grid(True, alpha=0.3)
+            plt.tight_layout()
+            plt.savefig(
+                out / "plot_jurisdiction_budget.png",
+                dpi=150, bbox_inches="tight",
+            )
+            plt.close()
+
+        except ImportError:
+            pass

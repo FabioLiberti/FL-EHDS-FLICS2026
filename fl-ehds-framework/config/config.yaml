@@ -390,6 +390,23 @@ cross_border:
   # Global epsilon ceiling (per-country may be lower)
   global_epsilon: 10.0
 
+  # Per-jurisdiction privacy budget enforcement
+  # Each country's HDAB sets a national epsilon ceiling. Hospitals within a
+  # country cannot exceed this ceiling. When a hospital exhausts its budget,
+  # it stops participating but training continues with remaining clients.
+  jurisdiction_privacy:
+    enabled: false                     # Off by default (backward compatible)
+    noise_strategy: "global"           # "global" = strictest active client calibrates noise
+    accountant_type: "rdp"             # Uses existing RDP PrivacyAccountant
+    hospital_allocation_fraction: 1.0  # Fraction of national ceiling per hospital
+    min_active_clients: 2              # Minimum clients to continue training
+    # Per-country epsilon overrides (if omitted, uses EU_COUNTRY_PROFILES defaults)
+    country_overrides: {}
+    # Example:
+    # country_overrides:
+    #   DE: {epsilon_max: 1.0, delta: 1e-6}
+    #   IT: {epsilon_max: 5.0, delta: 1e-5}
+
 # =============================================================================
 # FHIR R4 DATA PIPELINE
 # =============================================================================
