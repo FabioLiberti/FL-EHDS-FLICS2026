@@ -190,10 +190,12 @@ class TrainingScreen:
         dataset_choices = [
             "Sintetico (Healthcare Tabular)",
             "FHIR R4 (Ospedali Sintetici)",
+            "OMOP-CDM (Armonizzazione Cross-Border)",
         ]
         dataset_map = {
             "Sintetico (Healthcare Tabular)": "synthetic",
             "FHIR R4 (Ospedali Sintetici)": "fhir",
+            "OMOP-CDM (Armonizzazione Cross-Border)": "omop",
         }
 
         if available_datasets:
@@ -239,6 +241,29 @@ class TrainingScreen:
                 print(f"  Features: {len(fhir_cfg.get('feature_spec', []))} ({fhir_cfg.get('label', 'mortality_30day')})")
             except (ImportError, Exception):
                 print_info("FHIR R4: ospedali sintetici con profili diversi")
+        elif selected_key == "omop":
+            self.config["dataset_type"] = "omop"
+            self.config["dataset_name"] = "omop_harmonized"
+            self.config["dataset_path"] = None
+            self.config["learning_rate"] = 0.01  # Tabular data
+            # Load OMOP config and show info
+            try:
+                from config.config_loader import get_omop_config
+                omop_cfg = get_omop_config()
+                profiles = omop_cfg.get("profiles", [])
+                countries = omop_cfg.get("country_codes", [])
+                num_c = self.config.get("num_clients", 5)
+                assigned_p = [profiles[i % len(profiles)] for i in range(num_c)]
+                assigned_c = [countries[i % len(countries)] for i in range(num_c)]
+                from data.omop_harmonizer import COUNTRY_VOCABULARY_PROFILES
+                print_info("OMOP-CDM: armonizzazione vocabolari cross-border (non-IID da eterogeneita)")
+                print(f"  Pazienti/ospedale: {omop_cfg.get('samples_per_client', 500)}")
+                print(f"  ~36 features standardizzate OMOP (temporal windows: 30d/90d/365d)")
+                for i in range(num_c):
+                    vp = COUNTRY_VOCABULARY_PROFILES.get(assigned_c[i], {})
+                    print(f"  Client {i}: {assigned_c[i]} ({assigned_p[i]}) - {vp.get('coding_system', '?')}")
+            except (ImportError, Exception):
+                print_info("OMOP-CDM: armonizzazione vocabolari europei cross-border")
         else:
             self.config["dataset_type"] = "imaging"
             self.config["dataset_name"] = selected_key
@@ -249,7 +274,7 @@ class TrainingScreen:
             print(f"  Classi: {available_datasets[selected_key]['class_names']}")
 
         # Dataset parameter suggestion
-        if self.config["dataset_type"] in ("imaging", "fhir") and self.config.get("dataset_name"):
+        if self.config["dataset_type"] in ("imaging", "fhir", "omop") and self.config.get("dataset_name"):
             try:
                 from config.config_loader import get_dataset_parameters
                 ds_params = get_dataset_parameters(self.config["dataset_name"])
@@ -531,6 +556,73 @@ class TrainingScreen:
                     external_data=fhir_train,
                     external_test_data=fhir_test,
                 )
+            elif self.config["dataset_type"] == "omop":
+                # OMOP-CDM harmonized dataset
+                from data.omop_harmonizer import load_omop_data
+                print_info("Caricamento dati OMOP-CDM (armonizzazione cross-border)...")
+
+                omop_cfg = {}
+                try:
+                    from config.config_loader import get_omop_config
+                    omop_cfg = get_omop_config()
+                except (ImportError, Exception):
+                    pass
+
+                omop_train, omop_test, omop_meta = load_omop_data(
+                    num_clients=self.config["num_clients"],
+                    samples_per_client=omop_cfg.get("samples_per_client", 500),
+                    hospital_profiles=omop_cfg.get("profiles"),
+                    country_codes=omop_cfg.get("country_codes"),
+                    label_name=omop_cfg.get("label", "mortality_30day"),
+                    seed=self.config["seed"],
+                )
+
+                # Show OMOP info
+                countries_assigned = omop_meta.get("countries_assigned", [])
+                profiles_assigned = omop_meta.get("profiles_assigned", [])
+                coding_systems = omop_meta.get("coding_systems", {})
+                print_info(f"OMOP: {len(omop_train)} ospedali, "
+                           f"{omop_meta.get('num_features', 0)} features standardizzate")
+                for nid in range(len(countries_assigned)):
+                    country = countries_assigned[nid]
+                    profile = profiles_assigned[nid]
+                    cs = coding_systems.get(nid, "?")
+                    train_n = len(omop_train[nid][1])
+                    test_n = len(omop_test[nid][1])
+                    pos_rate = omop_train[nid][1].mean()
+                    print(f"  Client {nid}: {country} ({profile}) - {cs} "
+                          f"({train_n} train, {test_n} test, pos_rate={pos_rate:.1%})")
+
+                # Show heterogeneity report
+                het = omop_meta.get("heterogeneity_report", {})
+                if het:
+                    print_info(f"Eterogeneita vocabolario:")
+                    print(f"  Jaccard distance: raw={het.get('raw_jaccard_mean', 0):.3f} -> "
+                          f"OMOP={het.get('omop_jaccard_mean', 0):.3f} "
+                          f"(riduzione: {het.get('jaccard_reduction_pct', 0):.1f}%)")
+                    if het.get("raw_jsd", 0) > 0:
+                        print(f"  Jensen-Shannon Divergence: raw={het['raw_jsd']:.4f} -> OMOP={het.get('omop_jsd', 0):.4f}")
+
+                trainer = FederatedTrainer(
+                    num_clients=self.config["num_clients"],
+                    algorithm=self.config["algorithm"],
+                    local_epochs=self.config["local_epochs"],
+                    batch_size=self.config["batch_size"],
+                    learning_rate=self.config["learning_rate"],
+                    mu=self.config["mu"],
+                    dp_enabled=self.config["dp_enabled"],
+                    dp_epsilon=self.config["dp_epsilon"],
+                    dp_clip_norm=self.config["dp_clip_norm"],
+                    seed=self.config["seed"],
+                    progress_callback=progress_callback,
+                    server_lr=self.config.get("server_lr", 0.1),
+                    beta1=self.config.get("beta1", 0.9),
+                    beta2=self.config.get("beta2", 0.99),
+                    tau=self.config.get("tau", 1e-3),
+                    external_data=omop_train,
+                    external_test_data=omop_test,
+                    input_dim=omop_meta.get("num_features"),
+                )
             else:
                 # Synthetic tabular dataset - use FederatedTrainer
                 print_info(f"Generazione dataset healthcare sintetico ({self.config['num_clients']} client)...")
@@ -789,8 +881,9 @@ class TrainingScreen:
         # Create experiment-specific folder with descriptive name
         algo = self.config["algorithm"]
         dp_str = f"_DP{self.config['dp_epsilon']}" if self.config["dp_enabled"] else ""
-        dist_short = "FHIR" if self.config["dataset_type"] == "fhir" else (
-            "IID" if "IID" in self.config["data_distribution"] else "NonIID")
+        dist_short = ("OMOP" if self.config["dataset_type"] == "omop" else
+            "FHIR" if self.config["dataset_type"] == "fhir" else
+            ("IID" if "IID" in self.config["data_distribution"] else "NonIID"))
         folder_name = f"training_{algo}{dp_str}_{dist_short}_{self.config['num_clients']}clients_{self.config['num_rounds']}rounds_{timestamp}"
         output_dir = base_dir / folder_name
         output_dir.mkdir(exist_ok=True)

@@ -416,6 +416,32 @@ fhir:
     purpose: "ai_training"
 
 # =============================================================================
+# OMOP-CDM HARMONIZATION
+# =============================================================================
+# Cross-border vocabulary harmonization via OMOP Common Data Model.
+# Maps local coding systems (ICD-10-GM, CIM-10, ICD-9-CM, etc.) to standard
+# OMOP/SNOMED concept IDs for federated learning across EU hospitals.
+omop:
+  # EU country codes for cross-border simulation
+  country_codes: ["DE", "FR", "IT", "ES", "NL"]
+  # Hospital clinical profiles (same as FHIR)
+  profiles: ["general", "cardiac", "pediatric", "geriatric", "oncology"]
+  # Patients per hospital
+  samples_per_client: 500
+  # Feature extraction settings
+  features:
+    # Normalization method (zscore or minmax)
+    normalization: "zscore"
+    # Enable temporal window features (30d/90d/365d)
+    temporal_windows: true
+  # Target label
+  label: "mortality_30day"
+  # Vocabulary heterogeneity metrics
+  heterogeneity:
+    compute_jaccard: true
+    compute_jsd: true
+
+# =============================================================================
 # ALGORITHM PROFILES
 # =============================================================================
 # Recommended hyperparameters for each FL algorithm.
@@ -660,6 +686,18 @@ dataset_parameters:
     class_weight: false
     recommended_algorithms: ["FedAvg", "FedProx", "SCAFFOLD", "Ditto"]
     notes: "Dati FHIR R4 sintetici - non-IID naturale da profili ospedalieri"
+
+  omop_harmonized:
+    type: "tabular"
+    img_size: null
+    learning_rate: 0.01
+    batch_size: 32
+    num_rounds: 30
+    local_epochs: 3
+    alpha: null
+    class_weight: false
+    recommended_algorithms: ["SCAFFOLD", "FedProx", "Ditto", "FedAvg"]
+    notes: "OMOP-CDM armonizzato - ~36 features, non-IID da eterogeneita vocabolario cross-border"
 
   Retinopatia:
     type: "imaging"

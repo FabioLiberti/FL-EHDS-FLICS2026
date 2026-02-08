@@ -300,6 +300,7 @@ class OMOPVocabularyService:
         """
         self.concept_cache = concept_cache or {}
         self._build_default_concepts()
+        self._build_mapping_tables()
 
     def _build_default_concepts(self):
         """Build cache of commonly used concepts."""
@@ -318,6 +319,165 @@ class OMOPVocabularyService:
 
         for concept in defaults:
             self.concept_cache[concept.concept_id] = concept
+
+    def _build_mapping_tables(self):
+        """Build local vocabulary -> OMOP standard concept ID mappings.
+
+        Covers 6 European coding systems used in EHDS cross-border scenarios.
+        Each maps common clinical conditions to standard OMOP (SNOMED) concept IDs.
+        """
+        # Additional common condition concept IDs
+        MI = 4329847           # Myocardial infarction
+        STROKE = 381591        # Cerebrovascular disease
+        PNEUMONIA = 255848     # Pneumonia
+        DEPRESSION = 440383    # Depressive disorder
+        OBESITY = 433736       # Obesity
+        ATRIAL_FIB = 313217    # Atrial fibrillation
+        CANCER = 443392        # Malignant neoplasm
+        ANEMIA = 439777        # Anemia
+        UTI = 81902            # Urinary tract infection
+
+        # WHO ICD-10 base mappings
+        icd10_base = {
+            "E11": self.DIABETES_TYPE2, "E11.9": self.DIABETES_TYPE2,
+            "I10": self.HYPERTENSION,
+            "I50": self.HEART_FAILURE, "I50.9": self.HEART_FAILURE,
+            "J44": self.COPD, "J44.1": self.COPD,
+            "J45": self.ASTHMA, "J45.9": self.ASTHMA,
+            "N18": self.CKD, "N18.9": self.CKD,
+            "I21": MI, "I21.9": MI,
+            "I63": STROKE, "I63.9": STROKE,
+            "J18": PNEUMONIA, "J18.9": PNEUMONIA,
+            "F32": DEPRESSION, "F33": DEPRESSION,
+            "E66": OBESITY, "E66.9": OBESITY,
+            "I48": ATRIAL_FIB, "I48.9": ATRIAL_FIB,
+            "C80": CANCER, "C80.1": CANCER,
+            "D64": ANEMIA, "D64.9": ANEMIA,
+            "N39.0": UTI,
+        }
+
+        # German ICD-10-GM (uses trailing zeros and extended codes)
+        icd10gm = {
+            "E11.90": self.DIABETES_TYPE2, "E11.91": self.DIABETES_TYPE2,
+            "I10.00": self.HYPERTENSION, "I10.90": self.HYPERTENSION,
+            "I50.90": self.HEART_FAILURE, "I50.19": self.HEART_FAILURE,
+            "J44.10": self.COPD, "J44.19": self.COPD,
+            "J45.90": self.ASTHMA, "J45.99": self.ASTHMA,
+            "N18.90": self.CKD, "N18.5": self.CKD,
+            "I21.90": MI, "I21.0": MI,
+            "I63.90": STROKE, "I63.5": STROKE,
+            "J18.90": PNEUMONIA, "J18.0": PNEUMONIA,
+            "F32.9": DEPRESSION, "F33.1": DEPRESSION,
+            "E66.00": OBESITY, "E66.09": OBESITY,
+            "I48.90": ATRIAL_FIB, "I48.0": ATRIAL_FIB,
+            "C80.0": CANCER, "C80.9": CANCER,
+            "D64.9": ANEMIA, "D64.8": ANEMIA,
+            "N39.0": UTI,
+        }
+
+        # French CIM-10 (no dots, French adaptation)
+        cim10 = {
+            "E119": self.DIABETES_TYPE2, "E110": self.DIABETES_TYPE2,
+            "I10": self.HYPERTENSION,
+            "I509": self.HEART_FAILURE, "I500": self.HEART_FAILURE,
+            "J441": self.COPD, "J449": self.COPD,
+            "J459": self.ASTHMA, "J450": self.ASTHMA,
+            "N189": self.CKD, "N185": self.CKD,
+            "I219": MI, "I210": MI,
+            "I639": STROKE, "I630": STROKE,
+            "J189": PNEUMONIA, "J180": PNEUMONIA,
+            "F329": DEPRESSION, "F331": DEPRESSION,
+            "E669": OBESITY, "E660": OBESITY,
+            "I489": ATRIAL_FIB, "I480": ATRIAL_FIB,
+            "C800": CANCER, "C809": CANCER,
+            "D649": ANEMIA, "D648": ANEMIA,
+            "N390": UTI,
+        }
+
+        # Italian ICD-9-CM (legacy system, still used for some records)
+        icd9cm = {
+            "250.00": self.DIABETES_TYPE2, "250.02": self.DIABETES_TYPE2,
+            "401.9": self.HYPERTENSION, "401.1": self.HYPERTENSION,
+            "428.0": self.HEART_FAILURE, "428.9": self.HEART_FAILURE,
+            "496": self.COPD, "491.21": self.COPD,
+            "493.90": self.ASTHMA, "493.00": self.ASTHMA,
+            "585.9": self.CKD, "585.6": self.CKD,
+            "410.9": MI, "410.71": MI,
+            "436": STROKE, "434.91": STROKE,
+            "486": PNEUMONIA, "485": PNEUMONIA,
+            "311": DEPRESSION, "296.20": DEPRESSION,
+            "278.00": OBESITY, "278.01": OBESITY,
+            "427.31": ATRIAL_FIB,
+            "199.1": CANCER, "199.0": CANCER,
+            "285.9": ANEMIA, "280.9": ANEMIA,
+            "599.0": UTI,
+        }
+
+        # Spanish ICD-10-ES (close to WHO ICD-10 with minor extensions)
+        icd10es = {
+            "E11.9": self.DIABETES_TYPE2, "E11.65": self.DIABETES_TYPE2,
+            "I10": self.HYPERTENSION,
+            "I50.9": self.HEART_FAILURE, "I50.20": self.HEART_FAILURE,
+            "J44.1": self.COPD, "J44.0": self.COPD,
+            "J45.90": self.ASTHMA, "J45.20": self.ASTHMA,
+            "N18.9": self.CKD, "N18.6": self.CKD,
+            "I21.9": MI, "I21.09": MI,
+            "I63.9": STROKE, "I63.50": STROKE,
+            "J18.9": PNEUMONIA, "J18.1": PNEUMONIA,
+            "F32.9": DEPRESSION, "F33.0": DEPRESSION,
+            "E66.9": OBESITY, "E66.01": OBESITY,
+            "I48.91": ATRIAL_FIB, "I48.0": ATRIAL_FIB,
+            "C80.1": CANCER, "C80.0": CANCER,
+            "D64.9": ANEMIA, "D64.89": ANEMIA,
+            "N39.0": UTI,
+        }
+
+        # Dutch ICD-10-NL (WHO standard with NL extensions)
+        icd10nl = {
+            "E11.9": self.DIABETES_TYPE2, "E11": self.DIABETES_TYPE2,
+            "I10": self.HYPERTENSION,
+            "I50.9": self.HEART_FAILURE, "I50": self.HEART_FAILURE,
+            "J44.1": self.COPD, "J44": self.COPD,
+            "J45.9": self.ASTHMA, "J45": self.ASTHMA,
+            "N18.9": self.CKD, "N18": self.CKD,
+            "I21.9": MI, "I21": MI,
+            "I63.9": STROKE, "I63": STROKE,
+            "J18.9": PNEUMONIA, "J18": PNEUMONIA,
+            "F32.9": DEPRESSION, "F33": DEPRESSION,
+            "E66.9": OBESITY, "E66": OBESITY,
+            "I48.9": ATRIAL_FIB, "I48": ATRIAL_FIB,
+            "C80.1": CANCER, "C80": CANCER,
+            "D64.9": ANEMIA, "D64": ANEMIA,
+            "N39.0": UTI,
+        }
+
+        self.mapping_tables = {
+            "ICD10": icd10_base,
+            "ICD10GM": icd10gm,
+            "CIM10": cim10,
+            "ICD9CM": icd9cm,
+            "ICD10ES": icd10es,
+            "ICD10NL": icd10nl,
+        }
+
+        # Descendant concept map for condition hierarchy queries
+        self.descendant_map = {
+            self.DIABETES_TYPE2: {self.DIABETES_TYPE2, 443238, 4193704},
+            self.HYPERTENSION: {self.HYPERTENSION, 316866},
+            self.HEART_FAILURE: {self.HEART_FAILURE, 319835, 443580},
+            self.COPD: {self.COPD, 4063381},
+            self.ASTHMA: {self.ASTHMA, 4051466},
+            self.CKD: {self.CKD, 193782},
+            MI: {MI, 312327, 434376},
+            STROKE: {STROKE, 443454},
+            PNEUMONIA: {PNEUMONIA, 4110056},
+            DEPRESSION: {DEPRESSION, 4152280},
+            OBESITY: {OBESITY, 4215968},
+            ATRIAL_FIB: {ATRIAL_FIB, 4141360},
+            CANCER: {CANCER, 4180790},
+            ANEMIA: {ANEMIA, 4144746},
+            UTI: {UTI, 4112752},
+        }
 
     def get_concept(self, concept_id: int) -> Optional[OMOPConcept]:
         """
@@ -351,9 +511,14 @@ class OMOPVocabularyService:
         Returns:
             Standard concept ID or None
         """
-        # In real implementation, would query CONCEPT_RELATIONSHIP table
-        # For now, return None for unmapped codes
-        logger.info(f"Mapping {source_vocabulary}:{source_code} to standard")
+        table = self.mapping_tables.get(source_vocabulary, {})
+        mapped = table.get(source_code)
+        if mapped is not None:
+            return mapped
+        # Prefix matching: E11 matches E11.9 and vice versa
+        for code, concept_id in table.items():
+            if source_code.startswith(code) or code.startswith(source_code):
+                return concept_id
         return None
 
     def get_descendants(
@@ -371,10 +536,13 @@ class OMOPVocabularyService:
         Returns:
             Set of descendant concept IDs
         """
-        # In real implementation, would query CONCEPT_ANCESTOR table
-        descendants = set()
+        descendants = self.descendant_map.get(ancestor_concept_id, set())
+        if not descendants and include_self:
+            return {ancestor_concept_id}
         if include_self:
-            descendants.add(ancestor_concept_id)
+            descendants = descendants | {ancestor_concept_id}
+        else:
+            descendants = descendants - {ancestor_concept_id}
         return descendants
 
     def get_ancestors(

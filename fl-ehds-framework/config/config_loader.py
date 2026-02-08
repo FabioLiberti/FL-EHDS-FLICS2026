@@ -261,3 +261,19 @@ def get_fhir_config() -> Dict[str, Any]:
         "opt_out_registry_path": fhir.get("opt_out", {}).get("registry_path"),
         "purpose": fhir.get("opt_out", {}).get("purpose", "ai_training"),
     }
+
+
+def get_omop_config() -> Dict[str, Any]:
+    """Get OMOP CDM harmonization configuration."""
+    cfg = load_config()
+    omop = cfg.get("omop", {})
+    return {
+        "country_codes": omop.get("country_codes", ["DE", "FR", "IT", "ES", "NL"]),
+        "profiles": omop.get("profiles",
+            ["general", "cardiac", "pediatric", "geriatric", "oncology"]),
+        "samples_per_client": omop.get("samples_per_client", 500),
+        "normalization": omop.get("features", {}).get("normalization", "zscore"),
+        "label": omop.get("label", "mortality_30day"),
+        "compute_jaccard": omop.get("heterogeneity", {}).get("compute_jaccard", True),
+        "compute_jsd": omop.get("heterogeneity", {}).get("compute_jsd", True),
+    }

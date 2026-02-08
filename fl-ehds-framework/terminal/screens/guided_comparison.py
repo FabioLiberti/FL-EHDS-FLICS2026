@@ -187,6 +187,7 @@ class GuidedComparisonScreen:
             # Check if imaging or FHIR dataset is configured
             is_imaging = self.config.get("dataset_type") == "imaging"
             is_fhir = self.config.get("dataset_type") == "fhir"
+            is_omop = self.config.get("dataset_type") == "omop"
 
             # === VERIFICATION: Show that training is real ===
             print_subsection("VERIFICA TRAINING REALE")
@@ -201,6 +202,14 @@ class GuidedComparisonScreen:
                 total_params = sum(p.numel() for p in model.parameters())
                 print(f"  Modello: HealthcareMLP (PyTorch nn.Module)")
                 print(f"  Architettura: 10 -> 64 -> 32 -> 2 (MLP)")
+                print(f"  Parametri totali: {total_params:,}")
+                print(f"  Valutazione: Test set (20% held-out)")
+                print(f"  Optimizer: SGD con lr={self.config['learning_rate']}")
+            elif is_omop:
+                model = HealthcareMLP(input_dim=36)
+                total_params = sum(p.numel() for p in model.parameters())
+                print(f"  Modello: HealthcareMLP (PyTorch nn.Module)")
+                print(f"  Architettura: 36 -> 64 -> 32 -> 2 (MLP)")
                 print(f"  Parametri totali: {total_params:,}")
                 print(f"  Valutazione: Test set (20% held-out)")
                 print(f"  Optimizer: SGD con lr={self.config['learning_rate']}")
@@ -222,11 +231,20 @@ class GuidedComparisonScreen:
                 print(f"  Features: age, gender, bmi, bp, heart_rate, glucose, ...")
                 print(f"  Target: mortality_30day (binario)")
                 print(f"  Non-IID naturale da profili ospedalieri")
+            elif is_omop:
+                print(f"\n{Style.TITLE}Dataset OMOP-CDM (Cross-Border):{Colors.RESET}")
+                print(f"  Sorgente: Ospedali EU con vocabolari locali -> OMOP armonizzato")
+                print(f"  Features: ~36 standardizzate OMOP (temporal windows)")
+                print(f"  Target: mortality_30day (binario)")
+                print(f"  Non-IID da eterogeneita vocabolario cross-border")
             else:
                 print(f"\n{Style.TITLE}Dataset sintetico sanitario:{Colors.RESET}")
                 print(f"  Features: age, bmi, bp_systolic, glucose, cholesterol, ...")
                 print(f"  Target: Rischio malattia (binario)")
-            print(f"  Distribuzione: {'IID' if self.config['is_iid'] else 'Non-IID (Dirichlet)' if not is_fhir else 'Non-IID (profili ospedalieri)'}")
+            dist_label = ('IID' if self.config['is_iid'] else
+                'Non-IID (eterogeneita vocabolario)' if is_omop else
+                'Non-IID (profili ospedalieri)' if is_fhir else 'Non-IID (Dirichlet)')
+            print(f"  Distribuzione: {dist_label}")
             print()
 
             total_runs = len(algorithms) * num_seeds
@@ -316,6 +334,41 @@ class GuidedComparisonScreen:
                             progress_callback=progress_cb,
                             external_data=fhir_train,
                             external_test_data=fhir_test,
+                        )
+                    elif is_omop:
+                        from data.omop_harmonizer import load_omop_data
+                        omop_cfg = {}
+                        try:
+                            from config.config_loader import get_omop_config
+                            omop_cfg = get_omop_config()
+                        except (ImportError, Exception):
+                            pass
+                        omop_train, omop_test, omop_meta = load_omop_data(
+                            num_clients=num_clients,
+                            samples_per_client=omop_cfg.get("samples_per_client", 500),
+                            hospital_profiles=omop_cfg.get("profiles"),
+                            country_codes=omop_cfg.get("country_codes"),
+                            label_name=omop_cfg.get("label", "mortality_30day"),
+                            seed=seed,
+                        )
+                        trainer = FederatedTrainer(
+                            num_clients=num_clients,
+                            algorithm=algorithm,
+                            local_epochs=local_epochs,
+                            batch_size=self.config["batch_size"],
+                            learning_rate=self.config["learning_rate"],
+                            mu=self.config.get("mu", 0.1),
+                            dp_enabled=self.config.get("dp_enabled", False),
+                            dp_epsilon=self.config.get("dp_epsilon", 10.0),
+                            seed=seed,
+                            server_lr=self.config.get("server_lr", 0.1),
+                            beta1=self.config.get("beta1", 0.9),
+                            beta2=self.config.get("beta2", 0.99),
+                            tau=self.config.get("tau", 1e-3),
+                            progress_callback=progress_cb,
+                            external_data=omop_train,
+                            external_test_data=omop_test,
+                            input_dim=omop_meta.get("num_features"),
                         )
                     else:
                         trainer = FederatedTrainer(
@@ -462,7 +515,9 @@ class GuidedComparisonScreen:
 
         # Create experiment-specific folder with descriptive name
         use_case_short = self.selected_use_case.id.replace("_", "")[:15] if self.selected_use_case else "unknown"
-        dist_short = "FHIR" if self.config.get("dataset_type") == "fhir" else ("IID" if self.config["is_iid"] else "NonIID")
+        dist_short = ("OMOP" if self.config.get("dataset_type") == "omop" else
+            "FHIR" if self.config.get("dataset_type") == "fhir" else
+            ("IID" if self.config["is_iid"] else "NonIID"))
         n_algos = len(self.config["algorithms"])
         folder_name = f"guided_{use_case_short}_{dist_short}_{n_algos}algos_{self.config['num_clients']}clients_{timestamp}"
         output_dir = base_dir / folder_name
