@@ -1068,6 +1068,33 @@ class FederatedTrainer:
 
         return round_result
 
+    def train_clients(self, round_num: int,
+                      active_clients: Optional[List[int]] = None) -> List[ClientResult]:
+        """Train all active clients without aggregating.
+
+        Used by MyHealth@EU hierarchical aggregation where the caller
+        handles 2-level aggregation externally.
+
+        Returns:
+            List of ClientResult with model updates (not aggregated).
+        """
+        clients_to_train = (active_clients if active_clients is not None
+                            else list(range(self.num_clients)))
+
+        # SCAFFOLD: save old client controls before training
+        if self.algorithm == "SCAFFOLD":
+            self._old_client_controls = {
+                cid: {name: val.clone() for name, val in self.client_controls[cid].items()}
+                for cid in clients_to_train
+            }
+
+        client_results = []
+        for client_id in clients_to_train:
+            result = self._train_client(client_id, round_num)
+            client_results.append(result)
+
+        return client_results
+
     def get_client_data_stats(self) -> Dict[int, Dict]:
         """Get statistics about client data distribution."""
         stats = {}
@@ -1733,6 +1760,33 @@ class ImageFederatedTrainer:
             )
 
         return round_result
+
+    def train_clients(self, round_num: int,
+                      active_clients: Optional[List[int]] = None) -> List[ClientResult]:
+        """Train all active clients without aggregating.
+
+        Used by MyHealth@EU hierarchical aggregation where the caller
+        handles 2-level aggregation externally.
+
+        Returns:
+            List of ClientResult with model updates (not aggregated).
+        """
+        clients_to_train = (active_clients if active_clients is not None
+                            else list(range(self.num_clients)))
+
+        # SCAFFOLD: save old client controls before training
+        if self.algorithm == "SCAFFOLD":
+            self._old_client_controls = {
+                cid: {name: val.clone() for name, val in self.client_controls[cid].items()}
+                for cid in clients_to_train
+            }
+
+        client_results = []
+        for client_id in clients_to_train:
+            result = self._train_client(client_id, round_num)
+            client_results.append(result)
+
+        return client_results
 
     def get_client_data_stats(self) -> Dict[int, Dict]:
         """Get statistics about client data distribution (train + test)."""

@@ -342,6 +342,9 @@ class CrossBorderFederatedTrainer:
         # Data Quality Framework (EHDS Art. 69)
         data_quality_enabled: bool = False,
         data_quality_config: Optional[Dict[str, Any]] = None,
+        # MyHealth@EU / NCPeH Integration (EHDS Art. 5-12)
+        myhealth_eu_enabled: bool = False,
+        myhealth_eu_config: Optional[Dict[str, Any]] = None,
     ):
         self.countries = countries
         self.hospitals_per_country = hospitals_per_country
@@ -383,6 +386,11 @@ class CrossBorderFederatedTrainer:
         self.data_quality_enabled = data_quality_enabled
         self.data_quality_config = data_quality_config or {}
         self.quality_manager = None
+
+        # MyHealth@EU / NCPeH Integration (EHDS Art. 5-12)
+        self.myhealth_eu_enabled = myhealth_eu_enabled
+        self.myhealth_eu_config = myhealth_eu_config or {}
+        self.myhealth_bridge = None
 
         self.rng = np.random.RandomState(seed)
         self.audit_log = CrossBorderAuditLog()
@@ -609,6 +617,16 @@ class CrossBorderFederatedTrainer:
                                 details=f"Data quality anomaly: {anomaly}",
                             )
 
+        # Initialize MyHealth@EU bridge (if enabled) - EHDS Art. 5-12
+        if self.myhealth_eu_enabled:
+            from governance.myhealth_eu_bridge import MyHealthEUBridge
+            self.myhealth_bridge = MyHealthEUBridge(
+                hospitals=self.hospitals,
+                config=self.myhealth_eu_config,
+                seed=self.seed,
+            )
+            self.myhealth_bridge.start_session()
+
         # Training loop
         total_start = time.time()
         for round_num in range(self.num_rounds):
@@ -748,10 +766,53 @@ class CrossBorderFederatedTrainer:
                     }
 
             # Run actual FL round via underlying trainer
-            round_result = self._trainer.train_round(
-                round_num, active_clients=active_client_ids,
-                quality_weights=quality_weights_for_round,
-            )
+            if (self.myhealth_bridge and
+                    self.myhealth_eu_config.get("hierarchical_aggregation", True)):
+                # MyHealth@EU hierarchical: train clients, then 2-level aggregate
+                self.myhealth_bridge.pre_round(round_num, active_hospitals)
+
+                # Train clients WITHOUT aggregation
+                client_results = self._trainer.train_clients(
+                    round_num, active_clients=active_client_ids)
+
+                # 2-level hierarchical aggregation via NCPeH
+                self.myhealth_bridge.hierarchical_aggregate(
+                    self._trainer, client_results,
+                    quality_weights=quality_weights_for_round)
+
+                # Apply DP noise if needed (post-aggregation)
+                if self._trainer.dp_enabled:
+                    import torch
+                    noise_scale = getattr(
+                        self._trainer, '_noise_scale_override', None)
+                    if noise_scale is None:
+                        noise_scale = (self._trainer.dp_clip_norm /
+                                       self._trainer.dp_epsilon)
+                    for param in self._trainer.global_model.parameters():
+                        param.data += torch.randn_like(param) * noise_scale
+
+                # Evaluate after hierarchical aggregation
+                metrics = self._trainer._evaluate()
+                from terminal.fl_trainer import RoundResult
+                round_result = RoundResult(
+                    round_num=round_num,
+                    global_loss=metrics["loss"],
+                    global_acc=metrics["accuracy"],
+                    global_f1=metrics["f1"],
+                    global_precision=metrics["precision"],
+                    global_recall=metrics["recall"],
+                    global_auc=metrics["auc"],
+                    client_results=client_results,
+                    time_seconds=0.0,
+                )
+
+                self.myhealth_bridge.post_round(round_num, metrics)
+            else:
+                # Standard flat aggregation
+                round_result = self._trainer.train_round(
+                    round_num, active_clients=active_client_ids,
+                    quality_weights=quality_weights_for_round,
+                )
 
             # Post-round: record jurisdiction privacy spending
             if self.jurisdiction_manager and active_client_ids and eff_noise:
@@ -822,10 +883,19 @@ class CrossBorderFederatedTrainer:
         if self.ihe_bridge:
             self.ihe_bridge.end_session()
 
+        # End MyHealth@EU session
+        if self.myhealth_bridge:
+            self.myhealth_bridge.end_session()
+
         # Quality report in return dict
         quality_report = None
         if self.quality_manager:
             quality_report = self.quality_manager.export_report()
+
+        # MyHealth@EU report in return dict
+        myhealth_eu_report = None
+        if self.myhealth_bridge:
+            myhealth_eu_report = self.myhealth_bridge.export_report()
 
         return {
             "history": self.history,
@@ -835,6 +905,7 @@ class CrossBorderFederatedTrainer:
             "effective_epsilon": effective_epsilon,
             "purpose_violations": self.purpose_violations,
             "quality_report": quality_report,
+            "myhealth_eu_report": myhealth_eu_report,
         }
 
     def save_results(self, output_dir: str):
@@ -994,6 +1065,40 @@ class CrossBorderFederatedTrainer:
                         report.is_anomalous,
                         "; ".join(report.anomalies),
                     ])
+
+        # 17. MyHealth@EU report (if enabled)
+        if self.myhealth_bridge:
+            mheu_report = self.myhealth_bridge.export_report()
+            with open(out / "myhealth_eu_report.json", "w") as f:
+                json.dump(mheu_report, f, indent=2, default=str)
+
+            # NCPeH topology CSV
+            with open(out / "ncpeh_topology.csv", "w", newline="") as f:
+                writer = csv.writer(f)
+                writer.writerow([
+                    "ncp_id", "country", "bandwidth_mbps", "tier",
+                    "services", "hospitals", "samples",
+                    "agg_latency_ms", "comm_bytes",
+                ])
+                for cc in sorted(self.myhealth_bridge.ncp_nodes.keys()):
+                    ncp = self.myhealth_bridge.ncp_nodes[cc]
+                    writer.writerow([
+                        ncp.ncp_id, ncp.country_name,
+                        ncp.bandwidth_mbps, ncp.infrastructure_tier,
+                        "|".join(ncp.services),
+                        len(ncp.hospital_ids), ncp.national_samples,
+                        f"{ncp.aggregation_latency_ms:.1f}",
+                        ncp.communication_bytes,
+                    ])
+
+            # Inter-NCP latency matrix CSV
+            codes, matrix = self.myhealth_bridge.get_latency_matrix_display()
+            with open(out / "inter_ncp_latency.csv", "w", newline="") as f:
+                writer = csv.writer(f)
+                writer.writerow(["from/to"] + codes)
+                for c1 in codes:
+                    row = [c1] + [f"{matrix[c1][c2]:.1f}" for c2 in codes]
+                    writer.writerow(row)
 
     def _save_latex_table(self, out: Path):
         """Generate LaTeX table for cross-border results."""

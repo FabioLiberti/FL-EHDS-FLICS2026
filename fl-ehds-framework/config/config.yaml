@@ -449,6 +449,25 @@ cross_border:
     entropy_threshold: 0.30            # Min normalized class entropy
     iqr_multiplier: 3.0                # IQR multiplier for outlier detection
 
+  # MyHealth@EU / NCPeH Integration (EHDS Chapter II, Art. 5-12)
+  # Hierarchical 2-level FL via National Contact Points for eHealth.
+  # Level 1: Hospitals aggregate at national NCP.
+  # Level 2: NCPs aggregate at EU level.
+  myhealth_eu:
+    enabled: false                          # Off by default (backward compatible)
+    hierarchical_aggregation: true          # 2-level aggregation (NCP + EU)
+    # NCPeH network simulation
+    simulate_ncp_latency: true              # Inter-NCP latency based on geography
+    bandwidth_model: "realistic"            # "realistic" or "uniform"
+    central_node: "BE"                      # Brussels = MyHealth@EU central services
+    # MyHealth@EU services
+    patient_summary_enabled: true           # Patient Summary (PS) service simulation
+    eprescription_enabled: true             # ePrescription (eP) service simulation
+    # Aggregation weights
+    ncp_weight_strategy: "sample_proportional"  # "sample_proportional" or "equal"
+    # Communication cost tracking
+    track_communication_cost: true          # Track bytes transferred per round
+
 # =============================================================================
 # FHIR R4 DATA PIPELINE
 # =============================================================================

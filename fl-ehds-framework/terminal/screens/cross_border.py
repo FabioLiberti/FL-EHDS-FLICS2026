@@ -112,6 +112,9 @@ class CrossBorderScreen:
             # Data Quality Framework (EHDS Art. 69)
             "data_quality_enabled": False,
             "data_quality_config": {},
+            # MyHealth@EU / NCPeH Integration (EHDS Art. 5-12)
+            "myhealth_eu_enabled": False,
+            "myhealth_eu_config": {},
         }
 
     def run(self):
@@ -128,9 +131,10 @@ class CrossBorderScreen:
             print(f"  {Style.TITLE}4{Colors.RESET} - Esegui simulazione")
             print(f"  {Style.TITLE}5{Colors.RESET} - Simula opt-out paese (Art. 48)")
             print(f"  {Style.TITLE}6{Colors.RESET} - Report IHE Compliance")
+            print(f"  {Style.TITLE}7{Colors.RESET} - MyHealth@EU NCPeH Topology")
             print(f"  {Style.TITLE}0{Colors.RESET} - Torna al menu principale")
 
-            choice = get_choice("\nScegli opzione", ["1", "2", "3", "4", "5", "6", "0"], default="1")
+            choice = get_choice("\nScegli opzione", ["1", "2", "3", "4", "5", "6", "7", "0"], default="1")
 
             if choice == "1":
                 self._configure()
@@ -144,6 +148,8 @@ class CrossBorderScreen:
                 self._simulate_optout()
             elif choice == "6":
                 self._show_ihe_report()
+            elif choice == "7":
+                self._show_ncpeh_topology()
             elif choice == "0":
                 return
 
@@ -338,6 +344,41 @@ class CrossBorderScreen:
 
             self.config["data_quality_config"] = dq_cfg
 
+        # MyHealth@EU / NCPeH Integration (EHDS Art. 5-12)
+        print_subsection("MyHealth@EU / NCPeH Integration (Art. 5-12 EHDS)")
+        self.config["myhealth_eu_enabled"] = confirm(
+            "Abilitare aggregazione gerarchica via NCPeH?", default=False
+        )
+        if self.config["myhealth_eu_enabled"]:
+            print_info("Aggregazione gerarchica a 2 livelli:")
+            print_info("  Livello 1: Ospedali -> NCP nazionale")
+            print_info("  Livello 2: NCP -> Aggregatore EU\n")
+
+            mheu_cfg = {}
+            mheu_cfg["hierarchical_aggregation"] = True
+
+            weight_choice = get_int(
+                "  Strategia pesi NCP (1=sample_proportional, 2=equal)",
+                default=1, min_val=1, max_val=2
+            )
+            mheu_cfg["ncp_weight_strategy"] = (
+                "sample_proportional" if weight_choice == 1 else "equal"
+            )
+
+            mheu_cfg["simulate_ncp_latency"] = confirm(
+                "  Simulare latenza inter-NCP?", default=True
+            )
+            mheu_cfg["patient_summary_enabled"] = confirm(
+                "  Simulare Patient Summary exchange?", default=True
+            )
+            mheu_cfg["eprescription_enabled"] = confirm(
+                "  Simulare ePrescription cross-border?", default=False
+            )
+            mheu_cfg["track_communication_cost"] = True
+            mheu_cfg["central_node"] = "BE"
+
+            self.config["myhealth_eu_config"] = mheu_cfg
+
         # Dataset
         print_subsection("Dataset")
         self.config["dataset_type"] = "synthetic"
@@ -386,6 +427,13 @@ class CrossBorderScreen:
         dq_enabled = c.get('data_quality_enabled', False)
         dq_alpha = c.get('data_quality_config', {}).get('alpha', 1.0) if dq_enabled else '-'
         print(f"  {'Data Quality':<22} {'Si (alpha=' + str(dq_alpha) + ')' if dq_enabled else 'No'}")
+        mheu_enabled = c.get('myhealth_eu_enabled', False)
+        if mheu_enabled:
+            mheu_cfg = c.get('myhealth_eu_config', {})
+            strategy = mheu_cfg.get('ncp_weight_strategy', 'sample_proportional')
+            print(f"  {'MyHealth@EU':<22} Si (NCPeH, {strategy})")
+        else:
+            print(f"  {'MyHealth@EU':<22} No")
 
         # Show per-country effective epsilon
         print_subsection("EPSILON EFFETTIVO PER GIURISDIZIONE")
@@ -462,6 +510,8 @@ class CrossBorderScreen:
                 ihe_config=c.get("ihe_config", {}),
                 data_quality_enabled=c.get("data_quality_enabled", False),
                 data_quality_config=c.get("data_quality_config", {}),
+                myhealth_eu_enabled=c.get("myhealth_eu_enabled", False),
+                myhealth_eu_config=c.get("myhealth_eu_config", {}),
             )
 
             # Show hospital mapping
@@ -615,6 +665,35 @@ class CrossBorderScreen:
                     for a in report.anomalies:
                         print(f"  {Style.WARNING}{report.hospital_name}: {a}{Colors.RESET}")
 
+        # MyHealth@EU / NCPeH results
+        if hasattr(trainer, 'myhealth_bridge') and trainer.myhealth_bridge:
+            print_subsection("MYHEALTH@EU - NCPeH HIERARCHICAL AGGREGATION")
+            summary = trainer.myhealth_bridge.get_display_summary()
+
+            # NCP table
+            print(f"\n  {'NCP Node':<14} {'Country':<14} {'Hosp':>5} {'Samples':>8} "
+                  f"{'NCP Lat':>8} {'Inter':>8} {'BW':>8} {'Tier':>5} {'Services'}")
+            print(f"  {'-'*90}")
+            for ncp in summary["ncp_rows"]:
+                print(f"  {ncp['ncp_id']:<14} {ncp['country']:<14} "
+                      f"{ncp['hospitals']:>5} {ncp['samples']:>8} "
+                      f"{ncp['ncp_latency_ms']:>6.1f}ms "
+                      f"{ncp['inter_ncp_ms']:>6.1f}ms "
+                      f"{ncp['bandwidth_mbps']:>5.0f}Mb "
+                      f"{ncp['tier']:>5} {ncp['services']}")
+            print(f"  {'-'*90}")
+
+            print(f"\n  Aggregation:  {summary['aggregation_type']}")
+            print(f"  Central Node: {summary['central_node']} (Brussels)")
+            if summary['total_flat_kb'] > 0:
+                print(f"  Comm cost:    {summary['total_hier_kb']:.1f} KB "
+                      f"(vs {summary['total_flat_kb']:.1f} KB flat = "
+                      f"-{summary['saving_pct']:.1f}%)")
+            if summary['ps_total'] > 0:
+                print(f"  Patient Summaries exchanged: {summary['ps_total']}")
+            if summary['ep_total'] > 0:
+                print(f"  ePrescriptions processed: {summary['ep_total']}")
+
         # Compliance summary
         violations = trainer.audit_log.get_violations()
         print_subsection("COMPLIANCE SUMMARY")
@@ -655,6 +734,10 @@ class CrossBorderScreen:
             if hasattr(trainer, 'quality_manager') and trainer.quality_manager:
                 print(f"  - quality_report.json")
                 print(f"  - quality_labels.csv")
+            if hasattr(trainer, 'myhealth_bridge') and trainer.myhealth_bridge:
+                print(f"  - myhealth_eu_report.json")
+                print(f"  - ncpeh_topology.csv")
+                print(f"  - inter_ncp_latency.csv")
         except Exception as e:
             print_error(f"Errore salvataggio: {e}")
 
@@ -731,6 +814,8 @@ class CrossBorderScreen:
                 ihe_config=c.get("ihe_config", {}),
                 data_quality_enabled=c.get("data_quality_enabled", False),
                 data_quality_config=c.get("data_quality_config", {}),
+                myhealth_eu_enabled=c.get("myhealth_eu_enabled", False),
+                myhealth_eu_config=c.get("myhealth_eu_config", {}),
             )
 
             # Schedule opt-out: will be triggered during training
@@ -835,5 +920,89 @@ class CrossBorderScreen:
         print_info("  - CT: time sync tra tutti i nodi prima di ogni round")
         print_info("  - XDS-I.b: simulazione retrieve DICOM per ospedali imaging")
         print_info("  - mTLS: verifica validita certificati nodo")
+
+        input(f"\n{Style.MUTED}Premi Enter per continuare...{Colors.RESET}")
+
+    def _show_ncpeh_topology(self):
+        """Display NCPeH topology and inter-NCP latency matrix."""
+        clear_screen()
+        print_section("MyHealth@EU - NCPeH TOPOLOGY")
+
+        print_info("National Contact Points for eHealth (NCPeH)")
+        print_info("Infrastructure operativa per lo scambio dati sanitari cross-border\n")
+
+        try:
+            from governance.myhealth_eu_bridge import NCPEH_TOPOLOGY, MyHealthEUBridge
+
+            # NCP node table
+            print_subsection("NCPeH NODES")
+            print(f"\n  {'Node':<14} {'Country':<14} {'Tier':>5} {'Bandwidth':>10} "
+                  f"{'Services':<22} {'Since':>6}")
+            print(f"  {'-'*75}")
+            for cc in sorted(NCPEH_TOPOLOGY.keys()):
+                ncp = NCPEH_TOPOLOGY[cc]
+                services = ", ".join(
+                    s.replace("patient_summary", "PS").replace(
+                        "eprescription", "eP").replace(
+                        "central_services", "Central")
+                    for s in ncp.services
+                )
+                print(f"  {ncp.ncp_id:<14} {ncp.country_name:<14} "
+                      f"{ncp.infrastructure_tier:>5} "
+                      f"{ncp.bandwidth_mbps:>7.0f}Mb "
+                      f"{services:<22} {ncp.operational_since:>6}")
+
+            print(f"\n  Tier: 1=basic, 2=established, 3=advanced")
+            print(f"  PS=Patient Summary, eP=ePrescription\n")
+
+            # Inter-NCP latency matrix
+            # Build a temporary bridge to compute latencies
+            from terminal.cross_border import EU_COUNTRY_PROFILES, HospitalNode
+            temp_hospitals = []
+            for i, cc in enumerate(sorted(NCPEH_TOPOLOGY.keys())):
+                profile = EU_COUNTRY_PROFILES.get(cc)
+                if profile:
+                    temp_hospitals.append(HospitalNode(
+                        hospital_id=i, name=f"Temp_{cc}",
+                        country_code=cc, country_profile=profile,
+                        effective_epsilon=1.0, effective_delta=1e-5,
+                    ))
+            if temp_hospitals:
+                bridge = MyHealthEUBridge(
+                    hospitals=temp_hospitals, config={}, seed=42)
+                codes, matrix = bridge.get_latency_matrix_display()
+
+                print_subsection("INTER-NCP LATENCY MATRIX (ms)")
+                # Header
+                header = f"  {'':>5}" + "".join(f"{cc:>7}" for cc in codes)
+                print(header)
+                print(f"  {'-'*(5 + 7 * len(codes))}")
+                for c1 in codes:
+                    row = f"  {c1:>5}"
+                    for c2 in codes:
+                        if c1 == c2:
+                            row += f"{'--':>7}"
+                        else:
+                            row += f"{matrix[c1][c2]:>7.1f}"
+                    print(row)
+
+            # Architecture description
+            print_subsection("ARCHITETTURA FL GERARCHICA VIA NCPeH")
+            print_info("Livello 1: Ospedali inviano model update al NCPeH nazionale")
+            print_info("Livello 2: NCPeH inviano modello aggregato nazionale a EU (Brussels)")
+            print_info("")
+            print_info("Vantaggi:")
+            print_info("  - Riduzione costo comunicazione cross-border (~30-50%)")
+            print_info("  - Aggregazione nazionale preserva sovranita dati")
+            print_info("  - Allineamento con infrastruttura MyHealth@EU operativa")
+            print_info("")
+            print_info("EHDS Reference: Chapter II, Art. 5-12")
+
+        except ImportError as e:
+            print_error(f"Errore import: {e}")
+        except Exception as e:
+            print_error(f"Errore: {e}")
+            import traceback
+            traceback.print_exc()
 
         input(f"\n{Style.MUTED}Premi Enter per continuare...{Colors.RESET}")

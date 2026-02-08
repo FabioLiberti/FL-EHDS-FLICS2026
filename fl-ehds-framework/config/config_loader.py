@@ -337,6 +337,24 @@ def get_data_quality_config() -> Dict[str, Any]:
     }
 
 
+def get_myhealth_eu_config() -> Dict[str, Any]:
+    """Get MyHealth@EU / NCPeH integration configuration (EHDS Art. 5-12)."""
+    cfg = load_config()
+    cb = cfg.get("cross_border", {})
+    mh = cb.get("myhealth_eu", {})
+    return {
+        "enabled": mh.get("enabled", False),
+        "hierarchical_aggregation": mh.get("hierarchical_aggregation", True),
+        "simulate_ncp_latency": mh.get("simulate_ncp_latency", True),
+        "bandwidth_model": mh.get("bandwidth_model", "realistic"),
+        "central_node": mh.get("central_node", "BE"),
+        "patient_summary_enabled": mh.get("patient_summary_enabled", True),
+        "eprescription_enabled": mh.get("eprescription_enabled", True),
+        "ncp_weight_strategy": mh.get("ncp_weight_strategy", "sample_proportional"),
+        "track_communication_cost": mh.get("track_communication_cost", True),
+    }
+
+
 def get_governance_training_config() -> Dict[str, Any]:
     """Get governance training integration configuration."""
     cfg = load_config()
