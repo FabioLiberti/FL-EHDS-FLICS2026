@@ -314,6 +314,29 @@ def get_ihe_config() -> Dict[str, Any]:
     }
 
 
+def get_data_quality_config() -> Dict[str, Any]:
+    """Get Data Quality Framework configuration (EHDS Art. 69)."""
+    cfg = load_config()
+    cb = cfg.get("cross_border", {})
+    dq = cb.get("data_quality", {})
+    return {
+        "enabled": dq.get("enabled", False),
+        "alpha": dq.get("alpha", 1.0),
+        "weight_completeness": dq.get("weight_completeness", 0.20),
+        "weight_accuracy": dq.get("weight_accuracy", 0.25),
+        "weight_uniqueness": dq.get("weight_uniqueness", 0.15),
+        "weight_diversity": dq.get("weight_diversity", 0.20),
+        "weight_consistency": dq.get("weight_consistency", 0.20),
+        "gold_threshold": dq.get("gold_threshold", 0.85),
+        "silver_threshold": dq.get("silver_threshold", 0.70),
+        "bronze_threshold": dq.get("bronze_threshold", 0.55),
+        "ks_threshold": dq.get("ks_threshold", 0.05),
+        "missing_threshold": dq.get("missing_threshold", 0.30),
+        "entropy_threshold": dq.get("entropy_threshold", 0.30),
+        "iqr_multiplier": dq.get("iqr_multiplier", 3.0),
+    }
+
+
 def get_governance_training_config() -> Dict[str, Any]:
     """Get governance training integration configuration."""
     cfg = load_config()

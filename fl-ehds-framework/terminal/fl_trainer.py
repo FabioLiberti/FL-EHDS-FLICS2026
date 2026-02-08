@@ -412,6 +412,7 @@ class ClientResult:
     train_loss: float
     train_acc: float
     epochs_completed: int
+    quality_score: Optional[float] = None
 
 
 @dataclass
@@ -763,48 +764,59 @@ class FederatedTrainer:
             optimizer.step()
 
     def _aggregate(self, client_results: List[ClientResult],
-                   noise_scale_override: Optional[float] = None) -> None:
-        """Aggregate client updates to global model."""
-        # First compute weighted pseudo-gradient (delta)
+                   noise_scale_override: Optional[float] = None,
+                   quality_weights: Optional[Dict[int, float]] = None) -> None:
+        """Aggregate client updates to global model.
+
+        Args:
+            client_results: Per-client training results with model updates.
+            noise_scale_override: Override DP noise scale (from jurisdiction privacy).
+            quality_weights: Optional {client_id: quality_weight} from Data Quality
+                Framework. If provided, aggregation weights are multiplied by quality
+                scores: w_h = (n_h/N) * q_h, then normalized.
+        """
+        # Pre-compute normalized weights: sample-proportional * quality modifier
         total_samples = sum(cr.num_samples for cr in client_results)
+        raw_weights = {}
+        for cr in client_results:
+            w = cr.num_samples / total_samples
+            if quality_weights and cr.client_id in quality_weights:
+                w *= quality_weights[cr.client_id]
+            raw_weights[cr.client_id] = w
+        total_w = sum(raw_weights.values())
+        if total_w > 0:
+            cw = {cid: w / total_w for cid, w in raw_weights.items()}
+        else:
+            cw = {cr.client_id: 1.0 / len(client_results) for cr in client_results}
 
         if self.algorithm == "FedNova":
             # FedNova (Wang et al. 2020): normalized averaging
             tau_eff = 0.0
             for cr in client_results:
-                w_i = cr.num_samples / total_samples
-                tau_eff += w_i * self.client_steps[cr.client_id]
+                tau_eff += cw[cr.client_id] * self.client_steps[cr.client_id]
 
             for name, param in self.global_model.named_parameters():
                 normalized_avg = torch.zeros_like(param)
                 for cr in client_results:
-                    w_i = cr.num_samples / total_samples
                     tau_i = max(self.client_steps[cr.client_id], 1)
-                    normalized_avg += w_i * (cr.model_update[name] / tau_i)
+                    normalized_avg += cw[cr.client_id] * (cr.model_update[name] / tau_i)
                 param.data += tau_eff * normalized_avg
 
         elif self.algorithm == "FedAdam":
             # FedAdam: Adam optimizer on server side
             for name, param in self.global_model.named_parameters():
-                # Compute weighted pseudo-gradient
                 delta = torch.zeros_like(param)
                 for cr in client_results:
-                    weight = cr.num_samples / total_samples
-                    delta += cr.model_update[name] * weight
+                    delta += cr.model_update[name] * cw[cr.client_id]
 
-                # Update momentum: m_t = beta1 * m_{t-1} + (1 - beta1) * delta
                 self.server_momentum[name] = (
                     self.beta1 * self.server_momentum[name] +
                     (1 - self.beta1) * delta
                 )
-
-                # Update velocity: v_t = beta2 * v_{t-1} + (1 - beta2) * delta^2
                 self.server_velocity[name] = (
                     self.beta2 * self.server_velocity[name] +
                     (1 - self.beta2) * (delta ** 2)
                 )
-
-                # Apply update: global += server_lr * m / (sqrt(v) + tau)
                 param.data += self.server_lr * self.server_momentum[name] / (
                     torch.sqrt(self.server_velocity[name]) + self.tau
                 )
@@ -812,27 +824,20 @@ class FederatedTrainer:
         elif self.algorithm == "FedYogi":
             # FedYogi: like FedAdam but with different velocity update
             for name, param in self.global_model.named_parameters():
-                # Compute weighted pseudo-gradient
                 delta = torch.zeros_like(param)
                 for cr in client_results:
-                    weight = cr.num_samples / total_samples
-                    delta += cr.model_update[name] * weight
+                    delta += cr.model_update[name] * cw[cr.client_id]
 
-                # Update momentum: m_t = beta1 * m_{t-1} + (1 - beta1) * delta
                 self.server_momentum[name] = (
                     self.beta1 * self.server_momentum[name] +
                     (1 - self.beta1) * delta
                 )
-
-                # Update velocity (Yogi style): v_t = v_{t-1} - (1 - beta2) * sign(v - delta^2) * delta^2
                 delta_sq = delta ** 2
                 sign = torch.sign(self.server_velocity[name] - delta_sq)
                 self.server_velocity[name] = (
                     self.server_velocity[name] -
                     (1 - self.beta2) * sign * delta_sq
                 )
-
-                # Apply update
                 param.data += self.server_lr * self.server_momentum[name] / (
                     torch.sqrt(self.server_velocity[name]) + self.tau
                 )
@@ -840,16 +845,11 @@ class FederatedTrainer:
         elif self.algorithm == "FedAdagrad":
             # FedAdagrad: Adagrad on server side (no momentum)
             for name, param in self.global_model.named_parameters():
-                # Compute weighted pseudo-gradient
                 delta = torch.zeros_like(param)
                 for cr in client_results:
-                    weight = cr.num_samples / total_samples
-                    delta += cr.model_update[name] * weight
+                    delta += cr.model_update[name] * cw[cr.client_id]
 
-                # Update velocity: v_t = v_{t-1} + delta^2
                 self.server_velocity[name] = self.server_velocity[name] + (delta ** 2)
-
-                # Apply update: global += server_lr * delta / (sqrt(v) + tau)
                 param.data += self.server_lr * delta / (
                     torch.sqrt(self.server_velocity[name]) + self.tau
                 )
@@ -859,22 +859,17 @@ class FederatedTrainer:
             for name, param in self.global_model.named_parameters():
                 weighted_update = torch.zeros_like(param)
                 for cr in client_results:
-                    weight = cr.num_samples / total_samples
-                    weighted_update += cr.model_update[name] * weight
+                    weighted_update += cr.model_update[name] * cw[cr.client_id]
 
-                # Update server state: h = h - alpha * weighted_update
                 self.server_h[name] -= self.mu * weighted_update
-
-                # Apply: global += weighted_update - (1/alpha) * h
                 param.data += weighted_update - (1.0 / self.mu) * self.server_h[name]
 
         else:
-            # FedAvg, FedProx, SCAFFOLD, Per-FedAvg, Ditto: weighted average by samples
+            # FedAvg, FedProx, SCAFFOLD, Per-FedAvg, Ditto: weighted average
             for name, param in self.global_model.named_parameters():
                 weighted_update = torch.zeros_like(param)
                 for cr in client_results:
-                    weight = cr.num_samples / total_samples
-                    weighted_update += cr.model_update[name] * weight
+                    weighted_update += cr.model_update[name] * cw[cr.client_id]
 
                 param.data += weighted_update
 
@@ -978,7 +973,8 @@ class FederatedTrainer:
         }
 
     def train_round(self, round_num: int,
-                    active_clients: Optional[List[int]] = None) -> RoundResult:
+                    active_clients: Optional[List[int]] = None,
+                    quality_weights: Optional[Dict[int, float]] = None) -> RoundResult:
         """Execute one federated learning round.
 
         Args:
@@ -986,6 +982,8 @@ class FederatedTrainer:
             active_clients: If provided, only train these client IDs.
                 Clients not in this list are skipped (e.g., budget exhausted).
                 If None, all clients participate (backward compatible).
+            quality_weights: Optional {client_id: quality_weight} from Data Quality
+                Framework (EHDS Art. 69). Passed to _aggregate().
         """
         start_time = time.time()
 
@@ -1033,6 +1031,7 @@ class FederatedTrainer:
         self._aggregate(
             client_results,
             noise_scale_override=getattr(self, '_noise_scale_override', None),
+            quality_weights=quality_weights,
         )
 
         # Evaluate with all metrics
@@ -1434,35 +1433,45 @@ class ImageFederatedTrainer:
             optimizer.step()
 
     def _aggregate(self, client_results: List[ClientResult],
-                   noise_scale_override: Optional[float] = None) -> None:
-        """Aggregate client updates. Supports all 9 FL algorithms."""
+                   noise_scale_override: Optional[float] = None,
+                   quality_weights: Optional[Dict[int, float]] = None) -> None:
+        """Aggregate client updates. Supports all 10 FL algorithms.
+
+        Args:
+            quality_weights: Optional {client_id: quality_weight} from Data Quality
+                Framework. If provided, weights are multiplied by quality scores.
+        """
+        # Pre-compute normalized weights: sample-proportional * quality modifier
         total_samples = sum(cr.num_samples for cr in client_results)
+        raw_weights = {}
+        for cr in client_results:
+            w = cr.num_samples / total_samples
+            if quality_weights and cr.client_id in quality_weights:
+                w *= quality_weights[cr.client_id]
+            raw_weights[cr.client_id] = w
+        total_w = sum(raw_weights.values())
+        if total_w > 0:
+            cw = {cid: w / total_w for cid, w in raw_weights.items()}
+        else:
+            cw = {cr.client_id: 1.0 / len(client_results) for cr in client_results}
 
         if self.algorithm == "FedNova":
-            # FedNova (Wang et al. 2020): normalized averaging
-            # d_i = delta_i / tau_i  (normalized gradient per step)
-            # d = sum(w_i * d_i)     (weighted average, w_i = n_i / N)
-            # tau_eff = sum(w_i * tau_i)
-            # global += tau_eff * d
             tau_eff = 0.0
             for cr in client_results:
-                w_i = cr.num_samples / total_samples
-                tau_eff += w_i * self.client_steps[cr.client_id]
+                tau_eff += cw[cr.client_id] * self.client_steps[cr.client_id]
 
             for name, param in self.global_model.named_parameters():
                 normalized_avg = torch.zeros_like(param)
                 for cr in client_results:
-                    w_i = cr.num_samples / total_samples
                     tau_i = max(self.client_steps[cr.client_id], 1)
-                    normalized_avg += w_i * (cr.model_update[name] / tau_i)
+                    normalized_avg += cw[cr.client_id] * (cr.model_update[name] / tau_i)
                 param.data += tau_eff * normalized_avg
 
         elif self.algorithm == "FedAdam":
             for name, param in self.global_model.named_parameters():
                 delta = torch.zeros_like(param)
                 for cr in client_results:
-                    weight = cr.num_samples / total_samples
-                    delta += cr.model_update[name] * weight
+                    delta += cr.model_update[name] * cw[cr.client_id]
                 self.server_momentum[name] = (
                     self.beta1 * self.server_momentum[name] +
                     (1 - self.beta1) * delta
@@ -1479,8 +1488,7 @@ class ImageFederatedTrainer:
             for name, param in self.global_model.named_parameters():
                 delta = torch.zeros_like(param)
                 for cr in client_results:
-                    weight = cr.num_samples / total_samples
-                    delta += cr.model_update[name] * weight
+                    delta += cr.model_update[name] * cw[cr.client_id]
                 self.server_momentum[name] = (
                     self.beta1 * self.server_momentum[name] +
                     (1 - self.beta1) * delta
@@ -1499,25 +1507,19 @@ class ImageFederatedTrainer:
             for name, param in self.global_model.named_parameters():
                 delta = torch.zeros_like(param)
                 for cr in client_results:
-                    weight = cr.num_samples / total_samples
-                    delta += cr.model_update[name] * weight
+                    delta += cr.model_update[name] * cw[cr.client_id]
                 self.server_velocity[name] = self.server_velocity[name] + (delta ** 2)
                 param.data += self.server_lr * delta / (
                     torch.sqrt(self.server_velocity[name]) + self.tau
                 )
 
         elif self.algorithm == "FedDyn":
-            # FedDyn (Acar et al. 2021): weighted avg + server correction
             for name, param in self.global_model.named_parameters():
                 weighted_update = torch.zeros_like(param)
                 for cr in client_results:
-                    weight = cr.num_samples / total_samples
-                    weighted_update += cr.model_update[name] * weight
+                    weighted_update += cr.model_update[name] * cw[cr.client_id]
 
-                # Update server state: h = h - alpha * weighted_update
                 self.server_h[name] -= self.mu * weighted_update
-
-                # Apply: global += weighted_update - (1/alpha) * h
                 param.data += weighted_update - (1.0 / self.mu) * self.server_h[name]
 
         else:
@@ -1525,8 +1527,7 @@ class ImageFederatedTrainer:
             for name, param in self.global_model.named_parameters():
                 weighted_update = torch.zeros_like(param)
                 for cr in client_results:
-                    weight = cr.num_samples / total_samples
-                    weighted_update += cr.model_update[name] * weight
+                    weighted_update += cr.model_update[name] * cw[cr.client_id]
                 param.data += weighted_update
 
         # SCAFFOLD: update server control variate using proper delta
@@ -1535,7 +1536,6 @@ class ImageFederatedTrainer:
             for name in self.server_control:
                 delta_c = torch.zeros_like(self.server_control[name])
                 for cr in client_results:
-                    # delta_c_i = c_i_new - c_i_old
                     delta_c += (
                         self.client_controls[cr.client_id][name]
                         - self._old_client_controls[cr.client_id][name]
@@ -1636,13 +1636,16 @@ class ImageFederatedTrainer:
         }
 
     def train_round(self, round_num: int,
-                    active_clients: Optional[List[int]] = None) -> RoundResult:
+                    active_clients: Optional[List[int]] = None,
+                    quality_weights: Optional[Dict[int, float]] = None) -> RoundResult:
         """Execute one federated learning round.
 
         Args:
             round_num: Current round number.
             active_clients: If provided, only train these client IDs.
                 If None, all clients participate (backward compatible).
+            quality_weights: Optional {client_id: quality_weight} from Data Quality
+                Framework (EHDS Art. 69). Passed to _aggregate().
         """
         start_time = time.time()
 
@@ -1697,6 +1700,7 @@ class ImageFederatedTrainer:
         self._aggregate(
             client_results,
             noise_scale_override=getattr(self, '_noise_scale_override', None),
+            quality_weights=quality_weights,
         )
 
         # Show evaluation progress

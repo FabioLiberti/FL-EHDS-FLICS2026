@@ -339,6 +339,9 @@ class CrossBorderFederatedTrainer:
         # IHE Integration Profiles
         ihe_enabled: bool = False,
         ihe_config: Optional[Dict[str, Any]] = None,
+        # Data Quality Framework (EHDS Art. 69)
+        data_quality_enabled: bool = False,
+        data_quality_config: Optional[Dict[str, Any]] = None,
     ):
         self.countries = countries
         self.hospitals_per_country = hospitals_per_country
@@ -375,6 +378,11 @@ class CrossBorderFederatedTrainer:
         self.ihe_enabled = ihe_enabled
         self.ihe_config = ihe_config or {}
         self.ihe_bridge = None
+
+        # Data Quality Framework (EHDS Art. 69)
+        self.data_quality_enabled = data_quality_enabled
+        self.data_quality_config = data_quality_config or {}
+        self.quality_manager = None
 
         self.rng = np.random.RandomState(seed)
         self.audit_log = CrossBorderAuditLog()
@@ -563,6 +571,44 @@ class CrossBorderFederatedTrainer:
             )
             self.ihe_bridge.start_session(purpose=self.purpose)
 
+        # Initialize Data Quality Manager (if enabled) - EHDS Art. 69
+        if self.data_quality_enabled:
+            from governance.data_quality_framework import DataQualityManager
+            self.quality_manager = DataQualityManager(
+                hospitals=self.hospitals,
+                config=self.data_quality_config,
+            )
+            # Assess all client data quality BEFORE training starts
+            client_data_dict = {}
+            num_clients = len(self.hospitals)
+            for cid in range(num_clients):
+                if hasattr(self._trainer, 'client_data') and cid in self._trainer.client_data:
+                    client_data_dict[cid] = self._trainer.client_data[cid]
+            if client_data_dict:
+                quality_reports = self.quality_manager.assess_all_clients(client_data_dict)
+                # Log anomaly warnings to audit trail
+                for cid, report in quality_reports.items():
+                    if report.is_anomalous:
+                        hospital = self.hospitals[cid] if cid < len(self.hospitals) else None
+                        h_name = hospital.name if hospital else f"Client_{cid}"
+                        for anomaly in report.anomalies:
+                            self.audit_log.log(
+                                round_num=-1,
+                                hospital_id=cid,
+                                hospital_name=h_name,
+                                country_code=hospital.country_code if hospital else "??",
+                                jurisdiction=f"{hospital.country_profile.name} HDAB" if hospital else "Unknown",
+                                action="quality_anomaly",
+                                epsilon_this_round=0,
+                                epsilon_cumulative=0,
+                                epsilon_budget_remaining=0,
+                                samples_used=report.num_samples,
+                                samples_opted_out=0,
+                                latency_ms=0,
+                                compliance_status="warning",
+                                details=f"Data quality anomaly: {anomaly}",
+                            )
+
         # Training loop
         total_start = time.time()
         for round_num in range(self.num_rounds):
@@ -689,9 +735,22 @@ class CrossBorderFederatedTrainer:
             if self.simulate_latency and total_latency > 0:
                 time.sleep(total_latency / 5000.0)  # Subtle delay
 
+            # Get quality weights for this round (if Data Quality Framework enabled)
+            quality_weights_for_round = None
+            if self.quality_manager:
+                quality_weights_for_round = self.quality_manager.get_quality_weights()
+                # Filter to active clients only
+                if active_client_ids is not None:
+                    active_set = set(active_client_ids)
+                    quality_weights_for_round = {
+                        cid: w for cid, w in quality_weights_for_round.items()
+                        if cid in active_set
+                    }
+
             # Run actual FL round via underlying trainer
             round_result = self._trainer.train_round(
-                round_num, active_clients=active_client_ids
+                round_num, active_clients=active_client_ids,
+                quality_weights=quality_weights_for_round,
             )
 
             # Post-round: record jurisdiction privacy spending
@@ -763,6 +822,11 @@ class CrossBorderFederatedTrainer:
         if self.ihe_bridge:
             self.ihe_bridge.end_session()
 
+        # Quality report in return dict
+        quality_report = None
+        if self.quality_manager:
+            quality_report = self.quality_manager.export_report()
+
         return {
             "history": self.history,
             "hospitals": self.hospitals,
@@ -770,6 +834,7 @@ class CrossBorderFederatedTrainer:
             "total_time": total_time,
             "effective_epsilon": effective_epsilon,
             "purpose_violations": self.purpose_violations,
+            "quality_report": quality_report,
         }
 
     def save_results(self, output_dir: str):
@@ -898,6 +963,37 @@ class CrossBorderFederatedTrainer:
             )
             with open(out / "atna_audit_trail.xml", "w") as f:
                 f.write(audit_xml)
+
+        # 15. Data Quality report (if enabled) - EHDS Art. 69
+        if self.quality_manager:
+            quality_report = self.quality_manager.export_report()
+            with open(out / "quality_report.json", "w") as f:
+                json.dump(quality_report, f, indent=2, default=str)
+
+            # 16. Quality labels CSV
+            with open(out / "quality_labels.csv", "w", newline="") as f:
+                writer = csv.writer(f)
+                writer.writerow([
+                    "client_id", "hospital", "overall_score", "quality_label",
+                    "quality_weight", "completeness", "accuracy", "uniqueness",
+                    "diversity", "consistency", "anomalous", "anomalies",
+                ])
+                for cid, report in sorted(
+                    self.quality_manager.client_reports.items()
+                ):
+                    writer.writerow([
+                        cid, report.hospital_name,
+                        f"{report.overall_score:.4f}",
+                        report.quality_label.value,
+                        f"{report.quality_weight:.4f}",
+                        f"{report.completeness:.4f}",
+                        f"{report.accuracy:.4f}",
+                        f"{report.uniqueness:.4f}",
+                        f"{report.diversity:.4f}",
+                        f"{report.consistency:.4f}",
+                        report.is_anomalous,
+                        "; ".join(report.anomalies),
+                    ])
 
     def _save_latex_table(self, out: Path):
         """Generate LaTeX table for cross-border results."""

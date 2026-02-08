@@ -109,6 +109,9 @@ class CrossBorderScreen:
             # IHE Integration
             "ihe_enabled": False,
             "ihe_config": {},
+            # Data Quality Framework (EHDS Art. 69)
+            "data_quality_enabled": False,
+            "data_quality_config": {},
         }
 
     def run(self):
@@ -309,6 +312,32 @@ class CrossBorderScreen:
 
             self.config["ihe_config"] = ihe_cfg
 
+        # Data Quality Framework (EHDS Art. 69)
+        print_subsection("Data Quality Framework (Art. 69 EHDS)")
+        self.config["data_quality_enabled"] = confirm(
+            "Abilitare quality-weighted aggregation?", default=False
+        )
+        if self.config["data_quality_enabled"]:
+            print_info("I pesi di aggregazione saranno moltiplicati per il quality score.")
+            print_info("Formula: w_h = (n_h/N) * quality_h^alpha, poi normalizzato.\n")
+
+            dq_cfg = {}
+            dq_cfg["alpha"] = get_float(
+                "  Alpha (0=ignora qualita, 1=lineare, 2=forte penalita)",
+                default=1.0, min_val=0.0, max_val=3.0
+            )
+
+            print_info("\nSoglie quality label EHDS Art. 69:")
+            print_info("  GOLD >= 0.85, SILVER >= 0.70, BRONZE >= 0.55, INSUFFICIENT < 0.55")
+
+            if confirm("\nAbilitare anomaly detection pre-training?", default=True):
+                dq_cfg["ks_threshold"] = 0.05
+                dq_cfg["missing_threshold"] = 0.3
+                dq_cfg["entropy_threshold"] = 0.3
+                dq_cfg["iqr_multiplier"] = 3.0
+
+            self.config["data_quality_config"] = dq_cfg
+
         # Dataset
         print_subsection("Dataset")
         self.config["dataset_type"] = "synthetic"
@@ -354,6 +383,9 @@ class CrossBorderScreen:
         print(f"  {'Latenza simulata':<22} {'Si' if c['simulate_latency'] else 'No'}")
         print(f"  {'Dataset':<22} {c['dataset_type']}")
         print(f"  {'IHE Profiles':<22} {'Si' if c.get('ihe_enabled') else 'No'}")
+        dq_enabled = c.get('data_quality_enabled', False)
+        dq_alpha = c.get('data_quality_config', {}).get('alpha', 1.0) if dq_enabled else '-'
+        print(f"  {'Data Quality':<22} {'Si (alpha=' + str(dq_alpha) + ')' if dq_enabled else 'No'}")
 
         # Show per-country effective epsilon
         print_subsection("EPSILON EFFETTIVO PER GIURISDIZIONE")
@@ -428,6 +460,8 @@ class CrossBorderScreen:
                 min_active_clients=c.get("min_active_clients", 2),
                 ihe_enabled=c.get("ihe_enabled", False),
                 ihe_config=c.get("ihe_config", {}),
+                data_quality_enabled=c.get("data_quality_enabled", False),
+                data_quality_config=c.get("data_quality_config", {}),
             )
 
             # Show hospital mapping
@@ -537,6 +571,50 @@ class CrossBorderScreen:
                 for evt_type, count in sorted(summary['events_by_type'].items()):
                     print(f"    {evt_type:<30} {count:>4}")
 
+        # Data Quality section (EHDS Art. 69)
+        if hasattr(trainer, 'quality_manager') and trainer.quality_manager:
+            print_subsection("DATA QUALITY (EHDS Art. 69)")
+            print(f"\n  {'Hospital':<30} {'Score':>6} {'Label':>12} {'Weight':>7} "
+                  f"{'Comp':>5} {'Acc':>5} {'Uniq':>5} {'Div':>5} {'Cons':>5} {'Anomaly':>8}")
+            print("  " + "-" * 100)
+
+            for cid, report in sorted(trainer.quality_manager.client_reports.items()):
+                label_color = {
+                    "gold": Style.SUCCESS,
+                    "silver": Style.HIGHLIGHT,
+                    "bronze": Style.WARNING,
+                    "insufficient": Style.ERROR,
+                }.get(report.quality_label.value, "")
+
+                anomaly_str = "YES" if report.is_anomalous else "no"
+                anomaly_color = Style.WARNING if report.is_anomalous else ""
+
+                print(f"  {report.hospital_name:<30} "
+                      f"{report.overall_score:>5.3f} "
+                      f"{label_color}{report.quality_label.value:>12}{Colors.RESET} "
+                      f"{report.quality_weight:>6.3f} "
+                      f"{report.completeness:>5.2f} {report.accuracy:>5.2f} "
+                      f"{report.uniqueness:>5.2f} {report.diversity:>5.2f} "
+                      f"{report.consistency:>5.2f} "
+                      f"{anomaly_color}{anomaly_str:>8}{Colors.RESET}")
+
+            summary = trainer.quality_manager.get_display_summary()
+            print(f"\n  Mean quality: {summary['mean_quality']:.3f} +/- {summary['std_quality']:.3f}")
+            print(f"  Anomalous clients: {summary['anomalous_clients']}/{summary['total_clients']}")
+            labels = summary.get("label_distribution", {})
+            if labels:
+                label_str = ", ".join(f"{k}: {v}" for k, v in sorted(labels.items()))
+                print(f"  Label distribution: {label_str}")
+            print(f"  Alpha (quality exponent): {summary['alpha']}")
+
+            # Show anomaly details
+            anomalous = [r for r in trainer.quality_manager.client_reports.values() if r.is_anomalous]
+            if anomalous:
+                print_subsection("ANOMALIE RILEVATE (Pre-Training)")
+                for report in anomalous:
+                    for a in report.anomalies:
+                        print(f"  {Style.WARNING}{report.hospital_name}: {a}{Colors.RESET}")
+
         # Compliance summary
         violations = trainer.audit_log.get_violations()
         print_subsection("COMPLIANCE SUMMARY")
@@ -574,6 +652,9 @@ class CrossBorderScreen:
                 print(f"  - ihe_compliance_report.json")
                 print(f"  - atna_audit_trail.json")
                 print(f"  - atna_audit_trail.xml")
+            if hasattr(trainer, 'quality_manager') and trainer.quality_manager:
+                print(f"  - quality_report.json")
+                print(f"  - quality_labels.csv")
         except Exception as e:
             print_error(f"Errore salvataggio: {e}")
 
@@ -648,6 +729,8 @@ class CrossBorderScreen:
                 min_active_clients=c.get("min_active_clients", 2),
                 ihe_enabled=c.get("ihe_enabled", False),
                 ihe_config=c.get("ihe_config", {}),
+                data_quality_enabled=c.get("data_quality_enabled", False),
+                data_quality_config=c.get("data_quality_config", {}),
             )
 
             # Schedule opt-out: will be triggered during training

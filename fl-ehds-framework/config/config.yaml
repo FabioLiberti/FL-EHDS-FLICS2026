@@ -425,6 +425,30 @@ cross_border:
     certificate_authority: "EHDS-CA"
     certificate_validity_days: 365
 
+  # Data Quality Framework (EHDS Art. 69)
+  # Quality-weighted aggregation and pre-training anomaly detection.
+  # Each client's data is scored on 5 quality dimensions. The quality
+  # score modifies the aggregation weight: w_h = (n_h/N) * q_h^alpha.
+  data_quality:
+    enabled: false                     # Off by default (backward compatible)
+    # Alpha: exponent for quality weight (0=ignore, 1=linear, 2=strong)
+    alpha: 1.0
+    # Dimension weights (must sum to 1.0)
+    weight_completeness: 0.20
+    weight_accuracy: 0.25
+    weight_uniqueness: 0.15
+    weight_diversity: 0.20
+    weight_consistency: 0.20
+    # EHDS Art. 69 quality label thresholds
+    gold_threshold: 0.85
+    silver_threshold: 0.70
+    bronze_threshold: 0.55
+    # Anomaly detection thresholds
+    ks_threshold: 0.05                 # KS test p-value for distribution shift
+    missing_threshold: 0.30            # Max fraction of missing values before anomaly
+    entropy_threshold: 0.30            # Min normalized class entropy
+    iqr_multiplier: 3.0                # IQR multiplier for outlier detection
+
 # =============================================================================
 # FHIR R4 DATA PIPELINE
 # =============================================================================
