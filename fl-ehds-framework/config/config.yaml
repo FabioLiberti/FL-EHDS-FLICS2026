@@ -492,6 +492,21 @@ cross_border:
       backend: "structured_file"            # Audit trail storage backend
       retention_days: 2555                  # 7 years (GDPR Art. 30)
 
+  # Secure Processing Environment (EHDS Art. 50)
+  # Enclave simulation, model watermarking, time-limited access
+  secure_processing:
+    enabled: false
+    enclave:
+      enabled: true                         # TEE simulation per client
+      allowed_outputs: ["model_delta", "gradient", "metrics"]
+    watermarking:
+      enabled: true                         # Model fingerprinting (Art. 37)
+      strength: 0.01                        # Embedding strength
+      length: 256                           # Watermark bits
+    time_limited:
+      enabled: true                         # Permit deadline enforcement
+      permit_duration_hours: 24.0           # Hours before permit expires
+
 # =============================================================================
 # FHIR R4 DATA PIPELINE
 # =============================================================================

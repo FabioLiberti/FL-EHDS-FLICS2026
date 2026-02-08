@@ -504,13 +504,44 @@ class EHDSComplianceReport:
     def _assess_secure_processing(
         self, trainer, config: Dict
     ) -> ArticleAssessment:
-        """Art. 50: Secure processing environment (ATNA/mTLS)."""
+        """Art. 50: Secure processing environment."""
+        # Check SecureProcessingBridge first (enclave + watermark + time guard)
+        sp = getattr(trainer, "secure_processing_bridge", None)
+        if sp is not None:
+            report = sp.export_report()
+            parts = []
+            status = ComplianceStatus.COMPLIANT
+            if report.get("enclave"):
+                enc = report["enclave"]
+                violations = enc.get("total_violations", 0)
+                parts.append(f"Enclave ({enc.get('active_enclaves', 0)} clients)")
+                if violations > 0:
+                    status = ComplianceStatus.PARTIAL
+                    parts.append(f"{violations} violations")
+            if report.get("watermark"):
+                wm = report["watermark"]
+                parts.append(f"Watermark: {wm.get('final_status', 'N/A')}")
+            if report.get("time_guard"):
+                tg = report["time_guard"]
+                if tg.get("expired"):
+                    status = ComplianceStatus.PARTIAL
+                    parts.append("TimeGuard: expired")
+                else:
+                    parts.append("TimeGuard: active")
+            return ArticleAssessment(
+                status=status,
+                evidence=", ".join(parts) if parts else "Secure processing active",
+                details=report,
+                module_name="secure_processing",
+                regulation_ref="EHDS Art. 50",
+            )
+        # Fallback: IHE bridge only (ATNA/mTLS)
         ihe = getattr(trainer, "ihe_bridge", None)
         if ihe is None:
             return ArticleAssessment(
                 status=ComplianceStatus.NOT_ASSESSED,
-                evidence="IHE bridge not enabled",
-                module_name="ihe_fl_bridge",
+                evidence="Secure processing not enabled",
+                module_name="secure_processing",
                 regulation_ref="EHDS Art. 50",
             )
         # Read ATNA audit summary

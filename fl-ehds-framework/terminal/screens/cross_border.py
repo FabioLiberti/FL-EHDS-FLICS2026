@@ -121,6 +121,9 @@ class CrossBorderScreen:
             # Governance Lifecycle (EHDS Chapter IV, Art. 33-44)
             "governance_lifecycle_enabled": False,
             "governance_config": {},
+            # Secure Processing Environment (EHDS Art. 50)
+            "secure_processing_enabled": False,
+            "secure_processing_config": {},
         }
 
     def run(self):
@@ -415,6 +418,30 @@ class CrossBorderScreen:
 
             self.config["governance_config"] = gov_cfg
 
+        # Secure Processing Environment (EHDS Art. 50)
+        print_subsection("Secure Processing Environment (EHDS Art. 50)")
+        self.config["secure_processing_enabled"] = confirm(
+            "Abilitare Secure Processing (Enclave + Watermark + Time-limit)?",
+            default=False,
+        )
+        if self.config["secure_processing_enabled"]:
+            sp_cfg = self.config.get("secure_processing_config", {})
+            sp_cfg["enclave_enabled"] = confirm(
+                "  Enclave simulation (TEE)?", default=True
+            )
+            sp_cfg["watermarking_enabled"] = confirm(
+                "  Model watermarking (Art. 37)?", default=True
+            )
+            sp_cfg["time_limited_enabled"] = confirm(
+                "  Time-limited access?", default=True
+            )
+            if sp_cfg["time_limited_enabled"]:
+                sp_cfg["permit_duration_hours"] = get_float(
+                    "  Durata permit (ore)",
+                    default=24.0, min_val=0.1, max_val=8760.0,
+                )
+            self.config["secure_processing_config"] = sp_cfg
+
         # Dataset
         print_subsection("Dataset")
         self.config["dataset_type"] = "synthetic"
@@ -475,6 +502,18 @@ class CrossBorderScreen:
             print(f"  {'Governance':<22} HDAB + Permits + Minimization={min_str}")
         else:
             print(f"  {'Governance':<22} No")
+        if c.get("secure_processing_enabled"):
+            sp = c.get("secure_processing_config", {})
+            parts = []
+            if sp.get("enclave_enabled", True):
+                parts.append("Enclave")
+            if sp.get("watermarking_enabled", True):
+                parts.append("Watermark")
+            if sp.get("time_limited_enabled", True):
+                parts.append(f"TimeLimit={sp.get('permit_duration_hours', 24)}h")
+            print(f"  {'Secure Processing':<22} {', '.join(parts)}")
+        else:
+            print(f"  {'Secure Processing':<22} No")
 
         # Show per-country effective epsilon
         print_subsection("EPSILON EFFETTIVO PER GIURISDIZIONE")
@@ -555,6 +594,8 @@ class CrossBorderScreen:
                 myhealth_eu_config=c.get("myhealth_eu_config", {}),
                 governance_lifecycle_enabled=c.get("governance_lifecycle_enabled", False),
                 governance_config=c.get("governance_config", {}),
+                secure_processing_enabled=c.get("secure_processing_enabled", False),
+                secure_processing_config=c.get("secure_processing_config", {}),
             )
 
             # Show hospital mapping
@@ -766,6 +807,34 @@ class CrossBorderScreen:
                 if mr.get('purpose_removed'):
                     print(f"  Removed (purpose filter): {', '.join(mr['purpose_removed'])}")
 
+        # Secure Processing Environment (Art. 50)
+        if hasattr(trainer, 'secure_processing_bridge') and trainer.secure_processing_bridge:
+            print_subsection("SECURE PROCESSING ENVIRONMENT (Art. 50)")
+            sp = trainer.secure_processing_bridge
+            sp_report = sp.export_report()
+            # Enclave
+            if sp_report.get("enclave"):
+                enc = sp_report["enclave"]
+                print(f"  Enclaves: {enc.get('active_enclaves', 0)} active, "
+                      f"{enc.get('total_violations', 0)} violations")
+            # Watermark
+            if sp_report.get("watermark"):
+                wm = sp_report["watermark"]
+                sig_short = wm.get('signature_id', 'N/A')
+                if len(sig_short) > 12:
+                    sig_short = sig_short[:12] + "..."
+                print(f"  Watermark: {wm.get('final_status', 'N/A')}, "
+                      f"sig={sig_short}")
+                if wm.get("verifications"):
+                    last_v = wm["verifications"][-1]
+                    print(f"    Last verification: {last_v['result']} "
+                          f"(confidence={last_v['confidence']:.2%})")
+            # Time Guard
+            if sp_report.get("time_guard"):
+                tg = sp_report["time_guard"]
+                print(f"  Time Guard: {tg.get('remaining_hours', 0):.1f}h remaining, "
+                      f"expired={tg.get('expired', False)}")
+
         # Compliance summary
         violations = trainer.audit_log.get_violations()
         print_subsection("COMPLIANCE SUMMARY")
@@ -825,6 +894,8 @@ class CrossBorderScreen:
                 print(f"  - permits_summary.json")
             if hasattr(trainer, '_minimization_report') and trainer._minimization_report:
                 print(f"  - minimization_report.json")
+            if hasattr(trainer, 'secure_processing_bridge') and trainer.secure_processing_bridge:
+                print(f"  - secure_processing.json")
             # EHDS Compliance Report
             if self._last_compliance_report:
                 import json as _json
@@ -917,6 +988,8 @@ class CrossBorderScreen:
                 myhealth_eu_config=c.get("myhealth_eu_config", {}),
                 governance_lifecycle_enabled=c.get("governance_lifecycle_enabled", False),
                 governance_config=c.get("governance_config", {}),
+                secure_processing_enabled=c.get("secure_processing_enabled", False),
+                secure_processing_config=c.get("secure_processing_config", {}),
             )
 
             # Schedule opt-out: will be triggered during training

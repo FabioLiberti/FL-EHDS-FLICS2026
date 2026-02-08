@@ -401,3 +401,25 @@ def get_governance_lifecycle_config() -> Dict[str, Any]:
         "audit_backend": at.get("backend", "structured_file"),
         "audit_retention_days": at.get("retention_days", 2555),
     }
+
+
+def get_secure_processing_config() -> Dict[str, Any]:
+    """Get Secure Processing Environment config (EHDS Art. 50)."""
+    cfg = load_config()
+    cb = cfg.get("cross_border", {})
+    sp = cb.get("secure_processing", {})
+    enc = sp.get("enclave", {})
+    wm = sp.get("watermarking", {})
+    tl = sp.get("time_limited", {})
+    return {
+        "enabled": sp.get("enabled", False),
+        "enclave_enabled": enc.get("enabled", True),
+        "allowed_outputs": enc.get(
+            "allowed_outputs", ["model_delta", "gradient", "metrics"]
+        ),
+        "watermarking_enabled": wm.get("enabled", True),
+        "watermark_strength": wm.get("strength", 0.01),
+        "watermark_length": wm.get("length", 256),
+        "time_limited_enabled": tl.get("enabled", True),
+        "permit_duration_hours": tl.get("permit_duration_hours", 24.0),
+    }

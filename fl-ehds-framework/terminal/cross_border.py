@@ -348,6 +348,9 @@ class CrossBorderFederatedTrainer:
         # Governance Lifecycle (EHDS Chapter IV, Art. 33-44)
         governance_lifecycle_enabled: bool = False,
         governance_config: Optional[Dict[str, Any]] = None,
+        # Secure Processing Environment (EHDS Art. 50)
+        secure_processing_enabled: bool = False,
+        secure_processing_config: Optional[Dict[str, Any]] = None,
     ):
         self.countries = countries
         self.hospitals_per_country = hospitals_per_country
@@ -400,6 +403,11 @@ class CrossBorderFederatedTrainer:
         self.governance_config = governance_config or {}
         self.governance_bridge = None
         self._minimization_report = None
+
+        # Secure Processing Environment (EHDS Art. 50)
+        self.secure_processing_enabled = secure_processing_enabled
+        self.secure_processing_config = secure_processing_config or {}
+        self.secure_processing_bridge = None
 
         self.rng = np.random.RandomState(seed)
         self.audit_log = CrossBorderAuditLog()
@@ -692,6 +700,15 @@ class CrossBorderFederatedTrainer:
                     details=v,
                 )
 
+        # Initialize Secure Processing Environment (if enabled) - EHDS Art. 50
+        if self.secure_processing_enabled:
+            from governance.secure_processing import SecureProcessingBridge
+            self.secure_processing_bridge = SecureProcessingBridge(
+                num_clients=len(self.hospitals),
+                config=self.secure_processing_config,
+            )
+            self.secure_processing_bridge.start_session()
+
         # Training loop
         total_start = time.time()
         for round_num in range(self.num_rounds):
@@ -903,6 +920,19 @@ class CrossBorderFederatedTrainer:
                     round_num, round_result, per_round_epsilon
                 )
 
+            # Secure Processing: post-round (enclave log + watermark embed)
+            if self.secure_processing_bridge:
+                per_client_samples = [
+                    h.num_samples_after_optout for h in self.hospitals
+                ]
+                updated_state = self.secure_processing_bridge.post_round(
+                    round_num=round_num,
+                    model_state_dict=self._trainer.global_model.state_dict(),
+                    num_clients_trained=len(self.hospitals),
+                    per_client_samples=per_client_samples,
+                )
+                self._trainer.global_model.load_state_dict(updated_state)
+
             # Build per-hospital info for this round
             per_hospital_info = []
             for hospital in self.hospitals:
@@ -976,6 +1006,15 @@ class CrossBorderFederatedTrainer:
             )
             governance_report = self.governance_bridge.export_report()
 
+        # End Secure Processing session (EHDS Art. 50)
+        secure_processing_report = None
+        if self.secure_processing_bridge:
+            self.secure_processing_bridge.verify_final_model(
+                self._trainer.global_model.state_dict(),
+                round_num=len(self.history) - 1,
+            )
+            secure_processing_report = self.secure_processing_bridge.end_session()
+
         # Quality report in return dict
         quality_report = None
         if self.quality_manager:
@@ -997,6 +1036,7 @@ class CrossBorderFederatedTrainer:
             "myhealth_eu_report": myhealth_eu_report,
             "governance_report": governance_report,
             "minimization_report": self._minimization_report,
+            "secure_processing_report": secure_processing_report,
         }
 
     def save_results(self, output_dir: str):
@@ -1206,6 +1246,12 @@ class CrossBorderFederatedTrainer:
         if self._minimization_report:
             with open(out / "minimization_report.json", "w") as f:
                 json.dump(self._minimization_report, f, indent=2, default=str)
+
+        # 21. Secure Processing report (if enabled) - EHDS Art. 50
+        if self.secure_processing_bridge:
+            sp_report = self.secure_processing_bridge.export_report()
+            with open(out / "secure_processing.json", "w") as f:
+                json.dump(sp_report, f, indent=2, default=str)
 
     def _save_latex_table(self, out: Path):
         """Generate LaTeX table for cross-border results."""
