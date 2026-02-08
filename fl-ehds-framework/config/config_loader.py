@@ -355,6 +355,19 @@ def get_myhealth_eu_config() -> Dict[str, Any]:
     }
 
 
+def get_ehds_compliance_config() -> Dict[str, Any]:
+    """Get EHDS Compliance Report configuration."""
+    cfg = load_config()
+    cb = cfg.get("cross_border", {})
+    ec = cb.get("ehds_compliance", {})
+    return {
+        "enabled": ec.get("enabled", True),
+        "auto_save": ec.get("auto_save", True),
+        "include_evidence": ec.get("include_evidence", True),
+        "fee_model_simulation": ec.get("fee_model_simulation", True),
+    }
+
+
 def get_governance_training_config() -> Dict[str, Any]:
     """Get governance training integration configuration."""
     cfg = load_config()

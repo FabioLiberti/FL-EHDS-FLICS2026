@@ -67,6 +67,9 @@ class CrossBorderScreen:
     def __init__(self):
         self.config = self._default_config()
         self.results = None
+        self._last_trainer = None
+        self._last_results = None
+        self._last_compliance_report = None
 
     def _default_config(self) -> Dict[str, Any]:
         """Return default configuration from YAML with hardcoded fallbacks."""
@@ -132,9 +135,10 @@ class CrossBorderScreen:
             print(f"  {Style.TITLE}5{Colors.RESET} - Simula opt-out paese (Art. 48)")
             print(f"  {Style.TITLE}6{Colors.RESET} - Report IHE Compliance")
             print(f"  {Style.TITLE}7{Colors.RESET} - MyHealth@EU NCPeH Topology")
+            print(f"  {Style.TITLE}8{Colors.RESET} - EHDS Compliance Report")
             print(f"  {Style.TITLE}0{Colors.RESET} - Torna al menu principale")
 
-            choice = get_choice("\nScegli opzione", ["1", "2", "3", "4", "5", "6", "7", "0"], default="1")
+            choice = get_choice("\nScegli opzione", ["1", "2", "3", "4", "5", "6", "7", "8", "0"], default="1")
 
             if choice == "1":
                 self._configure()
@@ -150,6 +154,8 @@ class CrossBorderScreen:
                 self._show_ihe_report()
             elif choice == "7":
                 self._show_ncpeh_topology()
+            elif choice == "8":
+                self._show_ehds_compliance()
             elif choice == "0":
                 return
 
@@ -529,6 +535,10 @@ class CrossBorderScreen:
             # Run
             results = trainer.train()
 
+            # Store for compliance report (menu 8)
+            self._last_trainer = trainer
+            self._last_results = results
+
             # Display results
             self._display_results(trainer, results)
 
@@ -702,6 +712,16 @@ class CrossBorderScreen:
         print(f"  Effective epsilon: {results['effective_epsilon']:.1f}")
         print(f"  Total time: {results['total_time']:.1f}s")
 
+        # EHDS Compliance Report
+        try:
+            from governance.ehds_compliance_report import EHDSComplianceReport
+            report = EHDSComplianceReport()
+            report.generate_from_trainer(trainer, self.config)
+            self._last_compliance_report = report
+            print(report.to_terminal_display())
+        except Exception:
+            pass
+
     def _auto_save(self, trainer, results):
         """Auto-save all outputs."""
         base_dir = Path(__file__).parent.parent.parent / "results" / "cross_border"
@@ -738,6 +758,18 @@ class CrossBorderScreen:
                 print(f"  - myhealth_eu_report.json")
                 print(f"  - ncpeh_topology.csv")
                 print(f"  - inter_ncp_latency.csv")
+            # EHDS Compliance Report
+            if self._last_compliance_report:
+                import json as _json
+                report_path = output_dir / "ehds_compliance_report.json"
+                with open(report_path, "w", encoding="utf-8") as f:
+                    _json.dump(self._last_compliance_report.to_json(),
+                               f, indent=2, default=str)
+                latex_path = output_dir / "table_ehds_compliance.tex"
+                with open(latex_path, "w", encoding="utf-8") as f:
+                    f.write(self._last_compliance_report.to_latex_table())
+                print(f"  - ehds_compliance_report.json")
+                print(f"  - table_ehds_compliance.tex")
         except Exception as e:
             print_error(f"Errore salvataggio: {e}")
 
@@ -837,6 +869,10 @@ class CrossBorderScreen:
 
             # Run training (opt-out will trigger at scheduled round)
             results = trainer.train()
+
+            # Store for compliance report (menu 8)
+            self._last_trainer = trainer
+            self._last_results = results
 
             # Display results
             print()
@@ -1006,3 +1042,133 @@ class CrossBorderScreen:
             traceback.print_exc()
 
         input(f"\n{Style.MUTED}Premi Enter per continuare...{Colors.RESET}")
+
+    def _show_ehds_compliance(self):
+        """Display EHDS Compliance Report (menu item 8)."""
+        clear_screen()
+        print_section("EHDS COMPLIANCE REPORT")
+
+        if self._last_trainer is None:
+            print_error("Nessuna simulazione eseguita.")
+            print_info("Eseguire prima la simulazione (menu 4) o opt-out (menu 5).")
+            input(f"\n{Style.MUTED}Premi Enter per continuare...{Colors.RESET}")
+            return
+
+        try:
+            from governance.ehds_compliance_report import EHDSComplianceReport
+
+            report = EHDSComplianceReport()
+            report.generate_from_trainer(self._last_trainer, self.config)
+            self._last_compliance_report = report
+
+            # Display report
+            print(report.to_terminal_display())
+
+            # Offer to save
+            save = confirm("Salvare report JSON + LaTeX?", default=True)
+            if save:
+                import json as _json
+                base_dir = Path(__file__).parent.parent.parent / "results" / "cross_border"
+                base_dir.mkdir(parents=True, exist_ok=True)
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                report_dir = base_dir / f"ehds_compliance_{timestamp}"
+                report_dir.mkdir(parents=True, exist_ok=True)
+
+                with open(report_dir / "ehds_compliance_report.json", "w",
+                          encoding="utf-8") as f:
+                    _json.dump(report.to_json(), f, indent=2, default=str)
+                with open(report_dir / "table_ehds_compliance.tex", "w",
+                          encoding="utf-8") as f:
+                    f.write(report.to_latex_table())
+                print_success(f"Salvato in: results/cross_border/ehds_compliance_{timestamp}/")
+
+            # Offer scenario comparison
+            compare = confirm("Confrontare con uno scenario diverso?", default=False)
+            if compare:
+                self._compare_ehds_scenarios(report)
+
+        except ImportError as e:
+            print_error(f"Errore import: {e}")
+        except Exception as e:
+            print_error(f"Errore: {e}")
+            import traceback
+            traceback.print_exc()
+
+        input(f"\n{Style.MUTED}Premi Enter per continuare...{Colors.RESET}")
+
+    def _compare_ehds_scenarios(self, report_a):
+        """Run a second scenario and compare compliance reports."""
+        from governance.ehds_compliance_report import EHDSComplianceReport
+        from terminal.cross_border import CrossBorderFederatedTrainer
+
+        print_subsection("CONFIGURAZIONE SCENARIO B")
+        print_info("Scegli il parametro da modificare:")
+        print(f"  1 - Epsilon globale (attuale: {self.config['global_epsilon']})")
+        print(f"  2 - Algoritmo (attuale: {self.config['algorithm']})")
+        print(f"  3 - Numero round (attuale: {self.config['num_rounds']})")
+
+        param = get_choice("Parametro", ["1", "2", "3"], default="1")
+
+        import copy
+        config_b = copy.deepcopy(self.config)
+
+        if param == "1":
+            new_eps = get_number("Nuovo epsilon globale", default=1.0, min_val=0.1, max_val=100.0)
+            config_b["global_epsilon"] = new_eps
+        elif param == "2":
+            algos = ["FedAvg", "FedProx", "SCAFFOLD", "FedNova", "FedAdam"]
+            algo = get_choice("Algoritmo", algos, default="FedProx")
+            config_b["algorithm"] = algo
+        else:
+            new_rounds = int(get_number("Numero round", default=30, min_val=1, max_val=200))
+            config_b["num_rounds"] = new_rounds
+
+        c = config_b
+        print_info(f"Esecuzione scenario B...")
+
+        try:
+            trainer_b = CrossBorderFederatedTrainer(
+                countries=c["countries"],
+                hospitals_per_country=c["hospitals_per_country"],
+                algorithm=c["algorithm"],
+                num_rounds=c["num_rounds"],
+                local_epochs=c["local_epochs"],
+                batch_size=c["batch_size"],
+                learning_rate=c["learning_rate"],
+                global_epsilon=c["global_epsilon"],
+                purpose=c["purpose"],
+                dataset_type=c.get("dataset_type", "synthetic"),
+                dataset_path=c.get("dataset_path"),
+                img_size=c.get("img_size", 128),
+                seed=c.get("seed", 42),
+                simulate_latency=c.get("simulate_latency", True),
+                mu=c.get("mu", 0.1),
+                server_lr=c.get("server_lr", 0.1),
+                beta1=c.get("beta1", 0.9),
+                beta2=c.get("beta2", 0.99),
+                tau=c.get("tau", 1e-3),
+                jurisdiction_privacy_enabled=c.get("jurisdiction_privacy_enabled", False),
+                country_overrides=c.get("country_overrides", {}),
+                hospital_allocation_fraction=c.get("hospital_allocation_fraction", 1.0),
+                noise_strategy=c.get("noise_strategy", "global"),
+                min_active_clients=c.get("min_active_clients", 2),
+                ihe_enabled=c.get("ihe_enabled", False),
+                ihe_config=c.get("ihe_config", {}),
+                data_quality_enabled=c.get("data_quality_enabled", False),
+                data_quality_config=c.get("data_quality_config", {}),
+                myhealth_eu_enabled=c.get("myhealth_eu_enabled", False),
+                myhealth_eu_config=c.get("myhealth_eu_config", {}),
+            )
+
+            trainer_b.train()
+
+            report_b = EHDSComplianceReport()
+            report_b.generate_from_trainer(trainer_b, config_b)
+
+            comparison = EHDSComplianceReport.compare_scenarios(report_a, report_b)
+            print(EHDSComplianceReport.format_comparison_terminal(comparison))
+
+        except Exception as e:
+            print_error(f"Errore scenario B: {e}")
+            import traceback
+            traceback.print_exc()

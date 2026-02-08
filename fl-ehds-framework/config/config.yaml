@@ -468,6 +468,15 @@ cross_border:
     # Communication cost tracking
     track_communication_cost: true          # Track bytes transferred per round
 
+  # EHDS Compliance Report - Regulatory Sandbox Assessment
+  # Maps EHDS Regulation (EU) 2025/327 articles to implemented governance
+  # features. Generates per-article compliance status after training.
+  ehds_compliance:
+    enabled: true                           # Generate compliance report after training
+    auto_save: true                         # Auto-save JSON + LaTeX to output dir
+    include_evidence: true                  # Include detailed evidence per article
+    fee_model_simulation: true              # Art. 42 fee model via comm cost tracking
+
 # =============================================================================
 # FHIR R4 DATA PIPELINE
 # =============================================================================
