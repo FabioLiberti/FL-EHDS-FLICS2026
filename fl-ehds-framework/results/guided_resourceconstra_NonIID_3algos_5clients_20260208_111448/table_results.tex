@@ -1,0 +1,30 @@
+% FL-EHDS Guided Comparison Results
+% Use Case: Dispositivi con Risorse Limitate (IoT/Edge)
+% Generated: 20260208_111448
+% Training time: 6.0 seconds
+
+\begin{table}[htbp]
+\centering
+\caption{Algorithm Comparison for Dispositivi con Risorse Limitate (IoT/Edge)}
+\label{tab:guided_comparison}
+\small
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Algorithm} & \textbf{Accuracy} & \textbf{F1} & \textbf{Precision} & \textbf{Recall} & \textbf{AUC} \\
+\midrule
+FedNova & 55.9\%$\pm$1.0 & 0.463$\pm$0.328 & 0.363$\pm$0.257 & 0.637$\pm$0.452 & 0.772$\pm$0.044 \\
+\textbf{FedAvg} & \textbf{58.9\%$\pm$5.0} & \textbf{0.413$\pm$0.304} & \textbf{0.450$\pm$0.331} & \textbf{0.462$\pm$0.412} & \textbf{0.767$\pm$0.042} \\
+\textbf{FedProx} & \textbf{58.9\%$\pm$5.0} & \textbf{0.413$\pm$0.304} & \textbf{0.450$\pm$0.331} & \textbf{0.462$\pm$0.412} & \textbf{0.768$\pm$0.042} \\
+\bottomrule
+\end{tabular}
+
+\vspace{2mm}
+\begin{minipage}{\textwidth}
+\footnotesize
+\textit{Use Case: Dispositivi con Risorse Limitate (IoT/Edge)} \\
+\textit{Training Configuration:} \\
+Clients: 5 | Rounds: 30 | Local Epochs: 2 | Batch Size: 32 | Learning Rate: 0.01 \\
+Data Distribution: Non-IID (alpha=1.0) | Samples/Client: 200 | Seeds: 3 \\
+Model: HealthcareMLP (10 -> 64 -> 32 -> 2) | Optimizer: SGD | Loss: CrossEntropyLoss
+\end{minipage}
+\end{table}
