@@ -67,6 +67,16 @@ governance:
     # Action on opt-out detection
     on_optout: "exclude"  # exclude, anonymize, error
 
+  # Training Integration (permit-aware training)
+  training_integration:
+    enabled: false  # Default off for backward compatibility
+    default_purpose: "ai_system_development"
+    default_privacy_budget: 100.0
+    data_minimization:
+      enabled: false
+      importance_threshold: 0.01
+      method: "mutual_info"  # mutual_info or variance
+
   # Compliance Logging (GDPR Article 30)
   logging:
     # Log storage backend

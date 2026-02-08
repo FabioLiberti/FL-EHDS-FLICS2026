@@ -81,6 +81,12 @@ class TrainingScreen:
             "dataset_type": "synthetic",
             "dataset_name": None,
             "dataset_path": None,
+            "ehds_permit_enabled": False,
+            "ehds_purpose": "ai_system_development",
+            "ehds_data_categories": ["ehr"],
+            "ehds_privacy_budget": 100.0,
+            "ehds_max_rounds": None,
+            "ehds_data_minimization": False,
         }
         try:
             from config.config_loader import get_training_defaults
@@ -401,6 +407,77 @@ class TrainingScreen:
                 min_val=0.1, max_val=10.0
             )
 
+        # EHDS Data Permit (optional)
+        print_subsection("EHDS Data Permit (Opzionale)")
+        self.config["ehds_permit_enabled"] = get_bool(
+            "Abilitare EHDS Data Permit governance?",
+            default=self.config["ehds_permit_enabled"]
+        )
+
+        if self.config["ehds_permit_enabled"]:
+            purpose_choices = [
+                "ai_system_development",
+                "scientific_research",
+                "public_health_surveillance",
+                "health_policy",
+                "education_training",
+                "personalized_medicine",
+                "official_statistics",
+                "patient_safety",
+            ]
+            if HAS_QUESTIONARY:
+                self.config["ehds_purpose"] = questionary.select(
+                    "EHDS purpose (Article 53):",
+                    choices=purpose_choices,
+                    default=self.config["ehds_purpose"],
+                    style=MENU_STYLE,
+                ).ask() or self.config["ehds_purpose"]
+            else:
+                self.config["ehds_purpose"] = get_choice(
+                    "EHDS purpose (Article 53):",
+                    purpose_choices,
+                    default=self.config["ehds_purpose"],
+                )
+
+            # Auto-detect data categories from dataset type
+            category_map = {
+                "synthetic": ["ehr"],
+                "fhir": ["ehr", "lab_results"],
+                "omop": ["ehr", "lab_results"],
+                "imaging": ["imaging"],
+            }
+            self.config["ehds_data_categories"] = category_map.get(
+                self.config["dataset_type"], ["ehr"]
+            )
+            print_info(f"  Data categories: {', '.join(self.config['ehds_data_categories'])}")
+
+            # Privacy budget
+            if self.config["dp_enabled"]:
+                self.config["ehds_privacy_budget"] = self.config["dp_epsilon"]
+                print_info(f"  Privacy budget da DP epsilon: {self.config['ehds_privacy_budget']}")
+            else:
+                self.config["ehds_privacy_budget"] = get_float(
+                    "  Privacy budget (epsilon totale)",
+                    default=self.config["ehds_privacy_budget"],
+                    min_val=0.1, max_val=1000.0
+                )
+
+            # Max rounds
+            self.config["ehds_max_rounds"] = get_int(
+                "  Massimo round autorizzati",
+                default=self.config["num_rounds"],
+                min_val=1, max_val=10000
+            )
+
+            # Data minimization (only for tabular)
+            if self.config["dataset_type"] != "imaging":
+                self.config["ehds_data_minimization"] = get_bool(
+                    "  Applicare data minimization (Art. 44)?",
+                    default=self.config["ehds_data_minimization"]
+                )
+            else:
+                self.config["ehds_data_minimization"] = False
+
         # Seed
         print_subsection("Riproducibilita")
         self.config["seed"] = get_int(
@@ -658,6 +735,71 @@ class TrainingScreen:
                 print(f"  Client {cid}: {stat['num_samples']} samples, "
                       f"labels={dist}, balance={balance:.2f}")
 
+            # EHDS Permit context (if enabled)
+            self._permit_context = None
+            if self.config.get("ehds_permit_enabled"):
+                from governance.permit_training import create_permit_context
+                self._permit_context = create_permit_context(self.config)
+                if self._permit_context:
+                    self._permit_context.start_session()
+                    print()
+                    print_success(f"EHDS Permit attivato: {self._permit_context.permit.permit_id}")
+                    print_info(f"  Purpose: {self.config['ehds_purpose']}")
+                    print_info(f"  Budget: epsilon={self.config['ehds_privacy_budget']}")
+                    print_info(f"  Max rounds: {self.config.get('ehds_max_rounds', 'illimitati')}")
+
+            # Data minimization (Art. 44, tabular only)
+            minimization_report = None
+            if (self.config.get("ehds_data_minimization")
+                    and self.config["dataset_type"] != "imaging"
+                    and hasattr(trainer, 'client_data')):
+                from governance.data_minimization import DataMinimizer
+                # Get feature names from metadata if available
+                feat_names = None
+                if self.config["dataset_type"] == "fhir" and 'fhir_meta' in dir():
+                    feat_names = fhir_meta.get("feature_names")
+                elif self.config["dataset_type"] == "omop" and 'omop_meta' in dir():
+                    feat_names = omop_meta.get("feature_names")
+
+                # Build train_data dict from trainer
+                train_dict = {}
+                for cid in range(trainer.num_clients):
+                    X_c, y_c = trainer.client_data[cid]
+                    train_dict[cid] = (X_c.numpy(), y_c.numpy())
+                test_dict = None
+                if hasattr(trainer, 'client_test_data') and trainer.client_test_data:
+                    test_dict = {}
+                    for cid in range(trainer.num_clients):
+                        if cid in trainer.client_test_data:
+                            X_t, y_t = trainer.client_test_data[cid]
+                            test_dict[cid] = (X_t.numpy(), y_t.numpy())
+
+                min_train, min_test, minimization_report = DataMinimizer.apply_minimization(
+                    train_dict, test_dict,
+                    purpose=self.config["ehds_purpose"],
+                    feature_names=feat_names,
+                )
+                print()
+                print_info(f"Data minimization: {minimization_report['original_features']} -> "
+                           f"{minimization_report['kept_features']} features "
+                           f"(-{minimization_report['reduction_pct']}%)")
+
+                # Rebuild trainer data with minimized features
+                import torch
+                for cid in range(trainer.num_clients):
+                    X_min, y_min = min_train[cid]
+                    trainer.client_data[cid] = (torch.tensor(X_min, dtype=torch.float32),
+                                                 torch.tensor(y_min, dtype=torch.long))
+                if min_test:
+                    for cid in min_test:
+                        X_mt, y_mt = min_test[cid]
+                        trainer.client_test_data[cid] = (torch.tensor(X_mt, dtype=torch.float32),
+                                                          torch.tensor(y_mt, dtype=torch.long))
+                # Update model input dimension
+                new_dim = minimization_report['kept_features']
+                trainer.model = trainer._create_model(input_dim=new_dim)
+                trainer.global_model_state = trainer.model.state_dict()
+
             print()
             print_info(f"Avvio training {self.config['algorithm']} con PyTorch...")
 
@@ -665,7 +807,24 @@ class TrainingScreen:
 
             # Run training
             for round_num in range(self.config["num_rounds"]):
+                # Pre-round permit validation
+                if self._permit_context:
+                    eps_per_round = (
+                        self.config["dp_epsilon"] / self.config["num_rounds"]
+                    ) if self.config["dp_enabled"] else 0.0
+                    ok, reason = self._permit_context.validate_round(round_num, eps_per_round)
+                    if not ok:
+                        print_warning(f"\nTraining interrotto dal permit: {reason}")
+                        break
+
                 round_result = trainer.train_round(round_num)
+
+                # Post-round audit logging
+                if self._permit_context:
+                    eps_spent = (
+                        self.config["dp_epsilon"] / self.config["num_rounds"]
+                    ) if self.config["dp_enabled"] else 0.0
+                    self._permit_context.log_round_completion(round_result, eps_spent)
 
             elapsed_time = time.time() - start_time
 
@@ -705,6 +864,18 @@ class TrainingScreen:
                 "elapsed_time": elapsed_time,
                 "data_stats": stats,
             }
+
+            # End EHDS permit session
+            if self._permit_context:
+                self._permit_context.end_session(
+                    total_rounds=len(trainer.history),
+                    final_metrics=self.results.get("final_metrics", {}),
+                    success=True,
+                )
+                budget = self._permit_context.get_budget_status()
+                print()
+                print_info(f"EHDS Budget: {budget['used']:.4f}/{budget['total']:.4f} epsilon "
+                           f"({budget['utilization_pct']:.1f}%)")
 
             # Show final results
             print()
@@ -927,6 +1098,10 @@ class TrainingScreen:
             full_specs["training_config"]["dp_epsilon"] = self.config["dp_epsilon"]
             full_specs["training_config"]["dp_delta"] = self.config["dp_delta"]
 
+        # Add EHDS governance info to specs
+        if self.config.get("ehds_permit_enabled") and hasattr(self, '_permit_context') and self._permit_context:
+            full_specs["ehds_governance"] = self._permit_context.get_summary_for_specs()
+
         # 1. Save JSON results
         json_file = output_dir / "results.json"
         export_data = {
@@ -1077,6 +1252,14 @@ class TrainingScreen:
             f.write(f"  AUC: {final.get('global_auc', 0):.4f}\n")
             f.write(f"\nTraining Time: {elapsed_time:.1f} seconds\n")
         saved_files.append(("TXT (Summary)", summary_file))
+
+        # 5. EHDS Audit Log (if permit enabled)
+        if self.config.get("ehds_permit_enabled") and hasattr(self, '_permit_context') and self._permit_context:
+            try:
+                audit_file = self._permit_context.export_audit_log(output_dir)
+                saved_files.append(("JSON (EHDS Audit)", audit_file))
+            except Exception as e:
+                print_warning(f"Errore salvataggio audit log: {e}")
 
         # === Show summary of saved files ===
         print()

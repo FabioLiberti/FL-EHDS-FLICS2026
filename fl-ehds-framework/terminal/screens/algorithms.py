@@ -257,6 +257,66 @@ class AlgorithmsScreen:
             default=self.config["include_dp"]
         )
 
+        # EHDS Data Permit (optional)
+        print_subsection("EHDS Data Permit (Opzionale)")
+        self.config["ehds_permit_enabled"] = get_bool(
+            "Abilitare EHDS Data Permit governance?",
+            default=self.config.get("ehds_permit_enabled", False)
+        )
+
+        if self.config["ehds_permit_enabled"]:
+            purpose_choices = [
+                "ai_system_development",
+                "scientific_research",
+                "public_health_surveillance",
+                "health_policy",
+                "education_training",
+                "personalized_medicine",
+                "official_statistics",
+                "patient_safety",
+            ]
+            if HAS_QUESTIONARY:
+                self.config["ehds_purpose"] = questionary.select(
+                    "EHDS purpose (Article 53):",
+                    choices=purpose_choices,
+                    default=self.config.get("ehds_purpose", "ai_system_development"),
+                    style=MENU_STYLE,
+                ).ask() or "ai_system_development"
+            else:
+                from terminal.validators import get_choice
+                self.config["ehds_purpose"] = get_choice(
+                    "EHDS purpose (Article 53):",
+                    purpose_choices,
+                    default="ai_system_development",
+                )
+
+            # Auto-detect data categories
+            category_map = {
+                "synthetic": ["ehr"],
+                "fhir": ["ehr", "lab_results"],
+                "omop": ["ehr", "lab_results"],
+                "imaging": ["imaging"],
+            }
+            self.config["ehds_data_categories"] = category_map.get(
+                self.config["dataset_type"], ["ehr"]
+            )
+            self.config["ehds_privacy_budget"] = get_float(
+                "  Privacy budget (epsilon totale)",
+                default=self.config.get("ehds_privacy_budget", 100.0),
+                min_val=0.1, max_val=1000.0
+            )
+            self.config["ehds_max_rounds"] = get_int(
+                "  Massimo round autorizzati",
+                default=self.config.get("num_rounds", 30),
+                min_val=1, max_val=10000
+            )
+            self.config["ehds_data_minimization"] = False
+            if self.config["dataset_type"] != "imaging":
+                self.config["ehds_data_minimization"] = get_bool(
+                    "  Applicare data minimization (Art. 44)?",
+                    default=False
+                )
+
         display_config_summary(self.config)
         input(f"\n{Style.MUTED}Premi Enter per continuare...{Colors.RESET}")
 
@@ -361,6 +421,18 @@ class AlgorithmsScreen:
 
             run_count = 0
             start_time = time.time()
+
+            # EHDS Permit context (if enabled)
+            self._permit_context = None
+            if self.config.get("ehds_permit_enabled"):
+                from governance.permit_training import create_permit_context
+                self._permit_context = create_permit_context(self.config)
+                if self._permit_context:
+                    self._permit_context.start_session()
+                    print_success(f"EHDS Permit attivato: {self._permit_context.permit.permit_id}")
+                    print_info(f"  Purpose: {self.config.get('ehds_purpose', 'N/A')}")
+                    print_info(f"  Budget: epsilon={self.config.get('ehds_privacy_budget', 'N/A')}")
+                    print()
 
             # Progress callback for verbose mode
             def make_progress_callback(algorithm_name, seed_num):
@@ -486,7 +558,19 @@ class AlgorithmsScreen:
                     history = []
                     final_result = None
                     for round_num in range(self.config["num_rounds"]):
+                        # Pre-round permit check
+                        if self._permit_context:
+                            ok, reason = self._permit_context.validate_round(round_num)
+                            if not ok:
+                                print_warning(f"    Training interrotto: {reason}")
+                                break
+
                         result = trainer.train_round(round_num)
+
+                        # Post-round audit
+                        if self._permit_context:
+                            self._permit_context.log_round_completion(result)
+
                         history.append({
                             "round": round_num,
                             "accuracy": result.global_acc,
@@ -624,7 +708,21 @@ class AlgorithmsScreen:
                         history = []
                         final_result = None
                         for round_num in range(self.config["num_rounds"]):
+                            # Pre-round permit check
+                            if self._permit_context:
+                                eps_cost = epsilon / self.config["num_rounds"]
+                                ok, reason = self._permit_context.validate_round(round_num, eps_cost)
+                                if not ok:
+                                    print_warning(f"    Training interrotto: {reason}")
+                                    break
+
                             result = trainer.train_round(round_num)
+
+                            # Post-round audit
+                            if self._permit_context:
+                                eps_cost = epsilon / self.config["num_rounds"]
+                                self._permit_context.log_round_completion(result, eps_cost)
+
                             history.append({
                                 "round": round_num,
                                 "accuracy": result.global_acc,
@@ -652,6 +750,23 @@ class AlgorithmsScreen:
                     self.histories[algo_name] = self._average_history(dp_histories)
 
             elapsed = time.time() - start_time
+
+            # End EHDS permit session
+            if self._permit_context:
+                final_metrics = {}
+                if self.results:
+                    first_algo = next(iter(self.results.values()), {})
+                    final_metrics = {k: v.get("mean", 0) for k, v in first_algo.items() if isinstance(v, dict)}
+                self._permit_context.end_session(
+                    total_rounds=self.config["num_rounds"] * total_runs,
+                    final_metrics=final_metrics,
+                    success=True,
+                )
+                budget = self._permit_context.get_budget_status()
+                print()
+                print_info(f"EHDS Budget: {budget['used']:.4f}/{budget['total']:.4f} epsilon "
+                           f"({budget['utilization_pct']:.1f}%)")
+
             print()
             print_success(f"Confronto completato in {elapsed:.1f} secondi")
 
@@ -754,6 +869,10 @@ class AlgorithmsScreen:
                             "heart_rate", "resp_rate", "temperature", "oxygen_sat", "prev_conditions"],
                 "target": "disease_risk_binary",
             },
+            "ehds_governance": (
+                self._permit_context.get_summary_for_specs()
+                if hasattr(self, '_permit_context') and self._permit_context else None
+            ),
             "include_dp": self.config["include_dp"],
         }
 
@@ -933,6 +1052,14 @@ class AlgorithmsScreen:
                     row.append(f"{metrics.get(m, {}).get('std', 0):.4f}")
                 f.write(",".join(row) + "\n")
         saved_files.append(("CSV (Summary)", summary_file))
+
+        # 6. EHDS Audit Log (if permit enabled)
+        if self.config.get("ehds_permit_enabled") and hasattr(self, '_permit_context') and self._permit_context:
+            try:
+                audit_file = self._permit_context.export_audit_log(output_dir)
+                saved_files.append(("JSON (EHDS Audit)", audit_file))
+            except Exception as e:
+                print_warning(f"Errore salvataggio audit log: {e}")
 
         # === Show summary of saved files ===
         print()

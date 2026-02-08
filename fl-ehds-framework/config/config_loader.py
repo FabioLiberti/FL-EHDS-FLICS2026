@@ -277,3 +277,18 @@ def get_omop_config() -> Dict[str, Any]:
         "compute_jaccard": omop.get("heterogeneity", {}).get("compute_jaccard", True),
         "compute_jsd": omop.get("heterogeneity", {}).get("compute_jsd", True),
     }
+
+
+def get_governance_training_config() -> Dict[str, Any]:
+    """Get governance training integration configuration."""
+    cfg = load_config()
+    gov = cfg.get("governance", {})
+    integration = gov.get("training_integration", {})
+    minimization = integration.get("data_minimization", {})
+    return {
+        "enabled": integration.get("enabled", False),
+        "default_purpose": integration.get("default_purpose", "ai_system_development"),
+        "default_privacy_budget": integration.get("default_privacy_budget", 100.0),
+        "minimization_enabled": minimization.get("enabled", False),
+        "importance_threshold": minimization.get("importance_threshold", 0.01),
+    }

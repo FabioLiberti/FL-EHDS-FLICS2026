@@ -254,6 +254,16 @@ class GuidedComparisonScreen:
 
             start_time = time.time()
 
+            # EHDS Permit context (if enabled)
+            self._permit_context = None
+            if self.config.get("ehds_permit_enabled"):
+                from governance.permit_training import create_permit_context
+                self._permit_context = create_permit_context(self.config)
+                if self._permit_context:
+                    self._permit_context.start_session()
+                    print_success(f"EHDS Permit attivato: {self._permit_context.permit.permit_id}")
+                    print()
+
             # Progress callback for verbose mode
             def make_progress_callback(algorithm_name, seed_num):
                 def progress_callback(event_type, **kwargs):
@@ -402,7 +412,19 @@ class GuidedComparisonScreen:
                     history = []
                     final_result = None
                     for round_num in range(num_rounds):
+                        # Pre-round permit check
+                        if self._permit_context:
+                            ok, reason = self._permit_context.validate_round(round_num)
+                            if not ok:
+                                print_warning(f"    Training interrotto: {reason}")
+                                break
+
                         result = trainer.train_round(round_num)
+
+                        # Post-round audit
+                        if self._permit_context:
+                            self._permit_context.log_round_completion(result)
+
                         history.append({
                             "round": round_num,
                             "accuracy": result.global_acc,
@@ -438,6 +460,19 @@ class GuidedComparisonScreen:
                 self.histories[algorithm] = self._average_history(algo_histories)
 
             elapsed = time.time() - start_time
+
+            # End EHDS permit session
+            if self._permit_context:
+                final_metrics = {}
+                if self.results:
+                    first_algo = next(iter(self.results.values()), {})
+                    final_metrics = {k: v.get("mean", 0) for k, v in first_algo.items() if isinstance(v, dict)}
+                self._permit_context.end_session(
+                    total_rounds=num_rounds * total_runs,
+                    final_metrics=final_metrics,
+                    success=True,
+                )
+
             print()
             print_success(f"Confronto completato in {elapsed:.1f} secondi")
 
@@ -744,6 +779,14 @@ class GuidedComparisonScreen:
                     row.append(f"{metrics.get(m, {}).get('std', 0):.4f}")
                 f.write(",".join(row) + "\n")
         saved_files.append(("CSV (Summary)", summary_file))
+
+        # EHDS Audit Log (if permit enabled)
+        if self.config.get("ehds_permit_enabled") and hasattr(self, '_permit_context') and self._permit_context:
+            try:
+                audit_file = self._permit_context.export_audit_log(output_dir)
+                saved_files.append(("JSON (EHDS Audit)", audit_file))
+            except Exception as e:
+                print_warning(f"Errore salvataggio audit log: {e}")
 
         # === Show summary of saved files ===
         print()

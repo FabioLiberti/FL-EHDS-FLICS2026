@@ -113,6 +113,15 @@ class DataPermit(BaseModel):
         default_factory=dict, description="Additional permit conditions"
     )
     metadata: Dict[str, Any] = Field(default_factory=dict)
+    privacy_budget_total: Optional[float] = Field(
+        default=None, description="Total epsilon budget for training"
+    )
+    privacy_budget_used: float = Field(
+        default=0.0, description="Epsilon consumed so far"
+    )
+    max_rounds: Optional[int] = Field(
+        default=None, description="Maximum training rounds authorized"
+    )
 
     @field_validator("valid_until")
     @classmethod
@@ -137,6 +146,19 @@ class DataPermit(BaseModel):
     def covers_categories(self, categories: List[DataCategory]) -> bool:
         """Check if permit covers all specified data categories."""
         return all(cat in self.data_categories for cat in categories)
+
+    def check_privacy_budget(self, epsilon_cost: float) -> bool:
+        """Check if privacy budget can cover the epsilon cost."""
+        if self.privacy_budget_total is None:
+            return True
+        return (self.privacy_budget_used + epsilon_cost) <= self.privacy_budget_total
+
+    def consume_privacy_budget(self, epsilon_cost: float) -> bool:
+        """Consume epsilon from privacy budget. Returns False if insufficient."""
+        if not self.check_privacy_budget(epsilon_cost):
+            return False
+        self.privacy_budget_used += epsilon_cost
+        return True
 
 
 class OptOutRecord(BaseModel):
