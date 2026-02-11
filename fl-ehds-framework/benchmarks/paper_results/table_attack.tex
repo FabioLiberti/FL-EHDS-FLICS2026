@@ -1,0 +1,18 @@
+\begin{table}[htbp]
+\centering
+\caption{Gradient Inversion Attack: Reconstruction Quality vs. DP Noise}
+\label{tab:attack}
+\small
+\begin{tabular}{lcc}
+\toprule
+\textbf{$\varepsilon$} & \textbf{Recon. MSE} & \textbf{Protection} \\
+\midrule
+$\infty$ (no DP) & $1.781 \pm 0.000$ & None \\
+$10.0$ & $331018.094 \pm 0.000$ & Low \\
+$5.0$ & $10021.390 \pm 0.000$ & Medium \\
+$1.0$ & $15476719.000 \pm 0.000$ & High \\
+\bottomrule
+\end{tabular}
+\vspace{1mm}
+\footnotesize{DLG attack on synthetic tabular data (32 samples, MLP). Higher MSE = better privacy. Mean$\pm$std over 3 seeds.}
+\end{table}

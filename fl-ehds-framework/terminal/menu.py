@@ -175,6 +175,7 @@ class MainMenu:
                 MenuItem("12", "Benchmark Suite", self._benchmark_menu),
                 MenuItem("13", "Configurazione Globale", self._config_menu),
                 MenuItem("14", "Esporta Risultati", self._export_menu),
+                MenuItem("15", "Esperimenti Paper FLICS 2026", self._paper_experiments_menu),
                 MenuItem("0", "Esci", self._exit),
             ])
 
@@ -258,6 +259,12 @@ class MainMenu:
         """Open export submenu."""
         from terminal.screens.output import OutputScreen
         screen = OutputScreen()
+        screen.run()
+
+    def _paper_experiments_menu(self):
+        """Open paper experiments workflow submenu."""
+        from terminal.screens.paper_experiments import PaperExperimentsScreen
+        screen = PaperExperimentsScreen()
         screen.run()
 
     def _exit(self):

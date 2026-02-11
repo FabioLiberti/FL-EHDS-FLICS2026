@@ -9,6 +9,7 @@ from terminal.screens.privacy import PrivacyScreen
 from terminal.screens.byzantine import ByzantineScreen
 from terminal.screens.benchmark import BenchmarkScreen
 from terminal.screens.output import OutputScreen
+from terminal.screens.paper_experiments import PaperExperimentsScreen
 
 __all__ = [
     "TrainingScreen",
@@ -17,4 +18,5 @@ __all__ = [
     "ByzantineScreen",
     "BenchmarkScreen",
     "OutputScreen",
+    "PaperExperimentsScreen",
 ]

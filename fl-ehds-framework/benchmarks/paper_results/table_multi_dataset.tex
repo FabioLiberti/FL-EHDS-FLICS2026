@@ -1,0 +1,20 @@
+\begin{table*}[htbp]
+\centering
+\caption{Multi-Dataset Federated Learning Results}
+\label{tab:multi_dataset}
+\small
+\begin{tabular}{l|ccc|ccc|ccc|ccc|ccc}
+\toprule
+\textbf{Algorithm} & \multicolumn{3}{c|}{\textbf{BT}} & \multicolumn{3}{c|}{\textbf{CX}} & \multicolumn{3}{c|}{\textbf{SC}} & \multicolumn{3}{c|}{\textbf{DM}} & \multicolumn{3}{c}{\textbf{HD}} \\
+ & Acc & F1 & AUC & Acc & F1 & AUC & Acc & F1 & AUC & Acc & F1 & AUC & Acc & F1 & AUC \\
+\midrule
+FedAvg & 26.5{\tiny$\pm$0.00} & 0.10{\tiny$\pm$0.00} & 0.69{\tiny$\pm$0.00} & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
+FedProx & 26.5{\tiny$\pm$0.00} & 0.10{\tiny$\pm$0.00} & 0.71{\tiny$\pm$0.00} & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
+SCAFFOLD & 26.5{\tiny$\pm$0.00} & 0.10{\tiny$\pm$0.00} & 0.43{\tiny$\pm$0.00} & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
+FedNova & 26.5{\tiny$\pm$0.00} & 0.10{\tiny$\pm$0.00} & 0.64{\tiny$\pm$0.00} & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
+Ditto & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- \\
+\bottomrule
+\end{tabular}
+\vspace{1mm}
+\footnotesize{Non-IID, ResNet18 (imaging) / MLP (tabular), 3 seeds. $^{*}p<0.05$, $^{**}p<0.01$ vs FedAvg (paired t-test). BT=Brain Tumor, CX=Chest X-ray, SC=Skin Cancer, DM=Diabetes, HD=Heart Disease.}
+\end{table*}

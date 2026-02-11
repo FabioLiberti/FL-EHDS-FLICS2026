@@ -79,6 +79,17 @@ try:
 except ImportError:
     HAS_GOVERNANCE = False
 
+# Import paper experiments page
+try:
+    from dashboard.paper_experiments_page import render_paper_experiments_tab
+    HAS_PAPER_EXPERIMENTS = True
+except ImportError:
+    try:
+        from paper_experiments_page import render_paper_experiments_tab
+        HAS_PAPER_EXPERIMENTS = True
+    except ImportError:
+        HAS_PAPER_EXPERIMENTS = False
+
 # Page config
 st.set_page_config(
     page_title="FL-EHDS Dashboard v4",
@@ -3769,6 +3780,7 @@ def main():
         "🏛️ Hierarchical",
         "🇪🇺 EHDS",
         "⚙️ Infrastructure",
+        "📊 Paper Experiments",
         "📚 Guida"
     ])
 
@@ -3810,6 +3822,13 @@ def main():
         render_infrastructure_tab()
 
     with tabs[11]:
+        if HAS_PAPER_EXPERIMENTS:
+            render_paper_experiments_tab()
+        else:
+            st.warning("Modulo Paper Experiments non disponibile")
+            st.info("Assicurati che paper_experiments_page.py sia presente nella cartella dashboard/")
+
+    with tabs[12]:
         render_guide_tab()
 
     st.markdown("---")
