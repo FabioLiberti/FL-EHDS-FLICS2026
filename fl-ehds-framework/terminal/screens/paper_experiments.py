@@ -48,12 +48,17 @@ class PaperExperimentsScreen:
                 MenuItem("4", "P2.2: Privacy Attack (DLG)", self._run_p22),
                 MenuItem("5", "Genera Output (Tabelle + Figure)", self._generate_outputs),
                 MenuItem("6", "Apri cartella output", self._open_output),
-                MenuItem("0", "Indietro", lambda: None),
+                MenuItem("0", "Torna al menu principale", lambda: "back"),
             ])
 
-            result = menu.run()
-            if result is None or result == "back":
+            result = menu.display()
+            if result is None:
                 break
+
+            if result.handler:
+                handler_result = result.handler()
+                if handler_result == "back":
+                    break
 
     # ------------------------------------------------------------------
     # 1. Status Dashboard
@@ -136,10 +141,10 @@ class PaperExperimentsScreen:
         ds_options = ["Tutti"] + ALL_DATASETS
         for i, ds in enumerate(ds_options):
             if i == 0:
-                print(f"  {Style.ACCENT}{i}. {ds}{Colors.RESET}")
+                print(f"  {Style.HIGHLIGHT}{i}. {ds}{Colors.RESET}")
             else:
                 ds_type = "imaging" if ds in IMAGING_DATASETS else "tabular"
-                print(f"  {Style.ACCENT}{i}. {ds}{Colors.RESET} ({ds_type})")
+                print(f"  {Style.HIGHLIGHT}{i}. {ds}{Colors.RESET} ({ds_type})")
 
         ds_idx = get_int("\nDataset", 0, 0, len(ds_options) - 1)
         filter_dataset = None if ds_idx == 0 else ds_options[ds_idx]
@@ -149,7 +154,7 @@ class PaperExperimentsScreen:
         print_subsection("Seleziona Algoritmo")
         algo_options = ["Tutti"] + ALGORITHMS
         for i, algo in enumerate(algo_options):
-            print(f"  {Style.ACCENT}{i}. {algo}{Colors.RESET}")
+            print(f"  {Style.HIGHLIGHT}{i}. {algo}{Colors.RESET}")
 
         algo_idx = get_int("\nAlgoritmo", 0, 0, len(algo_options) - 1)
         filter_algo = None if algo_idx == 0 else algo_options[algo_idx]
@@ -158,8 +163,8 @@ class PaperExperimentsScreen:
         ds_label = filter_dataset or "Tutti (5)"
         algo_label = filter_algo or "Tutti (5)"
         print()
-        print(f"  Dataset:   {Style.ACCENT}{ds_label}{Colors.RESET}")
-        print(f"  Algoritmo: {Style.ACCENT}{algo_label}{Colors.RESET}")
+        print(f"  Dataset:   {Style.HIGHLIGHT}{ds_label}{Colors.RESET}")
+        print(f"  Algoritmo: {Style.HIGHLIGHT}{algo_label}{Colors.RESET}")
 
         n_ds = 1 if filter_dataset else len(ALL_DATASETS)
         n_algo = 1 if filter_algo else len(ALGORITHMS)
@@ -198,10 +203,10 @@ class PaperExperimentsScreen:
         print()
 
         print_subsection("Fattori Ablazione")
-        print(f"  {Style.ACCENT}A. Gradient Clipping{Colors.RESET}: C = 0.5, 1.0, 2.0  (eps=5, 3 seed = 9 run)")
-        print(f"  {Style.ACCENT}B. Privacy Epsilon{Colors.RESET}:   eps = 0.5, 1, 2, 5, 10, inf  (C=1.0, 3 seed = 18 run)")
-        print(f"  {Style.ACCENT}C. Modello{Colors.RESET}:           CNN vs ResNet18  (no DP, 3 seed = 6 run)")
-        print(f"  {Style.ACCENT}D. Class Weights{Colors.RESET}:     on vs off  (no DP, 3 seed = 6 run)")
+        print(f"  {Style.HIGHLIGHT}A. Gradient Clipping{Colors.RESET}: C = 0.5, 1.0, 2.0  (eps=5, 3 seed = 9 run)")
+        print(f"  {Style.HIGHLIGHT}B. Privacy Epsilon{Colors.RESET}:   eps = 0.5, 1, 2, 5, 10, inf  (C=1.0, 3 seed = 18 run)")
+        print(f"  {Style.HIGHLIGHT}C. Modello{Colors.RESET}:           CNN vs ResNet18  (no DP, 3 seed = 6 run)")
+        print(f"  {Style.HIGHLIGHT}D. Class Weights{Colors.RESET}:     on vs off  (no DP, 3 seed = 6 run)")
         print(f"\n  Totale massimo: 39 esperimenti")
 
         if not confirm("\nAvviare ablation study?"):
