@@ -439,3 +439,19 @@ def get_fee_model_config() -> Dict[str, Any]:
         "min_rounds": fm.get("min_rounds", 3),
         "min_sampling_factor": fm.get("min_sampling_factor", 0.25),
     }
+
+
+def get_hdab_routing_config() -> Dict[str, Any]:
+    """Get HDAB Routing configuration (EHDS Art. 57-58)."""
+    cfg = load_config()
+    cb = cfg.get("cross_border", {})
+    hr = cb.get("hdab_routing", {})
+    return {
+        "enabled": hr.get("enabled", False),
+        "routing_strategy": hr.get("routing_strategy", "data_driven"),
+        "lead_selection_strategy": hr.get("lead_selection_strategy", "most_data"),
+        "veto_power": hr.get("veto_power", True),
+        "consensus_threshold": hr.get("consensus_threshold", 1.0),
+        "review_timeout_days": hr.get("review_timeout_days", 30),
+        "min_countries": hr.get("min_countries", 2),
+    }

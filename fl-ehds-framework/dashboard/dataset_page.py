@@ -68,9 +68,66 @@ class DatasetManager:
             ehds_category="Health Risk Assessment"
         )
 
+        # Discover real tabular datasets
+        if self.data_dir.exists():
+            self._discover_tabular_datasets()
+
         # Discover imaging datasets
         if self.data_dir.exists():
             self._discover_imaging_datasets()
+
+    def _discover_tabular_datasets(self):
+        """Discover real tabular datasets in data directory."""
+        # Diabetes 130-US Hospitals
+        diabetes_path = self.data_dir / "diabetes" / "diabetic_data.csv"
+        if diabetes_path.exists():
+            self.datasets["diabetes_130us"] = DatasetInfo(
+                name="Diabetes 130-US Hospitals",
+                type="tabular",
+                path=diabetes_path.parent,
+                description="101,766 encounters da 130 ospedali USA - readmission prediction",
+                num_classes=2,
+                class_names=["No readmission", "Readmission <30 days"],
+                total_samples=101766,
+                features=[
+                    "age", "gender", "race", "time_in_hospital", "num_lab_procedures",
+                    "num_procedures", "num_medications", "number_outpatient",
+                    "number_emergency", "number_inpatient", "number_diagnoses",
+                    "max_glu_serum", "A1Cresult", "insulin", "change", "diabetesMed",
+                    "diag_circulatory", "diag_respiratory", "diag_digestive",
+                    "diag_diabetes", "diag_injury", "diag_other"
+                ],
+                clinical_relevance="Predizione readmission ospedaliera per pazienti diabetici",
+                ehds_category="Endocrinology / Hospital Management"
+            )
+
+        # UCI Heart Disease (4 Centers)
+        heart_path = self.data_dir / "heart_disease"
+        if heart_path.exists():
+            # Check for at least one hospital file
+            hospital_files = [
+                "processed.cleveland.data", "processed.hungarian.data",
+                "processed.switzerland.data", "processed.va.data"
+            ]
+            found_files = [f for f in hospital_files if (heart_path / f).exists()]
+            if found_files:
+                self.datasets["heart_disease_uci"] = DatasetInfo(
+                    name="Heart Disease UCI (4 Centers)",
+                    type="tabular",
+                    path=heart_path,
+                    description="920 pazienti da 4 ospedali internazionali - diagnosi cardiaca",
+                    num_classes=2,
+                    class_names=["No heart disease", "Heart disease"],
+                    total_samples=920,
+                    features=[
+                        "age", "sex", "chest_pain_type", "resting_bp", "cholesterol",
+                        "fasting_blood_sugar", "resting_ecg", "max_heart_rate",
+                        "exercise_angina", "st_depression", "st_slope",
+                        "num_major_vessels", "thalassemia"
+                    ],
+                    clinical_relevance="Diagnosi malattia cardiaca multi-centro",
+                    ehds_category="Cardiology / Multi-Center Clinical Trial"
+                )
 
     def _discover_imaging_datasets(self):
         """Discover imaging datasets in data directory.

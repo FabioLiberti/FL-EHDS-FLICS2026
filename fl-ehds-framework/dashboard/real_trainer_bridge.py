@@ -111,6 +111,7 @@ class RealFLTrainer:
             )
 
         self.st_config = StreamlitConfig.from_streamlit_config(config)
+        self._raw_config = config
         self.trainer = None
         self.history = []
         self._init_trainer()
@@ -118,25 +119,72 @@ class RealFLTrainer:
     def _init_trainer(self):
         """Initialize the underlying FederatedTrainer."""
         cfg = self.st_config
-        self.trainer = FederatedTrainer(
-            num_clients=cfg.num_clients,
-            samples_per_client=cfg.samples_per_client,
-            algorithm=cfg.algorithm,
-            local_epochs=cfg.local_epochs,
-            batch_size=cfg.batch_size,
-            learning_rate=cfg.learning_rate,
-            is_iid=cfg.is_iid,
-            alpha=cfg.alpha,
-            mu=cfg.mu,
-            dp_enabled=cfg.use_dp,
-            dp_epsilon=cfg.epsilon,
-            dp_clip_norm=cfg.clip_norm,
-            seed=cfg.seed,
-            server_lr=cfg.server_lr,
-            beta1=cfg.beta1,
-            beta2=cfg.beta2,
-            tau=cfg.tau,
-        )
+        tabular_ds = self._raw_config.get("tabular_dataset")
+
+        # Load external data for real tabular datasets
+        ext_train = None
+        ext_test = None
+        input_dim = None
+
+        if tabular_ds == "diabetes":
+            from data.diabetes_loader import load_diabetes_data
+            ext_train, ext_test, meta = load_diabetes_data(
+                num_clients=cfg.num_clients,
+                partition_by_hospital=not cfg.is_iid,
+                is_iid=cfg.is_iid,
+                seed=cfg.seed,
+            )
+            input_dim = meta["num_features"]
+        elif tabular_ds == "heart_disease":
+            from data.heart_disease_loader import load_heart_disease_data
+            ext_train, ext_test, meta = load_heart_disease_data(
+                num_clients=cfg.num_clients,
+                partition_by_hospital=not cfg.is_iid,
+                is_iid=cfg.is_iid,
+                seed=cfg.seed,
+            )
+            input_dim = meta["num_features"]
+
+        if ext_train is not None:
+            self.trainer = FederatedTrainer(
+                num_clients=cfg.num_clients,
+                algorithm=cfg.algorithm,
+                local_epochs=cfg.local_epochs,
+                batch_size=cfg.batch_size,
+                learning_rate=cfg.learning_rate,
+                mu=cfg.mu,
+                dp_enabled=cfg.use_dp,
+                dp_epsilon=cfg.epsilon,
+                dp_clip_norm=cfg.clip_norm,
+                seed=cfg.seed,
+                server_lr=cfg.server_lr,
+                beta1=cfg.beta1,
+                beta2=cfg.beta2,
+                tau=cfg.tau,
+                external_data=ext_train,
+                external_test_data=ext_test,
+                input_dim=input_dim,
+            )
+        else:
+            self.trainer = FederatedTrainer(
+                num_clients=cfg.num_clients,
+                samples_per_client=cfg.samples_per_client,
+                algorithm=cfg.algorithm,
+                local_epochs=cfg.local_epochs,
+                batch_size=cfg.batch_size,
+                learning_rate=cfg.learning_rate,
+                is_iid=cfg.is_iid,
+                alpha=cfg.alpha,
+                mu=cfg.mu,
+                dp_enabled=cfg.use_dp,
+                dp_epsilon=cfg.epsilon,
+                dp_clip_norm=cfg.clip_norm,
+                seed=cfg.seed,
+                server_lr=cfg.server_lr,
+                beta1=cfg.beta1,
+                beta2=cfg.beta2,
+                tau=cfg.tau,
+            )
 
     def train(
         self,

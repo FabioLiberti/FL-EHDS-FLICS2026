@@ -188,6 +188,8 @@ class GuidedComparisonScreen:
             is_imaging = self.config.get("dataset_type") == "imaging"
             is_fhir = self.config.get("dataset_type") == "fhir"
             is_omop = self.config.get("dataset_type") == "omop"
+            is_diabetes = self.config.get("dataset_type") == "diabetes"
+            is_heart = self.config.get("dataset_type") == "heart_disease"
 
             # === VERIFICATION: Show that training is real ===
             print_subsection("VERIFICA TRAINING REALE")
@@ -210,6 +212,22 @@ class GuidedComparisonScreen:
                 total_params = sum(p.numel() for p in model.parameters())
                 print(f"  Modello: HealthcareMLP (PyTorch nn.Module)")
                 print(f"  Architettura: 36 -> 64 -> 32 -> 2 (MLP)")
+                print(f"  Parametri totali: {total_params:,}")
+                print(f"  Valutazione: Test set (20% held-out)")
+                print(f"  Optimizer: SGD con lr={self.config['learning_rate']}")
+            elif is_diabetes:
+                model = HealthcareMLP(input_dim=22)
+                total_params = sum(p.numel() for p in model.parameters())
+                print(f"  Modello: HealthcareMLP (PyTorch nn.Module)")
+                print(f"  Architettura: 22 -> 64 -> 32 -> 2 (MLP)")
+                print(f"  Parametri totali: {total_params:,}")
+                print(f"  Valutazione: Test set (20% held-out)")
+                print(f"  Optimizer: SGD con lr={self.config['learning_rate']}")
+            elif is_heart:
+                model = HealthcareMLP(input_dim=13)
+                total_params = sum(p.numel() for p in model.parameters())
+                print(f"  Modello: HealthcareMLP (PyTorch nn.Module)")
+                print(f"  Architettura: 13 -> 64 -> 32 -> 2 (MLP)")
                 print(f"  Parametri totali: {total_params:,}")
                 print(f"  Valutazione: Test set (20% held-out)")
                 print(f"  Optimizer: SGD con lr={self.config['learning_rate']}")
@@ -237,13 +255,26 @@ class GuidedComparisonScreen:
                 print(f"  Features: ~36 standardizzate OMOP (temporal windows)")
                 print(f"  Target: mortality_30day (binario)")
                 print(f"  Non-IID da eterogeneita vocabolario cross-border")
+            elif is_diabetes:
+                print(f"\n{Style.TITLE}Dataset Diabetes 130-US Hospitals:{Colors.RESET}")
+                print(f"  Sorgente: UCI - 101,766 encounters, 130 ospedali USA")
+                print(f"  Features: 22 (demographics + diagnosi ICD-9 + farmaci + lab)")
+                print(f"  Target: readmission <30 giorni (binario)")
+                print(f"  Non-IID naturale da partizione per ospedale")
+            elif is_heart:
+                print(f"\n{Style.TITLE}Dataset Heart Disease UCI (4 Centers):{Colors.RESET}")
+                print(f"  Sorgente: UCI - 920 pazienti, 4 ospedali internazionali")
+                print(f"  Features: 13 (vitali + ECG + stress test)")
+                print(f"  Target: malattia cardiaca (binario)")
+                print(f"  Non-IID naturale: Cleveland 46%, Hungarian 36%, Swiss 94%, VA 75%")
             else:
                 print(f"\n{Style.TITLE}Dataset sintetico sanitario:{Colors.RESET}")
                 print(f"  Features: age, bmi, bp_systolic, glucose, cholesterol, ...")
                 print(f"  Target: Rischio malattia (binario)")
             dist_label = ('IID' if self.config['is_iid'] else
                 'Non-IID (eterogeneita vocabolario)' if is_omop else
-                'Non-IID (profili ospedalieri)' if is_fhir else 'Non-IID (Dirichlet)')
+                'Non-IID (profili ospedalieri)' if is_fhir else
+                'Non-IID (partizione per ospedale)' if (is_diabetes or is_heart) else 'Non-IID (Dirichlet)')
             print(f"  Distribuzione: {dist_label}")
             print()
 
@@ -310,6 +341,9 @@ class GuidedComparisonScreen:
                             beta2=self.config.get("beta2", 0.99),
                             tau=self.config.get("tau", 1e-3),
                             progress_callback=progress_cb,
+                            model_type=self.config.get("model_type", "resnet18"),
+                            freeze_backbone=self.config.get("freeze_backbone", False),
+                            use_class_weights=self.config.get("use_class_weights", True),
                         )
                     elif is_fhir:
                         from data.fhir_loader import load_fhir_data
@@ -379,6 +413,60 @@ class GuidedComparisonScreen:
                             external_data=omop_train,
                             external_test_data=omop_test,
                             input_dim=omop_meta.get("num_features"),
+                        )
+                    elif is_diabetes:
+                        from data.diabetes_loader import load_diabetes_data
+                        diab_train, diab_test, diab_meta = load_diabetes_data(
+                            num_clients=num_clients,
+                            partition_by_hospital=not self.config.get("is_iid", False),
+                            is_iid=self.config.get("is_iid", False),
+                            seed=seed,
+                        )
+                        trainer = FederatedTrainer(
+                            num_clients=num_clients,
+                            algorithm=algorithm,
+                            local_epochs=local_epochs,
+                            batch_size=self.config["batch_size"],
+                            learning_rate=self.config["learning_rate"],
+                            mu=self.config.get("mu", 0.1),
+                            dp_enabled=self.config.get("dp_enabled", False),
+                            dp_epsilon=self.config.get("dp_epsilon", 10.0),
+                            seed=seed,
+                            server_lr=self.config.get("server_lr", 0.1),
+                            beta1=self.config.get("beta1", 0.9),
+                            beta2=self.config.get("beta2", 0.99),
+                            tau=self.config.get("tau", 1e-3),
+                            progress_callback=progress_cb,
+                            external_data=diab_train,
+                            external_test_data=diab_test,
+                            input_dim=diab_meta["num_features"],
+                        )
+                    elif is_heart:
+                        from data.heart_disease_loader import load_heart_disease_data
+                        heart_train, heart_test, heart_meta = load_heart_disease_data(
+                            num_clients=num_clients,
+                            partition_by_hospital=not self.config.get("is_iid", False),
+                            is_iid=self.config.get("is_iid", False),
+                            seed=seed,
+                        )
+                        trainer = FederatedTrainer(
+                            num_clients=num_clients,
+                            algorithm=algorithm,
+                            local_epochs=local_epochs,
+                            batch_size=self.config["batch_size"],
+                            learning_rate=self.config["learning_rate"],
+                            mu=self.config.get("mu", 0.1),
+                            dp_enabled=self.config.get("dp_enabled", False),
+                            dp_epsilon=self.config.get("dp_epsilon", 10.0),
+                            seed=seed,
+                            server_lr=self.config.get("server_lr", 0.1),
+                            beta1=self.config.get("beta1", 0.9),
+                            beta2=self.config.get("beta2", 0.99),
+                            tau=self.config.get("tau", 1e-3),
+                            progress_callback=progress_cb,
+                            external_data=heart_train,
+                            external_test_data=heart_test,
+                            input_dim=heart_meta["num_features"],
                         )
                     else:
                         trainer = FederatedTrainer(
@@ -552,6 +640,8 @@ class GuidedComparisonScreen:
         use_case_short = self.selected_use_case.id.replace("_", "")[:15] if self.selected_use_case else "unknown"
         dist_short = ("OMOP" if self.config.get("dataset_type") == "omop" else
             "FHIR" if self.config.get("dataset_type") == "fhir" else
+            "Diabetes" if self.config.get("dataset_type") == "diabetes" else
+            "Heart" if self.config.get("dataset_type") == "heart_disease" else
             ("IID" if self.config["is_iid"] else "NonIID"))
         n_algos = len(self.config["algorithms"])
         folder_name = f"guided_{use_case_short}_{dist_short}_{n_algos}algos_{self.config['num_clients']}clients_{timestamp}"

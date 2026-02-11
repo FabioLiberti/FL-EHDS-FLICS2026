@@ -518,6 +518,17 @@ cross_border:
     min_rounds: 3                           # Min rounds for optimization
     min_sampling_factor: 0.25               # Min sampling factor (25%)
 
+  # HDAB Routing and Joint Approval (EHDS Art. 57-58)
+  # Single Application Point (SAP) for cross-border data access requests
+  hdab_routing:
+    enabled: false
+    routing_strategy: "data_driven"           # data_driven | comprehensive | minimal
+    lead_selection_strategy: "most_data"      # most_data | lowest_strictness | balanced
+    veto_power: true                          # Any HDAB can block (Art. 58)
+    consensus_threshold: 1.0                  # Required approval fraction (if no veto)
+    review_timeout_days: 30                   # HDAB review deadline
+    min_countries: 2                          # Minimum participating countries
+
 # =============================================================================
 # FHIR R4 DATA PIPELINE
 # =============================================================================
@@ -837,8 +848,33 @@ dataset_parameters:
     recommended_algorithms: ["SCAFFOLD", "FedProx", "Ditto", "FedAvg"]
     notes: "OMOP-CDM armonizzato - ~36 features, non-IID da eterogeneita vocabolario cross-border"
 
+  diabetes_130us:
+    type: "tabular"
+    img_size: null
+    learning_rate: 0.01
+    batch_size: 64
+    num_rounds: 30
+    local_epochs: 3
+    alpha: null
+    class_weight: true
+    recommended_algorithms: ["FedProx", "SCAFFOLD", "FedAvg", "Ditto"]
+    notes: "Diabetes 130-US: 101K encounters reali, 22 features, readmission <30gg, non-IID naturale da 130 ospedali"
+
+  heart_disease_uci:
+    type: "tabular"
+    img_size: null
+    learning_rate: 0.01
+    batch_size: 32
+    num_rounds: 30
+    local_epochs: 5
+    alpha: null
+    class_weight: true
+    recommended_algorithms: ["FedProx", "SCAFFOLD", "Ditto", "FedAvg"]
+    notes: "Heart Disease UCI: 920 pazienti, 4 ospedali internazionali, 13 features cliniche, non-IID naturale"
+
   Retinopatia:
     type: "imaging"
+    model_type: "resnet18"
     img_size: 224
     learning_rate: 0.0005
     batch_size: 16
@@ -851,18 +887,20 @@ dataset_parameters:
 
   Brain_Tumor:
     type: "imaging"
-    img_size: 128
-    learning_rate: 0.001
-    batch_size: 32
+    model_type: "resnet18"
+    img_size: 224
+    learning_rate: 0.0005
+    batch_size: 16
     num_rounds: 40
     local_epochs: 3
     alpha: 0.3
     class_weight: false
     recommended_algorithms: ["FedProx", "SCAFFOLD", "Ditto"]
-    notes: "7K immagini, 4 classi MRI, bilanciato"
+    notes: "7K immagini, 4 classi MRI, bilanciato - ResNet18 pretrained"
 
   chest_xray:
     type: "imaging"
+    model_type: "resnet18"
     img_size: 224
     learning_rate: 0.0005
     batch_size: 16
@@ -875,31 +913,34 @@ dataset_parameters:
 
   "Skin Cancer":
     type: "imaging"
-    img_size: 128
-    learning_rate: 0.001
-    batch_size: 32
+    model_type: "resnet18"
+    img_size: 224
+    learning_rate: 0.0005
+    batch_size: 16
     num_rounds: 30
     local_epochs: 3
     alpha: 0.5
     class_weight: false
     recommended_algorithms: ["FedAvg", "FedProx"]
-    notes: "3K immagini, binario (benigno/maligno), bilanciato"
+    notes: "3K immagini, binario (benigno/maligno), bilanciato - ResNet18 pretrained"
 
   "Brain Tumor MRI":
     type: "imaging"
-    img_size: 128
-    learning_rate: 0.001
-    batch_size: 32
+    model_type: "resnet18"
+    img_size: 224
+    learning_rate: 0.0005
+    batch_size: 16
     num_rounds: 40
     local_epochs: 3
     alpha: 0.3
     class_weight: false
     recommended_algorithms: ["FedProx", "SCAFFOLD"]
-    notes: "3K immagini, 4 classi tumore, bilanciato"
+    notes: "3K immagini, 4 classi tumore, bilanciato - ResNet18 pretrained"
 
   ISIC:
     type: "imaging"
-    img_size: 128
+    model_type: "resnet18"
+    img_size: 224
     learning_rate: 0.0005
     batch_size: 16
     num_rounds: 50
@@ -907,4 +948,4 @@ dataset_parameters:
     alpha: 0.3
     class_weight: true
     recommended_algorithms: ["SCAFFOLD", "FedProx", "Ditto"]
-    notes: "2K immagini, 9 tipi lesione cutanea, forte sbilanciamento"
+    notes: "2K immagini, 9 tipi lesione cutanea, forte sbilanciamento - ResNet18 pretrained"

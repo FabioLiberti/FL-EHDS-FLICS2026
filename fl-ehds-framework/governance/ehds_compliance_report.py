@@ -672,7 +672,44 @@ class EHDSComplianceReport:
     def _assess_cross_border(
         self, trainer, config: Dict
     ) -> ArticleAssessment:
-        """Art. 57-58: Cross-border data access."""
+        """Art. 57-58: Cross-border data access with SAP and HDAB routing."""
+        # Priority 1: HDAB Routing bridge (Art. 57-58 SAP)
+        routing_bridge = getattr(trainer, "hdab_routing_bridge", None)
+        if routing_bridge and routing_bridge._application:
+            from governance.hdab_routing import HDABDecision
+            routing = routing_bridge._routing_decision
+            approval = routing_bridge._approval_result
+            n_hdabs = len(routing.target_hdabs) if routing else 0
+            lead = routing.lead_hdab if routing else "N/A"
+            joint = approval.joint_decision.value if approval else "N/A"
+            consensus = approval.consensus_level if approval else 0
+
+            status = ComplianceStatus.COMPLIANT if (
+                approval and approval.joint_decision == HDABDecision.APPROVED
+            ) else ComplianceStatus.PARTIAL
+
+            return ArticleAssessment(
+                status=status,
+                evidence=(
+                    f"SAP: {n_hdabs} HDABs, Lead: {lead}, "
+                    f"Joint: {joint}, Consensus: {consensus:.0%}"
+                ),
+                details={
+                    "sap_implemented": True,
+                    "routed_hdabs": routing.target_hdabs if routing else [],
+                    "lead_hdab": lead,
+                    "routing_strategy": routing.routing_strategy if routing else "",
+                    "joint_decision": joint,
+                    "consensus_level": consensus,
+                    "individual_decisions": {
+                        cc: d.value for cc, d in approval.decisions.items()
+                    } if approval else {},
+                },
+                module_name="hdab_routing",
+                regulation_ref="EHDS Art. 57-58 (SAP + Joint Approval)",
+            )
+
+        # Priority 2: MyHealth@EU NCPeH bridge
         bridge = getattr(trainer, "myhealth_bridge", None)
         if bridge and bridge.ncp_nodes:
             n_ncps = len(bridge.ncp_nodes)

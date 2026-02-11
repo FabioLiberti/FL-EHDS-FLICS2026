@@ -76,7 +76,7 @@ class PermitAwareTrainingContext:
             data_categories=data_categories,
             issued_at=datetime.utcnow(),
             valid_from=datetime.utcnow(),
-            valid_until=datetime.utcnow() + timedelta(hours=24),
+            valid_until=datetime.utcnow() + timedelta(days=7),
             status=PermitStatus.ACTIVE,
             privacy_budget_total=privacy_budget_total,
             max_rounds=max_rounds,

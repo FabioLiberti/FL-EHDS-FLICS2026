@@ -68,6 +68,9 @@ class AlgorithmsScreen:
             "dataset_type": "synthetic",
             "dataset_name": None,
             "dataset_path": None,
+            "model_type": "resnet18",
+            "freeze_backbone": False,
+            "use_class_weights": True,
         }
         try:
             from config.config_loader import get_training_defaults
@@ -166,6 +169,24 @@ class AlgorithmsScreen:
             "OMOP-CDM (Armonizzazione Cross-Border)": "omop",
         }
 
+        # Add real tabular datasets if available
+        try:
+            diabetes_path = Path(__file__).parent.parent.parent / "data" / "diabetes" / "diabetic_data.csv"
+            if diabetes_path.exists():
+                label = "Diabetes 130-US (101K encounters, 130 ospedali, readmission)"
+                dataset_choices.insert(3, label)
+                dataset_map[label] = "diabetes"
+        except Exception:
+            pass
+        try:
+            heart_path = Path(__file__).parent.parent.parent / "data" / "heart_disease"
+            if heart_path.exists():
+                label = "Heart Disease UCI (920 pazienti, 4 ospedali, diagnosi)"
+                dataset_choices.insert(len([c for c in dataset_choices if "img" not in c.lower()]), label)
+                dataset_map[label] = "heart_disease"
+        except Exception:
+            pass
+
         if available_datasets:
             for name, info in available_datasets.items():
                 label = f"{name} ({info['samples']:,} img, {info['classes']} classi)"
@@ -203,6 +224,19 @@ class AlgorithmsScreen:
             self.config["dataset_path"] = None
             self.config["learning_rate"] = 0.01
             print_info("OMOP-CDM: armonizzazione cross-border (non-IID da eterogeneita vocabolario)")
+        elif selected_key == "diabetes":
+            self.config["dataset_type"] = "diabetes"
+            self.config["dataset_name"] = "diabetes_130us"
+            self.config["dataset_path"] = str(Path(__file__).parent.parent.parent / "data" / "diabetes" / "diabetic_data.csv")
+            self.config["learning_rate"] = 0.01
+            print_info("Diabetes 130-US: 101K encounters, 22 features, readmission prediction")
+        elif selected_key == "heart_disease":
+            self.config["dataset_type"] = "heart_disease"
+            self.config["dataset_name"] = "heart_disease_uci"
+            self.config["dataset_path"] = str(Path(__file__).parent.parent.parent / "data" / "heart_disease")
+            self.config["learning_rate"] = 0.01
+            self.config["num_clients"] = 4
+            print_info("Heart Disease UCI: 920 pazienti, 4 ospedali, diagnosi cardiaca")
         else:
             self.config["dataset_type"] = "imaging"
             self.config["dataset_name"] = selected_key
@@ -211,7 +245,7 @@ class AlgorithmsScreen:
             print_info(f"Dataset imaging selezionato: {selected_key}")
 
         # Dataset parameter suggestion
-        if self.config["dataset_type"] in ("imaging", "fhir", "omop") and self.config.get("dataset_name"):
+        if self.config["dataset_type"] in ("imaging", "fhir", "omop", "diabetes", "heart_disease") and self.config.get("dataset_name"):
             try:
                 from config.config_loader import get_dataset_parameters
                 ds_params = get_dataset_parameters(self.config["dataset_name"])
@@ -233,6 +267,22 @@ class AlgorithmsScreen:
                         print_success("Parametri dataset applicati.")
             except (ImportError, Exception):
                 pass
+
+        # Model selection (imaging datasets only)
+        if self.config["dataset_type"] == "imaging":
+            model_choice = questionary.select(
+                "Modello:",
+                choices=[
+                    "ResNet18 (pretrained ImageNet, consigliato)",
+                    "CNN custom (leggera, ~500K params)",
+                ],
+                default="ResNet18 (pretrained ImageNet, consigliato)",
+            ).ask()
+            if model_choice and "CNN" in model_choice:
+                self.config["model_type"] = "cnn"
+            else:
+                self.config["model_type"] = "resnet18"
+                self.config["batch_size"] = 16
 
         # Basic parameters
         print_subsection("Parametri Training")
@@ -296,6 +346,8 @@ class AlgorithmsScreen:
                 "fhir": ["ehr", "lab_results"],
                 "omop": ["ehr", "lab_results"],
                 "imaging": ["imaging"],
+                "diabetes": ["ehr", "lab_results"],
+                "heart_disease": ["ehr", "lab_results"],
             }
             self.config["ehds_data_categories"] = category_map.get(
                 self.config["dataset_type"], ["ehr"]
@@ -350,6 +402,8 @@ class AlgorithmsScreen:
             is_imaging = self.config["dataset_type"] == "imaging"
             is_fhir = self.config["dataset_type"] == "fhir"
             is_omop = self.config["dataset_type"] == "omop"
+            is_diabetes = self.config["dataset_type"] == "diabetes"
+            is_heart = self.config["dataset_type"] == "heart_disease"
 
             # === VERIFICATION: Show that training is real ===
             print_subsection("VERIFICA TRAINING REALE")
@@ -374,6 +428,22 @@ class AlgorithmsScreen:
                 total_params = sum(p.numel() for p in model.parameters())
                 print(f"  Modello: HealthcareMLP (PyTorch nn.Module)")
                 print(f"  Architettura: 36 -> 64 -> 32 -> 2 (MLP)")
+                print(f"  Parametri totali: {total_params:,}")
+                print(f"  Valutazione: Test set (20% held-out)")
+                print(f"  Optimizer: SGD con lr={self.config['learning_rate']}")
+            elif is_diabetes:
+                model = HealthcareMLP(input_dim=22)
+                total_params = sum(p.numel() for p in model.parameters())
+                print(f"  Modello: HealthcareMLP (PyTorch nn.Module)")
+                print(f"  Architettura: 22 -> 64 -> 32 -> 2 (MLP)")
+                print(f"  Parametri totali: {total_params:,}")
+                print(f"  Valutazione: Test set (20% held-out)")
+                print(f"  Optimizer: SGD con lr={self.config['learning_rate']}")
+            elif is_heart:
+                model = HealthcareMLP(input_dim=13)
+                total_params = sum(p.numel() for p in model.parameters())
+                print(f"  Modello: HealthcareMLP (PyTorch nn.Module)")
+                print(f"  Architettura: 13 -> 64 -> 32 -> 2 (MLP)")
                 print(f"  Parametri totali: {total_params:,}")
                 print(f"  Valutazione: Test set (20% held-out)")
                 print(f"  Optimizer: SGD con lr={self.config['learning_rate']}")
@@ -403,6 +473,18 @@ class AlgorithmsScreen:
                 print(f"  Features: ~36 standardizzate OMOP (temporal windows: 30d/90d/365d)")
                 print(f"  Target: mortality_30day (binario)")
                 print(f"  Non-IID da eterogeneita vocabolario cross-border")
+            elif is_diabetes:
+                print(f"\n{Style.TITLE}Dataset Diabetes 130-US Hospitals:{Colors.RESET}")
+                print(f"  Sorgente: UCI - 101,766 encounters, 130 ospedali USA")
+                print(f"  Features: 22 (demographics + diagnosi ICD-9 + farmaci + lab)")
+                print(f"  Target: readmission <30 giorni (binario)")
+                print(f"  Non-IID naturale da partizione per ospedale")
+            elif is_heart:
+                print(f"\n{Style.TITLE}Dataset Heart Disease UCI (4 Centers):{Colors.RESET}")
+                print(f"  Sorgente: UCI - 920 pazienti, 4 ospedali internazionali")
+                print(f"  Features: 13 (vitali + ECG + stress test)")
+                print(f"  Target: malattia cardiaca (binario)")
+                print(f"  Non-IID naturale: Cleveland 46%, Hungarian 36%, Swiss 94%, VA 75%")
             else:
                 print(f"\n{Style.TITLE}Dataset sintetico sanitario:{Colors.RESET}")
                 print(f"  Features: age, bmi, bp_systolic, glucose, cholesterol, ...")
@@ -411,7 +493,8 @@ class AlgorithmsScreen:
 
             dist_label = 'IID' if self.config['data_distribution'] == 'IID' else (
                 'Non-IID (eterogeneita vocabolario)' if is_omop else
-                'Non-IID (profili ospedalieri)' if is_fhir else 'Non-IID (Dirichlet)')
+                'Non-IID (profili ospedalieri)' if is_fhir else
+                'Non-IID (partizione per ospedale)' if (is_diabetes or is_heart) else 'Non-IID (Dirichlet)')
             print(f"  Distribuzione: {dist_label}")
             print()
 
@@ -475,6 +558,9 @@ class AlgorithmsScreen:
                             dp_enabled=False,
                             seed=seed,
                             progress_callback=progress_cb,
+                            model_type=self.config.get("model_type", "resnet18"),
+                            freeze_backbone=self.config.get("freeze_backbone", False),
+                            use_class_weights=self.config.get("use_class_weights", True),
                         )
                     elif is_fhir:
                         from data.fhir_loader import load_fhir_data
@@ -533,6 +619,50 @@ class AlgorithmsScreen:
                             external_test_data=omop_test,
                             input_dim=omop_meta.get("num_features"),
                         )
+                    elif is_diabetes:
+                        from data.diabetes_loader import load_diabetes_data
+                        diab_train, diab_test, diab_meta = load_diabetes_data(
+                            num_clients=self.config["num_clients"],
+                            partition_by_hospital=not (self.config["data_distribution"] == "IID"),
+                            is_iid=(self.config["data_distribution"] == "IID"),
+                            seed=seed,
+                            data_path=self.config.get("dataset_path"),
+                        )
+                        trainer = FederatedTrainer(
+                            num_clients=self.config["num_clients"],
+                            algorithm=algorithm,
+                            local_epochs=self.config["local_epochs"],
+                            batch_size=self.config["batch_size"],
+                            learning_rate=self.config["learning_rate"],
+                            dp_enabled=False,
+                            seed=seed,
+                            progress_callback=progress_cb,
+                            external_data=diab_train,
+                            external_test_data=diab_test,
+                            input_dim=diab_meta["num_features"],
+                        )
+                    elif is_heart:
+                        from data.heart_disease_loader import load_heart_disease_data
+                        heart_train, heart_test, heart_meta = load_heart_disease_data(
+                            num_clients=self.config["num_clients"],
+                            partition_by_hospital=not (self.config["data_distribution"] == "IID"),
+                            is_iid=(self.config["data_distribution"] == "IID"),
+                            seed=seed,
+                            data_path=self.config.get("dataset_path"),
+                        )
+                        trainer = FederatedTrainer(
+                            num_clients=self.config["num_clients"],
+                            algorithm=algorithm,
+                            local_epochs=self.config["local_epochs"],
+                            batch_size=self.config["batch_size"],
+                            learning_rate=self.config["learning_rate"],
+                            dp_enabled=False,
+                            seed=seed,
+                            progress_callback=progress_cb,
+                            external_data=heart_train,
+                            external_test_data=heart_test,
+                            input_dim=heart_meta["num_features"],
+                        )
                     else:
                         trainer = FederatedTrainer(
                             num_clients=self.config["num_clients"],
@@ -589,6 +719,10 @@ class AlgorithmsScreen:
                             "auc": result.global_auc,
                         }
 
+                    if final_result is None:
+                        print_warning(f"    Run {seed} skipped (permit expired or no rounds completed)")
+                        continue
+
                     algo_results.append(final_result)
                     algo_histories.append(history)
 
@@ -599,8 +733,13 @@ class AlgorithmsScreen:
                     print(f"    Pesi finali (layer 0, primi 5): {[f'{w:.4f}' for w in trained_weights]}")
 
                 # Calculate statistics and store history
-                self.results[algorithm] = self._calculate_stats(algo_results)
-                self.histories[algorithm] = self._average_history(algo_histories)
+                if algo_results:
+                    self.results[algorithm] = self._calculate_stats(algo_results)
+                    self.histories[algorithm] = self._average_history(algo_histories)
+                else:
+                    print_warning(f"  Nessun risultato valido per {algorithm} (tutti i seed falliti)")
+                    self.results[algorithm] = {}
+                    self.histories[algorithm] = []
 
             # DP variants if enabled
             if self.config["include_dp"]:
@@ -630,6 +769,9 @@ class AlgorithmsScreen:
                                 dp_epsilon=epsilon,
                                 seed=seed,
                                 progress_callback=progress_cb,
+                                model_type=self.config.get("model_type", "resnet18"),
+                                freeze_backbone=self.config.get("freeze_backbone", False),
+                                use_class_weights=self.config.get("use_class_weights", True),
                             )
                         elif is_fhir:
                             from data.fhir_loader import load_fhir_data
@@ -690,6 +832,50 @@ class AlgorithmsScreen:
                                 external_test_data=omop_test,
                                 input_dim=omop_meta.get("num_features"),
                             )
+                        elif is_diabetes:
+                            from data.diabetes_loader import load_diabetes_data
+                            diab_train, diab_test, diab_meta = load_diabetes_data(
+                                num_clients=self.config["num_clients"],
+                                partition_by_hospital=True,
+                                seed=seed,
+                                data_path=self.config.get("dataset_path"),
+                            )
+                            trainer = FederatedTrainer(
+                                num_clients=self.config["num_clients"],
+                                algorithm="FedAvg",
+                                local_epochs=self.config["local_epochs"],
+                                batch_size=self.config["batch_size"],
+                                learning_rate=self.config["learning_rate"],
+                                dp_enabled=True,
+                                dp_epsilon=epsilon,
+                                seed=seed,
+                                progress_callback=progress_cb,
+                                external_data=diab_train,
+                                external_test_data=diab_test,
+                                input_dim=diab_meta["num_features"],
+                            )
+                        elif is_heart:
+                            from data.heart_disease_loader import load_heart_disease_data
+                            heart_train, heart_test, heart_meta = load_heart_disease_data(
+                                num_clients=self.config["num_clients"],
+                                partition_by_hospital=True,
+                                seed=seed,
+                                data_path=self.config.get("dataset_path"),
+                            )
+                            trainer = FederatedTrainer(
+                                num_clients=self.config["num_clients"],
+                                algorithm="FedAvg",
+                                local_epochs=self.config["local_epochs"],
+                                batch_size=self.config["batch_size"],
+                                learning_rate=self.config["learning_rate"],
+                                dp_enabled=True,
+                                dp_epsilon=epsilon,
+                                seed=seed,
+                                progress_callback=progress_cb,
+                                external_data=heart_train,
+                                external_test_data=heart_test,
+                                input_dim=heart_meta["num_features"],
+                            )
                         else:
                             trainer = FederatedTrainer(
                                 num_clients=self.config["num_clients"],
@@ -741,13 +927,22 @@ class AlgorithmsScreen:
                                 "auc": result.global_auc,
                             }
 
+                        if final_result is None:
+                            print_warning(f"    Run {seed} skipped (permit expired or no rounds completed)")
+                            continue
+
                         dp_results.append(final_result)
                         dp_histories.append(history)
                         print(f"    {Style.SUCCESS}Completato{Colors.RESET}: Acc={final_result['accuracy']:.2%}, F1={final_result['f1']:.3f}, "
                               f"Prec={final_result['precision']:.3f}, Rec={final_result['recall']:.3f}, AUC={final_result['auc']:.3f}")
 
-                    self.results[algo_name] = self._calculate_stats(dp_results)
-                    self.histories[algo_name] = self._average_history(dp_histories)
+                    if dp_results:
+                        self.results[algo_name] = self._calculate_stats(dp_results)
+                        self.histories[algo_name] = self._average_history(dp_histories)
+                    else:
+                        print_warning(f"  Nessun risultato valido per {algo_name} (tutti i seed falliti)")
+                        self.results[algo_name] = {}
+                        self.histories[algo_name] = []
 
             elapsed = time.time() - start_time
 
@@ -829,6 +1024,8 @@ class AlgorithmsScreen:
         # Create experiment-specific folder with descriptive name
         dist_short = ("OMOP" if self.config.get("dataset_type") == "omop" else
             "FHIR" if self.config.get("dataset_type") == "fhir" else
+            "Diabetes" if self.config.get("dataset_type") == "diabetes" else
+            "Heart" if self.config.get("dataset_type") == "heart_disease" else
             ("IID" if self.config["data_distribution"] == "IID" else "NonIID"))
         n_algos = len(self.config["algorithms"])
         folder_name = f"comparison_{dist_short}_{n_algos}algos_{self.config['num_clients']}clients_{self.config['num_rounds']}rounds_{timestamp}"

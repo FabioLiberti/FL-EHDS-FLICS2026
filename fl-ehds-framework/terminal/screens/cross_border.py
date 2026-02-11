@@ -127,6 +127,9 @@ class CrossBorderScreen:
             # Fee Model (EHDS Art. 42)
             "fee_model_enabled": False,
             "fee_model_config": {},
+            # HDAB Routing (EHDS Art. 57-58)
+            "hdab_routing_enabled": False,
+            "hdab_routing_config": {},
         }
 
     def run(self):
@@ -470,6 +473,41 @@ class CrossBorderScreen:
                 fm_cfg["enable_optimization"] = False
             self.config["fee_model_config"] = fm_cfg
 
+        # HDAB Routing - Single Application Point (EHDS Art. 57-58)
+        print_subsection("HDAB Routing - Single Application Point (EHDS Art. 57-58)")
+        self.config["hdab_routing_enabled"] = confirm(
+            "Abilitare HDAB Routing (SAP + Lead HDAB + Joint Approval)?",
+            default=False,
+        )
+        if self.config["hdab_routing_enabled"]:
+            hr_cfg = self.config.get("hdab_routing_config", {})
+            print(f"\n  {Style.MUTED}Routing strategy:{Colors.RESET}")
+            print(f"    1. data_driven  - Priorita' ai paesi con piu' dati")
+            print(f"    2. comprehensive - Tutti i paesi compatibili")
+            print(f"    3. minimal      - Numero minimo di paesi (cost-optimized)")
+            rs_idx = get_int("  Scelta", default=1, min_val=1, max_val=3)
+            hr_cfg["routing_strategy"] = ["data_driven", "comprehensive", "minimal"][rs_idx - 1]
+
+            print(f"\n  {Style.MUTED}Lead HDAB selection:{Colors.RESET}")
+            print(f"    1. most_data         - Paese con piu' dati")
+            print(f"    2. lowest_strictness - HDAB meno restrittivo")
+            print(f"    3. balanced          - Combinazione dati + permissivita'")
+            ls_idx = get_int("  Scelta", default=1, min_val=1, max_val=3)
+            hr_cfg["lead_selection_strategy"] = ["most_data", "lowest_strictness", "balanced"][ls_idx - 1]
+
+            hr_cfg["veto_power"] = confirm(
+                "  HDAB veto power (qualsiasi HDAB puo' bloccare)?",
+                default=True,
+            )
+            if not hr_cfg["veto_power"]:
+                hr_cfg["consensus_threshold"] = get_float(
+                    "  Soglia consenso (0.5-1.0)",
+                    default=0.67, min_val=0.5, max_val=1.0,
+                )
+            else:
+                hr_cfg["consensus_threshold"] = 1.0
+            self.config["hdab_routing_config"] = hr_cfg
+
         # Dataset
         print_subsection("Dataset")
         self.config["dataset_type"] = "synthetic"
@@ -549,6 +587,13 @@ class CrossBorderScreen:
             print(f"  {'Fee Model':<22} Budget={budget_str}, Model={fm.get('model_size_mb', 2.0)}MB")
         else:
             print(f"  {'Fee Model':<22} No")
+
+        if c.get("hdab_routing_enabled"):
+            hr = c.get("hdab_routing_config", {})
+            veto_str = "Veto" if hr.get("veto_power", True) else f"Consensus>={hr.get('consensus_threshold', 0.67):.0%}"
+            print(f"  {'HDAB Routing':<22} {hr.get('routing_strategy', 'data_driven')}, Lead={hr.get('lead_selection_strategy', 'most_data')}, {veto_str}")
+        else:
+            print(f"  {'HDAB Routing':<22} No")
 
         # Show per-country effective epsilon
         print_subsection("EPSILON EFFETTIVO PER GIURISDIZIONE")
@@ -633,6 +678,8 @@ class CrossBorderScreen:
                 secure_processing_config=c.get("secure_processing_config", {}),
                 fee_model_enabled=c.get("fee_model_enabled", False),
                 fee_model_config=c.get("fee_model_config", {}),
+                hdab_routing_enabled=c.get("hdab_routing_enabled", False),
+                hdab_routing_config=c.get("hdab_routing_config", {}),
             )
 
             # Show hospital mapping
@@ -901,6 +948,52 @@ class CrossBorderScreen:
                 print(f"  Strategy:        {opt['strategy']}")
                 print(f"  {opt['explanation']}")
 
+        # HDAB Routing (EHDS Art. 57-58)
+        if hasattr(trainer, 'hdab_routing_bridge') and trainer.hdab_routing_bridge:
+            bridge = trainer.hdab_routing_bridge
+            print_subsection("HDAB ROUTING - Single Application Point (Art. 57-58)")
+
+            app = bridge._application
+            routing = bridge._routing_decision
+            approval = bridge._approval_result
+
+            if app:
+                state_color = Style.SUCCESS if app.state.value in ("completed", "training_authorized", "approved") else Style.ERROR
+                print(f"  Application ID:  {app.application_id}")
+                print(f"  Final State:     {state_color}{app.state.value.upper()}{Colors.RESET}")
+
+            if routing:
+                print(f"\n  {Style.MUTED}-- Routing --{Colors.RESET}")
+                print(f"  Strategy:        {routing.routing_strategy}")
+                print(f"  Routed to:       {', '.join(routing.target_hdabs)}")
+                print(f"  Lead HDAB:       {routing.lead_hdab}")
+                print(f"\n  {'Country':<6} {'Score':>8} {'Samples':>10} {'Purpose OK':>12}")
+                print("  " + "-" * 40)
+                for cc in sorted(routing.hdab_scores.keys(), key=lambda x: routing.hdab_scores[x], reverse=True):
+                    score = routing.hdab_scores[cc]
+                    samples = routing.data_available.get(cc, 0)
+                    compat = "Yes" if routing.purpose_compatible.get(cc) else "No"
+                    lead_marker = " [LEAD]" if cc == routing.lead_hdab else ""
+                    print(f"  {cc:<6} {score:>8.3f} {samples:>10} {compat:>12}{lead_marker}")
+
+            if approval:
+                print(f"\n  {Style.MUTED}-- Joint Approval --{Colors.RESET}")
+                joint_color = Style.SUCCESS if approval.joint_decision.value == "approved" else Style.ERROR
+                print(f"  Joint Decision:  {joint_color}{approval.joint_decision.value.upper()}{Colors.RESET}")
+                print(f"  Consensus:       {approval.consensus_level:.0%}")
+                if approval.veto_exercised_by:
+                    print(f"  Veto by:         {Style.ERROR}{approval.veto_exercised_by}{Colors.RESET}")
+                print(f"\n  {'HDAB':<6} {'Decision':<12} {'Rationale'}")
+                print("  " + "-" * 60)
+                for cc in approval.participating_hdabs:
+                    dec = approval.decisions.get(cc)
+                    rat = approval.rationales.get(cc, "")
+                    dec_str = dec.value if dec else "N/A"
+                    dec_color = Style.SUCCESS if dec_str == "approved" else Style.ERROR
+                    # Truncate rationale for display
+                    rat_short = rat[:50] + "..." if len(rat) > 50 else rat
+                    print(f"  {cc:<6} {dec_color}{dec_str:<12}{Colors.RESET} {rat_short}")
+
         # Compliance summary
         violations = trainer.audit_log.get_violations()
         print_subsection("COMPLIANCE SUMMARY")
@@ -965,6 +1058,8 @@ class CrossBorderScreen:
             if hasattr(trainer, 'fee_model_bridge') and trainer.fee_model_bridge:
                 print(f"  - fee_model.json")
                 print(f"  - fee_breakdown.csv")
+            if hasattr(trainer, 'hdab_routing_bridge') and trainer.hdab_routing_bridge:
+                print(f"  - hdab_routing_report.json")
             # EHDS Compliance Report
             if self._last_compliance_report:
                 import json as _json
@@ -1061,6 +1156,8 @@ class CrossBorderScreen:
                 secure_processing_config=c.get("secure_processing_config", {}),
                 fee_model_enabled=c.get("fee_model_enabled", False),
                 fee_model_config=c.get("fee_model_config", {}),
+                hdab_routing_enabled=c.get("hdab_routing_enabled", False),
+                hdab_routing_config=c.get("hdab_routing_config", {}),
             )
 
             # Schedule opt-out: will be triggered during training

@@ -1,0 +1,20 @@
+FL-EHDS Training Summary
+==================================================
+
+Algorithm: FedAvg
+Clients: 5
+Rounds: 10
+Local Epochs: 2
+Learning Rate: 0.001
+Distribution: Non-IID (label skew)
+DP Enabled: False
+
+Final Metrics:
+  Accuracy: 0.6035
+  Loss: 0.9693
+  F1: 0.6016
+  Precision: 0.6267
+  Recall: 0.5905
+  AUC: 0.8281
+
+Training Time: 578.5 seconds

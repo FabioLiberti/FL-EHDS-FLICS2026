@@ -15,7 +15,20 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader, TensorDataset
 from tqdm import tqdm
 
+import torchvision.models as tv_models
+
 from terminal.colors import Colors, Style
+
+
+def _detect_device(device=None) -> torch.device:
+    """Auto-detect best available device: CUDA > MPS > CPU."""
+    if device is not None:
+        return torch.device(device)
+    if torch.cuda.is_available():
+        return torch.device("cuda")
+    if hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+        return torch.device("mps")
+    return torch.device("cpu")
 
 
 # =============================================================================
@@ -228,6 +241,90 @@ class HealthcareCNN(nn.Module):
 
     def forward(self, x):
         x = self.features(x)
+        x = self.classifier(x)
+        return x
+
+
+class HealthcareResNet(nn.Module):
+    """
+    ResNet18-based model for medical image classification in FL settings.
+
+    Uses pretrained ImageNet weights with GroupNorm (FL-stable, replaces BatchNorm).
+    Optional backbone freezing for faster convergence with limited data.
+
+    Input: (batch, 3, 224, 224) - RGB images
+    ~11M params total, ~5M trainable if freeze_backbone=True
+    """
+
+    def __init__(
+        self,
+        num_classes: int = 2,
+        pretrained: bool = True,
+        freeze_backbone: bool = False,
+        dropout: float = 0.3,
+    ):
+        super().__init__()
+
+        # Load pretrained ResNet18
+        weights = tv_models.ResNet18_Weights.IMAGENET1K_V1 if pretrained else None
+        base = tv_models.resnet18(weights=weights)
+
+        # Replace all BatchNorm2d with GroupNorm (FL-stable)
+        self._replace_bn_with_gn(base)
+
+        # Extract backbone (everything except fc)
+        self.conv1 = base.conv1
+        self.bn1 = base.bn1  # Now GroupNorm
+        self.relu = base.relu
+        self.maxpool = base.maxpool
+        self.layer1 = base.layer1
+        self.layer2 = base.layer2
+        self.layer3 = base.layer3
+        self.layer4 = base.layer4
+        self.avgpool = base.avgpool
+
+        # Replace fc with dropout + linear
+        self.classifier = nn.Sequential(
+            nn.Dropout(dropout),
+            nn.Linear(512, num_classes),
+        )
+
+        # Optionally freeze early layers
+        if freeze_backbone:
+            for param in self.conv1.parameters():
+                param.requires_grad = False
+            for param in self.bn1.parameters():
+                param.requires_grad = False
+            for param in self.layer1.parameters():
+                param.requires_grad = False
+            for param in self.layer2.parameters():
+                param.requires_grad = False
+
+    @staticmethod
+    def _replace_bn_with_gn(module: nn.Module):
+        """Recursively replace BatchNorm2d with GroupNorm(16, channels)."""
+        for name, child in module.named_children():
+            if isinstance(child, nn.BatchNorm2d):
+                num_channels = child.num_features
+                num_groups = min(16, num_channels)
+                # Ensure num_channels is divisible by num_groups
+                while num_channels % num_groups != 0 and num_groups > 1:
+                    num_groups -= 1
+                setattr(module, name, nn.GroupNorm(num_groups, num_channels))
+            else:
+                HealthcareResNet._replace_bn_with_gn(child)
+
+    def forward(self, x):
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.relu(x)
+        x = self.maxpool(x)
+        x = self.layer1(x)
+        x = self.layer2(x)
+        x = self.layer3(x)
+        x = self.layer4(x)
+        x = self.avgpool(x)
+        x = torch.flatten(x, 1)
         x = self.classifier(x)
         return x
 
@@ -469,7 +566,7 @@ class FederatedTrainer:
         self.dp_epsilon = dp_epsilon
         self.dp_clip_norm = dp_clip_norm
         self.seed = seed
-        self.device = torch.device(device)
+        self.device = _detect_device(device)
         self.progress_callback = progress_callback
 
         # Server optimizer hyperparameters
@@ -500,6 +597,18 @@ class FederatedTrainer:
 
         # Initialize global model
         self.global_model = HealthcareMLP(input_dim=_input_dim).to(self.device)
+
+        # Class-weighted loss for imbalanced tabular datasets
+        self.class_weights = None
+        all_labels = np.concatenate([y for _, y in self.client_data.values()])
+        num_classes = len(np.unique(all_labels))
+        counts = np.bincount(all_labels.astype(int), minlength=num_classes)
+        if counts.min() > 0:
+            max_ratio = counts.max() / counts.min()
+            if max_ratio > 1.5:
+                weights = len(all_labels) / (num_classes * counts.astype(np.float64))
+                weights = weights / weights.mean()
+                self.class_weights = torch.FloatTensor(weights).to(self.device)
 
         # SCAFFOLD control variates
         if algorithm == "SCAFFOLD":
@@ -614,7 +723,7 @@ class FederatedTrainer:
         local_model.train()
 
         optimizer = torch.optim.SGD(local_model.parameters(), lr=self.learning_rate)
-        criterion = nn.CrossEntropyLoss()
+        criterion = nn.CrossEntropyLoss(weight=self.class_weights)
 
         dataloader = self._get_client_dataloader(client_id)
 
@@ -1018,6 +1127,71 @@ class FederatedTrainer:
             "auc": float(auc),
         }
 
+    def _evaluate_personalized(self) -> Dict[str, float]:
+        """Evaluate personalized models (Per-FedAvg/Ditto) on per-client test data."""
+        all_preds = []
+        all_labels = []
+        all_probs = []
+        total_loss = 0.0
+        total_samples = 0
+        criterion = nn.CrossEntropyLoss()
+
+        with torch.no_grad():
+            for client_id in range(self.num_clients):
+                pers_model = self.personalized_models[client_id]
+                pers_model.eval()
+                X, y = self.client_test_data[client_id]
+                X_tensor = torch.FloatTensor(X).to(self.device)
+                y_tensor = torch.LongTensor(y).to(self.device)
+
+                outputs = pers_model(X_tensor)
+                loss = criterion(outputs, y_tensor)
+                total_loss += loss.item() * len(y)
+                preds = outputs.argmax(dim=1)
+                probs = torch.softmax(outputs, dim=1)[:, 1]
+
+                all_preds.extend(preds.cpu().numpy())
+                all_labels.extend(y_tensor.cpu().numpy())
+                all_probs.extend(probs.cpu().numpy())
+                total_samples += len(y)
+
+        all_preds = np.array(all_preds)
+        all_labels = np.array(all_labels)
+        all_probs = np.array(all_probs)
+
+        accuracy = (all_preds == all_labels).mean()
+        tp = ((all_preds == 1) & (all_labels == 1)).sum()
+        fp = ((all_preds == 1) & (all_labels == 0)).sum()
+        fn = ((all_preds == 0) & (all_labels == 1)).sum()
+        precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
+        recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
+        f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0.0
+
+        n_pos = (all_labels == 1).sum()
+        n_neg = (all_labels == 0).sum()
+        if n_pos > 0 and n_neg > 0:
+            sorted_indices = np.argsort(all_probs)[::-1]
+            sorted_labels = all_labels[sorted_indices]
+            tpr_sum = 0.0
+            tp_count = 0
+            for label in sorted_labels:
+                if label == 1:
+                    tp_count += 1
+                else:
+                    tpr_sum += tp_count / n_pos
+            auc = tpr_sum / n_neg
+        else:
+            auc = 0.5
+
+        return {
+            "loss": total_loss / total_samples,
+            "accuracy": float(accuracy),
+            "precision": float(precision),
+            "recall": float(recall),
+            "f1": float(f1),
+            "auc": float(auc),
+        }
+
     def train_round(self, round_num: int,
                     active_clients: Optional[List[int]] = None,
                     quality_weights: Optional[Dict[int, float]] = None) -> RoundResult:
@@ -1080,8 +1254,11 @@ class FederatedTrainer:
             quality_weights=quality_weights,
         )
 
-        # Evaluate with all metrics
-        metrics = self._evaluate()
+        # Evaluate with all metrics (personalized models for Per-FedAvg/Ditto)
+        if self.algorithm in ("Per-FedAvg", "Ditto") and hasattr(self, 'personalized_models'):
+            metrics = self._evaluate_personalized()
+        else:
+            metrics = self._evaluate()
 
         elapsed = time.time() - start_time
 
@@ -1189,17 +1366,21 @@ class ImageFederatedTrainer:
         beta1: float = 0.9,
         beta2: float = 0.99,
         tau: float = 1e-3,
+        # Model selection
+        model_type: str = "resnet18",
+        freeze_backbone: bool = False,
+        use_class_weights: bool = True,
     ):
         self.algorithm = algorithm
         self.local_epochs = local_epochs
         self.batch_size = batch_size
-        self.learning_rate = learning_rate
         self.mu = mu
         self.dp_enabled = dp_enabled
         self.dp_epsilon = dp_epsilon
         self.dp_clip_norm = dp_clip_norm
         self.seed = seed
         self.progress_callback = progress_callback
+        self.model_type = model_type
 
         # Server optimizer hyperparameters
         self.server_lr = server_lr
@@ -1208,10 +1389,16 @@ class ImageFederatedTrainer:
         self.tau = tau
         self.num_rounds = None  # Set externally for cosine LR decay
 
-        # Auto-detect device
-        if device is None:
-            device = "cuda" if torch.cuda.is_available() else "cpu"
-        self.device = torch.device(device)
+        # Auto-detect device (CUDA > MPS > CPU)
+        self.device = _detect_device(device)
+
+        # Auto-adjust img_size and LR for ResNet
+        if model_type == "resnet18" and img_size < 224:
+            img_size = 224
+        if model_type == "resnet18" and learning_rate == 0.001:
+            learning_rate = 0.0005
+        self.learning_rate = learning_rate
+        self.img_size = img_size
 
         torch.manual_seed(seed)
         np.random.seed(seed)
@@ -1227,13 +1414,37 @@ class ImageFederatedTrainer:
         )
         self.num_clients = len(self.client_data)
 
-        # Initialize CNN model
-        self.global_model = HealthcareCNN(num_classes=self.num_classes).to(self.device)
+        # Class-weighted loss for imbalanced datasets
+        self.class_weights = None
+        if use_class_weights:
+            all_labels = np.concatenate([y for _, y in self.client_data.values()])
+            counts = np.bincount(all_labels, minlength=self.num_classes)
+            if counts.min() > 0 and counts.max() / counts.min() > 1.5:
+                weights = len(all_labels) / (self.num_classes * counts + 1e-8)
+                weights = weights / weights.mean()
+                self.class_weights = torch.FloatTensor(weights).to(self.device)
+                print(f"Class weights: {dict(zip(self.class_names.values(), [f'{w:.2f}' for w in weights]))}")
 
-        print(f"\nModel: HealthcareCNN ({self.num_classes} classes)")
+        # Build augmentation pipeline
+        self.augmentation = self._build_augmentation(img_size)
+
+        # Initialize model
+        if model_type == "resnet18":
+            self.global_model = HealthcareResNet(
+                num_classes=self.num_classes,
+                pretrained=True,
+                freeze_backbone=freeze_backbone,
+            ).to(self.device)
+            model_name = "HealthcareResNet (ResNet18)"
+        else:
+            self.global_model = HealthcareCNN(num_classes=self.num_classes).to(self.device)
+            model_name = "HealthcareCNN"
+
+        print(f"\nModel: {model_name} ({self.num_classes} classes)")
         print(f"Device: {self.device}")
         total_params = sum(p.numel() for p in self.global_model.parameters())
-        print(f"Parameters: {total_params:,}")
+        trainable_params = sum(p.numel() for p in self.global_model.parameters() if p.requires_grad)
+        print(f"Parameters: {total_params:,} ({trainable_params:,} trainable)")
 
         # SCAFFOLD control variates
         if algorithm == "SCAFFOLD":
@@ -1289,30 +1500,40 @@ class ImageFederatedTrainer:
         X_tensor = torch.FloatTensor(X)
         y_tensor = torch.LongTensor(y)
 
-        # Apply random augmentation on CPU before moving to device
+        # Apply augmentation on CPU before moving to device
         augmented = self._augment_batch(X_tensor)
         augmented = augmented.to(self.device)
         y_tensor = y_tensor.to(self.device)
 
         dataset = TensorDataset(augmented, y_tensor)
-        return DataLoader(dataset, batch_size=self.batch_size, shuffle=True)
+
+        # Optimized DataLoader settings per device
+        dl_kwargs = {"batch_size": self.batch_size, "shuffle": True}
+        if self.device.type == "cuda":
+            dl_kwargs.update(num_workers=2, pin_memory=True, persistent_workers=True)
+        # MPS and CPU: num_workers=0 (fork issues on macOS)
+
+        return DataLoader(dataset, **dl_kwargs)
 
     @staticmethod
-    def _augment_batch(images: torch.Tensor) -> torch.Tensor:
-        """Apply fast vectorized augmentation to batch of images (N, C, H, W)."""
-        images = images.clone()
-        n = images.shape[0]
+    def _build_augmentation(img_size: int):
+        """Build torchvision augmentation pipeline."""
+        import torchvision.transforms as T
+        return T.Compose([
+            T.RandomHorizontalFlip(p=0.5),
+            T.RandomRotation(degrees=15),
+            T.RandomResizedCrop(img_size, scale=(0.8, 1.0)),
+            T.ColorJitter(brightness=0.15, contrast=0.15),
+        ])
 
-        # Random horizontal flip (vectorized - very fast)
-        flip_mask = torch.rand(n) > 0.5
-        if flip_mask.any():
-            images[flip_mask] = images[flip_mask].flip(-1)
-
-        # Random brightness adjustment (vectorized)
-        brightness = torch.empty(n, 1, 1, 1).uniform_(0.85, 1.15)
-        images = torch.clamp(images * brightness, -3.0, 3.0)
-
-        return images
+    def _augment_batch(self, images: torch.Tensor) -> torch.Tensor:
+        """Apply augmentation pipeline to batch of images (N, C, H, W)."""
+        if self.augmentation is None:
+            return images
+        augmented = []
+        for img in images:
+            augmented.append(self.augmentation(img))
+        return torch.stack(augmented)
 
     def _get_round_lr(self, round_num: int) -> float:
         """Cosine annealing learning rate decay based on current round."""
@@ -1326,12 +1547,13 @@ class ImageFederatedTrainer:
     def _train_client(self, client_id: int, round_num: int) -> ClientResult:
         """Train one client locally. Supports all 9 FL algorithms."""
         local_model = deepcopy(self.global_model)
+        local_model = local_model.to(self.device)
         local_model.train()
 
         current_lr = self._get_round_lr(round_num)
         optimizer = torch.optim.Adam(local_model.parameters(), lr=current_lr,
                                      weight_decay=1e-5)
-        criterion = nn.CrossEntropyLoss()
+        criterion = nn.CrossEntropyLoss(weight=self.class_weights)
 
         dataloader = self._get_client_dataloader(client_id)
 
@@ -1708,6 +1930,77 @@ class ImageFederatedTrainer:
             "auc": float(auc),
         }
 
+    def _evaluate_personalized(self) -> Dict[str, float]:
+        """Evaluate personalized models (Per-FedAvg/Ditto) on per-client test data."""
+        all_preds = []
+        all_labels = []
+        all_probs = []
+        total_loss = 0.0
+        total_samples = 0
+        criterion = nn.CrossEntropyLoss()
+
+        with torch.no_grad():
+            for client_id in range(self.num_clients):
+                pers_model = self.personalized_models[client_id]
+                pers_model.eval()
+                X, y = self.client_test_data[client_id]
+
+                for i in range(0, len(y), self.batch_size):
+                    X_batch = torch.FloatTensor(X[i:i+self.batch_size]).to(self.device)
+                    y_batch = torch.LongTensor(y[i:i+self.batch_size]).to(self.device)
+
+                    outputs = pers_model(X_batch)
+                    loss = criterion(outputs, y_batch)
+                    total_loss += loss.item() * len(y_batch)
+                    preds = outputs.argmax(dim=1)
+                    probs = torch.softmax(outputs, dim=1)
+
+                    all_preds.extend(preds.cpu().numpy())
+                    all_labels.extend(y_batch.cpu().numpy())
+                    all_probs.extend(probs.cpu().numpy())
+                    total_samples += len(y_batch)
+
+        all_preds = np.array(all_preds)
+        all_labels = np.array(all_labels)
+        all_probs = np.array(all_probs)
+
+        accuracy = (all_preds == all_labels).mean()
+        unique_classes = np.unique(all_labels)
+        precisions, recalls, f1s = [], [], []
+        for cls in unique_classes:
+            tp = ((all_preds == cls) & (all_labels == cls)).sum()
+            fp = ((all_preds == cls) & (all_labels != cls)).sum()
+            fn = ((all_preds != cls) & (all_labels == cls)).sum()
+            p = tp / (tp + fp) if (tp + fp) > 0 else 0.0
+            r = tp / (tp + fn) if (tp + fn) > 0 else 0.0
+            f = 2 * p * r / (p + r) if (p + r) > 0 else 0.0
+            precisions.append(p)
+            recalls.append(r)
+            f1s.append(f)
+
+        precision = np.mean(precisions)
+        recall = np.mean(recalls)
+        f1 = np.mean(f1s)
+
+        auc = 0.5
+        try:
+            from sklearn.metrics import roc_auc_score
+            if len(unique_classes) == 2:
+                auc = roc_auc_score(all_labels, all_probs[:, 1])
+            elif len(unique_classes) > 2 and all_probs.shape[1] >= len(unique_classes):
+                auc = roc_auc_score(all_labels, all_probs, multi_class='ovr', average='macro')
+        except Exception:
+            auc = float(accuracy)
+
+        return {
+            "loss": total_loss / total_samples,
+            "accuracy": float(accuracy),
+            "precision": float(precision),
+            "recall": float(recall),
+            "f1": float(f1),
+            "auc": float(auc),
+        }
+
     def train_round(self, round_num: int,
                     active_clients: Optional[List[int]] = None,
                     quality_weights: Optional[Dict[int, float]] = None) -> RoundResult:
@@ -1776,9 +2069,13 @@ class ImageFederatedTrainer:
             quality_weights=quality_weights,
         )
 
-        # Show evaluation progress
-        print("  Evaluating global model...", end="\r")
-        metrics = self._evaluate()
+        # Evaluate (personalized models for Per-FedAvg/Ditto, global otherwise)
+        if self.algorithm in ("Per-FedAvg", "Ditto") and hasattr(self, 'personalized_models'):
+            print("  Evaluating personalized models...", end="\r")
+            metrics = self._evaluate_personalized()
+        else:
+            print("  Evaluating global model...", end="\r")
+            metrics = self._evaluate()
         elapsed = time.time() - start_time
 
         round_result = RoundResult(
@@ -2109,20 +2406,27 @@ class CentralizedImageTrainer:
         device: str = None,
         img_size: int = 128,
         progress_callback: Optional[Callable] = None,
+        model_type: str = "resnet18",
+        freeze_backbone: bool = False,
+        use_class_weights: bool = True,
     ):
         self.batch_size = batch_size
-        self.learning_rate = learning_rate
         self.seed = seed
         self.progress_callback = progress_callback
+        self.model_type = model_type
+
+        # Auto-adjust for ResNet
+        if model_type == "resnet18" and img_size < 224:
+            img_size = 224
+        if model_type == "resnet18" and learning_rate == 0.001:
+            learning_rate = 0.0005
+        self.learning_rate = learning_rate
         self.img_size = img_size
 
         torch.manual_seed(seed)
         np.random.seed(seed)
 
-        if device is None:
-            self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        else:
-            self.device = torch.device(device)
+        self.device = _detect_device(device)
 
         # Load data using same function as ImageFederatedTrainer
         client_train, client_test, class_names, num_classes = load_image_dataset(
@@ -2154,12 +2458,30 @@ class CentralizedImageTrainer:
 
         print(f"  Centralized: {len(self.y_train)} train + {len(self.y_test)} test samples pooled")
 
-        # Same model as federated
-        self.model = HealthcareCNN(num_classes=num_classes).to(self.device)
+        # Class-weighted loss for imbalanced datasets
+        class_weights = None
+        if use_class_weights:
+            counts = np.bincount(self.y_train, minlength=num_classes)
+            if counts.min() > 0 and counts.max() / counts.min() > 1.5:
+                weights = len(self.y_train) / (num_classes * counts + 1e-8)
+                weights = weights / weights.mean()
+                class_weights = torch.FloatTensor(weights).to(self.device)
+
+        # Same model type as federated
+        if model_type == "resnet18":
+            self.model = HealthcareResNet(
+                num_classes=num_classes,
+                pretrained=True,
+                freeze_backbone=freeze_backbone,
+            ).to(self.device)
+        else:
+            self.model = HealthcareCNN(num_classes=num_classes).to(self.device)
+
         self.optimizer = torch.optim.Adam(
             self.model.parameters(), lr=learning_rate, weight_decay=1e-5
         )
-        self.criterion = nn.CrossEntropyLoss()
+        self.criterion = nn.CrossEntropyLoss(weight=class_weights)
+        self.augmentation = ImageFederatedTrainer._build_augmentation(img_size)
         self.scheduler = None  # Set via set_total_epochs()
         self.history: List[CentralizedResult] = []
 
@@ -2193,7 +2515,11 @@ class CentralizedImageTrainer:
             y_batch = torch.LongTensor(y_shuffled[i:i+self.batch_size]).to(self.device)
 
             # Same augmentation as federated training
-            X_batch = ImageFederatedTrainer._augment_batch(X_batch)
+            if self.augmentation is not None:
+                augmented = []
+                for img in X_batch:
+                    augmented.append(self.augmentation(img))
+                X_batch = torch.stack(augmented)
 
             self.optimizer.zero_grad()
             outputs = self.model(X_batch)

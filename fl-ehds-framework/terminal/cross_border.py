@@ -369,6 +369,9 @@ class CrossBorderFederatedTrainer:
         # Fee Model and Sustainability (EHDS Art. 42)
         fee_model_enabled: bool = False,
         fee_model_config: Optional[Dict[str, Any]] = None,
+        # HDAB Routing (EHDS Art. 57-58)
+        hdab_routing_enabled: bool = False,
+        hdab_routing_config: Optional[Dict[str, Any]] = None,
     ):
         self.countries = countries
         self.hospitals_per_country = hospitals_per_country
@@ -431,6 +434,11 @@ class CrossBorderFederatedTrainer:
         self.fee_model_enabled = fee_model_enabled
         self.fee_model_config = fee_model_config or {}
         self.fee_model_bridge = None
+
+        # HDAB Routing (EHDS Art. 57-58)
+        self.hdab_routing_enabled = hdab_routing_enabled
+        self.hdab_routing_config = hdab_routing_config or {}
+        self.hdab_routing_bridge = None
 
         self.rng = np.random.RandomState(seed)
         self.audit_log = CrossBorderAuditLog()
@@ -666,6 +674,36 @@ class CrossBorderFederatedTrainer:
                 seed=self.seed,
             )
             self.myhealth_bridge.start_session()
+
+        # Initialize HDAB Routing (EHDS Art. 57-58) - BEFORE governance lifecycle
+        if self.hdab_routing_enabled:
+            from governance.hdab_routing import HDABRoutingBridge
+            self.hdab_routing_bridge = HDABRoutingBridge(
+                hospitals=self.hospitals,
+                countries=self.countries,
+                purpose=self.purpose,
+                config=self.hdab_routing_config,
+            )
+            routing_result = self.hdab_routing_bridge.process_application()
+            if routing_result.get("approved"):
+                self.audit_log.log(
+                    round_num=-1, hospital_id=-1, hospital_name="SAP",
+                    country_code="EU", jurisdiction="HealthData@EU",
+                    action="application_approved",
+                    epsilon_this_round=0, epsilon_cumulative=0,
+                    epsilon_budget_remaining=self.global_epsilon,
+                    samples_used=0, samples_opted_out=0,
+                    latency_ms=0, compliance_status="compliant",
+                    details=(
+                        f"Lead HDAB: {routing_result['lead_hdab']}, "
+                        f"Routed to: {routing_result['routed_hdabs']}"
+                    ),
+                )
+            else:
+                self.purpose_violations.append(
+                    f"HDAB Routing: Application rejected - "
+                    f"{routing_result.get('rejection_reason', 'unknown')}"
+                )
 
         # Initialize Governance Lifecycle (if enabled) - EHDS Ch. IV, Art. 33-44
         if self.governance_lifecycle_enabled:
@@ -1072,6 +1110,12 @@ class CrossBorderFederatedTrainer:
         if self.fee_model_bridge:
             fee_model_report = self.fee_model_bridge.export_report()
 
+        # HDAB Routing report (EHDS Art. 57-58)
+        hdab_routing_report = None
+        if self.hdab_routing_bridge:
+            self.hdab_routing_bridge.end_session()
+            hdab_routing_report = self.hdab_routing_bridge.export_report()
+
         return {
             "history": self.history,
             "hospitals": self.hospitals,
@@ -1085,6 +1129,7 @@ class CrossBorderFederatedTrainer:
             "minimization_report": self._minimization_report,
             "secure_processing_report": secure_processing_report,
             "fee_model_report": fee_model_report,
+            "hdab_routing_report": hdab_routing_report,
         }
 
     def save_results(self, output_dir: str):
@@ -1321,6 +1366,12 @@ class CrossBorderFederatedTrainer:
                         f"{hf['computation']:.2f}", f"{hf['transfer']:.2f}",
                         f"{hf['total']:.2f}",
                     ])
+
+        # 23. HDAB Routing report (EHDS Art. 57-58)
+        if self.hdab_routing_bridge:
+            routing_report = self.hdab_routing_bridge.export_report()
+            with open(out / "hdab_routing_report.json", "w") as f:
+                json.dump(routing_report, f, indent=2, default=str)
 
     def _save_latex_table(self, out: Path):
         """Generate LaTeX table for cross-border results."""

@@ -36,6 +36,7 @@ FL_ALGORITHMS = [
     "FedProx",
     "SCAFFOLD",
     "FedNova",
+    "FedDyn",
     "FedAdam",
     "FedYogi",
     "FedAdagrad",
@@ -81,6 +82,9 @@ class TrainingScreen:
             "dataset_type": "synthetic",
             "dataset_name": None,
             "dataset_path": None,
+            "model_type": "resnet18",
+            "freeze_backbone": False,
+            "use_class_weights": True,
             "ehds_permit_enabled": False,
             "ehds_purpose": "ai_system_development",
             "ehds_data_categories": ["ehr"],
@@ -204,6 +208,24 @@ class TrainingScreen:
             "OMOP-CDM (Armonizzazione Cross-Border)": "omop",
         }
 
+        # Add real tabular datasets if available
+        try:
+            diabetes_path = Path(__file__).parent.parent.parent / "data" / "diabetes" / "diabetic_data.csv"
+            if diabetes_path.exists():
+                label = "Diabetes 130-US (101K encounters, 130 ospedali, readmission)"
+                dataset_choices.insert(3, label)
+                dataset_map[label] = "diabetes"
+        except Exception:
+            pass
+        try:
+            heart_path = Path(__file__).parent.parent.parent / "data" / "heart_disease"
+            if heart_path.exists():
+                label = "Heart Disease UCI (920 pazienti, 4 ospedali, diagnosi)"
+                dataset_choices.insert(len([c for c in dataset_choices if "img" not in c.lower()]), label)
+                dataset_map[label] = "heart_disease"
+        except Exception:
+            pass
+
         if available_datasets:
             for name, info in available_datasets.items():
                 label = f"{name} ({info['samples']:,} img, {info['classes']} classi)"
@@ -247,6 +269,27 @@ class TrainingScreen:
                 print(f"  Features: {len(fhir_cfg.get('feature_spec', []))} ({fhir_cfg.get('label', 'mortality_30day')})")
             except (ImportError, Exception):
                 print_info("FHIR R4: ospedali sintetici con profili diversi")
+        elif selected_key == "diabetes":
+            self.config["dataset_type"] = "diabetes"
+            self.config["dataset_name"] = "diabetes_130us"
+            self.config["dataset_path"] = str(Path(__file__).parent.parent.parent / "data" / "diabetes" / "diabetic_data.csv")
+            self.config["learning_rate"] = 0.01  # Tabular data
+            print_info("Diabetes 130-US: 101,766 encounter da 130 ospedali USA")
+            print_info("  Target: readmission <30 giorni (binario)")
+            print_info("  22 features: demographics + diagnosi ICD-9 + farmaci + lab")
+            print_info("  Partizione per ospedale (non-IID naturale)")
+            print_info("  FHIR R4: Patient, Encounter, Condition, Observation, MedicationStatement")
+        elif selected_key == "heart_disease":
+            self.config["dataset_type"] = "heart_disease"
+            self.config["dataset_name"] = "heart_disease_uci"
+            self.config["dataset_path"] = str(Path(__file__).parent.parent.parent / "data" / "heart_disease")
+            self.config["learning_rate"] = 0.01
+            self.config["num_clients"] = 4  # 4 real hospitals
+            print_info("Heart Disease UCI: 920 pazienti da 4 ospedali (Cleveland, Hungarian, Swiss, VA)")
+            print_info("  Target: presenza malattia cardiaca (binario)")
+            print_info("  13 features: demographics + vitali + ECG + stress test")
+            print_info("  Partizione per ospedale (non-IID naturale, 4 client)")
+            print_info("  FHIR R4: Patient, Observation, Condition, DiagnosticReport")
         elif selected_key == "omop":
             self.config["dataset_type"] = "omop"
             self.config["dataset_name"] = "omop_harmonized"
@@ -280,7 +323,7 @@ class TrainingScreen:
             print(f"  Classi: {available_datasets[selected_key]['class_names']}")
 
         # Dataset parameter suggestion
-        if self.config["dataset_type"] in ("imaging", "fhir", "omop") and self.config.get("dataset_name"):
+        if self.config["dataset_type"] in ("imaging", "fhir", "omop", "diabetes") and self.config.get("dataset_name"):
             try:
                 from config.config_loader import get_dataset_parameters
                 ds_params = get_dataset_parameters(self.config["dataset_name"])
@@ -298,12 +341,30 @@ class TrainingScreen:
                     if ds_params.get("class_weight"):
                         print(f"  Class weighting: consigliato (dataset sbilanciato)")
                     if confirm("\nApplicare parametri dataset?", default=True):
-                        for k in ["learning_rate", "batch_size", "num_rounds", "local_epochs"]:
-                            if k in ds_params:
+                        for k in ["learning_rate", "batch_size", "num_rounds", "local_epochs", "img_size"]:
+                            if k in ds_params and ds_params[k] is not None:
                                 self.config[k] = ds_params[k]
                         print_success("Parametri dataset applicati.")
             except (ImportError, Exception):
                 pass
+
+        # Model selection (imaging datasets only)
+        if self.config["dataset_type"] == "imaging":
+            model_choice = questionary.select(
+                "Modello:",
+                choices=[
+                    "ResNet18 (pretrained ImageNet, consigliato)",
+                    "CNN custom (leggera, ~500K params)",
+                ],
+                default="ResNet18 (pretrained ImageNet, consigliato)",
+            ).ask()
+            if model_choice and "CNN" in model_choice:
+                self.config["model_type"] = "cnn"
+                print_info("Modello: CNN custom (128x128)")
+            else:
+                self.config["model_type"] = "resnet18"
+                self.config["batch_size"] = 16  # ResNet uses more memory
+                print_info("Modello: ResNet18 pretrained (224x224, GroupNorm)")
 
         # Basic parameters
         print_subsection("Parametri Base")
@@ -444,6 +505,8 @@ class TrainingScreen:
                 "synthetic": ["ehr"],
                 "fhir": ["ehr", "lab_results"],
                 "omop": ["ehr", "lab_results"],
+                "diabetes": ["ehr", "lab_results"],
+                "heart_disease": ["ehr", "lab_results"],
                 "imaging": ["imaging"],
             }
             self.config["ehds_data_categories"] = category_map.get(
@@ -576,6 +639,106 @@ class TrainingScreen:
                     beta1=self.config.get("beta1", 0.9),
                     beta2=self.config.get("beta2", 0.99),
                     tau=self.config.get("tau", 1e-3),
+                    # Model selection
+                    model_type=self.config.get("model_type", "resnet18"),
+                    freeze_backbone=self.config.get("freeze_backbone", False),
+                    use_class_weights=self.config.get("use_class_weights", True),
+                )
+            elif self.config["dataset_type"] == "heart_disease":
+                # Heart Disease UCI (4 hospitals)
+                from data.heart_disease_loader import load_heart_disease_data
+                print_info("Caricamento Heart Disease UCI (920 pazienti, 4 ospedali)...")
+
+                hd_train, hd_test, hd_meta = load_heart_disease_data(
+                    num_clients=self.config["num_clients"],
+                    partition_by_hospital=not is_iid,
+                    is_iid=is_iid,
+                    test_split=0.2,
+                    seed=self.config["seed"],
+                    data_path=self.config.get("dataset_path"),
+                )
+
+                print_info(f"Heart Disease: {hd_meta['total_samples']} campioni, "
+                           f"{hd_meta['num_features']} features, "
+                           f"label={hd_meta['label_name']}")
+                hosp_assign = hd_meta.get("hospital_assignment", {})
+                for cid in range(self.config["num_clients"]):
+                    train_n = len(hd_train[cid][1])
+                    test_n = len(hd_test[cid][1])
+                    pos_rate = hd_train[cid][1].mean()
+                    hosp = hosp_assign.get(cid, "mixed")
+                    print(f"  Client {cid} ({hosp}): {train_n} train, {test_n} test, "
+                          f"disease_rate={pos_rate:.1%}")
+
+                trainer = FederatedTrainer(
+                    num_clients=self.config["num_clients"],
+                    algorithm=self.config["algorithm"],
+                    local_epochs=self.config["local_epochs"],
+                    batch_size=self.config["batch_size"],
+                    learning_rate=self.config["learning_rate"],
+                    mu=self.config["mu"],
+                    dp_enabled=self.config["dp_enabled"],
+                    dp_epsilon=self.config["dp_epsilon"],
+                    dp_clip_norm=self.config["dp_clip_norm"],
+                    seed=self.config["seed"],
+                    progress_callback=progress_callback,
+                    server_lr=self.config.get("server_lr", 0.1),
+                    beta1=self.config.get("beta1", 0.9),
+                    beta2=self.config.get("beta2", 0.99),
+                    tau=self.config.get("tau", 1e-3),
+                    external_data=hd_train,
+                    external_test_data=hd_test,
+                    input_dim=hd_meta["num_features"],
+                )
+            elif self.config["dataset_type"] == "diabetes":
+                # Diabetes 130-US real dataset
+                from data.diabetes_loader import load_diabetes_data
+                print_info("Caricamento Diabetes 130-US (101,766 encounters)...")
+
+                diab_train, diab_test, diab_meta = load_diabetes_data(
+                    num_clients=self.config["num_clients"],
+                    partition_by_hospital=not is_iid,
+                    is_iid=is_iid,
+                    alpha=0.5,
+                    label_type="binary",
+                    test_split=0.2,
+                    seed=self.config["seed"],
+                    data_path=self.config.get("dataset_path"),
+                )
+
+                # Show dataset info
+                print_info(f"Diabetes: {diab_meta['total_samples']} campioni, "
+                           f"{diab_meta['num_features']} features, "
+                           f"label={diab_meta['label_name']}")
+                for cid in range(self.config["num_clients"]):
+                    train_n = len(diab_train[cid][1])
+                    test_n = len(diab_test[cid][1])
+                    pos_rate = diab_train[cid][1].mean()
+                    print(f"  Client {cid}: {train_n} train, {test_n} test, "
+                          f"readmission_rate={pos_rate:.1%}")
+
+                print_info(f"Partizione: {diab_meta['partition_method']}")
+                print_info(f"FHIR mapping: {list(diab_meta['fhir_mapping'].keys())}")
+
+                trainer = FederatedTrainer(
+                    num_clients=self.config["num_clients"],
+                    algorithm=self.config["algorithm"],
+                    local_epochs=self.config["local_epochs"],
+                    batch_size=self.config["batch_size"],
+                    learning_rate=self.config["learning_rate"],
+                    mu=self.config["mu"],
+                    dp_enabled=self.config["dp_enabled"],
+                    dp_epsilon=self.config["dp_epsilon"],
+                    dp_clip_norm=self.config["dp_clip_norm"],
+                    seed=self.config["seed"],
+                    progress_callback=progress_callback,
+                    server_lr=self.config.get("server_lr", 0.1),
+                    beta1=self.config.get("beta1", 0.9),
+                    beta2=self.config.get("beta2", 0.99),
+                    tau=self.config.get("tau", 1e-3),
+                    external_data=diab_train,
+                    external_test_data=diab_test,
+                    input_dim=diab_meta["num_features"],
                 )
             elif self.config["dataset_type"] == "fhir":
                 # FHIR R4 dataset - use FederatedTrainer with external data

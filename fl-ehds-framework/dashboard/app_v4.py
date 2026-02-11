@@ -1424,6 +1424,7 @@ def create_config_panel() -> Dict:
     # === TRAINING MODE ===
     training_mode = "simulation"
     selected_dataset = None
+    selected_tabular_dataset = None
     img_size = 64
 
     if HAS_REAL_TRAINING:
@@ -1447,6 +1448,33 @@ def create_config_panel() -> Dict:
                 help="Simulazione usa NumPy; Reale usa PyTorch con reti neurali",
                 key="training_mode_radio"
             )
+
+            selected_tabular_dataset = None
+            if training_mode == "real_tabular":
+                # Tabular dataset selection
+                tabular_choices = ["Sintetico (Healthcare)"]
+                tabular_map = {"Sintetico (Healthcare)": "synthetic"}
+                try:
+                    _diab_path = Path(__file__).parent.parent / "data" / "diabetes" / "diabetic_data.csv"
+                    if _diab_path.exists():
+                        tabular_choices.append("Diabetes 130-US (101K encounters)")
+                        tabular_map["Diabetes 130-US (101K encounters)"] = "diabetes"
+                except Exception:
+                    pass
+                try:
+                    _heart_path = Path(__file__).parent.parent / "data" / "heart_disease"
+                    if _heart_path.exists():
+                        tabular_choices.append("Heart Disease UCI (920 pazienti)")
+                        tabular_map["Heart Disease UCI (920 pazienti)"] = "heart_disease"
+                except Exception:
+                    pass
+                if len(tabular_choices) > 1:
+                    _sel_tab = st.selectbox(
+                        "Dataset Tabular",
+                        options=tabular_choices,
+                        help="Seleziona il dataset tabulare clinico"
+                    )
+                    selected_tabular_dataset = tabular_map.get(_sel_tab, "synthetic")
 
             if training_mode == "real_imaging":
                 datasets = discover_datasets()
@@ -1528,6 +1556,7 @@ def create_config_panel() -> Dict:
         "random_seed": random_seed,
         "training_mode": training_mode,
         "selected_dataset": selected_dataset,
+        "selected_tabular_dataset": selected_tabular_dataset,
         "img_size": img_size,
     }
 
@@ -1569,6 +1598,13 @@ def render_training_tab(config: Dict):
             f"Immagini: {ds['total_images']:,} | "
             f"Img Size: {config.get('img_size', 64)}px"
         )
+    elif mode == "real_tabular" and config.get("selected_tabular_dataset"):
+        _tab_ds_labels = {
+            "diabetes": "Diabetes 130-US (101K encounters, 22 features)",
+            "heart_disease": "Heart Disease UCI (920 pazienti, 13 features)",
+        }
+        _tab_label = _tab_ds_labels.get(config["selected_tabular_dataset"], "Sintetico Healthcare")
+        st.info(f"Dataset Tabular: **{_tab_label}**")
 
     st.markdown("---")
 
@@ -1643,11 +1679,12 @@ def run_training_v4(config: Dict):
 
 
 def run_training_real_tabular(config: Dict):
-    """Run real PyTorch training on synthetic tabular data."""
+    """Run real PyTorch training on tabular data (synthetic, diabetes, or heart disease)."""
     if not HAS_REAL_TRAINING:
         st.error("Modulo real_trainer_bridge non disponibile.")
         return
 
+    tabular_ds = config.get("selected_tabular_dataset")
     bridge_config = {
         "num_clients": config["num_nodes"],
         "samples_per_client": config["total_samples"] // config["num_nodes"],
@@ -1666,6 +1703,7 @@ def run_training_real_tabular(config: Dict):
         "beta1": config.get("beta1", 0.9),
         "beta2": config.get("beta2", 0.99),
         "tau": config.get("tau", 1e-3),
+        "tabular_dataset": tabular_ds,
     }
 
     progress = st.progress(0)
