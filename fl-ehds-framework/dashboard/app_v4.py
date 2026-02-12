@@ -1792,35 +1792,59 @@ def run_training_real_tabular(config: Dict):
         "tabular_dataset": tabular_ds,
     }
 
-    progress = st.progress(0)
-    status = st.empty()
-    col1, col2 = st.columns(2)
-    with col1:
-        chart_area = st.empty()
-    with col2:
-        metrics_area = st.empty()
+    if HAS_TRAINING_MONITOR:
+        monitor = TrainingMonitor()
+        monitor.setup(show_governance=False)
+        callback = monitor.create_progress_callback()
+        try:
+            trainer = RealFLTrainer(bridge_config)
+            results = trainer.train(config["num_rounds"], callback)
+            monitor.show_final_summary(results)
+            st.session_state.last_training_results = {
+                "algorithm": config["algorithm"],
+                "num_rounds": config["num_rounds"],
+                "mode": "real_pytorch",
+                "final_metrics": {
+                    "accuracy": results["final_accuracy"],
+                    "loss": results["final_loss"],
+                    "f1": results["final_f1"],
+                    "auc": results["final_auc"],
+                },
+                "history": results["history"],
+            }
+        except Exception as e:
+            st.error(f"Errore training: {e}")
+    else:
+        # Fallback: old pattern without TrainingMonitor
+        progress = st.progress(0)
+        status = st.empty()
+        col1, col2 = st.columns(2)
+        with col1:
+            chart_area = st.empty()
+        with col2:
+            metrics_area = st.empty()
 
-    history = []
+        history = []
 
-    def progress_callback(round_num, total, metrics):
-        history.append(metrics)
-        progress.progress(round_num / total)
-        status.markdown(
-            f"**Round {round_num}/{total}** | "
-            f"Acc: {metrics['accuracy']:.3f} | "
-            f"Loss: {metrics['loss']:.4f} | "
-            f"F1: {metrics['f1']:.3f} | "
-            f"AUC: {metrics['auc']:.3f}"
-        )
-        if round_num % 3 == 0 or round_num == total:
-            _update_real_training_chart(chart_area, history, config["algorithm"])
+        def progress_callback(round_num, total, metrics):
+            history.append(metrics)
+            progress.progress(round_num / total)
+            status.markdown(
+                f"**Round {round_num}/{total}** | "
+                f"Acc: {metrics['accuracy']:.3f} | "
+                f"Loss: {metrics['loss']:.4f} | "
+                f"F1: {metrics['f1']:.3f} | "
+                f"AUC: {metrics['auc']:.3f}"
+            )
+            if round_num % 3 == 0 or round_num == total:
+                _update_real_training_chart(chart_area, history, config["algorithm"])
 
-    try:
-        trainer = RealFLTrainer(bridge_config)
-        results = trainer.train(config["num_rounds"], progress_callback)
-        _show_real_training_results(status, metrics_area, results)
-    except Exception as e:
-        st.error(f"Errore training: {e}")
+        try:
+            trainer = RealFLTrainer(bridge_config)
+            results = trainer.train(config["num_rounds"], progress_callback)
+            _show_real_training_results(status, metrics_area, results)
+        except Exception as e:
+            st.error(f"Errore training: {e}")
 
 
 def run_training_real_imaging(config: Dict):
@@ -1860,34 +1884,58 @@ def run_training_real_imaging(config: Dict):
         f"Questo puo' richiedere diversi minuti su CPU."
     )
 
-    progress = st.progress(0)
-    status = st.empty()
-    col1, col2 = st.columns(2)
-    with col1:
-        chart_area = st.empty()
-    with col2:
-        metrics_area = st.empty()
+    if HAS_TRAINING_MONITOR:
+        monitor = TrainingMonitor()
+        monitor.setup(show_governance=False)
+        callback = monitor.create_progress_callback()
+        try:
+            trainer = RealImageFLTrainer(bridge_config)
+            results = trainer.train(config["num_rounds"], callback)
+            monitor.show_final_summary(results)
+            st.session_state.last_training_results = {
+                "algorithm": config["algorithm"],
+                "num_rounds": config["num_rounds"],
+                "mode": "real_pytorch_imaging",
+                "final_metrics": {
+                    "accuracy": results["final_accuracy"],
+                    "loss": results["final_loss"],
+                    "f1": results["final_f1"],
+                    "auc": results["final_auc"],
+                },
+                "history": results["history"],
+            }
+        except Exception as e:
+            st.error(f"Errore training imaging: {e}")
+    else:
+        # Fallback: old pattern without TrainingMonitor
+        progress = st.progress(0)
+        status = st.empty()
+        col1, col2 = st.columns(2)
+        with col1:
+            chart_area = st.empty()
+        with col2:
+            metrics_area = st.empty()
 
-    history = []
+        history = []
 
-    def progress_callback(round_num, total, metrics):
-        history.append(metrics)
-        progress.progress(round_num / total)
-        status.markdown(
-            f"**Round {round_num}/{total}** | "
-            f"Acc: {metrics['accuracy']:.3f} | "
-            f"Loss: {metrics['loss']:.4f} | "
-            f"F1: {metrics['f1']:.3f} | "
-            f"AUC: {metrics['auc']:.3f}"
-        )
-        _update_real_training_chart(chart_area, history, config["algorithm"])
+        def progress_callback(round_num, total, metrics):
+            history.append(metrics)
+            progress.progress(round_num / total)
+            status.markdown(
+                f"**Round {round_num}/{total}** | "
+                f"Acc: {metrics['accuracy']:.3f} | "
+                f"Loss: {metrics['loss']:.4f} | "
+                f"F1: {metrics['f1']:.3f} | "
+                f"AUC: {metrics['auc']:.3f}"
+            )
+            _update_real_training_chart(chart_area, history, config["algorithm"])
 
-    try:
-        trainer = RealImageFLTrainer(bridge_config)
-        results = trainer.train(config["num_rounds"], progress_callback)
-        _show_real_training_results(status, metrics_area, results)
-    except Exception as e:
-        st.error(f"Errore training imaging: {e}")
+        try:
+            trainer = RealImageFLTrainer(bridge_config)
+            results = trainer.train(config["num_rounds"], progress_callback)
+            _show_real_training_results(status, metrics_area, results)
+        except Exception as e:
+            st.error(f"Errore training imaging: {e}")
 
 
 def _update_real_training_chart(chart_area, history, algorithm):

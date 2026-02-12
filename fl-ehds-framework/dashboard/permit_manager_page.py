@@ -34,6 +34,7 @@ from core.models import (
     OptOutRecord,
 )
 from governance.data_permits import DataPermitManager, PermitValidator
+from governance.hdab_integration import PermitStore, get_shared_permit_store
 from governance.optout_registry import OptOutRegistry, OptOutChecker
 
 
@@ -62,6 +63,8 @@ CATEGORY_LABELS = {
 
 def _init_session_state():
     """Initialize session state for permit manager."""
+    if "pm_permit_store" not in st.session_state:
+        st.session_state.pm_permit_store = get_shared_permit_store()
     if "pm_permit_manager" not in st.session_state:
         st.session_state.pm_permit_manager = DataPermitManager(
             validator=PermitValidator(strict_mode=False)
@@ -189,7 +192,9 @@ def _render_permit_creation():
                 },
             )
 
+            store = st.session_state.pm_permit_store
             pm = st.session_state.pm_permit_manager
+            store.register(permit)
             pm.register_permit(permit)
             st.success(
                 f"Permit **{permit_id}** creato con successo!\n\n"
@@ -204,10 +209,10 @@ def _render_permit_dashboard():
     """Sub-tab: View and manage active permits."""
     st.markdown("##### Dashboard Permit Attivi")
 
-    pm = st.session_state.pm_permit_manager
+    store = st.session_state.pm_permit_store
 
-    # Get all permits
-    all_permits = pm.list_all_permits()
+    # Get all permits via PermitStore
+    all_permits = store.list_all()
 
     if not all_permits:
         st.info(
@@ -284,13 +289,14 @@ def _render_permit_dashboard():
         if st.button("Esegui Azione", key="pm_action_btn"):
             if selected_permit_full:
                 if action == "Verifica":
-                    valid = pm.verify_permit(selected_permit_full)
-                    if valid:
+                    p = store.get(selected_permit_full)
+                    if p and p.status == PermitStatus.ACTIVE:
                         st.success(f"Permit {selected_permit_display} VALIDO e ATTIVO")
                     else:
-                        st.warning(f"Permit {selected_permit_display} non valido")
+                        status_str = p.status.value if p else "non trovato"
+                        st.warning(f"Permit {selected_permit_display}: {status_str}")
                 elif action == "Sospendi":
-                    ok = pm.suspend_permit(
+                    ok = store.suspend(
                         selected_permit_full, "Sospeso da dashboard"
                     )
                     if ok:
@@ -298,7 +304,7 @@ def _render_permit_dashboard():
                     else:
                         st.error("Impossibile sospendere il permit")
                 elif action == "Revoca":
-                    ok = pm.revoke_permit(
+                    ok = store.revoke(
                         selected_permit_full, "Revocato da dashboard"
                     )
                     if ok:
@@ -307,7 +313,7 @@ def _render_permit_dashboard():
                         st.error("Impossibile revocare il permit")
 
     # Audit log
-    audit_log = pm.get_audit_log()
+    audit_log = store.audit_log
     if audit_log:
         with st.expander(f"Audit Log ({len(audit_log)} eventi)", expanded=False):
             audit_df = pd.DataFrame(audit_log[-30:])
@@ -380,16 +386,17 @@ def _render_optout_management():
 
             if opt_submitted:
                 record = OptOutRecord(
+                    record_id=f"OPT-{uuid.uuid4().hex[:8].upper()}",
                     patient_id=patient_id,
                     member_state=member_state,
                     scope=scope,
-                    opted_out_categories=(
-                        set(opt_categories) if opt_categories else None
+                    categories=(
+                        list(opt_categories) if opt_categories else None
                     ),
-                    opted_out_purposes=(
-                        set(opt_purposes) if opt_purposes else None
+                    purposes=(
+                        list(opt_purposes) if opt_purposes else None
                     ),
-                    reason=reason or None,
+                    metadata={"reason": reason} if reason else {},
                 )
                 registry.register_optout(record)
                 st.success(

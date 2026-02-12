@@ -75,6 +75,29 @@ COUNTRY_HOSPITALS = {
 }
 
 
+class _SimpleCountryProfile:
+    """Minimal country fee profile for FeeModelBridge compatibility (Art. 42)."""
+
+    _PROFILES = {
+        "IT": (300, 0.03, 30, 0.06),
+        "DE": (500, 0.05, 50, 0.10),
+        "FR": (400, 0.04, 40, 0.08),
+        "ES": (250, 0.03, 25, 0.05),
+        "NL": (350, 0.04, 35, 0.07),
+        "BE": (300, 0.03, 30, 0.06),
+        "AT": (350, 0.04, 35, 0.07),
+    }
+
+    def __init__(self, country_code: str):
+        base, per_rec, per_round, per_mb = self._PROFILES.get(
+            country_code, (300, 0.03, 30, 0.06)
+        )
+        self.fee_base_eur = base
+        self.fee_per_record_eur = per_rec
+        self.fee_per_round_eur = per_round
+        self.fee_per_mb_eur = per_mb
+
+
 class SimpleHospital:
     """Lightweight hospital representation for governance bridge."""
 
@@ -82,6 +105,9 @@ class SimpleHospital:
         self.hospital_id = hospital_id
         self.name = name
         self.country_code = country_code
+        self.country_profile = _SimpleCountryProfile(country_code)
+        self.num_samples = 500
+        self.num_samples_after_optout = None
 
 
 def _init_governance_state():
@@ -872,7 +898,7 @@ def _render_fee_analysis():
         if estimated_cost > max_budget:
             st.markdown("##### Ottimizzazione Budget")
             if st.button("Esegui Ottimizzazione", key="gov_fee_optimize"):
-                opt_result = fee_bridge.optimize_budget(max_budget_eur=max_budget)
+                opt_result = fee_bridge.optimize_for_budget(max_budget_eur=max_budget)
                 if opt_result.feasible:
                     st.success(
                         f"Ottimizzazione riuscita: strategia '{opt_result.strategy}'\n\n"
