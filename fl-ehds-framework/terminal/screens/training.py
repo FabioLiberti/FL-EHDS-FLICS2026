@@ -28,28 +28,12 @@ from terminal.validators import (
     get_int, get_float, get_bool, get_choice, confirm, display_config_summary
 )
 from terminal.menu import Menu, MenuItem, MENU_STYLE
-
-
-# Available FL algorithms
-FL_ALGORITHMS = [
-    "FedAvg",
-    "FedProx",
-    "SCAFFOLD",
-    "FedNova",
-    "FedDyn",
-    "FedAdam",
-    "FedYogi",
-    "FedAdagrad",
-    "Per-FedAvg",
-    "Ditto",
-]
-
-# Data distribution types
-DATA_DISTRIBUTIONS = [
-    "IID (uniforme)",
-    "Non-IID (label skew)",
-    "Non-IID (quantity skew)",
-]
+from terminal.training_utils import (
+    FL_ALGORITHMS, DATA_DISTRIBUTIONS,
+    get_available_datasets, build_dataset_choices, apply_dataset_selection,
+    apply_dataset_parameters, select_imaging_model, configure_ehds_permit,
+    create_trainer, setup_ehds_permit_context, apply_data_minimization,
+)
 
 
 class TrainingScreen:
@@ -99,25 +83,6 @@ class TrainingScreen:
         except (ImportError, Exception):
             pass
         return fallback
-
-    def _get_available_datasets(self) -> Dict[str, Dict]:
-        """Get available imaging datasets."""
-        try:
-            from terminal.screens.datasets import DatasetManager
-            manager = DatasetManager()
-            return {
-                name: {
-                    "type": ds.type,
-                    "samples": ds.total_samples,
-                    "classes": ds.num_classes,
-                    "class_names": ds.class_names,
-                    "path": str(ds.path) if ds.path else None,
-                }
-                for name, ds in manager.datasets.items()
-                if ds.type == "imaging"
-            }
-        except Exception:
-            return {}
 
     def run(self):
         """Run the training screen."""
@@ -195,42 +160,8 @@ class TrainingScreen:
 
         # Dataset selection
         print_subsection("Selezione Dataset")
-        available_datasets = self._get_available_datasets()
-
-        dataset_choices = [
-            "Sintetico (Healthcare Tabular)",
-            "FHIR R4 (Ospedali Sintetici)",
-            "OMOP-CDM (Armonizzazione Cross-Border)",
-        ]
-        dataset_map = {
-            "Sintetico (Healthcare Tabular)": "synthetic",
-            "FHIR R4 (Ospedali Sintetici)": "fhir",
-            "OMOP-CDM (Armonizzazione Cross-Border)": "omop",
-        }
-
-        # Add real tabular datasets if available
-        try:
-            diabetes_path = Path(__file__).parent.parent.parent / "data" / "diabetes" / "diabetic_data.csv"
-            if diabetes_path.exists():
-                label = "Diabetes 130-US (101K encounters, 130 ospedali, readmission)"
-                dataset_choices.insert(3, label)
-                dataset_map[label] = "diabetes"
-        except Exception:
-            pass
-        try:
-            heart_path = Path(__file__).parent.parent.parent / "data" / "heart_disease"
-            if heart_path.exists():
-                label = "Heart Disease UCI (920 pazienti, 4 ospedali, diagnosi)"
-                dataset_choices.insert(len([c for c in dataset_choices if "img" not in c.lower()]), label)
-                dataset_map[label] = "heart_disease"
-        except Exception:
-            pass
-
-        if available_datasets:
-            for name, info in available_datasets.items():
-                label = f"{name} ({info['samples']:,} img, {info['classes']} classi)"
-                dataset_choices.append(label)
-                dataset_map[label] = name
+        available_datasets = get_available_datasets()
+        dataset_choices, dataset_map = build_dataset_choices(available_datasets)
 
         if HAS_QUESTIONARY:
             selected = questionary.select(
@@ -245,126 +176,9 @@ class TrainingScreen:
             idx = get_int("Selezione", default=1, min_val=1, max_val=len(dataset_choices)) - 1
             selected = dataset_choices[idx]
 
-        selected_key = dataset_map[selected]
-        if selected_key == "synthetic":
-            self.config["dataset_type"] = "synthetic"
-            self.config["dataset_name"] = None
-            self.config["dataset_path"] = None
-            self.config["learning_rate"] = 0.01  # Default for tabular
-        elif selected_key == "fhir":
-            self.config["dataset_type"] = "fhir"
-            self.config["dataset_name"] = "fhir_synthetic"
-            self.config["dataset_path"] = None
-            self.config["learning_rate"] = 0.01  # Tabular data
-            # Load FHIR config and show info
-            try:
-                from config.config_loader import get_fhir_config
-                fhir_cfg = get_fhir_config()
-                profiles = fhir_cfg.get("profiles", [])
-                num_c = self.config.get("num_clients", 5)
-                assigned = [profiles[i % len(profiles)] for i in range(num_c)]
-                print_info("FHIR R4: dati generati da profili ospedalieri (non-IID naturale)")
-                print(f"  Profili: {', '.join(assigned)}")
-                print(f"  Pazienti/ospedale: {fhir_cfg.get('samples_per_client', 500)}")
-                print(f"  Features: {len(fhir_cfg.get('feature_spec', []))} ({fhir_cfg.get('label', 'mortality_30day')})")
-            except (ImportError, Exception):
-                print_info("FHIR R4: ospedali sintetici con profili diversi")
-        elif selected_key == "diabetes":
-            self.config["dataset_type"] = "diabetes"
-            self.config["dataset_name"] = "diabetes_130us"
-            self.config["dataset_path"] = str(Path(__file__).parent.parent.parent / "data" / "diabetes" / "diabetic_data.csv")
-            self.config["learning_rate"] = 0.01  # Tabular data
-            print_info("Diabetes 130-US: 101,766 encounter da 130 ospedali USA")
-            print_info("  Target: readmission <30 giorni (binario)")
-            print_info("  22 features: demographics + diagnosi ICD-9 + farmaci + lab")
-            print_info("  Partizione per ospedale (non-IID naturale)")
-            print_info("  FHIR R4: Patient, Encounter, Condition, Observation, MedicationStatement")
-        elif selected_key == "heart_disease":
-            self.config["dataset_type"] = "heart_disease"
-            self.config["dataset_name"] = "heart_disease_uci"
-            self.config["dataset_path"] = str(Path(__file__).parent.parent.parent / "data" / "heart_disease")
-            self.config["learning_rate"] = 0.01
-            self.config["num_clients"] = 4  # 4 real hospitals
-            print_info("Heart Disease UCI: 920 pazienti da 4 ospedali (Cleveland, Hungarian, Swiss, VA)")
-            print_info("  Target: presenza malattia cardiaca (binario)")
-            print_info("  13 features: demographics + vitali + ECG + stress test")
-            print_info("  Partizione per ospedale (non-IID naturale, 4 client)")
-            print_info("  FHIR R4: Patient, Observation, Condition, DiagnosticReport")
-        elif selected_key == "omop":
-            self.config["dataset_type"] = "omop"
-            self.config["dataset_name"] = "omop_harmonized"
-            self.config["dataset_path"] = None
-            self.config["learning_rate"] = 0.01  # Tabular data
-            # Load OMOP config and show info
-            try:
-                from config.config_loader import get_omop_config
-                omop_cfg = get_omop_config()
-                profiles = omop_cfg.get("profiles", [])
-                countries = omop_cfg.get("country_codes", [])
-                num_c = self.config.get("num_clients", 5)
-                assigned_p = [profiles[i % len(profiles)] for i in range(num_c)]
-                assigned_c = [countries[i % len(countries)] for i in range(num_c)]
-                from data.omop_harmonizer import COUNTRY_VOCABULARY_PROFILES
-                print_info("OMOP-CDM: armonizzazione vocabolari cross-border (non-IID da eterogeneita)")
-                print(f"  Pazienti/ospedale: {omop_cfg.get('samples_per_client', 500)}")
-                print(f"  ~36 features standardizzate OMOP (temporal windows: 30d/90d/365d)")
-                for i in range(num_c):
-                    vp = COUNTRY_VOCABULARY_PROFILES.get(assigned_c[i], {})
-                    print(f"  Client {i}: {assigned_c[i]} ({assigned_p[i]}) - {vp.get('coding_system', '?')}")
-            except (ImportError, Exception):
-                print_info("OMOP-CDM: armonizzazione vocabolari europei cross-border")
-        else:
-            self.config["dataset_type"] = "imaging"
-            self.config["dataset_name"] = selected_key
-            self.config["dataset_path"] = available_datasets[selected_key]["path"]
-            self.config["learning_rate"] = 0.001  # Better for CNN
-            print_info(f"Dataset imaging selezionato: {selected_key}")
-            print(f"  Path: {self.config['dataset_path']}")
-            print(f"  Classi: {available_datasets[selected_key]['class_names']}")
-
-        # Dataset parameter suggestion
-        if self.config["dataset_type"] in ("imaging", "fhir", "omop", "diabetes") and self.config.get("dataset_name"):
-            try:
-                from config.config_loader import get_dataset_parameters
-                ds_params = get_dataset_parameters(self.config["dataset_name"])
-                if ds_params:
-                    print()
-                    print_info(f"Parametri suggeriti per {self.config['dataset_name']}:")
-                    print(f"  LR={ds_params.get('learning_rate')}  "
-                          f"Batch={ds_params.get('batch_size')}  "
-                          f"Rounds={ds_params.get('num_rounds')}  "
-                          f"ImgSize={ds_params.get('img_size')}")
-                    print(f"  Algoritmi consigliati: "
-                          f"{', '.join(ds_params.get('recommended_algorithms', []))}")
-                    if ds_params.get("notes"):
-                        print(f"  Note: {ds_params['notes']}")
-                    if ds_params.get("class_weight"):
-                        print(f"  Class weighting: consigliato (dataset sbilanciato)")
-                    if confirm("\nApplicare parametri dataset?", default=True):
-                        for k in ["learning_rate", "batch_size", "num_rounds", "local_epochs", "img_size"]:
-                            if k in ds_params and ds_params[k] is not None:
-                                self.config[k] = ds_params[k]
-                        print_success("Parametri dataset applicati.")
-            except (ImportError, Exception):
-                pass
-
-        # Model selection (imaging datasets only)
-        if self.config["dataset_type"] == "imaging":
-            model_choice = questionary.select(
-                "Modello:",
-                choices=[
-                    "ResNet18 (pretrained ImageNet, consigliato)",
-                    "CNN custom (leggera, ~500K params)",
-                ],
-                default="ResNet18 (pretrained ImageNet, consigliato)",
-            ).ask()
-            if model_choice and "CNN" in model_choice:
-                self.config["model_type"] = "cnn"
-                print_info("Modello: CNN custom (128x128)")
-            else:
-                self.config["model_type"] = "resnet18"
-                self.config["batch_size"] = 16  # ResNet uses more memory
-                print_info("Modello: ResNet18 pretrained (224x224, GroupNorm)")
+        apply_dataset_selection(self.config, dataset_map[selected], available_datasets)
+        apply_dataset_parameters(self.config)
+        select_imaging_model(self.config)
 
         # Basic parameters
         print_subsection("Parametri Base")
@@ -469,77 +283,7 @@ class TrainingScreen:
             )
 
         # EHDS Data Permit (optional)
-        print_subsection("EHDS Data Permit (Opzionale)")
-        self.config["ehds_permit_enabled"] = get_bool(
-            "Abilitare EHDS Data Permit governance?",
-            default=self.config["ehds_permit_enabled"]
-        )
-
-        if self.config["ehds_permit_enabled"]:
-            purpose_choices = [
-                "ai_system_development",
-                "scientific_research",
-                "public_health_surveillance",
-                "health_policy",
-                "education_training",
-                "personalized_medicine",
-                "official_statistics",
-                "patient_safety",
-            ]
-            if HAS_QUESTIONARY:
-                self.config["ehds_purpose"] = questionary.select(
-                    "EHDS purpose (Article 53):",
-                    choices=purpose_choices,
-                    default=self.config["ehds_purpose"],
-                    style=MENU_STYLE,
-                ).ask() or self.config["ehds_purpose"]
-            else:
-                self.config["ehds_purpose"] = get_choice(
-                    "EHDS purpose (Article 53):",
-                    purpose_choices,
-                    default=self.config["ehds_purpose"],
-                )
-
-            # Auto-detect data categories from dataset type
-            category_map = {
-                "synthetic": ["ehr"],
-                "fhir": ["ehr", "lab_results"],
-                "omop": ["ehr", "lab_results"],
-                "diabetes": ["ehr", "lab_results"],
-                "heart_disease": ["ehr", "lab_results"],
-                "imaging": ["imaging"],
-            }
-            self.config["ehds_data_categories"] = category_map.get(
-                self.config["dataset_type"], ["ehr"]
-            )
-            print_info(f"  Data categories: {', '.join(self.config['ehds_data_categories'])}")
-
-            # Privacy budget
-            if self.config["dp_enabled"]:
-                self.config["ehds_privacy_budget"] = self.config["dp_epsilon"]
-                print_info(f"  Privacy budget da DP epsilon: {self.config['ehds_privacy_budget']}")
-            else:
-                self.config["ehds_privacy_budget"] = get_float(
-                    "  Privacy budget (epsilon totale)",
-                    default=self.config["ehds_privacy_budget"],
-                    min_val=0.1, max_val=1000.0
-                )
-
-            # Max rounds
-            self.config["ehds_max_rounds"] = get_int(
-                "  Massimo round autorizzati",
-                default=self.config["num_rounds"],
-                min_val=1, max_val=10000
-            )
-
-            # Data minimization (only for tabular)
-            if self.config["dataset_type"] != "imaging":
-                self.config["ehds_data_minimization"] = get_bool(
-                    "  Applicare data minimization (Art. 44)?",
-                    default=self.config["ehds_data_minimization"]
-                )
-            else:
-                self.config["ehds_data_minimization"] = False
+        configure_ehds_permit(self.config)
 
         # Seed
         print_subsection("Riproducibilita")
@@ -567,12 +311,7 @@ class TrainingScreen:
 
         print()
 
-        # All algorithms are now supported by the real trainer
-        supported_algorithms = FL_ALGORITHMS  # All 9 algorithms implemented
-
         try:
-            from terminal.fl_trainer import FederatedTrainer, ImageFederatedTrainer
-
             # Map data distribution
             is_iid = "IID" in self.config["data_distribution"]
 
@@ -612,282 +351,16 @@ class TrainingScreen:
 
             # Create trainer based on dataset type
             print_info("Inizializzazione trainer PyTorch...")
-
-            if self.config["dataset_type"] == "imaging" and self.config["dataset_path"]:
-                # Imaging dataset - use ImageFederatedTrainer
-                print_info(f"Caricamento dataset imaging: {self.config['dataset_name']}")
-                print_info(f"Path: {self.config['dataset_path']}")
-                print_info(f"Distribuzione su {self.config['num_clients']} client...")
-
-                trainer = ImageFederatedTrainer(
-                    data_dir=self.config["dataset_path"],
-                    num_clients=self.config["num_clients"],
-                    algorithm=self.config["algorithm"],
-                    local_epochs=self.config["local_epochs"],
-                    batch_size=self.config["batch_size"],
-                    learning_rate=self.config["learning_rate"],
-                    is_iid=is_iid,
-                    alpha=0.5,
-                    mu=self.config["mu"],
-                    dp_enabled=self.config["dp_enabled"],
-                    dp_epsilon=self.config["dp_epsilon"],
-                    dp_clip_norm=self.config["dp_clip_norm"],
-                    seed=self.config["seed"],
-                    progress_callback=progress_callback,
-                    # Server optimizer params for FedAdam, FedYogi, FedAdagrad
-                    server_lr=self.config.get("server_lr", 0.1),
-                    beta1=self.config.get("beta1", 0.9),
-                    beta2=self.config.get("beta2", 0.99),
-                    tau=self.config.get("tau", 1e-3),
-                    # Model selection
-                    model_type=self.config.get("model_type", "resnet18"),
-                    freeze_backbone=self.config.get("freeze_backbone", False),
-                    use_class_weights=self.config.get("use_class_weights", True),
-                )
-            elif self.config["dataset_type"] == "heart_disease":
-                # Heart Disease UCI (4 hospitals)
-                from data.heart_disease_loader import load_heart_disease_data
-                print_info("Caricamento Heart Disease UCI (920 pazienti, 4 ospedali)...")
-
-                hd_train, hd_test, hd_meta = load_heart_disease_data(
-                    num_clients=self.config["num_clients"],
-                    partition_by_hospital=not is_iid,
-                    is_iid=is_iid,
-                    test_split=0.2,
-                    seed=self.config["seed"],
-                    data_path=self.config.get("dataset_path"),
-                )
-
-                print_info(f"Heart Disease: {hd_meta['total_samples']} campioni, "
-                           f"{hd_meta['num_features']} features, "
-                           f"label={hd_meta['label_name']}")
-                hosp_assign = hd_meta.get("hospital_assignment", {})
-                for cid in range(self.config["num_clients"]):
-                    train_n = len(hd_train[cid][1])
-                    test_n = len(hd_test[cid][1])
-                    pos_rate = hd_train[cid][1].mean()
-                    hosp = hosp_assign.get(cid, "mixed")
-                    print(f"  Client {cid} ({hosp}): {train_n} train, {test_n} test, "
-                          f"disease_rate={pos_rate:.1%}")
-
-                trainer = FederatedTrainer(
-                    num_clients=self.config["num_clients"],
-                    algorithm=self.config["algorithm"],
-                    local_epochs=self.config["local_epochs"],
-                    batch_size=self.config["batch_size"],
-                    learning_rate=self.config["learning_rate"],
-                    mu=self.config["mu"],
-                    dp_enabled=self.config["dp_enabled"],
-                    dp_epsilon=self.config["dp_epsilon"],
-                    dp_clip_norm=self.config["dp_clip_norm"],
-                    seed=self.config["seed"],
-                    progress_callback=progress_callback,
-                    server_lr=self.config.get("server_lr", 0.1),
-                    beta1=self.config.get("beta1", 0.9),
-                    beta2=self.config.get("beta2", 0.99),
-                    tau=self.config.get("tau", 1e-3),
-                    external_data=hd_train,
-                    external_test_data=hd_test,
-                    input_dim=hd_meta["num_features"],
-                )
-            elif self.config["dataset_type"] == "diabetes":
-                # Diabetes 130-US real dataset
-                from data.diabetes_loader import load_diabetes_data
-                print_info("Caricamento Diabetes 130-US (101,766 encounters)...")
-
-                diab_train, diab_test, diab_meta = load_diabetes_data(
-                    num_clients=self.config["num_clients"],
-                    partition_by_hospital=not is_iid,
-                    is_iid=is_iid,
-                    alpha=0.5,
-                    label_type="binary",
-                    test_split=0.2,
-                    seed=self.config["seed"],
-                    data_path=self.config.get("dataset_path"),
-                )
-
-                # Show dataset info
-                print_info(f"Diabetes: {diab_meta['total_samples']} campioni, "
-                           f"{diab_meta['num_features']} features, "
-                           f"label={diab_meta['label_name']}")
-                for cid in range(self.config["num_clients"]):
-                    train_n = len(diab_train[cid][1])
-                    test_n = len(diab_test[cid][1])
-                    pos_rate = diab_train[cid][1].mean()
-                    print(f"  Client {cid}: {train_n} train, {test_n} test, "
-                          f"readmission_rate={pos_rate:.1%}")
-
-                print_info(f"Partizione: {diab_meta['partition_method']}")
-                print_info(f"FHIR mapping: {list(diab_meta['fhir_mapping'].keys())}")
-
-                trainer = FederatedTrainer(
-                    num_clients=self.config["num_clients"],
-                    algorithm=self.config["algorithm"],
-                    local_epochs=self.config["local_epochs"],
-                    batch_size=self.config["batch_size"],
-                    learning_rate=self.config["learning_rate"],
-                    mu=self.config["mu"],
-                    dp_enabled=self.config["dp_enabled"],
-                    dp_epsilon=self.config["dp_epsilon"],
-                    dp_clip_norm=self.config["dp_clip_norm"],
-                    seed=self.config["seed"],
-                    progress_callback=progress_callback,
-                    server_lr=self.config.get("server_lr", 0.1),
-                    beta1=self.config.get("beta1", 0.9),
-                    beta2=self.config.get("beta2", 0.99),
-                    tau=self.config.get("tau", 1e-3),
-                    external_data=diab_train,
-                    external_test_data=diab_test,
-                    input_dim=diab_meta["num_features"],
-                )
-            elif self.config["dataset_type"] == "fhir":
-                # FHIR R4 dataset - use FederatedTrainer with external data
-                from data.fhir_loader import load_fhir_data
-                print_info("Caricamento dati FHIR R4 (ospedali sintetici)...")
-
-                fhir_cfg = {}
-                try:
-                    from config.config_loader import get_fhir_config
-                    fhir_cfg = get_fhir_config()
-                except (ImportError, Exception):
-                    pass
-
-                fhir_train, fhir_test, fhir_meta = load_fhir_data(
-                    num_clients=self.config["num_clients"],
-                    samples_per_client=fhir_cfg.get("samples_per_client", 500),
-                    hospital_profiles=fhir_cfg.get("profiles"),
-                    feature_spec=fhir_cfg.get("feature_spec"),
-                    label_name=fhir_cfg.get("label", "mortality_30day"),
-                    opt_out_registry_path=fhir_cfg.get("opt_out_registry_path"),
-                    purpose=fhir_cfg.get("purpose", "ai_training"),
-                    seed=self.config["seed"],
-                )
-
-                profiles_assigned = fhir_meta.get("profiles_assigned", [])
-                print_info(f"FHIR: {len(fhir_train)} ospedali, "
-                           f"{fhir_meta.get('num_features', 10)} features, "
-                           f"label={fhir_meta.get('label_name', '?')}")
-                for nid in range(len(profiles_assigned)):
-                    profile = profiles_assigned[nid]
-                    train_n = len(fhir_train[nid][1])
-                    test_n = len(fhir_test[nid][1])
-                    pos_rate = fhir_train[nid][1].mean()
-                    print(f"  Client {nid}: {profile} ({train_n} train, {test_n} test, pos_rate={pos_rate:.1%})")
-
-                if fhir_meta.get("total_opted_out", 0) > 0:
-                    print_info(f"  Opt-out EHDS Art.71: {fhir_meta['total_opted_out']} record esclusi")
-
-                trainer = FederatedTrainer(
-                    num_clients=self.config["num_clients"],
-                    algorithm=self.config["algorithm"],
-                    local_epochs=self.config["local_epochs"],
-                    batch_size=self.config["batch_size"],
-                    learning_rate=self.config["learning_rate"],
-                    mu=self.config["mu"],
-                    dp_enabled=self.config["dp_enabled"],
-                    dp_epsilon=self.config["dp_epsilon"],
-                    dp_clip_norm=self.config["dp_clip_norm"],
-                    seed=self.config["seed"],
-                    progress_callback=progress_callback,
-                    server_lr=self.config.get("server_lr", 0.1),
-                    beta1=self.config.get("beta1", 0.9),
-                    beta2=self.config.get("beta2", 0.99),
-                    tau=self.config.get("tau", 1e-3),
-                    external_data=fhir_train,
-                    external_test_data=fhir_test,
-                )
-            elif self.config["dataset_type"] == "omop":
-                # OMOP-CDM harmonized dataset
-                from data.omop_harmonizer import load_omop_data
-                print_info("Caricamento dati OMOP-CDM (armonizzazione cross-border)...")
-
-                omop_cfg = {}
-                try:
-                    from config.config_loader import get_omop_config
-                    omop_cfg = get_omop_config()
-                except (ImportError, Exception):
-                    pass
-
-                omop_train, omop_test, omop_meta = load_omop_data(
-                    num_clients=self.config["num_clients"],
-                    samples_per_client=omop_cfg.get("samples_per_client", 500),
-                    hospital_profiles=omop_cfg.get("profiles"),
-                    country_codes=omop_cfg.get("country_codes"),
-                    label_name=omop_cfg.get("label", "mortality_30day"),
-                    seed=self.config["seed"],
-                )
-
-                # Show OMOP info
-                countries_assigned = omop_meta.get("countries_assigned", [])
-                profiles_assigned = omop_meta.get("profiles_assigned", [])
-                coding_systems = omop_meta.get("coding_systems", {})
-                print_info(f"OMOP: {len(omop_train)} ospedali, "
-                           f"{omop_meta.get('num_features', 0)} features standardizzate")
-                for nid in range(len(countries_assigned)):
-                    country = countries_assigned[nid]
-                    profile = profiles_assigned[nid]
-                    cs = coding_systems.get(nid, "?")
-                    train_n = len(omop_train[nid][1])
-                    test_n = len(omop_test[nid][1])
-                    pos_rate = omop_train[nid][1].mean()
-                    print(f"  Client {nid}: {country} ({profile}) - {cs} "
-                          f"({train_n} train, {test_n} test, pos_rate={pos_rate:.1%})")
-
-                # Show heterogeneity report
-                het = omop_meta.get("heterogeneity_report", {})
-                if het:
-                    print_info(f"Eterogeneita vocabolario:")
-                    print(f"  Jaccard distance: raw={het.get('raw_jaccard_mean', 0):.3f} -> "
-                          f"OMOP={het.get('omop_jaccard_mean', 0):.3f} "
-                          f"(riduzione: {het.get('jaccard_reduction_pct', 0):.1f}%)")
-                    if het.get("raw_jsd", 0) > 0:
-                        print(f"  Jensen-Shannon Divergence: raw={het['raw_jsd']:.4f} -> OMOP={het.get('omop_jsd', 0):.4f}")
-
-                trainer = FederatedTrainer(
-                    num_clients=self.config["num_clients"],
-                    algorithm=self.config["algorithm"],
-                    local_epochs=self.config["local_epochs"],
-                    batch_size=self.config["batch_size"],
-                    learning_rate=self.config["learning_rate"],
-                    mu=self.config["mu"],
-                    dp_enabled=self.config["dp_enabled"],
-                    dp_epsilon=self.config["dp_epsilon"],
-                    dp_clip_norm=self.config["dp_clip_norm"],
-                    seed=self.config["seed"],
-                    progress_callback=progress_callback,
-                    server_lr=self.config.get("server_lr", 0.1),
-                    beta1=self.config.get("beta1", 0.9),
-                    beta2=self.config.get("beta2", 0.99),
-                    tau=self.config.get("tau", 1e-3),
-                    external_data=omop_train,
-                    external_test_data=omop_test,
-                    input_dim=omop_meta.get("num_features"),
-                )
-            else:
-                # Synthetic tabular dataset - use FederatedTrainer
-                print_info(f"Generazione dataset healthcare sintetico ({self.config['num_clients']} client)...")
-
-                trainer = FederatedTrainer(
-                    num_clients=self.config["num_clients"],
-                    samples_per_client=200,
-                    algorithm=self.config["algorithm"],
-                    local_epochs=self.config["local_epochs"],
-                    batch_size=self.config["batch_size"],
-                    learning_rate=self.config["learning_rate"],
-                    is_iid=is_iid,
-                    alpha=0.5,
-                    mu=self.config["mu"],
-                    dp_enabled=self.config["dp_enabled"],
-                    dp_epsilon=self.config["dp_epsilon"],
-                    dp_clip_norm=self.config["dp_clip_norm"],
-                    seed=self.config["seed"],
-                    progress_callback=progress_callback,
-                    # Server optimizer params for FedAdam, FedYogi, FedAdagrad
-                    server_lr=self.config.get("server_lr", 0.1),
-                    beta1=self.config.get("beta1", 0.9),
-                    beta2=self.config.get("beta2", 0.99),
-                    tau=self.config.get("tau", 1e-3),
-                )
+            trainer, meta = create_trainer(
+                config=self.config,
+                algorithm=self.config["algorithm"],
+                seed=self.config["seed"],
+                progress_callback=progress_callback,
+                is_iid=is_iid,
+                dp_enabled=self.config["dp_enabled"],
+                dp_epsilon=self.config["dp_epsilon"],
+                verbose=True,
+            )
 
             # Show data distribution
             print_subsection("Distribuzione Dati per Client")
@@ -899,69 +372,10 @@ class TrainingScreen:
                       f"labels={dist}, balance={balance:.2f}")
 
             # EHDS Permit context (if enabled)
-            self._permit_context = None
-            if self.config.get("ehds_permit_enabled"):
-                from governance.permit_training import create_permit_context
-                self._permit_context = create_permit_context(self.config)
-                if self._permit_context:
-                    self._permit_context.start_session()
-                    print()
-                    print_success(f"EHDS Permit attivato: {self._permit_context.permit.permit_id}")
-                    print_info(f"  Purpose: {self.config['ehds_purpose']}")
-                    print_info(f"  Budget: epsilon={self.config['ehds_privacy_budget']}")
-                    print_info(f"  Max rounds: {self.config.get('ehds_max_rounds', 'illimitati')}")
+            self._permit_context = setup_ehds_permit_context(self.config)
 
             # Data minimization (Art. 44, tabular only)
-            minimization_report = None
-            if (self.config.get("ehds_data_minimization")
-                    and self.config["dataset_type"] != "imaging"
-                    and hasattr(trainer, 'client_data')):
-                from governance.data_minimization import DataMinimizer
-                # Get feature names from metadata if available
-                feat_names = None
-                if self.config["dataset_type"] == "fhir" and 'fhir_meta' in dir():
-                    feat_names = fhir_meta.get("feature_names")
-                elif self.config["dataset_type"] == "omop" and 'omop_meta' in dir():
-                    feat_names = omop_meta.get("feature_names")
-
-                # Build train_data dict from trainer
-                train_dict = {}
-                for cid in range(trainer.num_clients):
-                    X_c, y_c = trainer.client_data[cid]
-                    train_dict[cid] = (X_c.numpy(), y_c.numpy())
-                test_dict = None
-                if hasattr(trainer, 'client_test_data') and trainer.client_test_data:
-                    test_dict = {}
-                    for cid in range(trainer.num_clients):
-                        if cid in trainer.client_test_data:
-                            X_t, y_t = trainer.client_test_data[cid]
-                            test_dict[cid] = (X_t.numpy(), y_t.numpy())
-
-                min_train, min_test, minimization_report = DataMinimizer.apply_minimization(
-                    train_dict, test_dict,
-                    purpose=self.config["ehds_purpose"],
-                    feature_names=feat_names,
-                )
-                print()
-                print_info(f"Data minimization: {minimization_report['original_features']} -> "
-                           f"{minimization_report['kept_features']} features "
-                           f"(-{minimization_report['reduction_pct']}%)")
-
-                # Rebuild trainer data with minimized features
-                import torch
-                for cid in range(trainer.num_clients):
-                    X_min, y_min = min_train[cid]
-                    trainer.client_data[cid] = (torch.tensor(X_min, dtype=torch.float32),
-                                                 torch.tensor(y_min, dtype=torch.long))
-                if min_test:
-                    for cid in min_test:
-                        X_mt, y_mt = min_test[cid]
-                        trainer.client_test_data[cid] = (torch.tensor(X_mt, dtype=torch.float32),
-                                                          torch.tensor(y_mt, dtype=torch.long))
-                # Update model input dimension
-                new_dim = minimization_report['kept_features']
-                trainer.model = trainer._create_model(input_dim=new_dim)
-                trainer.global_model_state = trainer.model.state_dict()
+            apply_data_minimization(self.config, trainer, meta)
 
             print()
             print_info(f"Avvio training {self.config['algorithm']} con PyTorch...")

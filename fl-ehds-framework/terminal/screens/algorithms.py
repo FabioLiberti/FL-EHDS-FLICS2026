@@ -27,21 +27,12 @@ from terminal.validators import (
     get_int, get_float, get_bool, confirm, display_config_summary
 )
 from terminal.menu import Menu, MenuItem, MENU_STYLE
-
-
-# Algorithms to compare
-COMPARISON_ALGORITHMS = [
-    "FedAvg",
-    "FedProx",
-    "SCAFFOLD",
-    "FedNova",
-    "FedDyn",
-    "FedAdam",
-    "FedYogi",
-    "FedAdagrad",
-    "Per-FedAvg",
-    "Ditto",
-]
+from terminal.training_utils import (
+    FL_ALGORITHMS, get_available_datasets, build_dataset_choices,
+    apply_dataset_selection, apply_dataset_parameters, select_imaging_model,
+    configure_ehds_permit, create_trainer, setup_ehds_permit_context,
+    calculate_stats, average_history, generate_comparison_latex,
+)
 
 
 class AlgorithmsScreen:
@@ -55,7 +46,7 @@ class AlgorithmsScreen:
     def _default_config(self) -> Dict[str, Any]:
         """Return default configuration from config.yaml with hardcoded fallbacks."""
         fallback = {
-            "algorithms": COMPARISON_ALGORITHMS.copy(),
+            "algorithms": FL_ALGORITHMS.copy(),
             "num_clients": 5,
             "num_rounds": 30,
             "local_epochs": 3,
@@ -85,25 +76,6 @@ class AlgorithmsScreen:
         except (ImportError, Exception):
             pass
         return fallback
-
-    def _get_available_datasets(self) -> Dict[str, Dict]:
-        """Get available imaging datasets."""
-        try:
-            from terminal.screens.datasets import DatasetManager
-            manager = DatasetManager()
-            return {
-                name: {
-                    "type": ds.type,
-                    "samples": ds.total_samples,
-                    "classes": ds.num_classes,
-                    "class_names": ds.class_names,
-                    "path": str(ds.path) if ds.path else None,
-                }
-                for name, ds in manager.datasets.items()
-                if ds.type == "imaging"
-            }
-        except Exception:
-            return {}
 
     def run(self):
         """Run the algorithms screen."""
@@ -141,7 +113,7 @@ class AlgorithmsScreen:
                 "Seleziona algoritmi (Spazio per selezionare, Enter per confermare):",
                 choices=[
                     questionary.Choice(alg, checked=(alg in self.config["algorithms"]))
-                    for alg in COMPARISON_ALGORITHMS
+                    for alg in FL_ALGORITHMS
                 ],
                 style=MENU_STYLE,
             ).ask()
@@ -149,49 +121,15 @@ class AlgorithmsScreen:
                 self.config["algorithms"] = selected
         else:
             print("Algoritmi disponibili:")
-            for i, alg in enumerate(COMPARISON_ALGORITHMS, 1):
+            for i, alg in enumerate(FL_ALGORITHMS, 1):
                 selected = "*" if alg in self.config["algorithms"] else " "
                 print(f"  {selected} {i}. {alg}")
             print_info("Modifica manualmente config['algorithms'] per cambiare selezione")
 
         # Dataset selection
         print_subsection("Selezione Dataset")
-        available_datasets = self._get_available_datasets()
-
-        dataset_choices = [
-            "Sintetico (Healthcare Tabular)",
-            "FHIR R4 (Ospedali Sintetici)",
-            "OMOP-CDM (Armonizzazione Cross-Border)",
-        ]
-        dataset_map = {
-            "Sintetico (Healthcare Tabular)": "synthetic",
-            "FHIR R4 (Ospedali Sintetici)": "fhir",
-            "OMOP-CDM (Armonizzazione Cross-Border)": "omop",
-        }
-
-        # Add real tabular datasets if available
-        try:
-            diabetes_path = Path(__file__).parent.parent.parent / "data" / "diabetes" / "diabetic_data.csv"
-            if diabetes_path.exists():
-                label = "Diabetes 130-US (101K encounters, 130 ospedali, readmission)"
-                dataset_choices.insert(3, label)
-                dataset_map[label] = "diabetes"
-        except Exception:
-            pass
-        try:
-            heart_path = Path(__file__).parent.parent.parent / "data" / "heart_disease"
-            if heart_path.exists():
-                label = "Heart Disease UCI (920 pazienti, 4 ospedali, diagnosi)"
-                dataset_choices.insert(len([c for c in dataset_choices if "img" not in c.lower()]), label)
-                dataset_map[label] = "heart_disease"
-        except Exception:
-            pass
-
-        if available_datasets:
-            for name, info in available_datasets.items():
-                label = f"{name} ({info['samples']:,} img, {info['classes']} classi)"
-                dataset_choices.append(label)
-                dataset_map[label] = name
+        available_datasets = get_available_datasets()
+        dataset_choices, dataset_map = build_dataset_choices(available_datasets)
 
         if HAS_QUESTIONARY:
             selected = questionary.select(
@@ -206,83 +144,9 @@ class AlgorithmsScreen:
             idx = get_int("Selezione", default=1, min_val=1, max_val=len(dataset_choices)) - 1
             selected = dataset_choices[idx]
 
-        selected_key = dataset_map[selected]
-        if selected_key == "synthetic":
-            self.config["dataset_type"] = "synthetic"
-            self.config["dataset_name"] = None
-            self.config["dataset_path"] = None
-            self.config["learning_rate"] = 0.01
-        elif selected_key == "fhir":
-            self.config["dataset_type"] = "fhir"
-            self.config["dataset_name"] = "fhir_synthetic"
-            self.config["dataset_path"] = None
-            self.config["learning_rate"] = 0.01
-            print_info("FHIR R4: distribuzione naturalmente Non-IID (profili ospedalieri)")
-        elif selected_key == "omop":
-            self.config["dataset_type"] = "omop"
-            self.config["dataset_name"] = "omop_harmonized"
-            self.config["dataset_path"] = None
-            self.config["learning_rate"] = 0.01
-            print_info("OMOP-CDM: armonizzazione cross-border (non-IID da eterogeneita vocabolario)")
-        elif selected_key == "diabetes":
-            self.config["dataset_type"] = "diabetes"
-            self.config["dataset_name"] = "diabetes_130us"
-            self.config["dataset_path"] = str(Path(__file__).parent.parent.parent / "data" / "diabetes" / "diabetic_data.csv")
-            self.config["learning_rate"] = 0.01
-            print_info("Diabetes 130-US: 101K encounters, 22 features, readmission prediction")
-        elif selected_key == "heart_disease":
-            self.config["dataset_type"] = "heart_disease"
-            self.config["dataset_name"] = "heart_disease_uci"
-            self.config["dataset_path"] = str(Path(__file__).parent.parent.parent / "data" / "heart_disease")
-            self.config["learning_rate"] = 0.01
-            self.config["num_clients"] = 4
-            print_info("Heart Disease UCI: 920 pazienti, 4 ospedali, diagnosi cardiaca")
-        else:
-            self.config["dataset_type"] = "imaging"
-            self.config["dataset_name"] = selected_key
-            self.config["dataset_path"] = available_datasets[selected_key]["path"]
-            self.config["learning_rate"] = 0.001
-            print_info(f"Dataset imaging selezionato: {selected_key}")
-
-        # Dataset parameter suggestion
-        if self.config["dataset_type"] in ("imaging", "fhir", "omop", "diabetes", "heart_disease") and self.config.get("dataset_name"):
-            try:
-                from config.config_loader import get_dataset_parameters
-                ds_params = get_dataset_parameters(self.config["dataset_name"])
-                if ds_params:
-                    print()
-                    print_info(f"Parametri suggeriti per {self.config['dataset_name']}:")
-                    print(f"  LR={ds_params.get('learning_rate')}  "
-                          f"Batch={ds_params.get('batch_size')}  "
-                          f"Rounds={ds_params.get('num_rounds')}  "
-                          f"Alpha={ds_params.get('alpha')}")
-                    print(f"  Algoritmi consigliati: "
-                          f"{', '.join(ds_params.get('recommended_algorithms', []))}")
-                    if ds_params.get("notes"):
-                        print(f"  Note: {ds_params['notes']}")
-                    if confirm("\nApplicare parametri dataset?", default=True):
-                        for k in ["learning_rate", "batch_size", "num_rounds", "local_epochs"]:
-                            if k in ds_params:
-                                self.config[k] = ds_params[k]
-                        print_success("Parametri dataset applicati.")
-            except (ImportError, Exception):
-                pass
-
-        # Model selection (imaging datasets only)
-        if self.config["dataset_type"] == "imaging":
-            model_choice = questionary.select(
-                "Modello:",
-                choices=[
-                    "ResNet18 (pretrained ImageNet, consigliato)",
-                    "CNN custom (leggera, ~500K params)",
-                ],
-                default="ResNet18 (pretrained ImageNet, consigliato)",
-            ).ask()
-            if model_choice and "CNN" in model_choice:
-                self.config["model_type"] = "cnn"
-            else:
-                self.config["model_type"] = "resnet18"
-                self.config["batch_size"] = 16
+        apply_dataset_selection(self.config, dataset_map[selected], available_datasets)
+        apply_dataset_parameters(self.config)
+        select_imaging_model(self.config)
 
         # Basic parameters
         print_subsection("Parametri Training")
@@ -308,66 +172,7 @@ class AlgorithmsScreen:
         )
 
         # EHDS Data Permit (optional)
-        print_subsection("EHDS Data Permit (Opzionale)")
-        self.config["ehds_permit_enabled"] = get_bool(
-            "Abilitare EHDS Data Permit governance?",
-            default=self.config.get("ehds_permit_enabled", False)
-        )
-
-        if self.config["ehds_permit_enabled"]:
-            purpose_choices = [
-                "ai_system_development",
-                "scientific_research",
-                "public_health_surveillance",
-                "health_policy",
-                "education_training",
-                "personalized_medicine",
-                "official_statistics",
-                "patient_safety",
-            ]
-            if HAS_QUESTIONARY:
-                self.config["ehds_purpose"] = questionary.select(
-                    "EHDS purpose (Article 53):",
-                    choices=purpose_choices,
-                    default=self.config.get("ehds_purpose", "ai_system_development"),
-                    style=MENU_STYLE,
-                ).ask() or "ai_system_development"
-            else:
-                from terminal.validators import get_choice
-                self.config["ehds_purpose"] = get_choice(
-                    "EHDS purpose (Article 53):",
-                    purpose_choices,
-                    default="ai_system_development",
-                )
-
-            # Auto-detect data categories
-            category_map = {
-                "synthetic": ["ehr"],
-                "fhir": ["ehr", "lab_results"],
-                "omop": ["ehr", "lab_results"],
-                "imaging": ["imaging"],
-                "diabetes": ["ehr", "lab_results"],
-                "heart_disease": ["ehr", "lab_results"],
-            }
-            self.config["ehds_data_categories"] = category_map.get(
-                self.config["dataset_type"], ["ehr"]
-            )
-            self.config["ehds_privacy_budget"] = get_float(
-                "  Privacy budget (epsilon totale)",
-                default=self.config.get("ehds_privacy_budget", 100.0),
-                min_val=0.1, max_val=1000.0
-            )
-            self.config["ehds_max_rounds"] = get_int(
-                "  Massimo round autorizzati",
-                default=self.config.get("num_rounds", 30),
-                min_val=1, max_val=10000
-            )
-            self.config["ehds_data_minimization"] = False
-            if self.config["dataset_type"] != "imaging":
-                self.config["ehds_data_minimization"] = get_bool(
-                    "  Applicare data minimization (Art. 44)?",
-                    default=False
-                )
+        configure_ehds_permit(self.config)
 
         display_config_summary(self.config)
         input(f"\n{Style.MUTED}Premi Enter per continuare...{Colors.RESET}")
@@ -388,115 +193,12 @@ class AlgorithmsScreen:
         print()
 
         try:
-            from terminal.fl_trainer import FederatedTrainer, ImageFederatedTrainer, HealthcareMLP, HealthcareCNN
-            import torch
-            import numpy as np
-
             self.results = {}
             self.histories = {}  # Store convergence history for plots
             total_runs = len(self.config["algorithms"]) * self.config["num_seeds"]
 
             if self.config["include_dp"]:
                 total_runs += len(self.config["dp_epsilons"]) * self.config["num_seeds"]
-
-            is_imaging = self.config["dataset_type"] == "imaging"
-            is_fhir = self.config["dataset_type"] == "fhir"
-            is_omop = self.config["dataset_type"] == "omop"
-            is_diabetes = self.config["dataset_type"] == "diabetes"
-            is_heart = self.config["dataset_type"] == "heart_disease"
-
-            # === VERIFICATION: Show that training is real ===
-            print_subsection("VERIFICA TRAINING REALE")
-            print(f"{Style.TITLE}Neural Network:{Colors.RESET}")
-            if is_imaging:
-                print(f"  Modello: HealthcareCNN (GroupNorm, PyTorch)")
-                print(f"  Architettura: 5-block CNN (32->64->128->256->512)")
-                print(f"  Normalizzazione: GroupNorm (FL-stable)")
-                print(f"  Augmentation: HFlip + Rotation + Brightness")
-                print(f"  Valutazione: Test set (20% held-out)")
-                print(f"  Optimizer: Adam (wd=1e-5) con lr={self.config['learning_rate']}")
-            elif is_fhir:
-                model = HealthcareMLP(input_dim=10)
-                total_params = sum(p.numel() for p in model.parameters())
-                print(f"  Modello: HealthcareMLP (PyTorch nn.Module)")
-                print(f"  Architettura: 10 -> 64 -> 32 -> 2 (MLP)")
-                print(f"  Parametri totali: {total_params:,}")
-                print(f"  Valutazione: Test set (20% held-out)")
-                print(f"  Optimizer: SGD con lr={self.config['learning_rate']}")
-            elif is_omop:
-                model = HealthcareMLP(input_dim=36)
-                total_params = sum(p.numel() for p in model.parameters())
-                print(f"  Modello: HealthcareMLP (PyTorch nn.Module)")
-                print(f"  Architettura: 36 -> 64 -> 32 -> 2 (MLP)")
-                print(f"  Parametri totali: {total_params:,}")
-                print(f"  Valutazione: Test set (20% held-out)")
-                print(f"  Optimizer: SGD con lr={self.config['learning_rate']}")
-            elif is_diabetes:
-                model = HealthcareMLP(input_dim=22)
-                total_params = sum(p.numel() for p in model.parameters())
-                print(f"  Modello: HealthcareMLP (PyTorch nn.Module)")
-                print(f"  Architettura: 22 -> 64 -> 32 -> 2 (MLP)")
-                print(f"  Parametri totali: {total_params:,}")
-                print(f"  Valutazione: Test set (20% held-out)")
-                print(f"  Optimizer: SGD con lr={self.config['learning_rate']}")
-            elif is_heart:
-                model = HealthcareMLP(input_dim=13)
-                total_params = sum(p.numel() for p in model.parameters())
-                print(f"  Modello: HealthcareMLP (PyTorch nn.Module)")
-                print(f"  Architettura: 13 -> 64 -> 32 -> 2 (MLP)")
-                print(f"  Parametri totali: {total_params:,}")
-                print(f"  Valutazione: Test set (20% held-out)")
-                print(f"  Optimizer: SGD con lr={self.config['learning_rate']}")
-            else:
-                model = HealthcareMLP()
-                total_params = sum(p.numel() for p in model.parameters())
-                print(f"  Modello: HealthcareMLP (PyTorch nn.Module)")
-                print(f"  Architettura: 10 -> 64 -> 32 -> 2 (MLP)")
-                print(f"  Parametri totali: {total_params:,}")
-                print(f"  Optimizer: SGD con lr={self.config['learning_rate']}")
-
-            print(f"  Loss: CrossEntropyLoss")
-
-            if is_imaging:
-                print(f"\n{Style.TITLE}Dataset clinico:{Colors.RESET}")
-                print(f"  Nome: {self.config['dataset_name']}")
-                print(f"  Path: {self.config['dataset_path']}")
-            elif is_fhir:
-                print(f"\n{Style.TITLE}Dataset FHIR R4:{Colors.RESET}")
-                print(f"  Sorgente: Ospedali sintetici (profili FHIR)")
-                print(f"  Features: age, gender, bmi, bp, heart_rate, glucose, ...")
-                print(f"  Target: mortality_30day (binario)")
-                print(f"  Non-IID naturale da profili ospedalieri")
-            elif is_omop:
-                print(f"\n{Style.TITLE}Dataset OMOP-CDM (Cross-Border):{Colors.RESET}")
-                print(f"  Sorgente: Ospedali EU con vocabolari locali -> OMOP armonizzato")
-                print(f"  Features: ~36 standardizzate OMOP (temporal windows: 30d/90d/365d)")
-                print(f"  Target: mortality_30day (binario)")
-                print(f"  Non-IID da eterogeneita vocabolario cross-border")
-            elif is_diabetes:
-                print(f"\n{Style.TITLE}Dataset Diabetes 130-US Hospitals:{Colors.RESET}")
-                print(f"  Sorgente: UCI - 101,766 encounters, 130 ospedali USA")
-                print(f"  Features: 22 (demographics + diagnosi ICD-9 + farmaci + lab)")
-                print(f"  Target: readmission <30 giorni (binario)")
-                print(f"  Non-IID naturale da partizione per ospedale")
-            elif is_heart:
-                print(f"\n{Style.TITLE}Dataset Heart Disease UCI (4 Centers):{Colors.RESET}")
-                print(f"  Sorgente: UCI - 920 pazienti, 4 ospedali internazionali")
-                print(f"  Features: 13 (vitali + ECG + stress test)")
-                print(f"  Target: malattia cardiaca (binario)")
-                print(f"  Non-IID naturale: Cleveland 46%, Hungarian 36%, Swiss 94%, VA 75%")
-            else:
-                print(f"\n{Style.TITLE}Dataset sintetico sanitario:{Colors.RESET}")
-                print(f"  Features: age, bmi, bp_systolic, glucose, cholesterol, ...")
-                print(f"  Target: Rischio malattia (binario: 0=basso, 1=alto)")
-                print(f"  Campioni per client: 200")
-
-            dist_label = 'IID' if self.config['data_distribution'] == 'IID' else (
-                'Non-IID (eterogeneita vocabolario)' if is_omop else
-                'Non-IID (profili ospedalieri)' if is_fhir else
-                'Non-IID (partizione per ospedale)' if (is_diabetes or is_heart) else 'Non-IID (Dirichlet)')
-            print(f"  Distribuzione: {dist_label}")
-            print()
 
             print_info(f"Totale run da eseguire: {total_runs}")
             print_info(f"Per ogni run: {self.config['num_rounds']} round x {self.config['num_clients']} client x {self.config['local_epochs']} epoche")
@@ -506,16 +208,9 @@ class AlgorithmsScreen:
             start_time = time.time()
 
             # EHDS Permit context (if enabled)
-            self._permit_context = None
-            if self.config.get("ehds_permit_enabled"):
-                from governance.permit_training import create_permit_context
-                self._permit_context = create_permit_context(self.config)
-                if self._permit_context:
-                    self._permit_context.start_session()
-                    print_success(f"EHDS Permit attivato: {self._permit_context.permit.permit_id}")
-                    print_info(f"  Purpose: {self.config.get('ehds_purpose', 'N/A')}")
-                    print_info(f"  Budget: epsilon={self.config.get('ehds_privacy_budget', 'N/A')}")
-                    print()
+            self._permit_context = setup_ehds_permit_context(self.config)
+            if self._permit_context:
+                print()
 
             # Progress callback for verbose mode
             def make_progress_callback(algorithm_name, seed_num):
@@ -546,136 +241,10 @@ class AlgorithmsScreen:
 
                     progress_cb = make_progress_callback(algorithm, seed) if verbose else None
 
-                    if is_imaging:
-                        trainer = ImageFederatedTrainer(
-                            data_dir=self.config["dataset_path"],
-                            num_clients=self.config["num_clients"],
-                            algorithm=algorithm,
-                            local_epochs=self.config["local_epochs"],
-                            batch_size=self.config["batch_size"],
-                            learning_rate=self.config["learning_rate"],
-                            is_iid=(self.config["data_distribution"] == "IID"),
-                            dp_enabled=False,
-                            seed=seed,
-                            progress_callback=progress_cb,
-                            model_type=self.config.get("model_type", "resnet18"),
-                            freeze_backbone=self.config.get("freeze_backbone", False),
-                            use_class_weights=self.config.get("use_class_weights", True),
-                        )
-                    elif is_fhir:
-                        from data.fhir_loader import load_fhir_data
-                        fhir_cfg = {}
-                        try:
-                            from config.config_loader import get_fhir_config
-                            fhir_cfg = get_fhir_config()
-                        except (ImportError, Exception):
-                            pass
-                        fhir_train, fhir_test, _ = load_fhir_data(
-                            num_clients=self.config["num_clients"],
-                            samples_per_client=fhir_cfg.get("samples_per_client", 500),
-                            hospital_profiles=fhir_cfg.get("profiles"),
-                            feature_spec=fhir_cfg.get("feature_spec"),
-                            label_name=fhir_cfg.get("label", "mortality_30day"),
-                            seed=seed,
-                        )
-                        trainer = FederatedTrainer(
-                            num_clients=self.config["num_clients"],
-                            algorithm=algorithm,
-                            local_epochs=self.config["local_epochs"],
-                            batch_size=self.config["batch_size"],
-                            learning_rate=self.config["learning_rate"],
-                            dp_enabled=False,
-                            seed=seed,
-                            progress_callback=progress_cb,
-                            external_data=fhir_train,
-                            external_test_data=fhir_test,
-                        )
-                    elif is_omop:
-                        from data.omop_harmonizer import load_omop_data
-                        omop_cfg = {}
-                        try:
-                            from config.config_loader import get_omop_config
-                            omop_cfg = get_omop_config()
-                        except (ImportError, Exception):
-                            pass
-                        omop_train, omop_test, omop_meta = load_omop_data(
-                            num_clients=self.config["num_clients"],
-                            samples_per_client=omop_cfg.get("samples_per_client", 500),
-                            hospital_profiles=omop_cfg.get("profiles"),
-                            country_codes=omop_cfg.get("country_codes"),
-                            label_name=omop_cfg.get("label", "mortality_30day"),
-                            seed=seed,
-                        )
-                        trainer = FederatedTrainer(
-                            num_clients=self.config["num_clients"],
-                            algorithm=algorithm,
-                            local_epochs=self.config["local_epochs"],
-                            batch_size=self.config["batch_size"],
-                            learning_rate=self.config["learning_rate"],
-                            dp_enabled=False,
-                            seed=seed,
-                            progress_callback=progress_cb,
-                            external_data=omop_train,
-                            external_test_data=omop_test,
-                            input_dim=omop_meta.get("num_features"),
-                        )
-                    elif is_diabetes:
-                        from data.diabetes_loader import load_diabetes_data
-                        diab_train, diab_test, diab_meta = load_diabetes_data(
-                            num_clients=self.config["num_clients"],
-                            partition_by_hospital=not (self.config["data_distribution"] == "IID"),
-                            is_iid=(self.config["data_distribution"] == "IID"),
-                            seed=seed,
-                            data_path=self.config.get("dataset_path"),
-                        )
-                        trainer = FederatedTrainer(
-                            num_clients=self.config["num_clients"],
-                            algorithm=algorithm,
-                            local_epochs=self.config["local_epochs"],
-                            batch_size=self.config["batch_size"],
-                            learning_rate=self.config["learning_rate"],
-                            dp_enabled=False,
-                            seed=seed,
-                            progress_callback=progress_cb,
-                            external_data=diab_train,
-                            external_test_data=diab_test,
-                            input_dim=diab_meta["num_features"],
-                        )
-                    elif is_heart:
-                        from data.heart_disease_loader import load_heart_disease_data
-                        heart_train, heart_test, heart_meta = load_heart_disease_data(
-                            num_clients=self.config["num_clients"],
-                            partition_by_hospital=not (self.config["data_distribution"] == "IID"),
-                            is_iid=(self.config["data_distribution"] == "IID"),
-                            seed=seed,
-                            data_path=self.config.get("dataset_path"),
-                        )
-                        trainer = FederatedTrainer(
-                            num_clients=self.config["num_clients"],
-                            algorithm=algorithm,
-                            local_epochs=self.config["local_epochs"],
-                            batch_size=self.config["batch_size"],
-                            learning_rate=self.config["learning_rate"],
-                            dp_enabled=False,
-                            seed=seed,
-                            progress_callback=progress_cb,
-                            external_data=heart_train,
-                            external_test_data=heart_test,
-                            input_dim=heart_meta["num_features"],
-                        )
-                    else:
-                        trainer = FederatedTrainer(
-                            num_clients=self.config["num_clients"],
-                            samples_per_client=200,
-                            algorithm=algorithm,
-                            local_epochs=self.config["local_epochs"],
-                            batch_size=self.config["batch_size"],
-                            learning_rate=self.config["learning_rate"],
-                            is_iid=(self.config["data_distribution"] == "IID"),
-                            dp_enabled=False,
-                            seed=seed,
-                            progress_callback=progress_cb,
-                        )
+                    trainer, _ = create_trainer(
+                        config=self.config, algorithm=algorithm, seed=seed,
+                        progress_callback=progress_cb, verbose=False,
+                    )
 
                     # Show data distribution for first run
                     if seed == 0:
@@ -734,8 +303,8 @@ class AlgorithmsScreen:
 
                 # Calculate statistics and store history
                 if algo_results:
-                    self.results[algorithm] = self._calculate_stats(algo_results)
-                    self.histories[algorithm] = self._average_history(algo_histories)
+                    self.results[algorithm] = calculate_stats(algo_results)
+                    self.histories[algorithm] = average_history(algo_histories)
                 else:
                     print_warning(f"  Nessun risultato valido per {algorithm} (tutti i seed falliti)")
                     self.results[algorithm] = {}
@@ -756,140 +325,11 @@ class AlgorithmsScreen:
 
                         progress_cb = make_progress_callback(algo_name, seed) if verbose else None
 
-                        if is_imaging:
-                            trainer = ImageFederatedTrainer(
-                                data_dir=self.config["dataset_path"],
-                                num_clients=self.config["num_clients"],
-                                algorithm="FedAvg",
-                                local_epochs=self.config["local_epochs"],
-                                batch_size=self.config["batch_size"],
-                                learning_rate=self.config["learning_rate"],
-                                is_iid=False,
-                                dp_enabled=True,
-                                dp_epsilon=epsilon,
-                                seed=seed,
-                                progress_callback=progress_cb,
-                                model_type=self.config.get("model_type", "resnet18"),
-                                freeze_backbone=self.config.get("freeze_backbone", False),
-                                use_class_weights=self.config.get("use_class_weights", True),
-                            )
-                        elif is_fhir:
-                            from data.fhir_loader import load_fhir_data
-                            fhir_cfg = {}
-                            try:
-                                from config.config_loader import get_fhir_config
-                                fhir_cfg = get_fhir_config()
-                            except (ImportError, Exception):
-                                pass
-                            fhir_train, fhir_test, _ = load_fhir_data(
-                                num_clients=self.config["num_clients"],
-                                samples_per_client=fhir_cfg.get("samples_per_client", 500),
-                                hospital_profiles=fhir_cfg.get("profiles"),
-                                feature_spec=fhir_cfg.get("feature_spec"),
-                                label_name=fhir_cfg.get("label", "mortality_30day"),
-                                seed=seed,
-                            )
-                            trainer = FederatedTrainer(
-                                num_clients=self.config["num_clients"],
-                                algorithm="FedAvg",
-                                local_epochs=self.config["local_epochs"],
-                                batch_size=self.config["batch_size"],
-                                learning_rate=self.config["learning_rate"],
-                                dp_enabled=True,
-                                dp_epsilon=epsilon,
-                                seed=seed,
-                                progress_callback=progress_cb,
-                                external_data=fhir_train,
-                                external_test_data=fhir_test,
-                            )
-                        elif is_omop:
-                            from data.omop_harmonizer import load_omop_data
-                            omop_cfg = {}
-                            try:
-                                from config.config_loader import get_omop_config
-                                omop_cfg = get_omop_config()
-                            except (ImportError, Exception):
-                                pass
-                            omop_train, omop_test, omop_meta = load_omop_data(
-                                num_clients=self.config["num_clients"],
-                                samples_per_client=omop_cfg.get("samples_per_client", 500),
-                                hospital_profiles=omop_cfg.get("profiles"),
-                                country_codes=omop_cfg.get("country_codes"),
-                                label_name=omop_cfg.get("label", "mortality_30day"),
-                                seed=seed,
-                            )
-                            trainer = FederatedTrainer(
-                                num_clients=self.config["num_clients"],
-                                algorithm="FedAvg",
-                                local_epochs=self.config["local_epochs"],
-                                batch_size=self.config["batch_size"],
-                                learning_rate=self.config["learning_rate"],
-                                dp_enabled=True,
-                                dp_epsilon=epsilon,
-                                seed=seed,
-                                progress_callback=progress_cb,
-                                external_data=omop_train,
-                                external_test_data=omop_test,
-                                input_dim=omop_meta.get("num_features"),
-                            )
-                        elif is_diabetes:
-                            from data.diabetes_loader import load_diabetes_data
-                            diab_train, diab_test, diab_meta = load_diabetes_data(
-                                num_clients=self.config["num_clients"],
-                                partition_by_hospital=True,
-                                seed=seed,
-                                data_path=self.config.get("dataset_path"),
-                            )
-                            trainer = FederatedTrainer(
-                                num_clients=self.config["num_clients"],
-                                algorithm="FedAvg",
-                                local_epochs=self.config["local_epochs"],
-                                batch_size=self.config["batch_size"],
-                                learning_rate=self.config["learning_rate"],
-                                dp_enabled=True,
-                                dp_epsilon=epsilon,
-                                seed=seed,
-                                progress_callback=progress_cb,
-                                external_data=diab_train,
-                                external_test_data=diab_test,
-                                input_dim=diab_meta["num_features"],
-                            )
-                        elif is_heart:
-                            from data.heart_disease_loader import load_heart_disease_data
-                            heart_train, heart_test, heart_meta = load_heart_disease_data(
-                                num_clients=self.config["num_clients"],
-                                partition_by_hospital=True,
-                                seed=seed,
-                                data_path=self.config.get("dataset_path"),
-                            )
-                            trainer = FederatedTrainer(
-                                num_clients=self.config["num_clients"],
-                                algorithm="FedAvg",
-                                local_epochs=self.config["local_epochs"],
-                                batch_size=self.config["batch_size"],
-                                learning_rate=self.config["learning_rate"],
-                                dp_enabled=True,
-                                dp_epsilon=epsilon,
-                                seed=seed,
-                                progress_callback=progress_cb,
-                                external_data=heart_train,
-                                external_test_data=heart_test,
-                                input_dim=heart_meta["num_features"],
-                            )
-                        else:
-                            trainer = FederatedTrainer(
-                                num_clients=self.config["num_clients"],
-                                samples_per_client=200,
-                                algorithm="FedAvg",
-                                local_epochs=self.config["local_epochs"],
-                                batch_size=self.config["batch_size"],
-                                learning_rate=self.config["learning_rate"],
-                                is_iid=False,
-                                dp_enabled=True,
-                                dp_epsilon=epsilon,
-                                seed=seed,
-                                progress_callback=progress_cb,
-                            )
+                        trainer, _ = create_trainer(
+                            config=self.config, algorithm="FedAvg", seed=seed,
+                            progress_callback=progress_cb,
+                            dp_enabled=True, dp_epsilon=epsilon, verbose=False,
+                        )
 
                         history = []
                         final_result = None
@@ -937,8 +377,8 @@ class AlgorithmsScreen:
                               f"Prec={final_result['precision']:.3f}, Rec={final_result['recall']:.3f}, AUC={final_result['auc']:.3f}")
 
                     if dp_results:
-                        self.results[algo_name] = self._calculate_stats(dp_results)
-                        self.histories[algo_name] = self._average_history(dp_histories)
+                        self.results[algo_name] = calculate_stats(dp_results)
+                        self.histories[algo_name] = average_history(dp_histories)
                     else:
                         print_warning(f"  Nessun risultato valido per {algo_name} (tutti i seed falliti)")
                         self.results[algo_name] = {}
@@ -978,41 +418,6 @@ class AlgorithmsScreen:
             traceback.print_exc()
 
         input(f"\n{Style.MUTED}Premi Enter per continuare...{Colors.RESET}")
-
-    def _calculate_stats(self, results: List[Dict]) -> Dict[str, Any]:
-        """Calculate mean and std for metrics."""
-        import numpy as np
-
-        metrics = {}
-        for key in ["accuracy", "f1", "precision", "recall", "auc", "loss"]:
-            values = [r.get(key, 0) for r in results if r]
-            if values:
-                metrics[key] = {
-                    "mean": float(np.mean(values)),
-                    "std": float(np.std(values)),
-                }
-
-        return metrics
-
-    def _average_history(self, histories: List[List[Dict]]) -> List[Dict]:
-        """Average multiple history runs with all metrics."""
-        import numpy as np
-
-        if not histories or not histories[0]:
-            return []
-
-        num_rounds = len(histories[0])
-        avg_history = []
-
-        for r in range(num_rounds):
-            entry = {"round": r}
-            for key in ["accuracy", "loss", "f1", "precision", "recall", "auc"]:
-                values = [h[r].get(key, 0) for h in histories if len(h) > r]
-                if values:
-                    entry[key] = float(np.mean(values))
-            avg_history.append(entry)
-
-        return avg_history
 
     def _auto_save_all_outputs(self, elapsed_time: float):
         """Automatically save all outputs after comparison completes."""
@@ -1089,7 +494,7 @@ class AlgorithmsScreen:
 
         # 2. Generate LaTeX table with specs
         latex_file = output_dir / "table_results.tex"
-        latex_content = self._generate_latex_with_specs(full_specs)
+        latex_content = generate_comparison_latex(self.results, full_specs)
         with open(latex_file, "w") as f:
             f.write(latex_content)
         saved_files.append(("LaTeX (Tabella)", latex_file))
@@ -1268,91 +673,6 @@ class AlgorithmsScreen:
             print(f"  {file_type:<23} {file_path.name}")
         print("-" * 85)
         print(f"\n{Style.SUCCESS}Totale: {len(saved_files)} file salvati{Colors.RESET}")
-
-    def _generate_latex_with_specs(self, specs: Dict) -> str:
-        """Generate LaTeX table with full training specifications."""
-        lines = []
-        lines.append("% FL-EHDS Algorithm Comparison Results")
-        lines.append(f"% Generated: {specs['timestamp']}")
-        lines.append(f"% Training time: {specs['elapsed_time_seconds']:.1f} seconds")
-        lines.append("")
-        lines.append(r"\begin{table}[htbp]")
-        lines.append(r"\centering")
-        lines.append(r"\caption{Federated Learning Algorithm Comparison}")
-        lines.append(r"\label{tab:fl_comparison}")
-        lines.append(r"\small")
-        lines.append(r"\begin{tabular}{lccccc}")
-        lines.append(r"\toprule")
-        lines.append(r"\textbf{Algorithm} & \textbf{Accuracy} & \textbf{F1} & \textbf{Precision} & \textbf{Recall} & \textbf{AUC} \\")
-        lines.append(r"\midrule")
-
-        # Find best accuracy for highlighting
-        best_acc = max(
-            self.results[algo].get("accuracy", {}).get("mean", 0)
-            for algo in self.results
-        )
-
-        for algo, metrics in self.results.items():
-            acc = metrics.get("accuracy", {})
-            f1 = metrics.get("f1", {})
-            prec = metrics.get("precision", {})
-            rec = metrics.get("recall", {})
-            auc = metrics.get("auc", {})
-
-            acc_mean = acc.get("mean", 0) * 100
-            acc_std = acc.get("std", 0) * 100
-            f1_mean = f1.get("mean", 0)
-            f1_std = f1.get("std", 0)
-            prec_mean = prec.get("mean", 0)
-            prec_std = prec.get("std", 0)
-            rec_mean = rec.get("mean", 0)
-            rec_std = rec.get("std", 0)
-            auc_mean = auc.get("mean", 0)
-            auc_std = auc.get("std", 0)
-
-            # Escape special chars
-            safe_algo = algo.replace("_", r"\_").replace("&", r"\&")
-
-            # Format metrics
-            acc_str = f"{acc_mean:.1f}\\%$\\pm${acc_std:.1f}"
-            f1_str = f"{f1_mean:.3f}$\\pm${f1_std:.3f}"
-            prec_str = f"{prec_mean:.3f}$\\pm${prec_std:.3f}"
-            rec_str = f"{rec_mean:.3f}$\\pm${rec_std:.3f}"
-            auc_str = f"{auc_mean:.3f}$\\pm${auc_std:.3f}"
-
-            # Bold if best
-            if abs(acc.get("mean", 0) - best_acc) < 0.001:
-                lines.append(f"\\textbf{{{safe_algo}}} & \\textbf{{{acc_str}}} & \\textbf{{{f1_str}}} & "
-                            f"\\textbf{{{prec_str}}} & \\textbf{{{rec_str}}} & \\textbf{{{auc_str}}} \\\\")
-            else:
-                lines.append(f"{safe_algo} & {acc_str} & {f1_str} & {prec_str} & {rec_str} & {auc_str} \\\\")
-
-        lines.append(r"\bottomrule")
-        lines.append(r"\end{tabular}")
-        lines.append("")
-        lines.append(r"\vspace{2mm}")
-
-        # Add full training specs
-        tc = specs["training_config"]
-        mc = specs["model_config"]
-        lines.append(r"\begin{minipage}{\textwidth}")
-        lines.append(r"\footnotesize")
-        lines.append(r"\textit{Training Configuration:} \\")
-        lines.append(f"Clients: {tc['num_clients']} | "
-                    f"Rounds: {tc['num_rounds']} | "
-                    f"Local Epochs: {tc['local_epochs']} | "
-                    f"Batch Size: {tc['batch_size']} | "
-                    f"Learning Rate: {tc['learning_rate']} \\\\")
-        lines.append(f"Data Distribution: {tc['data_distribution']} | "
-                    f"Samples/Client: {tc['samples_per_client']} | "
-                    f"Seeds: {tc['num_seeds']} \\\\")
-        lines.append(f"Model: {mc['architecture']} ({mc['layers']}) | "
-                    f"Optimizer: {mc['optimizer']} | "
-                    f"Loss: {mc['loss_function']}")
-        lines.append(r"\end{minipage}")
-        lines.append(r"\end{table}")
-
-        return "\n".join(lines)
 
     def _show_comparison_table(self):
         """Display comparison table with all metrics."""
