@@ -214,8 +214,8 @@ class MainMenu:
 
     def _vertical_menu(self):
         """Open vertical FL submenu."""
-        print_info("Vertical FL - In sviluppo")
-        input(f"\n{Style.MUTED}Premi Enter per continuare...{Colors.RESET}")
+        from terminal.screens.vertical_fl import VerticalFLScreen
+        VerticalFLScreen().run()
 
     def _byzantine_menu(self):
         """Open byzantine resilience submenu."""
@@ -225,18 +225,18 @@ class MainMenu:
 
     def _continual_menu(self):
         """Open continual learning submenu."""
-        print_info("Continual Learning - In sviluppo")
-        input(f"\n{Style.MUTED}Premi Enter per continuare...{Colors.RESET}")
+        from terminal.screens.continual_learning import ContinualLearningScreen
+        ContinualLearningScreen().run()
 
     def _multitask_menu(self):
         """Open multi-task FL submenu."""
-        print_info("Multi-Task FL - In sviluppo")
-        input(f"\n{Style.MUTED}Premi Enter per continuare...{Colors.RESET}")
+        from terminal.screens.multi_task import MultiTaskScreen
+        MultiTaskScreen().run()
 
     def _hierarchical_menu(self):
         """Open hierarchical FL submenu."""
-        print_info("Hierarchical FL - In sviluppo")
-        input(f"\n{Style.MUTED}Premi Enter per continuare...{Colors.RESET}")
+        from terminal.screens.hierarchical import HierarchicalScreen
+        HierarchicalScreen().run()
 
     def _compliance_menu(self):
         """Open EHDS cross-border compliance submenu."""
