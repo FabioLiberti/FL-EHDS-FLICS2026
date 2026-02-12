@@ -21,7 +21,7 @@ pip install -e .
 python -m terminal
 
 # Web Dashboard
-streamlit run dashboard/app.py
+streamlit run dashboard/app_v4.py
 
 # Run experiments
 python -m experiments.centralized_vs_federated --dataset chest_xray --quick
@@ -80,7 +80,7 @@ fl-ehds-framework/
 |       +-- byzantine.py            # Byzantine resilience
 |
 |-- dashboard/                      # Streamlit Web Dashboard
-|   |-- app.py                      # Main dashboard
+|   |-- app_v4.py                   # Main dashboard
 |   |-- dataset_page.py             # Dataset browser
 |   +-- real_trainer_bridge.py      # Terminal-Web bridge
 |

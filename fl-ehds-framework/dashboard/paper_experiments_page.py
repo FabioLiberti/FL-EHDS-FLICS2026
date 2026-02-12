@@ -19,8 +19,11 @@ sys.path.insert(0, str(FRAMEWORK_DIR))
 from benchmarks.generate_paper_outputs import (
     load_all_checkpoints, compute_significance,
     generate_multi_dataset_table, generate_ablation_table,
-    generate_attack_table, generate_figures, OUTPUT_DIR,
+    generate_attack_table, generate_figures,
+    generate_fairness_table, generate_noniid_table,
+    generate_communication_table, OUTPUT_DIR,
     ALGORITHMS, ALL_DATASETS, SEEDS,
+    NONIID_ALPHAS, NONIID_ALGOS,
     IMAGING_DATASETS as IMG_DS, TABULAR_DATASETS as TAB_DS,
 )
 
@@ -154,6 +157,30 @@ def _render_status_tab():
     else:
         st.info("Nessun checkpoint P1.3 trovato.")
 
+    # P1.4 Non-IID Severity
+    st.subheader("P1.4 Non-IID Severity Study (alpha sweep)")
+    p14 = checkpoints.get("p14")
+    total_p14 = len(NONIID_ALPHAS) * len(NONIID_ALGOS) * len(SEEDS)
+
+    if p14 and "completed" in p14:
+        completed = p14["completed"]
+        ok = {k: v for k, v in completed.items() if "error" not in v}
+
+        col1, col2 = st.columns(2)
+        col1.metric("Completati", f"{len(ok)}/{total_p14}")
+        col2.metric("Progresso", f"{len(ok)/total_p14*100:.0f}%")
+
+        alpha_data = []
+        for alpha in NONIID_ALPHAS:
+            row = {"Alpha": alpha}
+            for algo in NONIID_ALGOS:
+                seeds_done = sum(1 for s in SEEDS if f"alpha_{alpha}_{algo}_{s}" in ok)
+                row[algo] = f"{seeds_done}/{len(SEEDS)}" if seeds_done < len(SEEDS) else "OK"
+            alpha_data.append(row)
+        st.dataframe(pd.DataFrame(alpha_data), use_container_width=True, hide_index=True)
+    else:
+        st.info("Nessun checkpoint P1.4 trovato.")
+
     # P2.2 Attack
     st.subheader("P2.2 Privacy Attack (DLG)")
     p22 = checkpoints.get("p22")
@@ -203,6 +230,7 @@ def _render_execute_tab():
     block = st.selectbox("Blocco sperimentale", [
         "P1.2 Multi-Dataset",
         "P1.3 Ablation Study",
+        "P1.4 Non-IID Severity",
         "P2.2 Privacy Attack",
     ], key="exp_block")
 
@@ -224,6 +252,10 @@ def _render_execute_tab():
     elif block == "P1.3 Ablation Study":
         extra_args = ["--only", "p13", "--resume"]
         st.info("Ablation study su chest_xray: clip, epsilon, model, class weights")
+
+    elif block == "P1.4 Non-IID Severity":
+        extra_args = ["--only", "p14", "--resume"]
+        st.info("Alpha sweep (0.1, 0.5, 1.0, 5.0) x 3 algos x 3 seeds su chest_xray")
 
     elif block == "P2.2 Privacy Attack":
         extra_args = ["--only", "p22"]
@@ -286,7 +318,9 @@ def _render_output_tab():
                 checkpoints = load_all_checkpoints()
                 p12 = checkpoints.get("p12")
                 p13 = checkpoints.get("p13")
+                p14 = checkpoints.get("p14")
                 p22 = checkpoints.get("p22")
+                comm = checkpoints.get("comm")
 
                 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
                 generated = []
@@ -303,15 +337,30 @@ def _render_output_tab():
                     (OUTPUT_DIR / "table_multi_dataset.tex").write_text(tex)
                     generated.append("table_multi_dataset.tex")
 
+                    tex = generate_fairness_table(p12)
+                    (OUTPUT_DIR / "table_fairness.tex").write_text(tex)
+                    generated.append("table_fairness.tex")
+
                 if p13:
                     tex = generate_ablation_table(p13)
                     (OUTPUT_DIR / "table_ablation.tex").write_text(tex)
                     generated.append("table_ablation.tex")
 
+                if p14:
+                    tex = generate_noniid_table(p14)
+                    (OUTPUT_DIR / "table_noniid.tex").write_text(tex)
+                    generated.append("table_noniid.tex")
+
                 if p22:
                     tex = generate_attack_table(p22)
                     (OUTPUT_DIR / "table_attack.tex").write_text(tex)
                     generated.append("table_attack.tex")
+
+                if comm:
+                    tex = generate_communication_table(comm)
+                    if tex:
+                        (OUTPUT_DIR / "table_communication.tex").write_text(tex)
+                        generated.append("table_communication.tex")
 
                 try:
                     n = generate_figures(p12 or {}, p13 or {}, p22 or {}, OUTPUT_DIR)

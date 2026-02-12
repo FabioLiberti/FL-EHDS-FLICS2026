@@ -195,6 +195,7 @@ class FHIRPreprocessor:
         categorical_encoding: str = "onehot",
         numerical_scaling: str = "standard",
         custom_mappings: Optional[Dict[str, FHIRResourceMapping]] = None,
+        strict_validation: bool = False,
     ):
         """
         Initialize FHIR preprocessor.
@@ -208,7 +209,8 @@ class FHIRPreprocessor:
             numerical_scaling: Numerical scaling ('standard', 'minmax').
             custom_mappings: Custom resource mappings.
         """
-        self.validator = validator or FHIRValidator()
+        self.strict_validation = strict_validation
+        self.validator = validator or FHIRValidator(strict=strict_validation)
         self.normalize = normalize
         self.handle_missing = handle_missing
         self.imputation_method = imputation_method
@@ -493,3 +495,190 @@ class FHIRPreprocessor:
     def get_feature_stats(self) -> Dict[str, Dict[str, float]]:
         """Get learned feature statistics."""
         return self._feature_stats.copy()
+
+    def process_resource(self, resource: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Process a single FHIR resource into feature dictionary.
+
+        Args:
+            resource: FHIR resource dictionary.
+
+        Returns:
+            Dictionary of extracted features.
+        """
+        resource_type = resource.get("resourceType", "Unknown")
+
+        # Validate if strict
+        if self.strict_validation:
+            is_valid, errors = self.validator.validate(resource)
+            if not is_valid:
+                raise FHIRValidationError(resource_type, resource.get("id", ""), errors)
+            # Reject unknown resource types in strict mode
+            supported_types = set(self.mappings.keys())
+            if resource_type not in supported_types:
+                raise FHIRValidationError(
+                    resource_type, resource.get("id", ""),
+                    [f"Unsupported resource type: {resource_type}"],
+                )
+
+        features = {}
+
+        if resource_type == "Patient":
+            if "birthDate" in resource:
+                try:
+                    birth = datetime.strptime(resource["birthDate"][:10], "%Y-%m-%d")
+                    features["age"] = (datetime.now() - birth).days / 365.25
+                    features["birth_year"] = birth.year
+                except ValueError:
+                    features["age"] = 0.0
+            if "gender" in resource:
+                features["gender"] = resource["gender"]
+            if "address" in resource and resource["address"]:
+                addr = resource["address"][0] if isinstance(resource["address"], list) else resource["address"]
+                if isinstance(addr, dict) and "country" in addr:
+                    features["country"] = addr["country"]
+
+        elif resource_type == "Observation":
+            if "code" in resource:
+                code = resource["code"]
+                if isinstance(code, dict) and "coding" in code and code["coding"]:
+                    features["code"] = code["coding"][0].get("code", "")
+            if "valueQuantity" in resource:
+                vq = resource["valueQuantity"]
+                if isinstance(vq, dict):
+                    features["value"] = vq.get("value", 0)
+                    features["unit"] = vq.get("unit", "")
+
+        elif resource_type in self.mappings:
+            mapping = self.mappings[resource_type]
+            for field in mapping.fields:
+                value = self._extract_field(resource, field)
+                if value is not None:
+                    features[field] = value
+
+        if not features:
+            features["id"] = resource.get("id", "unknown")
+
+        return features
+
+    def process_batch(self, resources: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
+        Process a batch of FHIR resources.
+
+        Args:
+            resources: List of FHIR resource dictionaries.
+
+        Returns:
+            List of feature dictionaries.
+        """
+        results = []
+        for resource in resources:
+            try:
+                features = self.process_resource(resource)
+                results.append(features)
+            except FHIRValidationError:
+                if self.handle_missing == "error":
+                    raise
+        return results
+
+
+class FeatureExtractor:
+    """
+    Extracts and encodes features from processed records.
+    """
+
+    def __init__(
+        self,
+        feature_columns: List[str],
+        categorical_columns: Optional[List[str]] = None,
+        missing_value_strategy: str = "default",
+        default_values: Optional[Dict[str, Any]] = None,
+        encoding_strategy: str = "label",
+    ):
+        self.feature_columns = feature_columns
+        self.categorical_columns = categorical_columns or []
+        self.missing_value_strategy = missing_value_strategy
+        self.default_values = default_values or {}
+        self.encoding_strategy = encoding_strategy
+        self._encoders: Dict[str, Dict[str, int]] = {}
+
+    def fit(self, records: List[Dict[str, Any]]) -> "FeatureExtractor":
+        """Learn encodings from records."""
+        for col in self.categorical_columns:
+            unique_values = set()
+            for record in records:
+                val = record.get(col)
+                if val is not None:
+                    unique_values.add(str(val))
+            self._encoders[col] = {v: i for i, v in enumerate(sorted(unique_values))}
+        return self
+
+    def extract(self, record: Dict[str, Any]) -> List[float]:
+        """Extract features from a single record."""
+        features = []
+        for col in self.feature_columns:
+            val = record.get(col)
+
+            if val is None:
+                val = self.default_values.get(col, 0)
+
+            if col in self.categorical_columns:
+                encoder = self._encoders.get(col, {})
+                if self.encoding_strategy == "onehot" and encoder:
+                    onehot = [0.0] * len(encoder)
+                    idx = encoder.get(str(val))
+                    if idx is not None:
+                        onehot[idx] = 1.0
+                    features.extend(onehot)
+                else:
+                    features.append(float(encoder.get(str(val), 0)))
+            else:
+                try:
+                    features.append(float(val))
+                except (ValueError, TypeError):
+                    features.append(0.0)
+
+        return features
+
+
+class DataNormalizer:
+    """
+    Normalizes feature matrices using standard or min-max scaling.
+    """
+
+    def __init__(self, method: str = "standard"):
+        self.method = method
+        self._mean: Optional[np.ndarray] = None
+        self._std: Optional[np.ndarray] = None
+        self._min: Optional[np.ndarray] = None
+        self._max: Optional[np.ndarray] = None
+
+    def fit(self, data: np.ndarray) -> "DataNormalizer":
+        """Learn normalization parameters from data."""
+        if self.method == "standard":
+            self._mean = np.mean(data, axis=0)
+            self._std = np.std(data, axis=0)
+            self._std[self._std == 0] = 1.0  # prevent division by zero
+        elif self.method == "minmax":
+            self._min = np.min(data, axis=0)
+            self._max = np.max(data, axis=0)
+            rng = self._max - self._min
+            rng[rng == 0] = 1.0
+            self._max = self._min + rng  # adjusted to prevent div/0
+        return self
+
+    def transform(self, data: np.ndarray) -> np.ndarray:
+        """Normalize data using fitted parameters."""
+        if self.method == "standard":
+            return (data - self._mean) / self._std
+        elif self.method == "minmax":
+            return (data - self._min) / (self._max - self._min)
+        return data
+
+    def inverse_transform(self, data: np.ndarray) -> np.ndarray:
+        """Reverse normalization."""
+        if self.method == "standard":
+            return data * self._std + self._mean
+        elif self.method == "minmax":
+            return data * (self._max - self._min) + self._min
+        return data

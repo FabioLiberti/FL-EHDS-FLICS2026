@@ -1633,6 +1633,25 @@ def render_training_tab(config: Dict):
         elif mode == "real_imaging":
             run_training_real_imaging(config)
 
+    # Show persisted results from previous run (survives Streamlit reruns)
+    if "last_training_results" in st.session_state and st.session_state.last_training_results:
+        prev = st.session_state.last_training_results
+        with st.expander("Risultati ultimo training", expanded=True):
+            st.markdown(f"**Algoritmo:** {prev.get('algorithm', '?')} | "
+                        f"**Rounds:** {prev.get('num_rounds', '?')} | "
+                        f"**Modalita':** {prev.get('mode', '?')}")
+            final = prev.get("final_metrics", {})
+            col_a, col_b, col_c = st.columns(3)
+            col_a.metric("Accuracy", f"{final.get('accuracy', 0):.3f}")
+            col_b.metric("F1 Score", f"{final.get('f1', 0):.3f}")
+            col_c.metric("AUC", f"{final.get('auc', 0):.3f}")
+            col_d, col_e, col_f = st.columns(3)
+            col_d.metric("Loss", f"{final.get('loss', 0):.4f}")
+            col_e.metric("Precision", f"{final.get('precision', 0):.3f}")
+            col_f.metric("Recall", f"{final.get('recall', 0):.3f}")
+            if prev.get("history"):
+                st.caption(f"Training completato con {len(prev['history'])} round")
+
 
 def run_training_v4(config: Dict):
     """Run training with NumPy simulation."""
@@ -1687,6 +1706,18 @@ def run_training_v4(config: Dict):
             for i in range(config['num_nodes'])
         ])
         st.dataframe(df, use_container_width=True)
+
+    # Persist results in session state
+    st.session_state.last_training_results = {
+        "algorithm": config['algorithm'],
+        "num_rounds": config['num_rounds'],
+        "mode": "simulation",
+        "final_metrics": {
+            "accuracy": final_acc, "loss": 0, "f1": 0,
+            "precision": 0, "recall": 0, "auc": 0,
+        },
+        "history": [{"accuracy": h["global_accuracy"]} for h in simulator.history],
+    }
 
 
 def run_training_real_tabular(config: Dict):
@@ -1877,6 +1908,15 @@ def _show_real_training_results(status_area, metrics_area, results):
                     "Campioni": nm.get("samples", 0),
                 })
             st.dataframe(pd.DataFrame(node_data), use_container_width=True)
+
+    # Persist results in session state so they survive Streamlit reruns
+    st.session_state.last_training_results = {
+        "algorithm": results.get("algorithm", ""),
+        "num_rounds": results.get("num_rounds", len(results.get("history", []))),
+        "mode": results.get("mode", "real"),
+        "final_metrics": final,
+        "history": results.get("history", []),
+    }
 
 
 def render_algorithms_tab():

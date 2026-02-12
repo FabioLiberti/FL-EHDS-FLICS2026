@@ -41,7 +41,9 @@ class TestPermitValidator:
 
     def test_validate_expired_permit(self):
         """Test validation catches expired permit."""
-        permit = DataPermit(
+        # Use model_construct to bypass Pydantic's valid_until future-date validator,
+        # since we intentionally need an expired permit for this test.
+        permit = DataPermit.model_construct(
             permit_id="TEST-002",
             hdab_id="HDAB-IT",
             requester_id="REQ-001",
@@ -49,7 +51,10 @@ class TestPermitValidator:
             data_categories=[DataCategory.EHR],
             valid_from=datetime.utcnow() - timedelta(days=60),
             valid_until=datetime.utcnow() - timedelta(days=1),
+            issued_at=datetime.utcnow() - timedelta(days=60),
             status=PermitStatus.EXPIRED,
+            conditions={},
+            max_rounds=None,
         )
 
         validator = PermitValidator(strict_mode=True, verify_expiry=True)

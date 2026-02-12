@@ -33,11 +33,17 @@ setup(
         "numpy>=1.24.0",
         "scipy>=1.11.0",
         "torch>=2.0.0",
+        "torchvision>=0.15.0",
         "pydantic>=2.5.0",
         "pyyaml>=6.0.1",
         "requests>=2.31.0",
         "cryptography>=41.0.0",
         "structlog>=24.1.0",
+        "scikit-learn>=1.3.0",
+        "matplotlib>=3.7.0",
+        "pandas>=2.0.0",
+        "tqdm>=4.65.0",
+        "Pillow>=10.0.0",
     ],
     extras_require={
         "dev": [
@@ -45,6 +51,12 @@ setup(
             "pytest-cov>=4.1.0",
             "black>=24.1.0",
             "mypy>=1.8.0",
+        ],
+        "dashboard": [
+            "streamlit>=1.30.0",
+        ],
+        "terminal": [
+            "questionary>=2.0.0",
         ],
         "healthcare": [
             "fhir.resources>=7.0.0",

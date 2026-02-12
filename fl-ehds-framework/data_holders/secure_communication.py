@@ -482,3 +482,84 @@ class SecureCommunicator:
     def is_connected(self) -> bool:
         """Check if currently connected."""
         return self._connected and self._authenticated
+
+
+class MessageEncryptor:
+    """
+    Symmetric message encryption/decryption using Fernet (AES-128-CBC + HMAC).
+    """
+
+    def __init__(self, include_hmac: bool = True):
+        self.include_hmac = include_hmac
+        self._key = Fernet.generate_key()
+        self._fernet = Fernet(self._key)
+
+    def encrypt(self, message: Any) -> str:
+        """Encrypt a message (dict/str/bytes) to a base64 string."""
+        data = json.dumps(message).encode("utf-8")
+        encrypted = self._fernet.encrypt(data)
+        return encrypted.decode("utf-8")
+
+    def decrypt(self, encrypted: str) -> Any:
+        """Decrypt a base64 string back to the original message."""
+        try:
+            decrypted = self._fernet.decrypt(encrypted.encode("utf-8"))
+            return json.loads(decrypted.decode("utf-8"))
+        except Exception as e:
+            raise EncryptionError(f"Decryption failed: {e}")
+
+
+@dataclass
+class SecureChannel:
+    """A secure communication channel between two endpoints."""
+
+    source: str
+    destination: str
+    encryption_type: str = "aes-256"
+    is_secure: bool = True
+    _encryptor: Optional[Any] = None
+
+    def __post_init__(self):
+        self._encryptor = MessageEncryptor(include_hmac=True)
+
+    def send(self, message: Any) -> str:
+        """Encrypt and send a message."""
+        return self._encryptor.encrypt(message)
+
+    def receive_and_verify(self, encrypted: str) -> Tuple[Any, bool]:
+        """Decrypt a message and verify integrity."""
+        try:
+            decrypted = self._encryptor.decrypt(encrypted)
+            return decrypted, True
+        except Exception:
+            return None, False
+
+
+class ChannelManager:
+    """
+    Manages secure communication channels between FL participants.
+    """
+
+    def __init__(self):
+        self._channels: Dict[str, SecureChannel] = {}
+
+    def create_channel(
+        self,
+        source: str,
+        destination: str,
+        encryption_type: str = "aes-256",
+    ) -> SecureChannel:
+        """Create a secure channel between two endpoints."""
+        key = f"{source}->{destination}"
+        channel = SecureChannel(
+            source=source,
+            destination=destination,
+            encryption_type=encryption_type,
+        )
+        self._channels[key] = channel
+        return channel
+
+    def get_channel(self, source: str, destination: str) -> Optional[SecureChannel]:
+        """Get an existing channel."""
+        key = f"{source}->{destination}"
+        return self._channels.get(key)

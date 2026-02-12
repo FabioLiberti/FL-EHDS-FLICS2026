@@ -5,12 +5,16 @@ FL-EHDS Paper Experiments for FLICS 2026.
 Produces all experimental results for the paper:
   P1.2 - Multi-dataset FL comparison (5 algos x 5 datasets x 3 seeds)
   P1.3 - Ablation study on chest_xray
+  P1.4 - Non-IID severity study (alpha sweep: 0.1, 0.5, 1.0, 5.0)
   P2.1 - Statistical significance via paired t-tests
   P2.2 - Privacy attack evaluation (gradient inversion)
+  Comm - Communication cost analysis (analytical, no training)
+
+  New metrics: per-client fairness (Jain's index, Gini), communication costs
 
 Usage:
     cd fl-ehds-framework
-    python -m benchmarks.run_paper_experiments [--resume] [--quick] [--only p12|p13|p21|p22]
+    python -m benchmarks.run_paper_experiments [--resume] [--quick] [--only p12|p13|p14|p21|p22|comm]
 
 Output: benchmarks/paper_results/
 
@@ -81,7 +85,7 @@ ALGORITHMS = ["FedAvg", "FedProx", "SCAFFOLD", "FedNova", "Ditto"]
 ALGO_COLORS = ["#2196F3", "#FF9800", "#4CAF50", "#F44336", "#9C27B0"]
 
 IMAGING_CONFIG = dict(
-    num_clients=5, num_rounds=15, local_epochs=3,
+    num_clients=5, num_rounds=30, local_epochs=3,
     batch_size=32, learning_rate=0.0005,
     model_type="resnet18", is_iid=False, alpha=0.5,
 )
@@ -127,6 +131,53 @@ def _cleanup_gpu():
 # ======================================================================
 # Core Training Wrappers
 # ======================================================================
+
+def _evaluate_per_client(trainer) -> Dict[str, float]:
+    """Evaluate global model on each client's test data separately."""
+    model = trainer.global_model
+    model.eval()
+    per_client = {}
+    with torch.no_grad():
+        for cid in range(trainer.num_clients):
+            X, y = trainer.client_test_data[cid]
+            if isinstance(X, np.ndarray):
+                X_t = torch.FloatTensor(X).to(trainer.device)
+                y_t = torch.LongTensor(y).to(trainer.device)
+            else:
+                X_t = X.to(trainer.device) if torch.is_tensor(X) else torch.FloatTensor(X).to(trainer.device)
+                y_t = y.to(trainer.device) if torch.is_tensor(y) else torch.LongTensor(y).to(trainer.device)
+            correct = total = 0
+            bs = 64
+            for i in range(0, len(y_t), bs):
+                out = model(X_t[i:i+bs])
+                preds = out.argmax(dim=1)
+                correct += (preds == y_t[i:i+bs]).sum().item()
+                total += len(y_t[i:i+bs])
+            per_client[str(cid)] = correct / total if total > 0 else 0.0
+    return per_client
+
+
+def _compute_fairness(per_client_acc: Dict[str, float]) -> Dict[str, float]:
+    """Compute fairness metrics from per-client accuracies."""
+    accs = list(per_client_acc.values())
+    if not accs:
+        return {}
+    jain = (sum(accs) ** 2) / (len(accs) * sum(a ** 2 for a in accs)) if accs else 0
+    # Gini coefficient
+    sorted_a = sorted(accs)
+    n = len(sorted_a)
+    cumsum = np.cumsum(sorted_a)
+    gini = (2 * sum((i + 1) * v for i, v in enumerate(sorted_a))) / (n * cumsum[-1]) - (n + 1) / n
+    gini = max(0, gini)
+    return {
+        "mean": round(float(np.mean(accs)), 4),
+        "std": round(float(np.std(accs)), 4),
+        "min": round(float(min(accs)), 4),
+        "max": round(float(max(accs)), 4),
+        "jain_index": round(float(jain), 4),
+        "gini": round(float(gini), 4),
+    }
+
 
 def run_single_imaging(
     dataset_name: str, data_dir: str, algorithm: str, seed: int,
@@ -175,10 +226,20 @@ def run_single_imaging(
     elapsed = time.time() - start
     final = history[-1]
 
+    # Per-client fairness evaluation
+    try:
+        per_client_acc = _evaluate_per_client(trainer)
+        fairness = _compute_fairness(per_client_acc)
+    except Exception:
+        per_client_acc = {}
+        fairness = {}
+
     return {
         "dataset": dataset_name, "algorithm": algorithm, "seed": seed,
         "history": history,
         "final_metrics": {k: final[k] for k in ["accuracy", "loss", "f1", "precision", "recall", "auc"]},
+        "per_client_acc": per_client_acc,
+        "fairness": fairness,
         "runtime_seconds": round(elapsed, 1),
         "config": {
             "num_clients": num_clients, "num_rounds": num_rounds,
@@ -234,10 +295,20 @@ def run_single_tabular(
     elapsed = time.time() - start
     final = history[-1]
 
+    # Per-client fairness evaluation
+    try:
+        per_client_acc = _evaluate_per_client(trainer)
+        fairness = _compute_fairness(per_client_acc)
+    except Exception:
+        per_client_acc = {}
+        fairness = {}
+
     return {
         "dataset": dataset_name, "algorithm": algorithm, "seed": seed,
         "history": history,
         "final_metrics": {k: final[k] for k in ["accuracy", "loss", "f1", "precision", "recall", "auc"]},
+        "per_client_acc": per_client_acc,
+        "fairness": fairness,
         "runtime_seconds": round(elapsed, 1),
         "config": {
             "num_clients": len(client_train), "num_rounds": num_rounds,
@@ -324,7 +395,8 @@ def run_p12_multi_dataset(resume: bool = False,
 
                     acc = record["final_metrics"]["accuracy"]
                     t = record["runtime_seconds"]
-                    print(f"-> acc={acc:.3f} ({t:.0f}s)")
+                    jain = record.get("fairness", {}).get("jain_index", 0)
+                    print(f"-> acc={acc:.3f} jain={jain:.3f} ({t:.0f}s)")
                     results["completed"][key] = record
 
                 except Exception as e:
@@ -426,6 +498,130 @@ def run_p13_ablation(resume: bool = False) -> Dict[str, Any]:
         _cleanup_gpu()
 
     return results
+
+
+# ======================================================================
+# P1.4: Non-IID Severity Study (alpha sweep)
+# ======================================================================
+
+NONIID_ALPHAS = [0.1, 0.5, 1.0, 5.0]
+NONIID_ALGOS = ["FedAvg", "FedProx", "SCAFFOLD"]
+NONIID_DATASET = "chest_xray"
+
+
+def run_p14_noniid_severity(resume: bool = False) -> Dict[str, Any]:
+    """Alpha sweep: 3 algos x 4 alphas x 3 seeds = 36 experiments on chest_xray."""
+    block = "p14_noniid"
+    results = load_checkpoint(block)
+    if results is None:
+        results = {"completed": {}}
+
+    data_dir = str(FRAMEWORK_DIR / "data" / "chest_xray")
+    total = len(NONIID_ALGOS) * len(NONIID_ALPHAS) * len(SEEDS)
+    done = sum(1 for v in results["completed"].values() if "error" not in v)
+    print(f"  Total non-IID experiments: {total}, already completed: {done}")
+
+    count = 0
+    for alpha in NONIID_ALPHAS:
+        for algo in NONIID_ALGOS:
+            for seed in SEEDS:
+                count += 1
+                key = f"alpha_{alpha}_{algo}_{seed}"
+                if key in results["completed"]:
+                    continue
+
+                print(f"  [{count}/{total}] alpha={alpha}, {algo}, seed={seed}", end=" ", flush=True)
+
+                try:
+                    record = run_single_imaging(
+                        dataset_name=NONIID_DATASET,
+                        data_dir=data_dir,
+                        algorithm=algo,
+                        seed=seed,
+                        alpha=alpha,
+                        num_clients=IMAGING_CONFIG["num_clients"],
+                        num_rounds=IMAGING_CONFIG["num_rounds"],
+                        local_epochs=IMAGING_CONFIG["local_epochs"],
+                        batch_size=IMAGING_CONFIG["batch_size"],
+                        learning_rate=IMAGING_CONFIG["learning_rate"],
+                        model_type=IMAGING_CONFIG["model_type"],
+                        is_iid=False,
+                        mu=0.1,
+                    )
+                    acc = record["final_metrics"]["accuracy"]
+                    jain = record.get("fairness", {}).get("jain_index", 0)
+                    t = record["runtime_seconds"]
+                    print(f"-> acc={acc:.3f} jain={jain:.3f} ({t:.0f}s)")
+                    results["completed"][key] = record
+                except Exception as e:
+                    print(f"-> ERROR: {e}")
+                    results["completed"][key] = {"error": str(e)}
+
+                save_checkpoint(block, results)
+                _cleanup_gpu()
+
+    return results
+
+
+# ======================================================================
+# A1: Communication Cost Analysis (analytical)
+# ======================================================================
+
+MODEL_PARAMS = {
+    "resnet18": 11_176_512,
+    "cnn": 500_000,
+    "mlp": 10_000,
+}
+
+
+def compute_communication_costs(p12_results: Dict) -> Dict[str, Any]:
+    """Compute communication costs analytically from model configs."""
+    costs = {}
+    for key, exp in p12_results.get("completed", {}).items():
+        if "error" in exp:
+            continue
+        config = exp.get("config", {})
+        model_type = config.get("model_type", "mlp")
+        n_clients = config.get("num_clients", 5)
+        n_rounds = config.get("num_rounds", 15)
+
+        params = MODEL_PARAMS.get(model_type, 10_000)
+        bytes_per_update = params * 4  # float32
+
+        # Per round: clients upload + server broadcasts
+        bytes_per_round = n_clients * bytes_per_update * 2
+        total_bytes = n_rounds * bytes_per_round
+
+        costs[key] = {
+            "model_type": model_type,
+            "model_params": params,
+            "mb_per_update": round(bytes_per_update / 1e6, 2),
+            "bytes_per_round": bytes_per_round,
+            "total_bytes": total_bytes,
+            "total_gb": round(total_bytes / 1e9, 3),
+            "topk_001_total_gb": round(total_bytes * 0.01 / 1e9, 5),
+            "topk_01_total_gb": round(total_bytes * 0.1 / 1e9, 4),
+        }
+
+    # Aggregate by dataset
+    summary = {}
+    all_ds = list(IMAGING_DATASETS.keys()) + list(TABULAR_DATASETS.keys())
+    for ds in all_ds:
+        ds_costs = {k: v for k, v in costs.items() if k.startswith(f"{ds}_")}
+        if ds_costs:
+            first = next(iter(ds_costs.values()))
+            summary[ds] = {
+                "model_type": first["model_type"],
+                "model_params": first["model_params"],
+                "mb_per_update": first["mb_per_update"],
+                "total_gb": first["total_gb"],
+                "topk_001_total_gb": first["topk_001_total_gb"],
+                "topk_01_total_gb": first["topk_01_total_gb"],
+            }
+
+    result = {"per_experiment": costs, "per_dataset": summary}
+    save_checkpoint("comm_costs", result)
+    return result
 
 
 # ======================================================================
@@ -979,6 +1175,300 @@ def _fig_attack_mse(p22, out_dir, plt):
 
 
 # ======================================================================
+# New Output: Fairness Table + Figure (A2)
+# ======================================================================
+
+def generate_fairness_table(p12: Dict) -> str:
+    """Generate LaTeX table for inter-hospital fairness metrics."""
+    completed = p12.get("completed", {})
+    all_ds = list(IMAGING_DATASETS.keys()) + list(TABULAR_DATASETS.keys())
+    ds_shorts = {**{k: v["short"] for k, v in IMAGING_DATASETS.items()},
+                 **{k: v["short"] for k, v in TABULAR_DATASETS.items()}}
+
+    lines = []
+    lines.append(r"\begin{table*}[htbp]")
+    lines.append(r"\centering")
+    lines.append(r"\caption{Inter-Hospital Fairness: Per-Client Accuracy Distribution}")
+    lines.append(r"\label{tab:fairness}")
+    lines.append(r"\small")
+    lines.append(r"\begin{tabular}{l" + "cccc" * len(all_ds) + "}")
+    lines.append(r"\toprule")
+
+    # Header: dataset names
+    header1 = r"\textbf{Algorithm}"
+    for ds in all_ds:
+        header1 += r" & \multicolumn{4}{c}{\textbf{" + ds_shorts[ds] + "}}"
+    lines.append(header1 + r" \\")
+
+    # Sub-header: metrics
+    header2 = ""
+    for _ in all_ds:
+        header2 += r" & Mean & Std & Min & Jain"
+    lines.append(header2 + r" \\")
+    lines.append(r"\midrule")
+
+    for algo in ALGORITHMS:
+        row = algo
+        for ds in all_ds:
+            # Average fairness across seeds
+            means, stds, mins, jains = [], [], [], []
+            for seed in SEEDS:
+                rec = completed.get(f"{ds}_{algo}_{seed}", {})
+                fair = rec.get("fairness", {})
+                if fair:
+                    means.append(fair.get("mean", 0))
+                    stds.append(fair.get("std", 0))
+                    mins.append(fair.get("min", 0))
+                    jains.append(fair.get("jain_index", 0))
+            if means:
+                row += f" & {np.mean(means)*100:.1f}"
+                row += f" & {np.mean(stds)*100:.1f}"
+                row += f" & {np.mean(mins)*100:.1f}"
+                row += f" & {np.mean(jains):.3f}"
+            else:
+                row += " & -- & -- & -- & --"
+        lines.append(row + r" \\")
+
+    lines.append(r"\bottomrule")
+    lines.append(r"\end{tabular}")
+    lines.append(r"\vspace{1mm}")
+    lines.append(r"\footnotesize{Per-client accuracy (global model evaluated on each hospital's test set). "
+                 r"Jain's Fairness Index: 1.0 = perfect equality. Mean over 3 seeds.}")
+    lines.append(r"\end{table*}")
+
+    return "\n".join(lines)
+
+
+def _fig_fairness(p12, out_dir, plt):
+    """Bar chart of Jain's fairness index per algo x dataset."""
+    completed = p12.get("completed", {})
+    all_ds = list(IMAGING_DATASETS.keys()) + list(TABULAR_DATASETS.keys())
+    ds_labels = [IMAGING_DATASETS.get(d, TABULAR_DATASETS.get(d, {})).get("short", d) for d in all_ds]
+
+    fig, ax = plt.subplots(figsize=(12, 5))
+    x = np.arange(len(all_ds))
+    width = 0.15
+
+    for i, algo in enumerate(ALGORITHMS):
+        vals = []
+        for ds in all_ds:
+            jains = []
+            for seed in SEEDS:
+                rec = completed.get(f"{ds}_{algo}_{seed}", {})
+                fair = rec.get("fairness", {})
+                if fair and "jain_index" in fair:
+                    jains.append(fair["jain_index"])
+            vals.append(np.mean(jains) if jains else 0)
+        ax.bar(x + i * width, vals, width, label=algo,
+               color=ALGO_COLORS[i], alpha=0.85)
+
+    ax.set_ylabel("Jain's Fairness Index")
+    ax.set_xticks(x + width * 2)
+    ax.set_xticklabels(ds_labels)
+    ax.legend(loc="lower right")
+    ax.grid(axis="y", alpha=0.3)
+    ax.set_ylim(0.5, 1.05)
+    ax.set_title("Inter-Hospital Fairness Comparison")
+
+    for fmt in ["pdf", "png"]:
+        fig.savefig(out_dir / f"fig_fairness.{fmt}", bbox_inches="tight", dpi=300)
+    plt.close(fig)
+    print(f"  Saved fig_fairness")
+
+
+# ======================================================================
+# New Output: Non-IID Severity Table + Figure (A4)
+# ======================================================================
+
+def generate_noniid_table(p14: Dict) -> str:
+    """Generate LaTeX table for non-IID severity study."""
+    completed = p14.get("completed", {})
+
+    lines = []
+    lines.append(r"\begin{table}[htbp]")
+    lines.append(r"\centering")
+    lines.append(r"\caption{Non-IID Severity: Accuracy vs. Dirichlet $\alpha$ (Chest X-ray)}")
+    lines.append(r"\label{tab:noniid}")
+    lines.append(r"\small")
+    lines.append(r"\begin{tabular}{l" + "cc" * len(NONIID_ALGOS) + "}")
+    lines.append(r"\toprule")
+
+    # Header
+    header = r"\textbf{$\alpha$}"
+    for algo in NONIID_ALGOS:
+        header += r" & \multicolumn{2}{c}{\textbf{" + algo + "}}"
+    lines.append(header + r" \\")
+
+    subheader = ""
+    for _ in NONIID_ALGOS:
+        subheader += r" & Acc(\%) & Jain"
+    lines.append(subheader + r" \\")
+    lines.append(r"\midrule")
+
+    for alpha in NONIID_ALPHAS:
+        row = f"${alpha}$"
+        for algo in NONIID_ALGOS:
+            accs, jains = [], []
+            for seed in SEEDS:
+                rec = completed.get(f"alpha_{alpha}_{algo}_{seed}", {})
+                fm = rec.get("final_metrics")
+                fair = rec.get("fairness", {})
+                if fm:
+                    accs.append(fm["accuracy"])
+                if fair:
+                    jains.append(fair.get("jain_index", 0))
+            if accs:
+                row += f" & {np.mean(accs)*100:.1f}$\\pm${np.std(accs)*100:.1f}"
+            else:
+                row += " & --"
+            if jains:
+                row += f" & {np.mean(jains):.3f}"
+            else:
+                row += " & --"
+        lines.append(row + r" \\")
+
+    lines.append(r"\bottomrule")
+    lines.append(r"\end{tabular}")
+    lines.append(r"\vspace{1mm}")
+    lines.append(r"\footnotesize{Dirichlet $\alpha$: lower = more heterogeneous. "
+                 r"5 clients, 30 rounds, ResNet18. Mean$\pm$std over 3 seeds.}")
+    lines.append(r"\end{table}")
+
+    return "\n".join(lines)
+
+
+def _fig_noniid_alpha(p14, out_dir, plt):
+    """Line plot: alpha vs accuracy, one line per algorithm."""
+    completed = p14.get("completed", {})
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4.5))
+
+    for i, algo in enumerate(NONIID_ALGOS):
+        means, stds, jain_means = [], [], []
+        for alpha in NONIID_ALPHAS:
+            accs, jains = [], []
+            for seed in SEEDS:
+                rec = completed.get(f"alpha_{alpha}_{algo}_{seed}", {})
+                fm = rec.get("final_metrics")
+                fair = rec.get("fairness", {})
+                if fm:
+                    accs.append(fm["accuracy"] * 100)
+                if fair:
+                    jains.append(fair.get("jain_index", 0))
+            means.append(np.mean(accs) if accs else 0)
+            stds.append(np.std(accs) if accs else 0)
+            jain_means.append(np.mean(jains) if jains else 0)
+
+        ax1.errorbar(NONIID_ALPHAS, means, yerr=stds, marker="o",
+                     color=ALGO_COLORS[i], label=algo, capsize=4, linewidth=2)
+        ax2.plot(NONIID_ALPHAS, jain_means, marker="s",
+                 color=ALGO_COLORS[i], label=algo, linewidth=2)
+
+    ax1.set_xlabel(r"Dirichlet $\alpha$")
+    ax1.set_ylabel("Accuracy (%)")
+    ax1.set_title("Accuracy vs Non-IID Severity")
+    ax1.set_xscale("log")
+    ax1.set_xticks(NONIID_ALPHAS)
+    ax1.set_xticklabels([str(a) for a in NONIID_ALPHAS])
+    ax1.legend()
+    ax1.grid(alpha=0.3)
+
+    ax2.set_xlabel(r"Dirichlet $\alpha$")
+    ax2.set_ylabel("Jain's Fairness Index")
+    ax2.set_title("Fairness vs Non-IID Severity")
+    ax2.set_xscale("log")
+    ax2.set_xticks(NONIID_ALPHAS)
+    ax2.set_xticklabels([str(a) for a in NONIID_ALPHAS])
+    ax2.legend()
+    ax2.grid(alpha=0.3)
+
+    fig.tight_layout()
+    for fmt in ["pdf", "png"]:
+        fig.savefig(out_dir / f"fig_noniid_alpha.{fmt}", bbox_inches="tight", dpi=300)
+    plt.close(fig)
+    print(f"  Saved fig_noniid_alpha")
+
+
+# ======================================================================
+# New Output: Communication Cost Table + Figure (A1)
+# ======================================================================
+
+def generate_communication_table(comm: Dict) -> str:
+    """Generate LaTeX table for communication costs."""
+    summary = comm.get("per_dataset", {})
+    if not summary:
+        return ""
+
+    lines = []
+    lines.append(r"\begin{table}[htbp]")
+    lines.append(r"\centering")
+    lines.append(r"\caption{Communication Cost Analysis per Dataset}")
+    lines.append(r"\label{tab:communication}")
+    lines.append(r"\small")
+    lines.append(r"\begin{tabular}{llrrrr}")
+    lines.append(r"\toprule")
+    lines.append(r"\textbf{Dataset} & \textbf{Model} & \textbf{Params} & "
+                 r"\textbf{MB/upd} & \textbf{Full (GB)} & \textbf{Top-K 1\% (GB)} \\")
+    lines.append(r"\midrule")
+
+    ds_shorts = {**{k: v["short"] for k, v in IMAGING_DATASETS.items()},
+                 **{k: v["short"] for k, v in TABULAR_DATASETS.items()}}
+
+    for ds, info in summary.items():
+        short = ds_shorts.get(ds, ds)
+        params_str = f"{info['model_params']/1e6:.1f}M" if info['model_params'] > 100_000 else f"{info['model_params']/1e3:.0f}K"
+        lines.append(
+            f"{short} & {info['model_type']} & {params_str} & "
+            f"{info['mb_per_update']:.1f} & {info['total_gb']:.2f} & {info['topk_001_total_gb']:.4f} \\\\"
+        )
+
+    lines.append(r"\bottomrule")
+    lines.append(r"\end{tabular}")
+    lines.append(r"\vspace{1mm}")
+    lines.append(r"\footnotesize{5 clients, 30 rounds (imaging) / 20 rounds (tabular). "
+                 r"Full = uncompressed float32. Top-K 1\% = theoretical gradient compression.}")
+    lines.append(r"\end{table}")
+
+    return "\n".join(lines)
+
+
+def _fig_communication(comm, out_dir, plt):
+    """Bar chart: Full vs Top-K communication costs."""
+    summary = comm.get("per_dataset", {})
+    if not summary:
+        return
+
+    ds_shorts = {**{k: v["short"] for k, v in IMAGING_DATASETS.items()},
+                 **{k: v["short"] for k, v in TABULAR_DATASETS.items()}}
+
+    datasets = list(summary.keys())
+    labels = [ds_shorts.get(d, d) for d in datasets]
+    full_gb = [summary[d]["total_gb"] for d in datasets]
+    topk1 = [summary[d]["topk_001_total_gb"] for d in datasets]
+    topk10 = [summary[d]["topk_01_total_gb"] for d in datasets]
+
+    fig, ax = plt.subplots(figsize=(8, 4.5))
+    x = np.arange(len(datasets))
+    width = 0.25
+
+    ax.bar(x - width, full_gb, width, label="Full (float32)", color="#F44336", alpha=0.85)
+    ax.bar(x, topk10, width, label="Top-K 10%", color="#FF9800", alpha=0.85)
+    ax.bar(x + width, topk1, width, label="Top-K 1%", color="#4CAF50", alpha=0.85)
+
+    ax.set_ylabel("Total Communication (GB)")
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels)
+    ax.legend()
+    ax.grid(axis="y", alpha=0.3)
+    ax.set_title("Communication Cost: Full vs. Gradient Compression")
+
+    for fmt in ["pdf", "png"]:
+        fig.savefig(out_dir / f"fig_communication.{fmt}", bbox_inches="tight", dpi=300)
+    plt.close(fig)
+    print(f"  Saved fig_communication")
+
+
+# ======================================================================
 # Main
 # ======================================================================
 
@@ -986,7 +1476,8 @@ def main():
     parser = argparse.ArgumentParser(description="FL-EHDS Paper Experiments (FLICS 2026)")
     parser.add_argument("--resume", action="store_true", help="Resume from checkpoints")
     parser.add_argument("--quick", action="store_true", help="Quick: 1 seed, 5 rounds")
-    parser.add_argument("--only", type=str, choices=["p12", "p13", "p21", "p22", "output"],
+    parser.add_argument("--only", type=str,
+                        choices=["p12", "p13", "p14", "p21", "p22", "comm", "output"],
                         help="Run only one block")
     parser.add_argument("--dataset", type=str,
                         help="Filter: run only this dataset (e.g. Brain_Tumor, chest_xray, Diabetes)")
@@ -1038,6 +1529,12 @@ def main():
         print("\n>>> P1.3: Ablation Study (chest_xray)")
         p13 = run_p13_ablation(resume=args.resume)
 
+    # --- P1.4 ---
+    p14 = None
+    if args.only in (None, "p14"):
+        print("\n>>> P1.4: Non-IID Severity Study (alpha sweep)")
+        p14 = run_p14_noniid_severity(resume=args.resume)
+
     # --- P2.1 ---
     sig = None
     if args.only in (None, "p21", "output"):
@@ -1056,6 +1553,19 @@ def main():
         print("\n>>> P2.2: Privacy Attack Evaluation")
         p22 = run_p22_privacy_attack()
 
+    # --- Communication Costs (post-hoc, no training) ---
+    comm = None
+    if args.only in (None, "comm", "output"):
+        print("\n>>> Communication Cost Analysis")
+        if p12 is None:
+            p12 = load_checkpoint("p12_multidataset")
+        if p12:
+            comm = compute_communication_costs(p12)
+            n = len(comm.get("per_dataset", {}))
+            print(f"  Computed costs for {n} datasets")
+        else:
+            print("  Skipped (no P1.2 results)")
+
     # --- Output ---
     if args.only in (None, "output"):
         print("\n>>> Generating outputs...")
@@ -1064,28 +1574,73 @@ def main():
             p12 = load_checkpoint("p12_multidataset")
         if p13 is None:
             p13 = load_checkpoint("p13_ablation")
+        if p14 is None:
+            p14 = load_checkpoint("p14_noniid")
         if p22 is None:
             p22 = load_checkpoint("p22_attack")
         if sig is None:
             sig = load_checkpoint("p21_significance")
+        if comm is None:
+            comm = load_checkpoint("comm_costs")
 
+        # Tables
         if p12:
             tex = generate_multi_dataset_table(p12, sig or {})
             (OUTPUT_DIR / "table_multi_dataset.tex").write_text(tex)
             print(f"  Saved table_multi_dataset.tex")
+
+            # Fairness table (uses P1.2 per-client data)
+            tex = generate_fairness_table(p12)
+            (OUTPUT_DIR / "table_fairness.tex").write_text(tex)
+            print(f"  Saved table_fairness.tex")
 
         if p13:
             tex = generate_ablation_table(p13)
             (OUTPUT_DIR / "table_ablation.tex").write_text(tex)
             print(f"  Saved table_ablation.tex")
 
+        if p14:
+            tex = generate_noniid_table(p14)
+            (OUTPUT_DIR / "table_noniid.tex").write_text(tex)
+            print(f"  Saved table_noniid.tex")
+
         if p22:
             tex = generate_attack_table(p22)
             (OUTPUT_DIR / "table_attack.tex").write_text(tex)
             print(f"  Saved table_attack.tex")
 
+        if comm:
+            tex = generate_communication_table(comm)
+            if tex:
+                (OUTPUT_DIR / "table_communication.tex").write_text(tex)
+                print(f"  Saved table_communication.tex")
+
+        # Figures
         try:
-            generate_figures(p12 or {}, p13 or {}, p22 or {}, OUTPUT_DIR)
+            import matplotlib
+            matplotlib.use("Agg")
+            import matplotlib.pyplot as plt
+
+            plt.rcParams.update({
+                "font.size": 11, "font.family": "serif",
+                "axes.labelsize": 12, "axes.titlesize": 13,
+                "xtick.labelsize": 10, "ytick.labelsize": 10,
+                "legend.fontsize": 9, "figure.dpi": 150,
+            })
+
+            if p12:
+                _fig_multi_dataset_bars(p12, OUTPUT_DIR, plt)
+                _fig_convergence(p12, OUTPUT_DIR, plt)
+                _fig_fairness(p12, OUTPUT_DIR, plt)
+            if p13:
+                _fig_epsilon_tradeoff(p13, OUTPUT_DIR, plt)
+                _fig_model_comparison(p13, OUTPUT_DIR, plt)
+            if p14:
+                _fig_noniid_alpha(p14, OUTPUT_DIR, plt)
+            if p22:
+                _fig_attack_mse(p22, OUTPUT_DIR, plt)
+            if comm:
+                _fig_communication(comm, OUTPUT_DIR, plt)
         except Exception as e:
             print(f"  Figure generation error: {e}")
             traceback.print_exc()

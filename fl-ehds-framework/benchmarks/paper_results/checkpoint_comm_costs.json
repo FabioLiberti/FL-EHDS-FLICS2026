@@ -1,0 +1,42 @@
+{
+  "per_experiment": {
+    "Brain_Tumor_FedAvg_42": {
+      "model_type": "resnet18",
+      "model_params": 11176512,
+      "mb_per_update": 44.71,
+      "bytes_per_round": 447060480,
+      "total_bytes": 13411814400,
+      "total_gb": 13.412,
+      "topk_001_total_gb": 0.13412,
+      "topk_01_total_gb": 1.3412
+    },
+    "Diabetes_FedAvg_42": {
+      "model_type": "mlp",
+      "model_params": 10000,
+      "mb_per_update": 0.04,
+      "bytes_per_round": 400000,
+      "total_bytes": 8000000,
+      "total_gb": 0.008,
+      "topk_001_total_gb": 8e-05,
+      "topk_01_total_gb": 0.0008
+    }
+  },
+  "per_dataset": {
+    "Brain_Tumor": {
+      "model_type": "resnet18",
+      "model_params": 11176512,
+      "mb_per_update": 44.71,
+      "total_gb": 13.412,
+      "topk_001_total_gb": 0.13412,
+      "topk_01_total_gb": 1.3412
+    },
+    "Diabetes": {
+      "model_type": "mlp",
+      "model_params": 10000,
+      "mb_per_update": 0.04,
+      "total_gb": 0.008,
+      "topk_001_total_gb": 8e-05,
+      "topk_01_total_gb": 0.0008
+    }
+  }
+}
