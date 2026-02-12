@@ -1586,6 +1586,20 @@ def create_config_panel() -> Dict:
     except Exception:
         pass
 
+    # Governance status indicator in sidebar
+    _gov_bridge = st.session_state.get("gov_bridge")
+    if _gov_bridge is not None:
+        _gov_cfg = st.session_state.get("gov_config", {})
+        _gov_countries = _gov_cfg.get("countries", [])
+        _gov_purpose = _gov_cfg.get("purpose", "N/A")
+        st.sidebar.markdown("---")
+        st.sidebar.markdown("**EHDS Governance**")
+        st.sidebar.caption(
+            f"Attiva | {len(_gov_countries)} paesi | "
+            f"eps={_gov_cfg.get('global_epsilon', 0):.1f} | "
+            f"{_gov_purpose}"
+        )
+
     return {
         "num_nodes": num_nodes,
         "total_samples": total_samples,
@@ -1617,12 +1631,330 @@ def create_config_panel() -> Dict:
 
 
 # =============================================================================
+# GOVERNANCE-TRAINING INTEGRATION
+# =============================================================================
+
+
+def _render_governance_training_banner(config: Dict) -> bool:
+    """Render governance status banner in Training tab.
+
+    Shows governance state when configured via EHDS Governance tab,
+    and provides toggle to enable governance during training.
+
+    Returns:
+        True if governance is enabled for training.
+    """
+    gov_bridge = st.session_state.get("gov_bridge")
+    gov_result = st.session_state.get("gov_pre_training_result")
+
+    if gov_bridge is None:
+        # No governance configured - show hint
+        with st.expander("EHDS Governance (opzionale)", expanded=False):
+            st.info(
+                "Per abilitare la governance EHDS durante il training, "
+                "configura ed esegui il pre-training nel tab "
+                "**EHDS Governance** (Configurazione + Esecuzione Lifecycle)."
+            )
+        return False
+
+    # Governance is configured - show status and toggle
+    gov_config = st.session_state.get("gov_config", {})
+
+    with st.container():
+        st.markdown("##### EHDS Governance Attiva")
+
+        g_cols = st.columns(4)
+        with g_cols[0]:
+            hdab_status = gov_result.get("hdab_status", {}) if gov_result else {}
+            connected = sum(1 for v in hdab_status.values() if v)
+            st.metric("HDAB Connessi", f"{connected}/{len(hdab_status)}")
+        with g_cols[1]:
+            permits = gov_result.get("permits", {}) if gov_result else {}
+            st.metric("Permit Attivi", len(permits))
+        with g_cols[2]:
+            budget = gov_bridge.get_budget_status()
+            st.metric(
+                "Budget Privacy",
+                f"eps={budget.get('total', 0):.1f}",
+                delta=f"-{budget.get('used', 0):.4f} usato",
+            )
+        with g_cols[3]:
+            violations = gov_result.get("purpose_violations", []) if gov_result else []
+            if violations:
+                st.metric("Violazioni", len(violations))
+            else:
+                st.metric("Stato", "OK")
+
+        # Governance toggle
+        use_governance = st.checkbox(
+            "Abilita Governance durante Training",
+            value=True,
+            help=(
+                "Valida ogni round FL con il permit attivo, "
+                "traccia il budget privacy epsilon, e genera "
+                "audit trail GDPR Art. 30 automaticamente."
+            ),
+            key="training_use_governance",
+        )
+
+        if use_governance:
+            modules = []
+            if gov_config.get("data_minimization_enabled"):
+                modules.append("Minimizzazione")
+            if gov_config.get("secure_processing_enabled"):
+                modules.append("Secure Processing")
+            if gov_config.get("fee_model_enabled"):
+                modules.append("Fee Model")
+            if gov_config.get("data_quality_enabled"):
+                modules.append("Data Quality")
+            if gov_config.get("hdab_routing_enabled"):
+                modules.append("HDAB Routing")
+            mod_str = ", ".join(modules) if modules else "Nessuno"
+            st.caption(
+                f"Finalita: {gov_config.get('purpose', 'N/A')} | "
+                f"Moduli attivi: {mod_str}"
+            )
+
+        st.markdown("---")
+        return use_governance
+
+
+def _generate_post_training_compliance(
+    config: Dict, training_results: Dict, gov_bridge, gov_config: Dict,
+):
+    """Generate EHDSComplianceReport after governance-aware training.
+
+    Creates a compliance report using training results and governance state,
+    then stores it in session state for viewing in the Compliance Dashboard.
+    """
+    from governance.ehds_compliance_report import (
+        ArticleAssessment,
+        ComplianceStatus,
+        EHDSComplianceReport,
+        ARTICLE_REGISTRY,
+    )
+
+    report = EHDSComplianceReport()
+    report.generated_at = datetime.now().isoformat(timespec="seconds")
+    report.scenario_label = (
+        f"{config.get('algorithm', 'FedAvg')} | "
+        f"{len(gov_config.get('countries', []))} paesi | "
+        f"{len(gov_config.get('hospitals', []))} ospedali | "
+        f"purpose={gov_config.get('purpose', 'N/A')}"
+    )
+    report.training_config = {**config, **gov_config}
+    report.final_metrics = {
+        "accuracy": training_results.get("final_accuracy", 0),
+        "loss": training_results.get("final_loss", 0),
+        "f1": training_results.get("final_f1", 0),
+        "auc": training_results.get("final_auc", 0),
+    }
+
+    budget = gov_bridge.get_budget_status()
+    permits_summary = gov_bridge.get_permits_summary()
+    min_report = gov_bridge.get_minimization_report()
+
+    for chapter, art_id, title, _ in ARTICLE_REGISTRY:
+        status = ComplianceStatus.NOT_ASSESSED
+        evidence = "Non valutato"
+
+        # Art. 33 - Permitted Purposes
+        if art_id == "Art. 33":
+            from governance.ehds_compliance_report import ARTICLE_53_PURPOSES
+            if gov_config.get("purpose") in ARTICLE_53_PURPOSES:
+                status = ComplianceStatus.COMPLIANT
+                evidence = (
+                    f"Purpose '{gov_config['purpose']}' validato Art. 53. "
+                    f"Training completato: {training_results.get('total_rounds', 0)} round."
+                )
+            else:
+                status = ComplianceStatus.NON_COMPLIANT
+                evidence = f"Purpose '{gov_config.get('purpose')}' non valido Art. 53"
+
+        # Art. 34 - Data Categories
+        elif art_id == "Art. 34":
+            status = ComplianceStatus.COMPLIANT
+            evidence = f"Dataset: {gov_config.get('dataset_type', 'tabular')}"
+
+        # Art. 42 - Fee Model
+        elif art_id == "Art. 42":
+            if gov_config.get("fee_model_enabled"):
+                status = ComplianceStatus.COMPLIANT
+                evidence = "Fee model calcolato pre-training"
+            else:
+                status = ComplianceStatus.NOT_ASSESSED
+                evidence = "Fee model non abilitato"
+
+        # Art. 44 - Data Minimization
+        elif art_id == "Art. 44":
+            if min_report:
+                status = ComplianceStatus.COMPLIANT
+                evidence = (
+                    f"Minimizzazione applicata: "
+                    f"{min_report['original_features']} -> "
+                    f"{min_report['kept_features']} features "
+                    f"(-{min_report['reduction_pct']}%)"
+                )
+            elif gov_config.get("data_minimization_enabled"):
+                status = ComplianceStatus.PARTIAL
+                evidence = "Minimizzazione abilitata ma non applicata (nessun dato tabulare)"
+            else:
+                status = ComplianceStatus.NOT_ASSESSED
+                evidence = "Minimizzazione non abilitata"
+
+        # Art. 46 - Privacy (DP)
+        elif art_id == "Art. 46":
+            if config.get("use_dp"):
+                pct = budget.get("utilization_pct", 0)
+                status = ComplianceStatus.COMPLIANT
+                evidence = (
+                    f"DP attiva: eps={budget.get('total', 0):.1f}, "
+                    f"consumato={budget.get('used', 0):.4f} ({pct:.1f}%), "
+                    f"rimanente={budget.get('remaining', 0):.4f}"
+                )
+            else:
+                status = ComplianceStatus.PARTIAL
+                evidence = "DP non abilitata - privacy via FL senza rumore"
+
+        # Art. 48 - Audit Trail
+        elif art_id == "Art. 48":
+            rounds_completed = budget.get("rounds_completed", 0)
+            if rounds_completed > 0:
+                status = ComplianceStatus.COMPLIANT
+                evidence = (
+                    f"Audit trail: {rounds_completed} round loggati "
+                    f"con permit validation + budget tracking"
+                )
+            else:
+                status = ComplianceStatus.PARTIAL
+                evidence = "Audit trail inizializzato, nessun round loggato"
+
+        # Art. 50 - Secure Processing
+        elif art_id == "Art. 50":
+            if gov_config.get("secure_processing_enabled"):
+                status = ComplianceStatus.COMPLIANT
+                evidence = "TEE/Watermark/TimeGuard abilitato"
+            else:
+                status = ComplianceStatus.PARTIAL
+                evidence = "FL inherently secure (dati non condivisi)"
+
+        # Art. 53 - Data Permits
+        elif art_id == "Art. 53":
+            n_permits = permits_summary.get("total_permits", 0)
+            if n_permits > 0:
+                status = ComplianceStatus.COMPLIANT
+                evidence = (
+                    f"{n_permits} permit emessi e validati. "
+                    f"Training eseguito con validazione per-round."
+                )
+            else:
+                status = ComplianceStatus.NON_COMPLIANT
+                evidence = "Nessun permit emesso"
+
+        # Art. 57-58 - Cross-border
+        elif "Art. 57" in art_id:
+            n_countries = len(gov_config.get("countries", []))
+            if n_countries > 1:
+                if gov_config.get("hdab_routing_enabled"):
+                    status = ComplianceStatus.COMPLIANT
+                    evidence = f"SAP cross-border: {n_countries} paesi, HDAB routing attivo"
+                else:
+                    status = ComplianceStatus.PARTIAL
+                    evidence = f"{n_countries} paesi, routing HDAB non abilitato"
+            else:
+                status = ComplianceStatus.NOT_ASSESSED
+                evidence = "Singolo paese, cross-border non applicabile"
+
+        # Art. 69 - Data Quality
+        elif art_id == "Art. 69":
+            if gov_config.get("data_quality_enabled"):
+                status = ComplianceStatus.COMPLIANT
+                evidence = "Quality framework GOLD/SILVER/BRONZE attivo"
+            else:
+                status = ComplianceStatus.NOT_ASSESSED
+                evidence = "Quality framework non abilitato"
+
+        # Art. 71 - Opt-out
+        elif art_id == "Art. 71":
+            status = ComplianceStatus.COMPLIANT
+            evidence = "OptOutRegistry disponibile (Art. 71 EHDS)"
+
+        # GDPR Art. 30 - Records of Processing
+        elif "GDPR" in art_id or "Art. 30" in art_id:
+            status = ComplianceStatus.COMPLIANT
+            evidence = (
+                f"Audit trail completo: {training_results.get('total_rounds', 0)} round, "
+                f"permit validation, budget tracking, governance events"
+            )
+
+        assessment = ArticleAssessment(
+            article_id=art_id,
+            title=title,
+            chapter=chapter,
+            status=status,
+            evidence=evidence,
+        )
+        report.assessments.append(assessment)
+
+    # Store in session state for Compliance Dashboard
+    st.session_state.gov_compliance_report = report
+    st.session_state.last_compliance_report = report
+    return report
+
+
+def _show_compliance_summary(report):
+    """Show a compact compliance summary after training."""
+    if not report or not report.assessments:
+        return
+
+    compliant = sum(1 for a in report.assessments if a.status.value == "COMPLIANT")
+    partial = sum(1 for a in report.assessments if a.status.value == "PARTIAL")
+    non_compliant = sum(1 for a in report.assessments if a.status.value == "NON_COMPLIANT")
+    total = len(report.assessments)
+
+    with st.expander("Report Compliance EHDS (post-training)", expanded=True):
+        comp_cols = st.columns(4)
+        comp_cols[0].metric("Compliant", compliant)
+        comp_cols[1].metric("Parziale", partial)
+        comp_cols[2].metric("Non Compliant", non_compliant)
+        comp_cols[3].metric("Totale Articoli", total)
+
+        # Key articles summary table
+        key_articles = [
+            a for a in report.assessments
+            if a.article_id in ("Art. 33", "Art. 44", "Art. 46", "Art. 48",
+                                "Art. 50", "Art. 53", "Art. 57-58", "Art. 69", "Art. 71")
+        ]
+        if key_articles:
+            import pandas as _pd
+            rows = []
+            status_icons = {
+                "COMPLIANT": "COMPLIANT",
+                "PARTIAL": "PARTIAL",
+                "NOT_ASSESSED": "N/A",
+                "NON_COMPLIANT": "NON COMPLIANT",
+            }
+            for a in key_articles:
+                rows.append({
+                    "Articolo": a.article_id,
+                    "Titolo": a.title[:40],
+                    "Stato": status_icons.get(a.status.value, a.status.value),
+                    "Evidenza": a.evidence[:60],
+                })
+            st.dataframe(_pd.DataFrame(rows), use_container_width=True, hide_index=True)
+
+        st.caption(
+            "Report completo disponibile nel tab EHDS Governance > Dashboard Compliance"
+        )
+
+
+# =============================================================================
 # TAB RENDERERS
 # =============================================================================
 
 def render_training_tab(config: Dict):
     """Render training tab."""
-    st.markdown("### 🚀 Federated Learning Training")
+    st.markdown("### Federated Learning Training")
 
     mode = config.get("training_mode", "simulation")
     mode_labels = {
@@ -1642,7 +1974,7 @@ def render_training_tab(config: Dict):
     with col4:
         st.metric("Rounds", config['num_rounds'])
     with col5:
-        dp_str = f"ε={config['epsilon']}" if config['use_dp'] else "Off"
+        dp_str = f"eps={config['epsilon']}" if config['use_dp'] else "Off"
         st.metric("DP", dp_str)
 
     if mode == "real_imaging" and config.get("selected_dataset"):
@@ -1661,21 +1993,26 @@ def render_training_tab(config: Dict):
         _tab_label = _tab_ds_labels.get(config["selected_tabular_dataset"], "Sintetico Healthcare")
         st.info(f"Dataset Tabular: **{_tab_label}**")
 
+    # Governance status banner (only for real training modes)
+    use_governance = False
+    if mode.startswith("real_"):
+        use_governance = _render_governance_training_banner(config)
+
     st.markdown("---")
 
-    with st.expander("📖 Informazioni sull'Algoritmo Selezionato", expanded=False):
+    with st.expander("Informazioni sull'Algoritmo Selezionato", expanded=False):
         show_algorithm_help(config['algorithm'])
 
-    with st.expander("🧠 Informazioni sul Modello Selezionato", expanded=False):
+    with st.expander("Informazioni sul Modello Selezionato", expanded=False):
         show_model_help(config['model'])
 
-    if st.button("▶️ Avvia Training", type="primary", use_container_width=True):
+    if st.button("Avvia Training", type="primary", use_container_width=True):
         if mode == "simulation":
             run_training_v4(config)
         elif mode == "real_tabular":
-            run_training_real_tabular(config)
+            run_training_real_tabular(config, use_governance=use_governance)
         elif mode == "real_imaging":
-            run_training_real_imaging(config)
+            run_training_real_imaging(config, use_governance=use_governance)
 
     # Show persisted results from previous run (survives Streamlit reruns)
     if "last_training_results" in st.session_state and st.session_state.last_training_results:
@@ -1695,6 +2032,10 @@ def render_training_tab(config: Dict):
             col_f.metric("Recall", f"{final.get('recall', 0):.3f}")
             if prev.get("history"):
                 st.caption(f"Training completato con {len(prev['history'])} round")
+
+    # Show compliance report if generated during last training
+    if "last_compliance_report" in st.session_state and st.session_state.last_compliance_report:
+        _show_compliance_summary(st.session_state.last_compliance_report)
 
 
 def run_training_v4(config: Dict):
@@ -1764,7 +2105,7 @@ def run_training_v4(config: Dict):
     }
 
 
-def run_training_real_tabular(config: Dict):
+def run_training_real_tabular(config: Dict, use_governance: bool = False):
     """Run real PyTorch training on tabular data (synthetic, diabetes, or heart disease)."""
     if not HAS_REAL_TRAINING:
         st.error("Modulo real_trainer_bridge non disponibile.")
@@ -1792,18 +2133,46 @@ def run_training_real_tabular(config: Dict):
         "tabular_dataset": tabular_ds,
     }
 
+    # Resolve governance bridge if enabled
+    gov_bridge = None
+    gov_config = None
+    if use_governance:
+        gov_bridge = st.session_state.get("gov_bridge")
+        gov_config = st.session_state.get("gov_config", {})
+        if gov_bridge is None:
+            st.warning("Governance abilitata ma bridge non disponibile. Training senza governance.")
+            use_governance = False
+
     if HAS_TRAINING_MONITOR:
         monitor = TrainingMonitor()
-        monitor.setup(show_governance=False)
-        callback = monitor.create_progress_callback()
+        monitor.setup(show_governance=use_governance)
+
         try:
             trainer = RealFLTrainer(bridge_config)
-            results = trainer.train(config["num_rounds"], callback)
+
+            if use_governance and gov_bridge is not None:
+                # Governance-aware training
+                progress_cb = monitor.create_progress_callback()
+                gov_cb = monitor.create_governance_callback(gov_bridge)
+
+                results = trainer.train_with_governance(
+                    num_rounds=config["num_rounds"],
+                    governance_bridge=gov_bridge,
+                    progress_callback=progress_cb,
+                    governance_callback=gov_cb,
+                )
+            else:
+                # Standard training
+                callback = monitor.create_progress_callback()
+                results = trainer.train(config["num_rounds"], callback)
+
             monitor.show_final_summary(results)
+
+            mode_label = "real_pytorch_governance" if use_governance else "real_pytorch"
             st.session_state.last_training_results = {
                 "algorithm": config["algorithm"],
                 "num_rounds": config["num_rounds"],
-                "mode": "real_pytorch",
+                "mode": mode_label,
                 "final_metrics": {
                     "accuracy": results["final_accuracy"],
                     "loss": results["final_loss"],
@@ -1812,6 +2181,14 @@ def run_training_real_tabular(config: Dict):
                 },
                 "history": results["history"],
             }
+
+            # Post-training compliance report generation
+            if use_governance and gov_bridge is not None:
+                report = _generate_post_training_compliance(
+                    config, results, gov_bridge, gov_config,
+                )
+                _show_compliance_summary(report)
+
         except Exception as e:
             st.error(f"Errore training: {e}")
     else:
@@ -1847,7 +2224,7 @@ def run_training_real_tabular(config: Dict):
             st.error(f"Errore training: {e}")
 
 
-def run_training_real_imaging(config: Dict):
+def run_training_real_imaging(config: Dict, use_governance: bool = False):
     """Run real PyTorch CNN training on clinical imaging dataset."""
     if not HAS_REAL_TRAINING:
         st.error("Modulo real_trainer_bridge non disponibile.")
@@ -1884,18 +2261,113 @@ def run_training_real_imaging(config: Dict):
         f"Questo puo' richiedere diversi minuti su CPU."
     )
 
+    # Resolve governance bridge if enabled
+    gov_bridge = None
+    gov_config = None
+    if use_governance:
+        gov_bridge = st.session_state.get("gov_bridge")
+        gov_config = st.session_state.get("gov_config", {})
+        if gov_bridge is None:
+            st.warning("Governance abilitata ma bridge non disponibile. Training senza governance.")
+            use_governance = False
+
     if HAS_TRAINING_MONITOR:
         monitor = TrainingMonitor()
-        monitor.setup(show_governance=False)
-        callback = monitor.create_progress_callback()
+        monitor.setup(show_governance=use_governance)
+
         try:
             trainer = RealImageFLTrainer(bridge_config)
-            results = trainer.train(config["num_rounds"], callback)
+
+            if use_governance and gov_bridge is not None:
+                # Governance-aware training via manual loop
+                # (RealImageFLTrainer doesn't have train_with_governance,
+                # so we use the same pattern as run_monitored_training)
+                progress_cb = monitor.create_progress_callback()
+                gov_cb = monitor.create_governance_callback(gov_bridge)
+
+                epsilon_per_round = (
+                    config["epsilon"] / config["num_rounds"]
+                    if config.get("use_dp")
+                    else 0.0
+                )
+
+                history = []
+                for r in range(config["num_rounds"]):
+                    # Pre-round governance check
+                    ok, reason = gov_cb(r, epsilon_per_round)
+                    if not ok:
+                        monitor.update_governance_event({
+                            "type": "training_stopped",
+                            "round": r,
+                            "message": f"Training interrotto: {reason}",
+                        })
+                        st.warning(f"Training interrotto al round {r}: {reason}")
+                        break
+
+                    result = trainer.trainer.train_round(r)
+                    round_data = {
+                        "round": r + 1,
+                        "accuracy": result.global_acc,
+                        "loss": result.global_loss,
+                        "f1": result.global_f1,
+                        "precision": result.global_precision,
+                        "recall": result.global_recall,
+                        "auc": result.global_auc,
+                        "time": result.time_seconds,
+                        "node_metrics": {
+                            cr.client_id: {
+                                "accuracy": cr.train_acc,
+                                "loss": cr.train_loss,
+                                "samples": cr.num_samples,
+                            }
+                            for cr in result.client_results
+                        },
+                    }
+                    history.append(round_data)
+                    progress_cb(r + 1, config["num_rounds"], round_data)
+                    gov_bridge.log_round_completion(r, result, epsilon_per_round)
+
+                # End governance session
+                if history:
+                    final = history[-1]
+                    gov_bridge.end_session(
+                        total_rounds=len(history),
+                        final_metrics={
+                            "accuracy": final["accuracy"],
+                            "loss": final["loss"],
+                            "f1": final["f1"],
+                            "auc": final["auc"],
+                        },
+                        success=True,
+                    )
+
+                final = history[-1] if history else {}
+                results = {
+                    "history": history,
+                    "final_accuracy": final.get("accuracy", 0),
+                    "final_loss": final.get("loss", 0),
+                    "final_f1": final.get("f1", 0),
+                    "final_auc": final.get("auc", 0),
+                    "algorithm": config["algorithm"],
+                    "num_clients": config["num_nodes"],
+                    "total_rounds": len(history),
+                    "training_mode": "real_pytorch_imaging_governance",
+                }
+            else:
+                # Standard training
+                callback = monitor.create_progress_callback()
+                results = trainer.train(config["num_rounds"], callback)
+
             monitor.show_final_summary(results)
+
+            mode_label = (
+                "real_pytorch_imaging_governance" if use_governance
+                else "real_pytorch_imaging"
+            )
             st.session_state.last_training_results = {
                 "algorithm": config["algorithm"],
                 "num_rounds": config["num_rounds"],
-                "mode": "real_pytorch_imaging",
+                "mode": mode_label,
                 "final_metrics": {
                     "accuracy": results["final_accuracy"],
                     "loss": results["final_loss"],
@@ -1904,6 +2376,14 @@ def run_training_real_imaging(config: Dict):
                 },
                 "history": results["history"],
             }
+
+            # Post-training compliance report generation
+            if use_governance and gov_bridge is not None:
+                report = _generate_post_training_compliance(
+                    config, results, gov_bridge, gov_config,
+                )
+                _show_compliance_summary(report)
+
         except Exception as e:
             st.error(f"Errore training imaging: {e}")
     else:

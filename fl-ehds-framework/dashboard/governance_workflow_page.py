@@ -366,6 +366,14 @@ def _render_lifecycle_execution():
             # Show detailed results
             _display_pre_training_results(result, detail_container)
 
+            # Navigation hint to Training tab
+            st.info(
+                "Governance pre-training completato. "
+                "Ora puoi avviare il training nel tab **Training** - "
+                "la governance sara attiva automaticamente con validazione "
+                "per-round, budget tracking e audit trail."
+            )
+
         except Exception as e:
             status.error(f"Errore durante l'esecuzione: {e}")
             progress.progress(0)
@@ -376,6 +384,13 @@ def _render_lifecycle_execution():
         st.markdown("##### Risultati Precedenti")
         _display_pre_training_results(
             st.session_state.gov_pre_training_result, st.container()
+        )
+
+        # Navigation hint
+        st.success(
+            "Governance pronta. Vai al tab **Training** "
+            "e seleziona modalita PyTorch Reale per avviare "
+            "il training con governance EHDS integrata."
         )
 
 
@@ -442,6 +457,14 @@ def _render_compliance_dashboard():
     config = st.session_state.gov_config
     bridge = st.session_state.gov_bridge
 
+    # Check if a post-training compliance report exists (from Training tab)
+    post_training_report = st.session_state.get("last_compliance_report")
+    if post_training_report is not None and post_training_report.assessments:
+        st.success(
+            "Report compliance generato automaticamente dopo il training "
+            f"({post_training_report.generated_at})"
+        )
+
     if bridge is None:
         st.info(
             "Esegui prima il pre-training governance nella tab 'Esecuzione Lifecycle' "
@@ -451,13 +474,18 @@ def _render_compliance_dashboard():
         # Show standalone compliance config
         if st.button("Genera Report Compliance (standalone)", key="gov_compliance_standalone"):
             _generate_standalone_compliance(config)
+
+        # Still show post-training report if available
+        report = st.session_state.gov_compliance_report
+        if report is not None:
+            _display_compliance_report(report)
         return
 
     # Generate compliance from bridge
     if st.button("Genera Report Compliance", type="primary", key="gov_compliance_gen"):
         _generate_compliance_from_bridge(bridge, config)
 
-    # Display existing report
+    # Display existing report (either from bridge or post-training)
     report = st.session_state.gov_compliance_report
     if report is not None:
         _display_compliance_report(report)
