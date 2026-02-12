@@ -90,6 +90,50 @@ except ImportError:
     except ImportError:
         HAS_PAPER_EXPERIMENTS = False
 
+# Import training monitor
+try:
+    from dashboard.training_monitor import TrainingMonitor, run_monitored_training
+    HAS_TRAINING_MONITOR = True
+except ImportError:
+    try:
+        from training_monitor import TrainingMonitor, run_monitored_training
+        HAS_TRAINING_MONITOR = True
+    except ImportError:
+        HAS_TRAINING_MONITOR = False
+
+# Import governance workflow page
+try:
+    from dashboard.governance_workflow_page import render_governance_workflow_tab
+    HAS_GOVERNANCE_WORKFLOW = True
+except ImportError:
+    try:
+        from governance_workflow_page import render_governance_workflow_tab
+        HAS_GOVERNANCE_WORKFLOW = True
+    except ImportError:
+        HAS_GOVERNANCE_WORKFLOW = False
+
+# Import permit manager page
+try:
+    from dashboard.permit_manager_page import render_permit_manager_tab
+    HAS_PERMIT_MANAGER = True
+except ImportError:
+    try:
+        from permit_manager_page import render_permit_manager_tab
+        HAS_PERMIT_MANAGER = True
+    except ImportError:
+        HAS_PERMIT_MANAGER = False
+
+# Import module integration page
+try:
+    from dashboard.module_integration_page import render_module_integration_tab
+    HAS_MODULE_INTEGRATION = True
+except ImportError:
+    try:
+        from module_integration_page import render_module_integration_tab
+        HAS_MODULE_INTEGRATION = True
+    except ImportError:
+        HAS_MODULE_INTEGRATION = False
+
 # Page config
 st.set_page_config(
     page_title="FL-EHDS Dashboard v4",
@@ -3818,9 +3862,12 @@ def main():
         "🔄 Continual",
         "🎯 Multi-Task",
         "🏛️ Hierarchical",
-        "🇪🇺 EHDS",
+        "🇪🇺 EHDS Governance",
+        "📋 Permit Manager",
+        "🔗 Integrazione Moduli",
         "⚙️ Infrastructure",
         "📊 Paper Experiments",
+        "🇪🇺 EHDS Reference",
         "📚 Guida"
     ])
 
@@ -3856,27 +3903,48 @@ def main():
         render_hierarchical_tab()
 
     with tabs[9]:
-        render_ehds_tab()
+        if HAS_GOVERNANCE_WORKFLOW:
+            render_governance_workflow_tab()
+        else:
+            st.warning("Modulo Governance Workflow non disponibile")
+            st.info("Assicurati che governance_workflow_page.py sia presente nella cartella dashboard/")
 
     with tabs[10]:
-        render_infrastructure_tab()
+        if HAS_PERMIT_MANAGER:
+            render_permit_manager_tab()
+        else:
+            st.warning("Modulo Permit Manager non disponibile")
+            st.info("Assicurati che permit_manager_page.py sia presente nella cartella dashboard/")
 
     with tabs[11]:
+        if HAS_MODULE_INTEGRATION:
+            render_module_integration_tab()
+        else:
+            st.warning("Modulo Integrazione non disponibile")
+            st.info("Assicurati che module_integration_page.py sia presente nella cartella dashboard/")
+
+    with tabs[12]:
+        render_infrastructure_tab()
+
+    with tabs[13]:
         if HAS_PAPER_EXPERIMENTS:
             render_paper_experiments_tab()
         else:
             st.warning("Modulo Paper Experiments non disponibile")
             st.info("Assicurati che paper_experiments_page.py sia presente nella cartella dashboard/")
 
-    with tabs[12]:
+    with tabs[14]:
+        render_ehds_tab()
+
+    with tabs[15]:
         render_guide_tab()
 
     st.markdown("---")
     st.markdown("""
     <div style='text-align: center; color: #888; font-size: 0.9rem;'>
         FL-EHDS Framework v4.0 | FLICS 2026 |
-        9 Algoritmi FL | 11 Architetture Modello | 14 Moduli Avanzati |
-        Dataset • Vertical • Byzantine • Continual • Multi-Task • Hierarchical • EHDS • Infrastructure • Cross-Silo
+        9 Algoritmi FL | 11 Architetture Modello | 16 Moduli Governance |
+        Governance • Permits • Integration • Dataset • Vertical • Byzantine • Continual • Multi-Task • Hierarchical • EHDS
     </div>
     """, unsafe_allow_html=True)
 

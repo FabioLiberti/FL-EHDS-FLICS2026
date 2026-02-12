@@ -244,6 +244,94 @@ class RealFLTrainer:
             "training_mode": "real_pytorch",
         }
 
+    def train_with_governance(
+        self,
+        num_rounds: int = 30,
+        governance_bridge=None,
+        progress_callback: Optional[Callable[[int, int, Dict], None]] = None,
+        governance_callback: Optional[Callable[[int, float], tuple]] = None,
+    ) -> Dict[str, Any]:
+        """Train with per-round governance validation and audit logging.
+
+        Args:
+            num_rounds: Number of FL rounds.
+            governance_bridge: GovernanceLifecycleBridge instance.
+            progress_callback: Optional UI progress callback.
+            governance_callback: Optional callback(round_num, eps_cost) -> (ok, reason).
+
+        Returns:
+            Dict with training history and final metrics.
+        """
+        self.history = []
+        epsilon_per_round = (
+            self.st_config.epsilon / num_rounds
+            if self.st_config.use_dp
+            else 0.0
+        )
+
+        for r in range(num_rounds):
+            # Pre-round governance check
+            if governance_callback is not None:
+                ok, reason = governance_callback(r, epsilon_per_round)
+                if not ok:
+                    break
+
+            result = self.trainer.train_round(r)
+
+            round_data = {
+                "round": r + 1,
+                "accuracy": result.global_acc,
+                "loss": result.global_loss,
+                "f1": result.global_f1,
+                "precision": result.global_precision,
+                "recall": result.global_recall,
+                "auc": result.global_auc,
+                "time": result.time_seconds,
+                "node_metrics": {
+                    cr.client_id: {
+                        "accuracy": cr.train_acc,
+                        "loss": cr.train_loss,
+                        "samples": cr.num_samples,
+                    }
+                    for cr in result.client_results
+                },
+            }
+            self.history.append(round_data)
+
+            if progress_callback:
+                progress_callback(r + 1, num_rounds, round_data)
+
+            # Post-round governance logging
+            if governance_bridge is not None:
+                governance_bridge.log_round_completion(r, result, epsilon_per_round)
+
+        # End governance session
+        if governance_bridge is not None and self.history:
+            final = self.history[-1]
+            governance_bridge.end_session(
+                total_rounds=len(self.history),
+                final_metrics={
+                    "accuracy": final["accuracy"],
+                    "loss": final["loss"],
+                    "f1": final["f1"],
+                    "auc": final["auc"],
+                },
+                success=True,
+            )
+
+        final = self.history[-1] if self.history else {}
+        return {
+            "history": self.history,
+            "final_accuracy": final.get("accuracy", 0),
+            "final_loss": final.get("loss", 0),
+            "final_f1": final.get("f1", 0),
+            "final_auc": final.get("auc", 0),
+            "algorithm": self.st_config.algorithm,
+            "num_clients": self.st_config.num_clients,
+            "total_rounds": len(self.history),
+            "training_mode": "real_pytorch_governance",
+        }
+
     def get_client_data_stats(self) -> Dict:
         """Get data distribution statistics per client."""
         return self.trainer.get_client_data_stats()
