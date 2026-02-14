@@ -21,6 +21,7 @@ from .optout_registry import (
     RegistryStats,
 )
 from .compliance_logging import ComplianceLogger, AuditTrail
+from .persistence import GovernanceDB
 
 __all__ = [
     # HDAB Integration
@@ -41,4 +42,6 @@ __all__ = [
     # Compliance Logging
     "ComplianceLogger",
     "AuditTrail",
+    # Persistence
+    "GovernanceDB",
 ]

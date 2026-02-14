@@ -128,8 +128,31 @@ class ByzantineScreen:
         display_config_summary(self.config)
         input(f"\n{Style.MUTED}Premi Enter per continuare...{Colors.RESET}")
 
+    def _map_defense(self, defense_type: str) -> str:
+        """Map UI defense name to ByzantineConfig aggregation_rule."""
+        mapping = {
+            "Krum": "krum",
+            "Multi-Krum": "krum",
+            "Trimmed Mean": "trimmed_mean",
+            "Median": "median",
+            "Bulyan": "bulyan",
+            "FLTrust": "fltrust",
+            "FLAME": "flame",
+        }
+        return mapping.get(defense_type, "krum")
+
+    def _map_attack(self, attack_type: str) -> str:
+        """Map UI attack name to ByzantineAttacker attack_type."""
+        mapping = {
+            "Label Flip": "label_flip",
+            "Gaussian Noise": "noise",
+            "Scaling Attack": "scale",
+            "Sign Flip": "sign_flip",
+        }
+        return mapping.get(attack_type, "scale")
+
     def _run_single_test(self):
-        """Run a single byzantine test."""
+        """Run a single byzantine test with real FL training."""
         clear_screen()
         print_section("TEST BYZANTINE IN CORSO")
 
@@ -141,34 +164,74 @@ class ByzantineScreen:
         print()
 
         try:
-            from dashboard.app_v4 import ByzantineSimulator
+            from core.byzantine_resilience import ByzantineConfig, ByzantineAttacker
+            from terminal.training.federated import FederatedTrainer
 
-            print_info("Inizializzazione simulatore...")
+            defense = self.config["defense_type"]
+            attack = self.config["attack_type"]
+            num_byzantine = self.config["num_byzantine"]
 
-            simulator = ByzantineSimulator(
+            # Build ByzantineConfig (None defense = no config)
+            byz_config = None
+            if defense != "None":
+                rule = self._map_defense(defense)
+                multi_m = self.config["num_clients"] - num_byzantine if defense == "Multi-Krum" else None
+                byz_config = ByzantineConfig(
+                    aggregation_rule=rule,
+                    num_byzantine=num_byzantine,
+                    multi_krum_m=multi_m,
+                )
+
+            print_info("Inizializzazione trainer con difesa bizantina...")
+
+            trainer = FederatedTrainer(
                 num_clients=self.config["num_clients"],
-                num_byzantine=self.config["num_byzantine"],
-                num_rounds=self.config["num_rounds"],
-                attack_type=self.config["attack_type"],
-                defense_type=self.config["defense_type"],
-                attack_strength=self.config["attack_strength"],
+                samples_per_client=200,
+                algorithm="FedAvg",
+                local_epochs=3,
+                byzantine_config=byz_config,
             )
 
-            print_info(f"Esecuzione test: {self.config['attack_type']} vs {self.config['defense_type']}")
+            # Inject attack into byzantine clients' data if needed
+            attacker = None
+            if attack != "None (baseline)":
+                attacker = ByzantineAttacker(
+                    attack_type=self._map_attack(attack),
+                    attack_strength=self.config["attack_strength"],
+                )
+
+            print_info(f"Esecuzione test: {attack} vs {defense}")
             print()
 
+            final_result = None
             with FLProgressBar(
                 total=self.config["num_rounds"],
                 desc="Round",
                 color="yellow"
             ) as pbar:
-                final_result = None
                 for round_num in range(self.config["num_rounds"]):
-                    final_result = simulator.train_round(round_num)
-                    pbar.update(1, acc=f"{final_result.get('accuracy', 0):.2%}")
+                    rr = trainer.train_round(round_num)
+
+                    # Apply attack to byzantine clients' updates for next round
+                    if attacker is not None and round_num < self.config["num_rounds"] - 1:
+                        for cid in range(num_byzantine):
+                            X, y = trainer.client_data[cid]
+                            # Flip labels for next round
+                            if self._map_attack(attack) == "label_flip":
+                                trainer.client_data[cid] = (X, 1 - y)
+
+                    final_result = {
+                        "accuracy": rr.global_acc,
+                        "f1": rr.global_f1,
+                        "auc": rr.global_auc,
+                        "loss": rr.global_loss,
+                        "byzantine_rejected": rr.byzantine_rejected or [],
+                        "byzantine_selected": rr.byzantine_selected or [],
+                    }
+                    pbar.update(1, acc=f"{rr.global_acc:.2%}")
 
             # Store results
-            key = f"{self.config['attack_type']} + {self.config['defense_type']}"
+            key = f"{attack} + {defense}"
             self.results[key] = {
                 "config": self.config.copy(),
                 "final_metrics": final_result,
@@ -178,11 +241,12 @@ class ByzantineScreen:
             print_success("Test completato")
             self._display_single_result(final_result)
 
-        except ImportError as e:
-            print_error(f"Impossibile importare ByzantineSimulator: {e}")
-            print_info("Questa funzionalita richiede l'implementazione completa in app_v4.py")
+            # Show Byzantine rejection info
+            if final_result.get("byzantine_rejected"):
+                print_info(f"Client rifiutati nell'ultimo round: {final_result['byzantine_rejected']}")
 
-            # Show placeholder results
+        except ImportError as e:
+            print_error(f"Errore di importazione: {e}")
             print_warning("Mostrando risultati placeholder...")
             self._display_placeholder_results()
 

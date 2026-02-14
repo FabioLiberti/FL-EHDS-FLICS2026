@@ -54,6 +54,7 @@ setup(
         ],
         "dashboard": [
             "streamlit>=1.30.0",
+            "plotly>=5.18.0",
         ],
         "terminal": [
             "questionary>=2.0.0",

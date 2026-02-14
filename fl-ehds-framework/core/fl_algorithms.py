@@ -515,7 +515,12 @@ class SCAFFOLD(FLAlgorithm):
 
 
 class FedAdam(FLAlgorithm):
-    """Federated Adam optimizer."""
+    """
+    Federated Adam optimizer (Reddi et al., 2021).
+
+    Applies Adam optimizer at server level. Includes optional bias correction
+    per Kingma & Ba (2015) to improve early-round convergence.
+    """
 
     def __init__(self,
                  client_lr: float = 0.1,
@@ -524,6 +529,7 @@ class FedAdam(FLAlgorithm):
                  beta2: float = 0.99,
                  tau: float = 1e-3,
                  local_epochs: int = 3,
+                 bias_correction: bool = True,
                  **kwargs):
         super().__init__(**kwargs)
         self.client_lr = client_lr
@@ -532,6 +538,7 @@ class FedAdam(FLAlgorithm):
         self.beta2 = beta2
         self.tau = tau
         self.local_epochs = local_epochs
+        self.bias_correction = bias_correction
 
     def client_update(self,
                       client_state: ClientState,
@@ -562,10 +569,10 @@ class FedAdam(FLAlgorithm):
                          client_updates: List[Dict[str, np.ndarray]],
                          client_weights: List[float],
                          **kwargs) -> ServerState:
-        """Adam-style server aggregation."""
+        """Adam-style server aggregation with optional bias correction."""
         total_weight = sum(client_weights)
 
-        # Compute pseudo-gradient
+        # Compute pseudo-gradient (weighted average of client updates)
         delta = {}
         for key in server_state.global_params.keys():
             delta[key] = sum(
@@ -592,11 +599,20 @@ class FedAdam(FLAlgorithm):
                 (1 - self.beta2) * delta[k]**2
             )
 
+        # Bias correction (Kingma & Ba, 2015) improves early-round convergence
+        t = server_state.round_num + 1
+        if self.bias_correction:
+            bc1 = 1 - self.beta1 ** t
+            bc2 = 1 - self.beta2 ** t
+        else:
+            bc1 = bc2 = 1.0
+
         # Update global model
         for k in server_state.global_params.keys():
+            m_hat = server_state.momentum[k] / bc1
+            v_hat = server_state.velocity[k] / bc2
             server_state.global_params[k] += (
-                self.server_lr * server_state.momentum[k] /
-                (np.sqrt(server_state.velocity[k]) + self.tau)
+                self.server_lr * m_hat / (np.sqrt(v_hat) + self.tau)
             )
 
         server_state.round_num += 1
@@ -604,14 +620,14 @@ class FedAdam(FLAlgorithm):
 
 
 class FedYogi(FedAdam):
-    """Federated Yogi optimizer."""
+    """Federated Yogi optimizer (Reddi et al., 2021) with bias correction."""
 
     def server_aggregate(self,
                          server_state: ServerState,
                          client_updates: List[Dict[str, np.ndarray]],
                          client_weights: List[float],
                          **kwargs) -> ServerState:
-        """Yogi-style server aggregation."""
+        """Yogi-style server aggregation with optional bias correction."""
         total_weight = sum(client_weights)
 
         delta = {}
@@ -631,7 +647,7 @@ class FedYogi(FedAdam):
                 (1 - self.beta1) * delta[k]
             )
 
-        # Yogi update for velocity - more aggressive
+        # Yogi update for velocity - more controlled adaptation than Adam
         for k in delta.keys():
             sign = np.sign(delta[k]**2 - server_state.velocity[k])
             server_state.velocity[k] = (
@@ -639,10 +655,19 @@ class FedYogi(FedAdam):
                 (1 - self.beta2) * sign * delta[k]**2
             )
 
+        # Bias correction (Kingma & Ba, 2015)
+        t = server_state.round_num + 1
+        if self.bias_correction:
+            bc1 = 1 - self.beta1 ** t
+            bc2 = 1 - self.beta2 ** t
+        else:
+            bc1 = bc2 = 1.0
+
         for k in server_state.global_params.keys():
+            m_hat = server_state.momentum[k] / bc1
+            v_hat = server_state.velocity[k] / bc2
             server_state.global_params[k] += (
-                self.server_lr * server_state.momentum[k] /
-                (np.sqrt(server_state.velocity[k]) + self.tau)
+                self.server_lr * m_hat / (np.sqrt(v_hat) + self.tau)
             )
 
         server_state.round_num += 1
@@ -731,7 +756,7 @@ class FedNova(FLAlgorithm):
                       server_state: ServerState,
                       local_data: Tuple[np.ndarray, np.ndarray],
                       **kwargs) -> Tuple[Dict[str, np.ndarray], ClientState]:
-        """Local SGD with step counting."""
+        """Local SGD with step counting for normalized averaging."""
         X, y = local_data
         params = deepcopy(server_state.global_params)
         accumulated_grad = {k: np.zeros_like(v) for k, v in params.items()}
@@ -744,9 +769,15 @@ class FedNova(FLAlgorithm):
             grad_w = X.T @ (probs - y) / len(y)
             accumulated_grad['weights'] += grad_w
             params['weights'] -= self.lr * grad_w
+
+            if 'bias' in params:
+                grad_b = np.mean(probs - y)
+                accumulated_grad['bias'] += grad_b
+                params['bias'] -= self.lr * grad_b
+
             total_steps += 1
 
-        # Normalized update
+        # Normalized update: accumulated gradients + step count for normalization
         update = {k: accumulated_grad[k] for k in params.keys()}
         update['_num_steps'] = total_steps
 

@@ -117,6 +117,7 @@ class OptOutRegistry:
         sync_interval: int = 300,
         cache_ttl: int = 600,
         max_cache_size: int = 100000,
+        db=None,
     ):
         """
         Initialize opt-out registry.
@@ -126,11 +127,13 @@ class OptOutRegistry:
             sync_interval: Seconds between registry synchronizations.
             cache_ttl: Cache entry time-to-live in seconds.
             max_cache_size: Maximum number of cached entries.
+            db: Optional GovernanceDB instance for SQLite persistence.
         """
         self.registry_endpoint = registry_endpoint
         self.sync_interval = sync_interval
         self.cache_ttl = cache_ttl
         self.max_cache_size = max_cache_size
+        self._db = db
 
         # LRU-ordered cache: most recently used entries at the end
         self._cache: OrderedDict[str, OptOutCacheEntry] = OrderedDict()
@@ -142,6 +145,17 @@ class OptOutRegistry:
         self._last_sync: Optional[datetime] = None
         self._sync_task: Optional[asyncio.Task] = None
         self._stats = RegistryStats()
+
+        # Pre-load active opt-outs from SQLite when db is provided
+        if self._db is not None:
+            for row in self._db.list_active_optouts():
+                try:
+                    record = OptOutRecord(**row)
+                    self._records[record.patient_id] = record
+                    self._opted_out_ids.add(record.patient_id)
+                except Exception:
+                    pass
+            self._stats.total_opted_out = len(self._opted_out_ids)
 
     # -------------------------------------------------------------------------
     # Lifecycle
@@ -262,6 +276,10 @@ class OptOutRegistry:
         # Store full record
         self._records[record.patient_id] = record
 
+        # Write-through to SQLite
+        if self._db is not None:
+            self._db.save_optout(record)
+
         # Update fast lookup set
         if record.is_active:
             self._opted_out_ids.add(record.patient_id)
@@ -303,6 +321,10 @@ class OptOutRegistry:
         record.is_active = False
         record.metadata["revoked_at"] = datetime.utcnow().isoformat()
         self._opted_out_ids.discard(patient_id)
+
+        # Write-through to SQLite
+        if self._db is not None:
+            self._db.deactivate_optout(patient_id)
 
         # Remove from cache
         self._cache.pop(patient_id, None)

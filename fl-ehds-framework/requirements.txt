@@ -49,3 +49,4 @@ ipykernel>=6.0.0
 rich>=13.7.0  # Terminal UI
 tensorboard>=2.15.0  # TensorBoard logging
 streamlit>=1.30.0  # Interactive dashboard
+plotly>=5.18.0  # Interactive charts for dashboard

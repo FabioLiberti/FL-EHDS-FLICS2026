@@ -87,19 +87,32 @@ class AuthToken:
 
 class PermitStore:
     """
-    In-memory permit store for HDAB simulation.
+    Permit store for HDAB simulation with optional SQLite persistence.
 
-    Provides a local backend to test the full permit lifecycle
-    without requiring a live HDAB endpoint.
+    When initialized with a GovernanceDB instance, all mutations are
+    written through to SQLite for durability. Without a DB, operates
+    purely in-memory (backward compatible).
     """
 
-    def __init__(self):
+    def __init__(self, db=None):
         self._permits: Dict[str, DataPermit] = {}
         self._audit_log: List[Dict[str, Any]] = []
+        self._db = db  # Optional GovernanceDB instance
+
+        # Pre-load from SQLite if available
+        if self._db is not None:
+            for row in self._db.list_permits():
+                try:
+                    permit = DataPermit(**row)
+                    self._permits[permit.permit_id] = permit
+                except Exception:
+                    pass  # Skip invalid rows
 
     def register(self, permit: DataPermit) -> None:
         self._permits[permit.permit_id] = permit
         self._log_action("register", permit.permit_id)
+        if self._db is not None:
+            self._db.save_permit(permit)
 
     def get(self, permit_id: str) -> Optional[DataPermit]:
         return self._permits.get(permit_id)
@@ -127,6 +140,11 @@ class PermitStore:
         permit.metadata["revocation_reason"] = reason
         permit.metadata["revoked_at"] = datetime.utcnow().isoformat()
         self._log_action("revoke", permit_id, details={"reason": reason})
+        if self._db is not None:
+            self._db.update_permit_status(
+                permit_id, "revoked",
+                {"revocation_reason": reason, "revoked_at": permit.metadata["revoked_at"]},
+            )
         return True
 
     def suspend(self, permit_id: str, reason: str) -> bool:
@@ -137,6 +155,11 @@ class PermitStore:
         permit.metadata["suspension_reason"] = reason
         permit.metadata["suspended_at"] = datetime.utcnow().isoformat()
         self._log_action("suspend", permit_id, details={"reason": reason})
+        if self._db is not None:
+            self._db.update_permit_status(
+                permit_id, "suspended",
+                {"suspension_reason": reason, "suspended_at": permit.metadata["suspended_at"]},
+            )
         return True
 
     def reactivate(self, permit_id: str) -> bool:
@@ -146,12 +169,16 @@ class PermitStore:
         permit.status = PermitStatus.ACTIVE
         permit.metadata.pop("suspension_reason", None)
         self._log_action("reactivate", permit_id)
+        if self._db is not None:
+            self._db.update_permit_status(permit_id, "active")
         return True
 
     def remove(self, permit_id: str) -> bool:
         if permit_id in self._permits:
             del self._permits[permit_id]
             self._log_action("remove", permit_id)
+            if self._db is not None:
+                self._db.delete_permit(permit_id)
             return True
         return False
 
@@ -166,20 +193,26 @@ class PermitStore:
     def _log_action(
         self, action: str, permit_id: str, details: Optional[Dict] = None
     ) -> None:
-        self._audit_log.append({
+        entry = {
             "action": action,
             "permit_id": permit_id,
             "timestamp": datetime.utcnow().isoformat(),
             "details": details or {},
-        })
+        }
+        self._audit_log.append(entry)
+        if self._db is not None:
+            self._db.save_permit_action(action, permit_id, details)
 
 
 # Global shared store for simulation mode
 _shared_permit_store = PermitStore()
 
 
-def get_shared_permit_store() -> PermitStore:
-    """Get the shared in-memory permit store (simulation mode)."""
+def get_shared_permit_store(db=None) -> PermitStore:
+    """Get the shared permit store. Optionally initialize with SQLite backend."""
+    global _shared_permit_store
+    if db is not None and _shared_permit_store._db is None:
+        _shared_permit_store = PermitStore(db=db)
     return _shared_permit_store
 
 

@@ -68,6 +68,26 @@ class ByzantineConfig:
     enable_detection: bool = True
     detection_threshold: float = 3.0  # Standard deviations for outlier
 
+    def __post_init__(self):
+        """Validate configuration parameters."""
+        valid_rules = {'krum', 'trimmed_mean', 'median', 'bulyan', 'fltrust', 'flame'}
+        if self.aggregation_rule.lower() not in valid_rules:
+            raise ValueError(
+                f"Invalid aggregation_rule '{self.aggregation_rule}'. "
+                f"Must be one of: {sorted(valid_rules)}"
+            )
+        if self.num_byzantine < 0:
+            raise ValueError(f"num_byzantine must be >= 0, got {self.num_byzantine}")
+        if not 0.0 <= self.trim_ratio < 0.5:
+            raise ValueError(
+                f"trim_ratio must be in [0, 0.5), got {self.trim_ratio}. "
+                f"Values >= 0.5 would trim all data."
+            )
+        if self.num_clusters < 2:
+            raise ValueError(f"num_clusters must be >= 2, got {self.num_clusters}")
+        if self.detection_threshold <= 0:
+            raise ValueError(f"detection_threshold must be > 0, got {self.detection_threshold}")
+
 
 @dataclass
 class ClientGradient:
@@ -415,7 +435,11 @@ class BulyanAggregator(ByzantineResilientAggregator):
         theta = n - 2 * f
 
         if theta < 3:
-            raise ValueError(f"Need n > 4f for Bulyan, got n={n}, f={f}")
+            raise ValueError(
+                f"Bulyan requires n > 4f+2 (theta=n-2f >= 3). "
+                f"Got n={n}, f={f}, theta={theta}. "
+                f"Either increase clients to >= {4*f+3} or reduce num_byzantine."
+            )
 
         # Step 1: Use Multi-Krum to select θ gradients
         krum_config = ByzantineConfig(

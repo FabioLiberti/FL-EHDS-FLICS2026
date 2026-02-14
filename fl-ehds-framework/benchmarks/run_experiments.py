@@ -15,7 +15,7 @@ This script runs federated learning experiments with:
 import json
 import os
 import time
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Tuple, Optional
@@ -411,6 +411,10 @@ class ExperimentResult:
     auc_std: float = 0.0
     precision: float = 0.0
     recall: float = 0.0
+    # Raw per-seed arrays for significance testing
+    per_seed_accuracy: List[float] = field(default_factory=list)
+    per_seed_f1: List[float] = field(default_factory=list)
+    per_seed_auc: List[float] = field(default_factory=list)
 
 
 def run_fl_experiment(config: ExperimentConfig, base_seed: int = 42) -> ExperimentResult:
@@ -681,7 +685,10 @@ def run_experiment_with_multiple_seeds(
         auc_score=mean_auc,
         auc_std=std_auc,
         precision=mean_precision,
-        recall=mean_recall
+        recall=mean_recall,
+        per_seed_accuracy=accuracies,
+        per_seed_f1=f1_scores,
+        per_seed_auc=auc_scores,
     )
 
     print(f"\n{'='*60}")
@@ -865,7 +872,61 @@ def run_all_experiments(num_runs: int = 5) -> Dict[str, ExperimentResult]:
         num_runs=num_runs
     )
 
+    # Significance testing vs FedAvg non-IID baseline
+    _print_significance(results)
+
     return results
+
+
+def _print_significance(results: Dict[str, ExperimentResult]) -> None:
+    """Run and print pairwise significance tests vs FedAvg baseline."""
+    try:
+        from benchmarks.significance import pairwise_significance_table
+    except ImportError:
+        return
+
+    baseline_key = "fedavg_noniid"
+    if baseline_key not in results or not results[baseline_key].per_seed_accuracy:
+        return
+
+    # Build per-algo metric arrays
+    algo_data = {}
+    key_to_label = {
+        "fedavg_noniid": "FedAvg",
+        "fedprox_noniid": "FedProx",
+        "scaffold_noniid": "SCAFFOLD",
+        "fednova_noniid": "FedNova",
+    }
+
+    for key, label in key_to_label.items():
+        if key in results and results[key].per_seed_accuracy:
+            r = results[key]
+            algo_data[label] = {
+                "accuracy": r.per_seed_accuracy,
+                "f1": r.per_seed_f1,
+                "auc": r.per_seed_auc,
+            }
+
+    if len(algo_data) < 2:
+        return
+
+    sig_table = pairwise_significance_table(
+        algo_data, baseline="FedAvg", metrics=["accuracy", "f1", "auc"]
+    )
+
+    print(f"\n{'='*70}")
+    print("SIGNIFICANCE TESTING (vs FedAvg, paired t-test)")
+    print(f"{'='*70}")
+    print(f"{'Algorithm':<15} {'Metric':<10} {'p-value':<12} {'Significant':<12} {'Cohen d':<10}")
+    print("-" * 60)
+
+    for algo, metrics in sorted(sig_table.items()):
+        for metric, info in sorted(metrics.items()):
+            sig = "*" if info["significant"] else ""
+            print(
+                f"  {algo:<13} {metric:<10} {info['p_value']:<12.4f} "
+                f"{'YES' + sig:<12} {info['cohens_d']:<10.3f}"
+            )
 
 
 def generate_latex_table(results: Dict[str, ExperimentResult]) -> str:

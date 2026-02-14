@@ -252,6 +252,55 @@ def run_benchmark_suite(
     with open(run_dir / "table_results.tex", "w") as f:
         f.write(latex_table)
 
+    # Significance testing vs FedAvg non-IID baseline
+    try:
+        from benchmarks.significance import pairwise_significance_table, format_significance_latex
+
+        # Build per-algo metric arrays from seed results
+        algo_data = {}
+        for agg in all_results:
+            label = agg["algorithm"]
+            if agg["is_iid"]:
+                label += " (IID)"
+            if agg["dp_enabled"]:
+                label += f" +DP(e={agg['dp_epsilon']})"
+            seed_results_list = agg["per_seed_results"]
+            algo_data[label] = {
+                "accuracy": [r["final_accuracy"] for r in seed_results_list],
+                "f1": [r["final_f1"] for r in seed_results_list],
+                "auc": [r["final_auc"] for r in seed_results_list],
+            }
+
+        # Use FedAvg non-IID as baseline
+        baseline_label = "FedAvg"
+        if baseline_label in algo_data and len(algo_data) > 1:
+            sig_table = pairwise_significance_table(
+                algo_data, baseline=baseline_label, metrics=["accuracy", "f1", "auc"]
+            )
+            print(f"\nSIGNIFICANCE TESTING (vs {baseline_label}):")
+            for algo, metrics in sorted(sig_table.items()):
+                for metric, info in sorted(metrics.items()):
+                    marker = "*" if info["significant"] else ""
+                    print(f"  {algo:<25} {metric:<10} p={info['p_value']:.4f} d={info['cohens_d']:.3f} {marker}")
+
+            # Save significance LaTeX
+            sig_latex = format_significance_latex(
+                algo_data, baseline=baseline_label,
+                caption=f"Significance Testing: {dataset_name.replace('_', ' ').title()}",
+                label=f"tab:{dataset_name}_significance",
+            )
+            with open(run_dir / "table_significance.tex", "w") as f:
+                f.write(sig_latex)
+
+            summary["significance"] = {
+                algo: {m: {"p": info["p_value"], "d": info["cohens_d"], "sig": info["significant"]}
+                       for m, info in metrics.items()}
+                for algo, metrics in sig_table.items()
+            }
+
+    except ImportError:
+        pass
+
     print(f"\n{'='*60}")
     print(f"Results saved to: {run_dir}")
     print(f"{'='*60}")

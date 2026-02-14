@@ -34,6 +34,7 @@ class AuditTrail:
         storage_path: Optional[str] = None,
         retention_days: int = 2555,  # ~7 years
         log_format: str = "json",
+        db=None,
     ):
         """
         Initialize audit trail.
@@ -43,11 +44,17 @@ class AuditTrail:
             storage_path: Path for file-based storage.
             retention_days: Days to retain audit records.
             log_format: Output format ('json', 'csv').
+            db: Optional GovernanceDB instance for SQLite persistence.
         """
         self.storage_backend = storage_backend
         self.storage_path = Path(storage_path) if storage_path else Path("logs/compliance")
         self.retention_days = retention_days
         self.log_format = log_format
+        self._db = db
+
+        # Auto-upgrade to database backend when db is provided
+        if self._db is not None and self.storage_backend == "structured_file":
+            self.storage_backend = "database"
 
         # Ensure storage directory exists
         if self.storage_backend == "structured_file":
@@ -157,8 +164,11 @@ class AuditTrail:
 
     def _write_to_database(self, records: List[ComplianceRecord]) -> None:
         """Write records to database storage."""
-        # Implementation placeholder
-        logger.debug("Writing records to database", count=len(records))
+        if self._db is not None:
+            self._db.save_audit_records(records)
+            logger.debug("Audit records persisted to SQLite", count=len(records))
+        else:
+            logger.warning("Database backend selected but no db instance provided", count=len(records))
 
     def _send_to_siem(self, records: List[ComplianceRecord]) -> None:
         """Send records to SIEM system."""
@@ -190,9 +200,18 @@ class AuditTrail:
         Returns:
             List of matching audit records.
         """
-        # Implementation placeholder - would query storage backend
+        if self._db is not None:
+            return self._db.query_audit(
+                start_date=start_date,
+                end_date=end_date,
+                action=action,
+                permit_id=permit_id,
+                limit=limit,
+            )
+
+        # Fallback: return buffered records that match filters
         logger.info(
-            "Querying audit records",
+            "Querying audit records (in-memory only)",
             start_date=start_date,
             end_date=end_date,
             action=action,

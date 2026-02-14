@@ -102,6 +102,12 @@ class PairwiseMaskingProtocol:
             gradient_dim: Dimension of gradient vectors
             dropout_threshold: Minimum fraction of clients needed
         """
+        if not CRYPTO_AVAILABLE:
+            raise ImportError(
+                "PairwiseMaskingProtocol requires the 'cryptography' package. "
+                "Install with: pip install cryptography>=41.0.0"
+            )
+
         self.num_clients = num_clients
         self.gradient_dim = gradient_dim
         self.min_clients = max(2, int(num_clients * dropout_threshold))
@@ -115,13 +121,6 @@ class PairwiseMaskingProtocol:
 
     def _generate_client_keys(self) -> Dict[int, Tuple]:
         """Generate ECDH key pairs for each client."""
-        if not CRYPTO_AVAILABLE:
-            # Fallback: use random seeds as "keys"
-            return {
-                i: (self.rng.randint(0, 2**32), self.rng.randint(0, 2**32))
-                for i in range(self.num_clients)
-            }
-
         keys = {}
         for i in range(self.num_clients):
             private_key = ec.generate_private_key(ec.SECP256R1(), default_backend())
@@ -136,29 +135,22 @@ class PairwiseMaskingProtocol:
 
         for i in range(self.num_clients):
             for j in range(i + 1, self.num_clients):
-                if CRYPTO_AVAILABLE:
-                    # ECDH key agreement
-                    private_i = self.client_keys[i][0]
-                    public_j = self.client_keys[j][1]
+                # ECDH key agreement
+                private_i = self.client_keys[i][0]
+                public_j = self.client_keys[j][1]
 
-                    shared_key = private_i.exchange(ec.ECDH(), public_j)
+                shared_key = private_i.exchange(ec.ECDH(), public_j)
 
-                    # Derive seed from shared key
-                    derived = HKDF(
-                        algorithm=hashes.SHA256(),
-                        length=32,
-                        salt=None,
-                        info=f"mask_{i}_{j}".encode(),
-                        backend=default_backend()
-                    ).derive(shared_key)
+                # Derive seed from shared key
+                derived = HKDF(
+                    algorithm=hashes.SHA256(),
+                    length=32,
+                    salt=None,
+                    info=f"mask_{i}_{j}".encode(),
+                    backend=default_backend()
+                ).derive(shared_key)
 
-                    secrets_dict[(i, j)] = derived
-                else:
-                    # Fallback: combine random seeds
-                    combined = self.client_keys[i][0] ^ self.client_keys[j][0]
-                    secrets_dict[(i, j)] = hashlib.sha256(
-                        f"{combined}_{i}_{j}".encode()
-                    ).digest()
+                secrets_dict[(i, j)] = derived
 
         return secrets_dict
 
