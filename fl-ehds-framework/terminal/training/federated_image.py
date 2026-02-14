@@ -24,7 +24,7 @@ class ImageFederatedTrainer:
     Federated Learning trainer for medical image classification.
 
     Uses HealthcareCNN model and supports loading image datasets from disk.
-    Implements FedAvg, FedProx for image FL experiments.
+    Implements 15 FL algorithms for image FL experiments.
     """
 
     def __init__(
@@ -71,7 +71,8 @@ class ImageFederatedTrainer:
 
         SUPPORTED_ALGORITHMS = [
             "FedAvg", "FedProx", "SCAFFOLD", "FedAdam", "FedYogi",
-            "FedAdagrad", "FedNova", "FedDyn", "Per-FedAvg", "Ditto"
+            "FedAdagrad", "FedNova", "FedDyn", "Per-FedAvg", "Ditto",
+            "FedLC", "FedSAM", "FedDecorr", "FedSpeed", "FedExP"
         ]
         if algorithm not in SUPPORTED_ALGORITHMS:
             raise ValueError(
@@ -199,6 +200,14 @@ class ImageFederatedTrainer:
         # FedNova: track local steps
         self.client_steps = {i: 0 for i in range(self.num_clients)}
 
+        # FedSpeed: per-client prox-correction (Sun et al., ICLR 2023)
+        if algorithm == "FedSpeed":
+            self.fedspeed_corrections = {
+                i: {name: torch.zeros_like(param)
+                    for name, param in self.global_model.named_parameters()}
+                for i in range(self.num_clients)
+            }
+
         # Byzantine defense (lazy-initialized)
         self._byzantine_manager = None
         self._last_byzantine_result = None
@@ -260,7 +269,7 @@ class ImageFederatedTrainer:
         return self.learning_rate * (0.1 + 0.9 * (1 + math.cos(math.pi * progress)) / 2)
 
     def _train_client(self, client_id: int, round_num: int) -> ClientResult:
-        """Train one client locally. Supports all 9 FL algorithms."""
+        """Train one client locally. Supports all 15 FL algorithms."""
         local_model = deepcopy(self.global_model)
         local_model = local_model.to(self.device)
         local_model.train()
@@ -272,8 +281,8 @@ class ImageFederatedTrainer:
 
         dataloader = self._get_client_dataloader(client_id)
 
-        # Store initial params for FedProx, Ditto, and FedDyn
-        if self.algorithm in ["FedProx", "Ditto", "FedDyn"]:
+        # Store initial params for proximal methods
+        if self.algorithm in ["FedProx", "Ditto", "FedDyn", "FedSpeed"]:
             global_params = {
                 name: param.clone().detach()
                 for name, param in self.global_model.named_parameters()
@@ -323,6 +332,110 @@ class ImageFederatedTrainer:
                         )
                     loss += (self.mu / 2) * prox_term - linear_term
 
+                # FedSpeed: proximal term (Sun et al., ICLR 2023)
+                if self.algorithm == "FedSpeed":
+                    fedspeed_lambda = 0.1
+                    prox_term = 0.0
+                    for name, param in local_model.named_parameters():
+                        prox_term += torch.sum((param - global_params[name]) ** 2)
+                    loss += (1.0 / (2.0 * fedspeed_lambda)) * prox_term
+
+                # FedLC: logit calibration (Zhang et al., ICML 2022)
+                if self.algorithm == "FedLC":
+                    fedlc_tau = 1.0
+                    # Count local class frequencies for calibration margins
+                    with torch.no_grad():
+                        all_labels_flat = batch_y.cpu().numpy()
+                        class_counts = np.bincount(all_labels_flat, minlength=outputs.shape[1])
+                        class_counts = class_counts.astype(np.float32) + 1e-8
+                        margins = fedlc_tau * np.power(class_counts, -0.25)
+                        margins_tensor = torch.FloatTensor(margins).to(outputs.device)
+                    # Recompute loss with calibrated logits
+                    loss = criterion(outputs - margins_tensor.unsqueeze(0), batch_y)
+
+                # FedSAM: sharpness-aware minimization (Qu et al., ICML 2022)
+                if self.algorithm == "FedSAM":
+                    fedsam_rho = 0.05
+                    # Step 1: compute gradient at current position
+                    loss.backward()
+
+                    # Step 2: compute perturbation epsilon = rho * grad / ||grad||
+                    grad_norm = 0.0
+                    for param in local_model.parameters():
+                        if param.grad is not None:
+                            grad_norm += param.grad.data.norm() ** 2
+                    grad_norm = grad_norm ** 0.5
+
+                    # Save original params and perturb
+                    old_params = {}
+                    if grad_norm > 1e-12:
+                        for name, param in local_model.named_parameters():
+                            if param.grad is not None:
+                                old_params[name] = param.data.clone()
+                                epsilon = fedsam_rho * param.grad.data / grad_norm
+                                param.data.add_(epsilon)
+
+                    # Step 3: recompute gradient at perturbed position
+                    optimizer.zero_grad()
+                    outputs_perturbed = local_model(batch_X)
+                    loss_perturbed = criterion(outputs_perturbed, batch_y)
+                    loss_perturbed.backward()
+
+                    # Step 4: restore original params (gradient is from perturbed point)
+                    for name, param in local_model.named_parameters():
+                        if name in old_params:
+                            param.data.copy_(old_params[name])
+
+                    # Skip normal backward - already done
+                    # Gradient clipping
+                    clip_norm = self.dp_clip_norm if self.dp_enabled else 1.0
+                    torch.nn.utils.clip_grad_norm_(local_model.parameters(), clip_norm)
+                    optimizer.step()
+
+                    total_loss += loss.item() * len(batch_y)
+                    preds = outputs.argmax(dim=1)
+                    total_correct += (preds == batch_y).sum().item()
+                    total_samples += len(batch_y)
+                    steps += 1
+                    continue  # Skip standard backward/step below
+
+                # FedDecorr: feature decorrelation (Shi et al., ICLR 2023)
+                if self.algorithm == "FedDecorr":
+                    feddecorr_beta = 0.1
+                    # Get penultimate layer representations via hook
+                    representations = []
+                    def _hook_fn(module, input, output):
+                        representations.append(output)
+
+                    # Identify the penultimate layer
+                    if hasattr(local_model, 'avgpool'):
+                        # HealthcareResNet: hook on avgpool
+                        hook = local_model.avgpool.register_forward_hook(_hook_fn)
+                    else:
+                        # HealthcareCNN: hook on features (output of GAP)
+                        hook = local_model.features.register_forward_hook(_hook_fn)
+
+                    # Re-forward to capture representations
+                    representations.clear()
+                    _ = local_model(batch_X)
+                    hook.remove()
+
+                    if representations:
+                        reps = representations[0]
+                        reps = reps.view(reps.size(0), -1)  # Flatten to (batch, features)
+                        n_batch = reps.size(0)
+                        d = reps.size(1)
+                        if n_batch > 1 and d > 1:
+                            # Center representations
+                            reps_centered = reps - reps.mean(dim=0, keepdim=True)
+                            # Correlation matrix K = (H^T H) / n
+                            K = (reps_centered.T @ reps_centered) / n_batch
+                            # Zero diagonal (self-correlation)
+                            K = K - torch.diag(torch.diag(K))
+                            # Decorrelation loss: beta * ||K||_F^2 / d^2
+                            decorr_loss = feddecorr_beta * (K ** 2).sum() / (d * d)
+                            loss = loss + decorr_loss
+
                 # SCAFFOLD: apply control variate correction after backward
                 loss.backward()
 
@@ -338,6 +451,12 @@ class ImageFederatedTrainer:
                                 if corr_norm > max_corr:
                                     correction = correction * (max_corr / corr_norm)
                             param.grad.data += correction
+
+                # FedSpeed: subtract prox-correction from gradients (Sun et al., ICLR 2023)
+                if self.algorithm == "FedSpeed":
+                    for name, param in local_model.named_parameters():
+                        if param.grad is not None:
+                            param.grad.data -= self.fedspeed_corrections[client_id][name]
 
                 # Update progress bar with current loss
                 epoch_pbar.set_postfix(loss=f"{loss.item():.4f}")
@@ -381,6 +500,15 @@ class ImageFederatedTrainer:
                 global_param = dict(self.global_model.named_parameters())[name]
                 self.client_grad_corrections[client_id][name] -= (
                     self.mu * (param.data - global_param.data)
+                )
+
+        # FedSpeed: update prox-correction (Sun et al., ICLR 2023)
+        if self.algorithm == "FedSpeed":
+            fedspeed_lambda = 0.1
+            for name, param in local_model.named_parameters():
+                global_param = dict(self.global_model.named_parameters())[name]
+                self.fedspeed_corrections[client_id][name] -= (
+                    (1.0 / fedspeed_lambda) * (param.data - global_param.data)
                 )
 
         # Ditto: train personalized model with regularization towards global
@@ -461,7 +589,7 @@ class ImageFederatedTrainer:
     def _aggregate(self, client_results: List[ClientResult],
                    noise_scale_override: Optional[float] = None,
                    quality_weights: Optional[Dict[int, float]] = None) -> None:
-        """Aggregate client updates. Supports all 10 FL algorithms.
+        """Aggregate client updates. Supports all 15 FL algorithms.
 
         Args:
             quality_weights: Optional {client_id: quality_weight} from Data Quality
@@ -565,8 +693,42 @@ class ImageFederatedTrainer:
                 self.server_h[name] -= self.mu * weighted_update
                 param.data += weighted_update - (1.0 / self.mu) * self.server_h[name]
 
+        elif self.algorithm == "FedExP":
+            # FedExP: adaptive extrapolation (Jhunjhunwala et al., ICLR 2023)
+            # Compute weighted average delta (pseudo-gradient)
+            avg_update = {}
+            for name, param in self.global_model.named_parameters():
+                avg = torch.zeros_like(param)
+                for cr in client_results:
+                    avg += cr.model_update[name] * cw[cr.client_id]
+                avg_update[name] = avg
+
+            # Compute norms for adaptive step size
+            avg_norm_sq = sum(
+                (avg_update[name] ** 2).sum().item()
+                for name in avg_update
+            )
+            sum_norm_sq = 0.0
+            for cr in client_results:
+                client_norm_sq = sum(
+                    (cr.model_update[name] ** 2).sum().item()
+                    for name in cr.model_update
+                )
+                sum_norm_sq += client_norm_sq
+
+            # eta_s = max(1.0, N * ||avg||^2 / sum_||delta_i||^2)
+            N = len(client_results)
+            if sum_norm_sq > 1e-12:
+                eta_s = max(1.0, N * avg_norm_sq / sum_norm_sq)
+            else:
+                eta_s = 1.0
+
+            for name, param in self.global_model.named_parameters():
+                param.data += eta_s * avg_update[name]
+
         else:
-            # FedAvg, FedProx, SCAFFOLD, Per-FedAvg, Ditto: weighted average
+            # FedAvg, FedProx, SCAFFOLD, Per-FedAvg, Ditto,
+            # FedLC, FedSAM, FedDecorr, FedSpeed: weighted average
             for name, param in self.global_model.named_parameters():
                 weighted_update = torch.zeros_like(param)
                 for cr in client_results:
@@ -970,6 +1132,9 @@ class ImageFederatedTrainer:
             checkpoint["server_h"] = self.server_h
             checkpoint["client_grad_corrections"] = self.client_grad_corrections
 
+        if self.algorithm == "FedSpeed":
+            checkpoint["fedspeed_corrections"] = self.fedspeed_corrections
+
         os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
         torch.save(checkpoint, path)
 
@@ -1052,6 +1217,12 @@ class ImageFederatedTrainer:
                     cid: {k: v.to(self.device) for k, v in corr.items()}
                     for cid, corr in checkpoint["client_grad_corrections"].items()
                 }
+
+        if self.algorithm == "FedSpeed" and "fedspeed_corrections" in checkpoint:
+            self.fedspeed_corrections = {
+                cid: {k: v.to(self.device) for k, v in corr.items()}
+                for cid, corr in checkpoint["fedspeed_corrections"].items()
+            }
 
         if "client_steps" in checkpoint:
             self.client_steps = checkpoint["client_steps"]
