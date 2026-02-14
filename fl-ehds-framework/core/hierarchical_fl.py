@@ -288,11 +288,12 @@ class HierFedAvg:
                     logits += model['bias']
 
                 probs = 1 / (1 + np.exp(-np.clip(logits, -500, 500)))
-                grad = X_batch.T @ (probs - y_batch.reshape(-1, 1)) / batch_size
+                error = probs.flatten() - y_batch.flatten()
+                grad = X_batch.T @ error / batch_size
 
-                model['weights'] -= lr * grad.flatten()
+                model['weights'] -= lr * grad
                 if 'bias' in model:
-                    model['bias'] -= lr * np.mean(probs - y_batch.reshape(-1, 1))
+                    model['bias'] -= lr * np.mean(error)
 
         # Update node's local model
         node.local_model = model

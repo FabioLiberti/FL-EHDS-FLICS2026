@@ -284,9 +284,9 @@ class EWCContinualFL:
                 logits += model['bias']
 
             probs = 1 / (1 + np.exp(-np.clip(logits, -500, 500)))
-            error = probs - y.reshape(-1, 1)
+            error = probs.flatten() - y.flatten()
 
-            grad['weights'] = (X.T @ error).flatten() / len(X)
+            grad['weights'] = (X.T @ error) / len(X)
             if 'bias' in model:
                 grad['bias'] = np.mean(error)
 
@@ -553,11 +553,12 @@ class LwFContinualFL:
             logits += model['bias']
         probs = 1 / (1 + np.exp(-np.clip(logits, -500, 500)))
 
+        error = probs.flatten() - y.flatten()
         grad_ce = {
-            'weights': (X.T @ (probs - y.reshape(-1, 1))).flatten() / len(X)
+            'weights': (X.T @ error) / len(X)
         }
         if 'bias' in model:
-            grad_ce['bias'] = np.mean(probs - y.reshape(-1, 1))
+            grad_ce['bias'] = np.mean(error)
 
         # Distillation gradient (simplified)
         grad_distill = {k: np.zeros_like(v) for k, v in model.items()}

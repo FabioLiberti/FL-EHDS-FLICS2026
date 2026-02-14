@@ -221,7 +221,8 @@ class HardSharingMTL:
                 continue
 
             task = self.tasks[task_id]
-            y = labels[task_id].reshape(-1, 1) if y.ndim == 1 else labels[task_id]
+            raw = labels[task_id]
+            y = raw.reshape(-1, 1) if raw.ndim == 1 else raw
 
             # Output gradient
             if task.task_type in ["binary", "multiclass"]:

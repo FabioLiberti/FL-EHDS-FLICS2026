@@ -225,6 +225,11 @@ class SplitNNParty:
             grad_w = h.T @ grad / len(h)
             grad_b = np.mean(grad, axis=0)
 
+            # Clip gradients for stability
+            grad_w_norm = np.linalg.norm(grad_w)
+            if grad_w_norm > 1.0:
+                grad_w = grad_w / grad_w_norm
+
             # Update weights
             self.weights[i] -= self.lr * grad_w
             self.biases[i] -= self.lr * grad_b
