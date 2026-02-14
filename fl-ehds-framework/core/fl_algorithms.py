@@ -16,6 +16,11 @@ Comprehensive collection of FL algorithms:
 10. Per-FedAvg - Personalized FedAvg (Fallah et al., 2020)
 11. pFedMe - Personalized Moreau Envelope (Dinh et al., 2020)
 12. Ditto - Fair and Robust FL (Li et al., 2021)
+13. FedLC - Logits Calibration (Zhang et al., ICML 2022)
+14. FedSAM - Sharpness-Aware FL (Qu et al., ICML 2022)
+15. FedDecorr - Federated Decorrelation (Shi et al., ICLR 2023)
+16. FedSpeed - Prox-correction + SAM (Sun et al., ICLR 2023)
+17. FedExP - Federated Extrapolation (Jhunjhunwala et al., ICLR 2023)
 
 Author: Fabio Liberti
 """
@@ -209,7 +214,72 @@ ALGORITHM_INFO = {
             "lambda_ditto": "Regularization towards global model"
         },
         "best_for": "Fairness-critical applications, healthcare"
-    }
+    },
+
+    "FedLC": {
+        "name": "Logits Calibration FL",
+        "paper": "Zhang et al., ICML 2022",
+        "description": "Calibrates logits before softmax by adding pairwise label margins "
+                      "proportional to class frequency, addressing label distribution skew.",
+        "pros": ["Handles label skew", "Composable with any algorithm", "Simple loss modification"],
+        "cons": ["Extra hyperparameter tau", "Needs class count per client"],
+        "params": {
+            "tau": "Margin strength (0.1-1.0). Controls class-frequency calibration."
+        },
+        "best_for": "Label-imbalanced data, hospitals with different disease prevalences"
+    },
+
+    "FedSAM": {
+        "name": "Sharpness-Aware FL",
+        "paper": "Qu et al., ICML 2022",
+        "description": "Applies Sharpness-Aware Minimization locally to seek flat minima, "
+                      "improving generalization of the global model under non-IID data.",
+        "pros": ["Better generalization", "Drop-in local optimizer", "No server changes"],
+        "cons": ["2x gradient computation per step", "Extra hyperparameter rho"],
+        "params": {
+            "rho": "Perturbation radius (0.01-0.1). Controls neighborhood size for flat minima."
+        },
+        "best_for": "Non-IID data, improving generalization across diverse hospitals"
+    },
+
+    "FedDecorr": {
+        "name": "Federated Decorrelation",
+        "paper": "Shi et al., ICLR 2023",
+        "description": "Adds decorrelation regularizer to prevent dimensional collapse "
+                      "in learned representations under heterogeneous data.",
+        "pros": ["Improves representation quality", "Composable", "Negligible overhead"],
+        "cons": ["Requires access to intermediate representations", "Extra hyperparameter beta"],
+        "params": {
+            "beta": "Decorrelation strength (0.01-1.0). Controls regularization."
+        },
+        "best_for": "Deep models with non-IID data, preventing representation collapse"
+    },
+
+    "FedSpeed": {
+        "name": "FedSpeed",
+        "paper": "Sun et al., ICLR 2023",
+        "description": "Combines prox-correction (eliminates proximal bias) with gradient "
+                      "perturbation (seeks flat minima) for fewer rounds and better accuracy.",
+        "pros": ["Fewer communication rounds", "Handles prox bias", "Better generalization"],
+        "cons": ["More complex local update", "Multiple hyperparameters"],
+        "params": {
+            "alpha_mix": "Mixing coefficient for quasi-gradient (0.1-0.9)",
+            "rho": "Perturbation radius for flat minima",
+            "lambda_reg": "Proximal regularization strength"
+        },
+        "best_for": "Communication-constrained settings, non-IID healthcare data"
+    },
+
+    "FedExP": {
+        "name": "Federated Extrapolation",
+        "paper": "Jhunjhunwala et al., ICLR 2023",
+        "description": "Adaptively computes server step size using extrapolation inspired by "
+                      "Projection Onto Convex Sets (POCS) for accelerated convergence.",
+        "pros": ["No client-side changes", "Hyperparameter-free", "Accelerates convergence"],
+        "cons": ["Minor server computation overhead", "May overshoot with very few clients"],
+        "params": {},
+        "best_for": "Accelerating convergence, composable with any client-side algorithm"
+    },
 }
 
 
@@ -963,6 +1033,292 @@ class Ditto(FLAlgorithm):
         return server_state
 
 
+class FedLC(FedAvg):
+    """Federated Learning via Logits Calibration (Zhang et al., ICML 2022)."""
+
+    def __init__(self, tau: float = 0.5, **kwargs):
+        super().__init__(**kwargs)
+        self.tau = tau
+
+    def client_update(self, client_state, server_state, local_data, **kwargs):
+        """Local training with calibrated cross-entropy loss."""
+        X, y = local_data
+        params = deepcopy(server_state.global_params)
+
+        # Count class frequencies for calibration
+        unique, counts = np.unique(y.astype(int), return_counts=True)
+        n_classes = max(unique) + 1
+        class_counts = np.ones(n_classes)
+        for cls, cnt in zip(unique, counts):
+            class_counts[cls] = cnt
+
+        # Calibration margins: tau * n_c^{-1/4}
+        margins = self.tau * np.power(class_counts, -0.25)
+
+        for _ in range(self.local_epochs):
+            logits = X @ params['weights'] + params.get('bias', 0)
+            # Apply calibration: subtract margin for each class
+            calibrated_logits = logits - margins.reshape(1, -1) if logits.ndim > 1 else logits - margins
+            # For binary: calibrated sigmoid
+            if logits.ndim == 1 or (logits.ndim == 2 and logits.shape[1] == 1):
+                probs = 1 / (1 + np.exp(-np.clip(logits, -500, 500)))
+                grad_w = X.T @ (probs - y) / len(y)
+            else:
+                # Multi-class softmax with calibration
+                probs = np.exp(calibrated_logits - calibrated_logits.max(axis=1, keepdims=True))
+                probs /= probs.sum(axis=1, keepdims=True)
+                grad_w = X.T @ (probs - np.eye(n_classes)[y.astype(int)]) / len(y)
+
+            params['weights'] = params['weights'] - self.lr * grad_w
+
+        update = {k: params[k] - server_state.global_params[k] for k in params.keys()}
+        client_state.model_params = params
+        client_state.local_steps = self.local_epochs
+        return update, client_state
+
+
+class FedSAM(FedAvg):
+    """Federated Sharpness-Aware Minimization (Qu et al., ICML 2022)."""
+
+    def __init__(self, rho: float = 0.05, **kwargs):
+        super().__init__(**kwargs)
+        self.rho = rho
+
+    def _compute_gradient(self, params, X, y):
+        """Compute gradient for logistic regression."""
+        logits = X @ params['weights'] + params.get('bias', 0)
+        probs = 1 / (1 + np.exp(-np.clip(logits, -500, 500)))
+        grad_w = X.T @ (probs - y) / len(y)
+        grad_b = np.mean(probs - y) if 'bias' in params else 0
+        return {'weights': grad_w, 'bias': grad_b} if 'bias' in params else {'weights': grad_w}
+
+    def client_update(self, client_state, server_state, local_data, **kwargs):
+        """Local training with SAM: gradient evaluated at perturbed point."""
+        X, y = local_data
+        params = deepcopy(server_state.global_params)
+
+        for _ in range(self.local_epochs):
+            # Step 1: compute gradient at current position
+            grad = self._compute_gradient(params, X, y)
+
+            # Step 2: compute perturbation epsilon = rho * grad / ||grad||
+            grad_norm = np.sqrt(sum(np.sum(g**2) for g in grad.values()))
+            if grad_norm > 1e-12:
+                epsilon = {k: self.rho * g / grad_norm for k, g in grad.items()}
+            else:
+                epsilon = {k: np.zeros_like(g) for k, g in grad.items()}
+
+            # Step 3: compute gradient at perturbed position
+            perturbed = {k: params[k] + epsilon[k] for k in params.keys() if k in epsilon}
+            for k in params.keys():
+                if k not in perturbed:
+                    perturbed[k] = params[k]
+            grad_perturbed = self._compute_gradient(perturbed, X, y)
+
+            # Step 4: update using perturbed gradient
+            for k in grad_perturbed:
+                params[k] = params[k] - self.lr * grad_perturbed[k]
+
+        update = {k: params[k] - server_state.global_params[k] for k in params.keys()}
+        client_state.model_params = params
+        client_state.local_steps = self.local_epochs
+        return update, client_state
+
+
+class FedDecorr(FedAvg):
+    """Federated Decorrelation (Shi et al., ICLR 2023)."""
+
+    def __init__(self, beta: float = 0.1, **kwargs):
+        super().__init__(**kwargs)
+        self.beta = beta
+
+    def client_update(self, client_state, server_state, local_data, **kwargs):
+        """Local training with decorrelation regularizer."""
+        X, y = local_data
+        params = deepcopy(server_state.global_params)
+
+        for _ in range(self.local_epochs):
+            # Standard gradient
+            logits = X @ params['weights'] + params.get('bias', 0)
+            probs = 1 / (1 + np.exp(-np.clip(logits, -500, 500)))
+            grad_w = X.T @ (probs - y) / len(y)
+
+            # Decorrelation regularizer: minimize ||K||_F^2 / d^2
+            # K is correlation matrix of representations (here, logits/features)
+            # For linear model, representations = X @ weights
+            representations = X @ params['weights']
+            if representations.ndim == 1:
+                representations = representations.reshape(-1, 1)
+            d = representations.shape[1] if representations.ndim > 1 else 1
+            if d > 1:
+                # Center representations
+                reps_centered = representations - representations.mean(axis=0)
+                # Correlation matrix
+                K = (reps_centered.T @ reps_centered) / len(X)
+                # Set diagonal to zero (we only want off-diagonal)
+                np.fill_diagonal(K, 0)
+                # Gradient of ||K||_F^2 w.r.t. weights
+                decorr_grad = (2.0 / (d * d)) * X.T @ (reps_centered @ K) / len(X)
+                grad_w += self.beta * decorr_grad
+
+            params['weights'] = params['weights'] - self.lr * grad_w
+
+        update = {k: params[k] - server_state.global_params[k] for k in params.keys()}
+        client_state.model_params = params
+        client_state.local_steps = self.local_epochs
+        return update, client_state
+
+
+class FedSpeed(FLAlgorithm):
+    """FedSpeed (Sun et al., ICLR 2023)."""
+
+    def __init__(self, learning_rate=0.1, local_epochs=3, alpha_mix=0.5,
+                 rho=0.05, lambda_reg=0.1, **kwargs):
+        super().__init__(**kwargs)
+        self.lr = learning_rate
+        self.local_epochs = local_epochs
+        self.alpha_mix = alpha_mix
+        self.rho = rho
+        self.lambda_reg = lambda_reg
+
+    def _compute_gradient(self, params, X, y):
+        logits = X @ params['weights'] + params.get('bias', 0)
+        probs = 1 / (1 + np.exp(-np.clip(logits, -500, 500)))
+        grad_w = X.T @ (probs - y) / len(y)
+        return {'weights': grad_w}
+
+    def client_update(self, client_state, server_state, local_data, **kwargs):
+        """FedSpeed local update: prox-correction + gradient perturbation."""
+        X, y = local_data
+        params = deepcopy(server_state.global_params)
+        global_params = server_state.global_params
+
+        # Initialize prox-correction term
+        if client_state.gradient_accumulator is None:
+            client_state.gradient_accumulator = {
+                k: np.zeros_like(v) for k, v in params.items()
+            }
+        g_hat = client_state.gradient_accumulator
+
+        for _ in range(self.local_epochs):
+            # Standard gradient g1
+            g1 = self._compute_gradient(params, X, y)
+
+            # Perturbation: compute g2 at perturbed point
+            g1_norm = np.sqrt(sum(np.sum(g**2) for g in g1.values()))
+            if g1_norm > 1e-12:
+                perturbed = {k: params[k] + self.rho * g1[k] / g1_norm
+                            for k in params.keys() if k in g1}
+                for k in params.keys():
+                    if k not in perturbed:
+                        perturbed[k] = params[k]
+            else:
+                perturbed = params
+            g2 = self._compute_gradient(perturbed, X, y)
+
+            # Quasi-gradient: mix g1 and g2
+            g_tilde = {}
+            for k in g1:
+                g_tilde[k] = (1 - self.alpha_mix) * g1[k] + self.alpha_mix * g2[k]
+
+            # FedSpeed update: g_tilde - g_hat + prox_term
+            for k in params.keys():
+                if k in g_tilde:
+                    prox = (1.0 / self.lambda_reg) * (params[k] - global_params[k])
+                    correction = g_hat.get(k, np.zeros_like(params[k]))
+                    params[k] -= self.lr * (g_tilde[k] - correction + prox)
+
+        # Update prox-correction
+        for k in params.keys():
+            if k in client_state.gradient_accumulator:
+                client_state.gradient_accumulator[k] -= (
+                    (1.0 / self.lambda_reg) * (params[k] - global_params[k])
+                )
+
+        update = {k: params[k] - global_params[k] for k in params.keys()}
+        client_state.model_params = params
+        client_state.local_steps = self.local_epochs
+        return update, client_state
+
+    def server_aggregate(self, server_state, client_updates, client_weights, **kwargs):
+        """Standard weighted average aggregation."""
+        total_weight = sum(client_weights)
+        aggregated = {}
+        for key in server_state.global_params.keys():
+            aggregated[key] = sum(
+                update[key] * (w / total_weight)
+                for update, w in zip(client_updates, client_weights)
+            )
+        for k in server_state.global_params.keys():
+            server_state.global_params[k] += aggregated[k]
+        server_state.round_num += 1
+        return server_state
+
+
+class FedExP(FLAlgorithm):
+    """Federated Extrapolation (Jhunjhunwala et al., ICLR 2023)."""
+
+    def __init__(self, learning_rate=0.1, local_epochs=3, **kwargs):
+        super().__init__(**kwargs)
+        self.lr = learning_rate
+        self.local_epochs = local_epochs
+
+    def client_update(self, client_state, server_state, local_data, **kwargs):
+        """Standard local SGD (no client-side changes)."""
+        X, y = local_data
+        params = deepcopy(server_state.global_params)
+
+        for _ in range(self.local_epochs):
+            logits = X @ params['weights'] + params.get('bias', 0)
+            probs = 1 / (1 + np.exp(-np.clip(logits, -500, 500)))
+            grad_w = X.T @ (probs - y) / len(y)
+            params['weights'] -= self.lr * grad_w
+            if 'bias' in params:
+                grad_b = np.mean(probs - y)
+                params['bias'] -= self.lr * grad_b
+
+        update = {k: params[k] - server_state.global_params[k] for k in params.keys()}
+        client_state.model_params = params
+        client_state.local_steps = self.local_epochs
+        return update, client_state
+
+    def server_aggregate(self, server_state, client_updates, client_weights, **kwargs):
+        """Extrapolation-based server aggregation with adaptive step size."""
+        total_weight = sum(client_weights)
+        N = len(client_updates)
+
+        # Compute weighted average of updates (pseudo-gradient)
+        delta_avg = {}
+        for key in server_state.global_params.keys():
+            delta_avg[key] = sum(
+                update[key] * (w / total_weight)
+                for update, w in zip(client_updates, client_weights)
+            )
+
+        # Compute adaptive step size: eta = max(1, ||sum delta_i||^2 / (N * sum ||delta_i||^2))
+        sum_norm_sq = 0.0
+        for update in client_updates:
+            for key in server_state.global_params.keys():
+                sum_norm_sq += np.sum(update[key] ** 2)
+
+        avg_norm_sq = 0.0
+        for key in delta_avg.keys():
+            avg_norm_sq += np.sum(delta_avg[key] ** 2)
+
+        # eta_s = max(1, N * ||avg||^2 / sum_||delta_i||^2)
+        if sum_norm_sq > 1e-12:
+            eta_s = max(1.0, N * avg_norm_sq / sum_norm_sq)
+        else:
+            eta_s = 1.0
+
+        # Update global model with extrapolated step
+        for k in server_state.global_params.keys():
+            server_state.global_params[k] += eta_s * delta_avg[k]
+
+        server_state.round_num += 1
+        return server_state
+
+
 # =============================================================================
 # ALGORITHM FACTORY
 # =============================================================================
@@ -979,6 +1335,11 @@ def create_algorithm(name: str, **kwargs) -> FLAlgorithm:
         'FedNova': FedNova,
         'FedDyn': FedDyn,
         'Ditto': Ditto,
+        'FedLC': FedLC,
+        'FedSAM': FedSAM,
+        'FedDecorr': FedDecorr,
+        'FedSpeed': FedSpeed,
+        'FedExP': FedExP,
     }
 
     if name not in algorithms:

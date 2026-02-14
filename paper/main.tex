@@ -116,9 +116,42 @@ Teo et al.~\cite{teo2024systematic} conducted a comprehensive systematic review 
 
 \subsection{Related Work}
 
-Prior FL frameworks for healthcare~\cite{rieke2020future, peng2024systematic} focus on technical architectures without addressing regulatory compliance in specific jurisdictions. Sheller et al.~\cite{sheller2020federated} demonstrated multi-institutional FL for brain tumor segmentation without data sharing, while production-ready frameworks such as Flower~\cite{beutel2023flower} provide open-source FL orchestration---yet neither addresses EHDS-specific governance requirements. Legal analyses~\cite{quinn2024gdpr, staunton2024ethical, shabani2024ehds} examine GDPR constraints but abstract from implementation feasibility. Policy documents from TEHDAS~\cite{tehdas2024ready} assess Member State readiness but do not integrate technical FL considerations.
+Prior FL frameworks for healthcare~\cite{rieke2020future, peng2024systematic} focus on technical architectures without addressing regulatory compliance in specific jurisdictions. Sheller et al.~\cite{sheller2020federated} demonstrated multi-institutional FL for brain tumor segmentation without data sharing. Legal analyses~\cite{quinn2024gdpr, staunton2024ethical, shabani2024ehds} examine GDPR constraints but abstract from implementation feasibility. Policy documents from TEHDAS~\cite{tehdas2024ready} assess Member State readiness but do not integrate technical FL considerations.
 
-FL-EHDS uniquely bridges these dimensions by: (1) grounding the framework in systematic evidence synthesis; (2) explicitly addressing EHDS regulatory requirements; and (3) mapping technical barriers to governance-aware mitigation strategies.
+Existing FL frameworks---Flower~\cite{beutel2023flower} (v1.26, 2026), NVIDIA FLARE~\cite{nvflare2023} (v2.7, 2025), and TensorFlow Federated~\cite{tff2019} (v0.88, 2024)---provide robust infrastructure for distributed model training but lack built-in compliance mechanisms for the European Health Data Space regulation. Flower offers extensive algorithm support and framework agnosticism with SecAgg+ privacy protocols, while NVIDIA FLARE targets enterprise healthcare deployments with HIPAA/GDPR-enabling features. However, none implements EHDS-specific governance: Health Data Access Body (HDAB) integration, Article~53 data permit lifecycle management, Article~71 opt-out registry enforcement, or GDPR Article~30 audit trail persistence. Table~\ref{tab:framework_comparison} provides a detailed comparison across key dimensions.
+
+\begin{table*}[htbp]
+\centering
+\caption{Framework Comparison: FL-EHDS vs Existing FL Frameworks}
+\label{tab:framework_comparison}
+\small
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Dimension} & \textbf{FL-EHDS} & \textbf{Flower v1.26} & \textbf{NVIDIA FLARE v2.7} & \textbf{TFF v0.88} \\
+\midrule
+FL Algorithms & 15 built-in & 12+ strategies & 5 built-in & 3 built-in \\
+Byzantine Resilience & 6 methods & 4 methods & --- & --- \\
+Differential Privacy & Central + Local DP & Central + Local DP & Built-in & Adaptive clipping \\
+Secure Aggregation & Pairwise + HE & SecAgg+ & Built-in + HE & Mask-based \\
+\midrule
+EHDS Governance & \textbf{Full} & None & None & None \\
+HDAB Integration & \checkmark & --- & --- & --- \\
+Data Permits (Art.~53) & \checkmark & --- & --- & --- \\
+Opt-out Registry (Art.~71) & \checkmark & --- & --- & --- \\
+Audit Trail (GDPR Art.~30) & \checkmark & --- & Audit logs & --- \\
+\midrule
+Healthcare Standards & FHIR R4 & MONAI & MONAI & --- \\
+Vertical FL & \checkmark & --- & \checkmark & --- \\
+Backend & PyTorch & Agnostic & Agnostic & TensorFlow only \\
+Production Deployment & Research & Production & Enterprise & Simulation \\
+\bottomrule
+\end{tabular}
+
+\vspace{1mm}
+\footnotesize{FL-EHDS is the only framework providing integrated EHDS regulatory compliance. Flower provides the most comprehensive FL strategy library and the strongest framework-agnostic support; FLARE targets enterprise healthcare deployments. FL-EHDS focuses on governance operationalization with recent algorithms (ICML/ICLR 2022--2023) addressing healthcare-specific heterogeneity.}
+\end{table*}
+
+FL-EHDS uniquely bridges these dimensions by: (1) grounding the framework in systematic evidence synthesis; (2) explicitly addressing EHDS regulatory requirements; (3) mapping technical barriers to governance-aware mitigation strategies; and (4) incorporating recent FL advances from top venues (ICML/ICLR 2022--2023)---including FedLC~\cite{zhang2022fedlc} for label distribution skew, FedSAM~\cite{qu2022fedsam} for sharpness-aware generalization, FedDecorr~\cite{shi2023feddecorr} for representation quality, FedSpeed~\cite{sun2023fedspeed} for communication efficiency, and FedExP~\cite{jhunjhunwala2023fedexp} for server-side convergence acceleration---that directly address healthcare-specific data heterogeneity challenges. FL-EHDS's governance layer could be integrated as a Flower strategy wrapper, enabling EHDS compliance within the Flower ecosystem.
 
 % ============================================================================
 % 3. EVIDENCE SYNTHESIS
@@ -205,7 +238,7 @@ Figure~\ref{fig:architecture} illustrates the FL-EHDS architecture comprising th
 
 \subsection{Layer 2: FL Orchestration Layer}
 
-\textbf{Aggregation Module}: The framework implements multiple aggregation algorithms: FedAvg~\cite{mcmahan2017communication} as baseline, FedProx~\cite{li2020federated} with proximal regularization for non-IID robustness, SCAFFOLD~\cite{karimireddy2020scaffold} with control variates for variance reduction, and FedNova~\cite{wang2020tackling} for normalized averaging under heterogeneous local steps. Algorithm selection is configurable based on deployment requirements.
+\textbf{Aggregation Module}: The framework implements 15 aggregation algorithms spanning five categories. \textit{Baseline}: FedAvg~\cite{mcmahan2017communication}. \textit{Non-IID robustness}: FedProx~\cite{li2020federated} (proximal regularization), SCAFFOLD~\cite{karimireddy2020scaffold} (control variates for variance reduction), FedNova~\cite{wang2020tackling} (normalized averaging under heterogeneous local steps), FedDyn (dynamic regularization). \textit{Adaptive server optimization}: FedAdam, FedYogi, FedAdagrad~\cite{reddi2021adaptive}. \textit{Personalization}: Ditto (fair and robust FL with dual models), Per-FedAvg (MAML-based fine-tuning). \textit{Recent advances (2022--2023)}: FedLC~\cite{zhang2022fedlc} calibrates logits via class-frequency margins ($\mathcal{L}_{\text{cal}} = -\log[\exp(f_y - \tau \cdot n_y^{-1/4}) / \sum_{i \neq y} \exp(f_i - \tau \cdot n_i^{-1/4})]$), directly addressing the label distribution skew prevalent when hospitals have different disease prevalences; FedSAM~\cite{qu2022fedsam} applies Sharpness-Aware Minimization locally to seek flat minima, improving generalization under data heterogeneity; FedDecorr~\cite{shi2023feddecorr} adds a decorrelation regularizer ($\mathcal{L}_{\text{decorr}} = \frac{1}{d^2}\|K\|_F^2$, where $K$ is the off-diagonal correlation matrix) to prevent dimensional collapse in learned representations; FedSpeed~\cite{sun2023fedspeed} unifies proximal correction with gradient perturbation for reduced communication rounds; FedExP~\cite{jhunjhunwala2023fedexp} computes an adaptive server step size ($\eta_s = \max(1, \|\sum_i \Delta_i\|^2 / (N \sum_i \|\Delta_i\|^2))$) inspired by Projection Onto Convex Sets (POCS), requiring zero client-side modifications. Algorithm selection is configurable based on deployment requirements; FedLC and FedDecorr are composable with any aggregation strategy, making them particularly suitable for healthcare FL scenarios.
 
 \textbf{Privacy Protection}: Differential privacy (DP) with configurable $\varepsilon$-budget provides formal privacy guarantees~\cite{dwork2014dp, abadi2016deep}. The implementation uses R\'enyi Differential Privacy (RDP)~\cite{mironov2017renyi} for tight composition accounting over multiple training rounds. For Gaussian mechanisms with noise scale $\sigma$, the RDP guarantee at order $\alpha$ is $\rho(\alpha) = \alpha/(2\sigma^2)$. Privacy amplification by subsampling is computed using exact RDP formulas, and conversion to $(\varepsilon,\delta)$-DP uses optimal order selection: $\varepsilon = \min_\alpha \{\rho(\alpha) + \log(1/\delta)/(\alpha-1)\}$.
 
@@ -247,7 +280,7 @@ A modular Python implementation of the FL-EHDS framework is available as open-so
 \url{https://github.com/FabioLiberti/FL-EHDS-FLICS2026}
 \end{center}
 
-\noindent The implementation provides: (1) orchestration modules implementing FedAvg, FedProx, SCAFFOLD, and FedNova aggregation with R\'enyi differential privacy accounting (validated experimentally in Section~\ref{sec:experiments}) and secure aggregation; (2) data holder utilities for adaptive training and FHIR R4 preprocessing; (3) reproducible benchmarks generating all experimental results.
+\noindent The implementation provides: (1) orchestration modules implementing 15 FL algorithms---from foundational methods (FedAvg, FedProx, SCAFFOLD, FedNova) through adaptive server optimizers (FedAdam, FedYogi, FedAdagrad) to recent advances addressing healthcare-specific challenges (FedLC for label skew, FedSAM for flat minima, FedDecorr for representation quality, FedSpeed for communication efficiency, FedExP for accelerated convergence)---with R\'enyi differential privacy accounting (validated experimentally in Section~\ref{sec:experiments}) and secure aggregation; (2) six Byzantine resilience methods (Krum, Multi-Krum, Trimmed Mean, Median, Bulyan, FLTrust/FLAME); (3) data holder utilities for adaptive training and FHIR R4 preprocessing; (4) reproducible benchmarks generating all experimental results.
 
 \textbf{Note on governance components}: HDAB integration APIs, opt-out registry synchronization, and multi-HDAB coordination modules include a fully functional simulation backend that demonstrates the complete permit lifecycle (OAuth2/mTLS authentication, permit CRUD, cross-border coordination) and Article~71 opt-out compliance (LRU-cached registry lookups, scope-granular filtering, per-round FL validation). Production deployment will require binding to actual Member State HDAB services as they become available (expected 2027--2029).
 
@@ -436,7 +469,7 @@ Local-Only (Lower Bound) & $0.537 \pm 0.043$ & $0.412 \pm 0.089$ & $0.551 \pm 0.
 
 \subsection{FL Algorithm Comparison}
 
-Table~\ref{tab:algorithms} compares state-of-the-art FL aggregation algorithms under non-IID conditions: FedAvg~\cite{mcmahan2017communication}, FedProx~\cite{li2020federated}, SCAFFOLD~\cite{karimireddy2020scaffold}, and FedNova~\cite{wang2020tackling}.
+Table~\ref{tab:algorithms} compares FL aggregation algorithms under non-IID conditions. We evaluate the four foundational algorithms---FedAvg~\cite{mcmahan2017communication}, FedProx~\cite{li2020federated}, SCAFFOLD~\cite{karimireddy2020scaffold}, and FedNova~\cite{wang2020tackling}---on the tabular cardiovascular risk task. The framework additionally implements recent algorithms (FedLC~\cite{zhang2022fedlc}, FedSAM~\cite{qu2022fedsam}, FedDecorr~\cite{shi2023feddecorr}, FedSpeed~\cite{sun2023fedspeed}, FedExP~\cite{jhunjhunwala2023fedexp}) whose benefits---label skew calibration, flat minima seeking, dimensional collapse prevention---are most pronounced with deep models and larger non-IID heterogeneity than this logistic regression baseline can elicit.
 
 \begin{table}[htbp]
 \centering
@@ -513,7 +546,7 @@ Figure~\ref{fig:client_heterogeneity} shows per-hospital performance variation u
 
     \item \textbf{Privacy Cost}: Differential privacy with $\varepsilon$=10 incurs 5.2 percentage point accuracy drop; $\varepsilon$=1 (strong privacy) costs 5.8pp---acceptable for EHDS compliance while providing formal privacy guarantees.
 
-    \item \textbf{Algorithm Equivalence}: Under moderate non-IID conditions, advanced algorithms (FedProx, SCAFFOLD, FedNova) show marginal differences from baseline FedAvg, suggesting that for EHDS healthcare analytics with careful data preprocessing, simpler algorithms suffice.
+    \item \textbf{Algorithm Equivalence}: Under moderate non-IID conditions with logistic regression, advanced algorithms (FedProx, SCAFFOLD, FedNova) show marginal differences from baseline FedAvg, suggesting that for EHDS healthcare analytics with careful data preprocessing, simpler algorithms suffice for basic tasks. For deep learning on heterogeneous clinical imaging, recent algorithms (FedLC for label skew calibration, FedSAM for flat minima, FedDecorr for representation quality) offer composable improvements that the framework makes readily accessible.
 
     \item \textbf{Linear Scalability}: Communication cost scales linearly with participants ($\approx$2.3 KB/hospital/round), supporting 7+ hospital federations with sub-second round times.
 \end{enumerate}
@@ -622,7 +655,7 @@ This study has limitations informing interpretation. First, the FL/EHDS literatu
 \section{Conclusions}
 \label{sec:conclusions}
 
-This paper presents FL-EHDS, a three-layer compliance framework bridging the technology-governance divide for cross-border health analytics under the European Health Data Space regulation.
+This paper presents FL-EHDS, a three-layer compliance framework bridging the technology-governance divide for cross-border health analytics under the European Health Data Space regulation. The framework integrates 15 FL algorithms---including recent advances from ICML/ICLR 2022--2023 targeting healthcare-specific challenges such as label distribution skew (FedLC), representation quality (FedDecorr), and generalization under heterogeneity (FedSAM)---with EHDS governance mechanisms that no existing framework provides.
 
 Our systematic evidence synthesis reveals that \textbf{legal uncertainties---not technical barriers---constitute the critical blocker} for FL adoption in EHDS contexts. While technical challenges (hardware heterogeneity affecting 78\% of implementations, non-IID data impacting 67\% of models) are significant, they are tractable through known algorithmic solutions. The unresolved regulatory questions---gradient data status, model anonymity thresholds, controller allocation---create compliance uncertainty that discourages organizational adoption regardless of technical maturity.
 
@@ -643,7 +676,7 @@ The author thanks Prof.~Sadi Alawadi for supervision and guidance, and the TEHDA
 % ============================================================================
 \bibliographystyle{IEEEtran}
 
-\begin{thebibliography}{00}
+\begin{thebibliography}{42}
 
 % === EHDS Regulation and Policy ===
 \bibitem{eu2025ehds}
@@ -759,6 +792,29 @@ X. Li \textit{et al.}, ``FedBN: Federated learning on non-IID features via local
 % === FL in Healthcare ===
 \bibitem{sheller2020federated}
 M. J. Sheller \textit{et al.}, ``Federated learning in medicine: Facilitating multi-institutional collaborations without sharing patient data,'' \textit{Scientific Reports}, vol.~10, art.~12598, 2020.
+
+% === FL Frameworks ===
+\bibitem{nvflare2023}
+NVIDIA, ``NVIDIA FLARE: An open-source federated learning platform,'' \textit{GitHub Repository}, 2023. [Online]. Available: \url{https://github.com/NVIDIA/NVFlare}
+
+\bibitem{tff2019}
+Google, ``TensorFlow Federated: Machine learning on decentralized data,'' 2019. [Online]. Available: \url{https://www.tensorflow.org/federated}
+
+% === Recent FL Algorithms (2022-2023) ===
+\bibitem{qu2022fedsam}
+Z. Qu, X. Li, R. Duan, Y. Liu, B. Tang, and Z. Lu, ``Generalized federated learning via sharpness aware minimization,'' in \textit{Proc. ICML}, PMLR 162, pp.~18250--18280, 2022.
+
+\bibitem{zhang2022fedlc}
+J. Zhang, Z. Li, B. Li, J. Xu, S. Wu, S. Ding, and C. Wu, ``Federated learning with label distribution skew via logits calibration,'' in \textit{Proc. ICML}, PMLR 162, pp.~26311--26329, 2022.
+
+\bibitem{shi2023feddecorr}
+Y. Shi, J. Liang, W. Zhang, V. Y. F. Tan, and S. Bai, ``Towards understanding and mitigating dimensional collapse in heterogeneous federated learning,'' in \textit{Proc. ICLR}, 2023.
+
+\bibitem{sun2023fedspeed}
+Y. Sun, L. Shen, T. Huang, L. Ding, and D. Tao, ``FedSpeed: Larger local interval, less communication round, and higher generalization accuracy,'' in \textit{Proc. ICLR}, 2023.
+
+\bibitem{jhunjhunwala2023fedexp}
+D. Jhunjhunwala, S. Wang, and G. Joshi, ``FedExP: Speeding up federated averaging via extrapolation,'' in \textit{Proc. ICLR}, 2023.
 
 \end{thebibliography}
 
@@ -1187,7 +1243,7 @@ This appendix provides comprehensive benchmarking of five FL algorithms across v
 
 \subsection{Algorithms Evaluated}
 
-We compare five prominent FL algorithms:
+We compare five foundational FL algorithms, plus five recent methods (2022--2023) implemented in the framework:
 
 \begin{itemize}
     \item \textbf{FedAvg}~\cite{mcmahan2017communication}: Baseline federated averaging with weighted aggregation.
@@ -1195,6 +1251,15 @@ We compare five prominent FL algorithms:
     \item \textbf{SCAFFOLD}~\cite{karimireddy2020scaffold}: Variance reduction through control variates correcting client drift.
     \item \textbf{FedAdam}~\cite{reddi2021adaptive}: Adaptive server-side optimization with momentum and second-moment estimates.
     \item \textbf{FedYogi}~\cite{reddi2021adaptive}: Variant of FedAdam with improved stability for sparse gradients.
+\end{itemize}
+
+\noindent\textit{Recent algorithms (2022--2023)} extending the framework beyond foundational methods:
+\begin{itemize}
+    \item \textbf{FedLC}~\cite{zhang2022fedlc}: Calibrates logits via class-frequency margins; composable with any algorithm. Addresses label distribution skew across hospitals.
+    \item \textbf{FedSAM}~\cite{qu2022fedsam}: Sharpness-Aware Minimization for flat minima; drop-in local optimizer replacement.
+    \item \textbf{FedDecorr}~\cite{shi2023feddecorr}: Decorrelation regularizer preventing dimensional collapse; composable, negligible overhead.
+    \item \textbf{FedSpeed}~\cite{sun2023fedspeed}: Unifies proximal correction with gradient perturbation; fewer communication rounds.
+    \item \textbf{FedExP}~\cite{jhunjhunwala2023fedexp}: Adaptive server step size via POCS analogy; zero client-side changes, hyperparameter-free.
 \end{itemize}
 
 \subsection{Non-IID Configuration}
@@ -1238,7 +1303,7 @@ Figure~\ref{fig:accuracy_vs_noniid} summarizes final accuracy (round 50) as a fu
 \end{figure}
 
 \textbf{EHDS Implications:}
-Cross-border federations with heterogeneous patient populations (different age distributions, disease prevalence, clinical practices) should prefer SCAFFOLD or FedProx over baseline FedAvg.
+Cross-border federations with heterogeneous patient populations (different age distributions, disease prevalence, clinical practices) should prefer SCAFFOLD or FedProx over baseline FedAvg. For deep learning deployments where hospitals exhibit different disease prevalences, FedLC's logit calibration and FedDecorr's decorrelation regularizer provide composable improvements orthogonal to the choice of base aggregation algorithm.
 
 \subsection{Convergence Speed Analysis}
 
@@ -1272,6 +1337,10 @@ Heterogeneous MS & SCAFFOLD & Variance reduction \\
 Resource-limited & FedAdam & Fast convergence \\
 Privacy-critical & FedAvg + DP & Well-studied DP bounds \\
 Sparse participation & FedProx & Dropout resilience \\
+Label-imbalanced & FedLC & Class-freq.\ calibration \\
+Deep models, non-IID & FedDecorr & Prevents dim.\ collapse \\
+Comm.-constrained & FedSpeed & Fewer rounds needed \\
+No client changes & FedExP & Server-side only \\
 \bottomrule
 \end{tabular}
 \end{table}

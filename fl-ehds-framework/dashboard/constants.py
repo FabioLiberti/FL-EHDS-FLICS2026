@@ -96,6 +96,56 @@ ALGORITHMS = {
         "params": ["learning_rate", "lambda_ditto"],
         "best_for": "Applicazioni critiche per fairness, healthcare",
         "complexity": "⭐⭐⭐ Alta"
+    },
+    "FedLC": {
+        "name": "Logits Calibration FL",
+        "paper": "Zhang et al., ICML 2022",
+        "description": "Calibra i logit prima della softmax aggiungendo margini proporzionali alla frequenza di classe, affrontando lo skew della distribuzione delle etichette.",
+        "pros": ["Gestisce label skew", "Composabile con qualsiasi algoritmo", "Semplice modifica alla loss"],
+        "cons": ["Parametro tau da calibrare", "Richiede conteggio classi per client"],
+        "params": ["learning_rate", "tau"],
+        "best_for": "Dati con classi sbilanciate, ospedali con prevalenze diverse",
+        "complexity": "⭐⭐ Media"
+    },
+    "FedSAM": {
+        "name": "Sharpness-Aware FL",
+        "paper": "Qu et al., ICML 2022",
+        "description": "Applica Sharpness-Aware Minimization localmente per cercare minimi piatti, migliorando la generalizzazione del modello globale sotto dati non-IID.",
+        "pros": ["Migliore generalizzazione", "Drop-in per optimizer locale", "Nessuna modifica server"],
+        "cons": ["2x calcolo gradiente per step", "Parametro rho da calibrare"],
+        "params": ["learning_rate", "rho"],
+        "best_for": "Dati non-IID, migliorare generalizzazione tra ospedali diversi",
+        "complexity": "⭐⭐ Media"
+    },
+    "FedDecorr": {
+        "name": "Federated Decorrelation",
+        "paper": "Shi et al., ICLR 2023",
+        "description": "Aggiunge un regolarizzatore di decorrelazione per prevenire il collapse dimensionale nelle rappresentazioni apprese sotto dati eterogenei.",
+        "pros": ["Migliora qualità rappresentazioni", "Composabile", "Overhead trascurabile"],
+        "cons": ["Richiede accesso a rappresentazioni intermedie", "Parametro beta"],
+        "params": ["learning_rate", "beta"],
+        "best_for": "Modelli profondi con dati non-IID, prevenire collapse delle rappresentazioni",
+        "complexity": "⭐⭐ Media"
+    },
+    "FedSpeed": {
+        "name": "FedSpeed",
+        "paper": "Sun et al., ICLR 2023",
+        "description": "Combina correzione prossimale (elimina bias del proximal) con perturbazione del gradiente (cerca minimi piatti) per meno round e migliore accuratezza.",
+        "pros": ["Meno round di comunicazione", "Gestisce bias prossimale", "Migliore generalizzazione"],
+        "cons": ["Update locale più complesso", "Multipli iperparametri"],
+        "params": ["learning_rate", "alpha_mix", "rho", "lambda_reg"],
+        "best_for": "Setting con comunicazione limitata, dati healthcare non-IID",
+        "complexity": "⭐⭐⭐ Alta"
+    },
+    "FedExP": {
+        "name": "Federated Extrapolation",
+        "paper": "Jhunjhunwala et al., ICLR 2023",
+        "description": "Calcola adattivamente lo step size del server usando estrapolazione ispirata a POCS per convergenza accelerata.",
+        "pros": ["Nessuna modifica lato client", "Senza iperparametri", "Accelera convergenza"],
+        "cons": ["Overhead computazionale minore lato server", "Può sovrastimare con pochi client"],
+        "params": ["learning_rate"],
+        "best_for": "Accelerare convergenza, composabile con qualsiasi algoritmo lato client",
+        "complexity": "⭐ Bassa"
     }
 }
 

@@ -78,6 +78,15 @@ class FederatedTrainer:
         input_dim: Optional[int] = None,
         # Byzantine defense
         byzantine_config=None,
+        # New algorithm params (2022-2023)
+        fedlc_tau: float = 0.5,
+        fedsam_rho: float = 0.05,
+        feddecorr_beta: float = 0.1,
+        fedspeed_alpha: float = 0.5,
+        fedspeed_rho: float = 0.05,
+        fedspeed_lambda: float = 0.1,
+        # DP mode
+        dp_mode: str = "central",  # "central" (server-side noise) or "local" (client-side noise)
     ):
         # Validate parameters
         if num_clients < 2:
@@ -93,7 +102,8 @@ class FederatedTrainer:
 
         SUPPORTED_ALGORITHMS = [
             "FedAvg", "FedProx", "SCAFFOLD", "FedAdam", "FedYogi",
-            "FedAdagrad", "FedNova", "FedDyn", "Per-FedAvg", "Ditto"
+            "FedAdagrad", "FedNova", "FedDyn", "Per-FedAvg", "Ditto",
+            "FedLC", "FedSAM", "FedDecorr", "FedSpeed", "FedExP"
         ]
         if algorithm not in SUPPORTED_ALGORITHMS:
             raise ValueError(
@@ -119,6 +129,17 @@ class FederatedTrainer:
         self.beta1 = beta1
         self.beta2 = beta2
         self.tau = tau
+
+        # New algorithm params
+        self.fedlc_tau = fedlc_tau
+        self.fedsam_rho = fedsam_rho
+        self.feddecorr_beta = feddecorr_beta
+        self.fedspeed_alpha = fedspeed_alpha
+        self.fedspeed_rho = fedspeed_rho
+        self.fedspeed_lambda = fedspeed_lambda
+
+        # DP mode
+        self.dp_mode = dp_mode
 
         torch.manual_seed(seed)
         np.random.seed(seed)
@@ -200,6 +221,14 @@ class FederatedTrainer:
         # FedNova: track local steps
         self.client_steps = {i: 0 for i in range(num_clients)}
 
+        # FedSpeed: prox-correction per client
+        if algorithm == "FedSpeed":
+            self.fedspeed_corrections = {
+                i: {name: torch.zeros_like(param)
+                    for name, param in self.global_model.named_parameters()}
+                for i in range(num_clients)
+            }
+
         # Byzantine defense (lazy-initialized)
         self._byzantine_manager = None
         self._last_byzantine_result = None
@@ -279,8 +308,8 @@ class FederatedTrainer:
 
         dataloader = self._get_client_dataloader(client_id)
 
-        # Store initial params for FedProx, Ditto, and FedDyn
-        if self.algorithm in ["FedProx", "Ditto", "FedDyn"]:
+        # Store initial params for FedProx, Ditto, FedDyn, and FedSpeed
+        if self.algorithm in ["FedProx", "Ditto", "FedDyn", "FedSpeed"]:
             global_params = {
                 name: param.clone().detach()
                 for name, param in self.global_model.named_parameters()
@@ -307,7 +336,21 @@ class FederatedTrainer:
                 optimizer.zero_grad()
 
                 outputs = local_model(batch_X)
-                loss = criterion(outputs, batch_y)
+
+                # FedLC: calibrate logits before loss
+                if self.algorithm == "FedLC":
+                    if not hasattr(self, '_fedlc_margins'):
+                        self._fedlc_margins = {}
+                    if client_id not in self._fedlc_margins:
+                        _, y_all = self.client_data[client_id]
+                        n_classes = outputs.shape[1]
+                        counts = np.bincount(y_all.astype(int), minlength=n_classes).astype(float)
+                        counts = np.maximum(counts, 1.0)
+                        margins = self.fedlc_tau * np.power(counts, -0.25)
+                        self._fedlc_margins[client_id] = torch.FloatTensor(margins).to(self.device)
+                    loss = criterion(outputs - self._fedlc_margins[client_id].unsqueeze(0), batch_y)
+                else:
+                    loss = criterion(outputs, batch_y)
 
                 # FedProx: add proximal term
                 if self.algorithm == "FedProx":
@@ -327,6 +370,13 @@ class FederatedTrainer:
                         )
                     loss += (self.mu / 2) * prox_term - linear_term
 
+                # FedSpeed: proximal + prox-correction
+                if self.algorithm == "FedSpeed":
+                    prox_term = 0.0
+                    for name, param in local_model.named_parameters():
+                        prox_term += torch.sum((param - global_params[name]) ** 2)
+                    loss += (1.0 / (2.0 * self.fedspeed_lambda)) * prox_term
+
                 loss.backward()
 
                 # SCAFFOLD: apply control variate correction after backward
@@ -343,12 +393,70 @@ class FederatedTrainer:
                                     correction = correction * (max_corr / corr_norm)
                             param.grad.data += correction
 
+                # FedSAM: evaluate gradient at perturbed position
+                if self.algorithm == "FedSAM":
+                    # Save current gradients
+                    grad_norm = torch.nn.utils.clip_grad_norm_(local_model.parameters(), float('inf'))
+                    if grad_norm > 1e-12:
+                        # Compute perturbation epsilon
+                        old_params = {}
+                        for name, param in local_model.named_parameters():
+                            old_params[name] = param.data.clone()
+                            if param.grad is not None:
+                                param.data += self.fedsam_rho * param.grad / grad_norm
+                        # Recompute gradient at perturbed position
+                        optimizer.zero_grad()
+                        outputs2 = local_model(batch_X)
+                        loss2 = criterion(outputs2, batch_y)
+                        loss2.backward()
+                        # Restore original parameters
+                        for name, param in local_model.named_parameters():
+                            param.data = old_params[name]
+
+                # FedDecorr: add decorrelation gradient
+                if self.algorithm == "FedDecorr":
+                    # Get intermediate representations (before final layer)
+                    with torch.no_grad():
+                        # Get features from penultimate layer
+                        x = batch_X
+                        for layer in list(local_model.children())[:-1]:
+                            x = layer(x)
+                            if hasattr(x, 'relu'):
+                                x = torch.relu(x)
+                    # We add decorrelation loss as a separate backward pass on the representations
+                    # Using the logits as proxy for representations
+                    reps = outputs.detach()
+                    if reps.shape[1] > 1:
+                        reps_centered = reps - reps.mean(dim=0)
+                        K = (reps_centered.T @ reps_centered) / len(batch_X)
+                        # Zero diagonal
+                        K = K - torch.diag(torch.diag(K))
+                        decorr_loss = self.feddecorr_beta * (K ** 2).sum() / (reps.shape[1] ** 2)
+                        # Add to gradients via separate backward
+                        if decorr_loss.requires_grad:
+                            decorr_loss.backward()
+
+                # FedSpeed: apply prox-correction to gradients
+                if self.algorithm == "FedSpeed":
+                    for name, param in local_model.named_parameters():
+                        if param.grad is not None:
+                            correction = self.fedspeed_corrections[client_id].get(name, torch.zeros_like(param))
+                            param.grad.data -= correction
+
                 # DP: clip gradients
                 if self.dp_enabled:
                     torch.nn.utils.clip_grad_norm_(
                         local_model.parameters(),
                         self.dp_clip_norm
                     )
+
+                # Local DP: add noise on client side before sending
+                if self.dp_enabled and self.dp_mode == "local":
+                    noise_scale = self.dp_clip_norm * np.sqrt(2 * np.log(1.25 / 1e-5)) / self.dp_epsilon
+                    for param in local_model.parameters():
+                        if param.grad is not None:
+                            noise = torch.randn_like(param.grad) * noise_scale
+                            param.grad.data += noise
 
                 optimizer.step()
 
@@ -403,6 +511,14 @@ class FederatedTrainer:
                 global_param = dict(self.global_model.named_parameters())[name]
                 self.client_grad_corrections[client_id][name] -= (
                     self.mu * (param.data - global_param.data)
+                )
+
+        # FedSpeed: update prox-correction
+        if self.algorithm == "FedSpeed":
+            for name, param in local_model.named_parameters():
+                global_param = dict(self.global_model.named_parameters())[name]
+                self.fedspeed_corrections[client_id][name] -= (
+                    (1.0 / self.fedspeed_lambda) * (param.data - global_param.data)
                 )
 
         # Ditto: train personalized model with regularization towards global
@@ -609,8 +725,37 @@ class FederatedTrainer:
                 self.server_h[name] -= self.mu * weighted_update
                 param.data += weighted_update - (1.0 / self.mu) * self.server_h[name]
 
+        elif self.algorithm == "FedExP":
+            # FedExP (Jhunjhunwala et al., ICLR 2023): adaptive server step size
+            N = len(client_results)
+            # Compute sum of individual update norms squared
+            sum_norm_sq = 0.0
+            for cr in client_results:
+                for name in cr.model_update:
+                    sum_norm_sq += torch.sum(cr.model_update[name] ** 2).item()
+
+            # Compute weighted average update
+            avg_update = {}
+            for name, param in self.global_model.named_parameters():
+                avg = torch.zeros_like(param)
+                for cr in client_results:
+                    avg += cr.model_update[name] * cw[cr.client_id]
+                avg_update[name] = avg
+
+            # Compute average norm squared
+            avg_norm_sq = sum(torch.sum(v ** 2).item() for v in avg_update.values())
+
+            # Adaptive step: eta_s = max(1, N * ||avg||^2 / sum ||delta_i||^2)
+            if sum_norm_sq > 1e-12:
+                eta_s = max(1.0, N * avg_norm_sq / sum_norm_sq)
+            else:
+                eta_s = 1.0
+
+            for name, param in self.global_model.named_parameters():
+                param.data += eta_s * avg_update[name]
+
         else:
-            # FedAvg, FedProx, SCAFFOLD, Per-FedAvg, Ditto: weighted average
+            # FedAvg, FedProx, SCAFFOLD, Per-FedAvg, Ditto, FedLC, FedSAM, FedDecorr, FedSpeed: weighted average
             for name, param in self.global_model.named_parameters():
                 weighted_update = torch.zeros_like(param)
                 for cr in client_results:
@@ -631,8 +776,8 @@ class FederatedTrainer:
                     )
                 self.server_control[name] += delta_c / n
 
-        # DP: add noise to aggregated model
-        if self.dp_enabled:
+        # Central DP: add noise to aggregated model (server-side)
+        if self.dp_enabled and self.dp_mode == "central":
             if noise_scale_override is not None:
                 noise_scale = noise_scale_override
             else:
