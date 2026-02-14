@@ -155,13 +155,17 @@ class PairwiseMaskingProtocol:
         return secrets_dict
 
     def _generate_mask(self, seed: bytes, size: int) -> np.ndarray:
-        """Generate deterministic random mask from seed."""
-        # Use seed to initialize RNG
-        seed_int = int.from_bytes(seed[:4], 'big')
-        mask_rng = np.random.RandomState(seed_int)
+        """Generate deterministic random mask from seed.
+
+        Uses all 32 bytes of the HKDF-derived seed for full entropy
+        via numpy's SeedSequence + PCG64 generator.
+        """
+        seed_int = int.from_bytes(seed, 'big')
+        bit_gen = np.random.PCG64(np.random.SeedSequence(seed_int))
+        mask_rng = np.random.Generator(bit_gen)
 
         # Generate mask with zero mean for numerical stability
-        mask = mask_rng.randn(size).astype(np.float64)
+        mask = mask_rng.standard_normal(size).astype(np.float64)
         return mask
 
     def mask_gradient(self,
@@ -460,53 +464,63 @@ class SecureAggregationManager:
                          gradients: Dict[int, np.ndarray],
                          weights: Optional[Dict[int, float]] = None) -> np.ndarray:
         """
-        Perform secure aggregation.
+        Perform secure aggregation with optional weighted averaging.
+
+        Weights are applied BEFORE cryptographic masking/encryption so that
+        the server never observes individual raw gradients.
 
         Args:
             gradients: {client_id: gradient_array}
-            weights: Optional weights for weighted average
+            weights: Optional {client_id: weight} for weighted average.
+                     If None, uniform weights (1/n) are used.
 
         Returns:
-            Aggregated gradient
+            Aggregated gradient (weighted average if weights provided,
+            uniform average otherwise).
         """
         participating = list(gradients.keys())
+        n = len(participating)
+
+        # Pre-weight gradients BEFORE any cryptographic operation.
+        # This ensures the server never sees raw individual gradients.
+        if weights is not None:
+            total_weight = sum(weights.get(cid, 1.0) for cid in participating)
+            pre_weighted = {
+                cid: (weights.get(cid, 1.0) / total_weight) * grad
+                for cid, grad in gradients.items()
+            }
+        else:
+            # Uniform weighting: each gradient scaled by 1/n
+            pre_weighted = {
+                cid: grad / n
+                for cid, grad in gradients.items()
+            }
 
         if self.method == 'pairwise_masking':
-            # Mask all gradients
+            # Mask pre-weighted gradients
             masked = [
                 self.protocol.mask_gradient(cid, grad, participating)
-                for cid, grad in gradients.items()
+                for cid, grad in pre_weighted.items()
             ]
 
-            # Aggregate
+            # Aggregate: protocol.aggregate() divides by n, but we
+            # already normalized via pre-weighting, so compensate.
             result = self.protocol.aggregate(masked, participating)
-            aggregated = result.aggregated_gradient
+            aggregated = result.aggregated_gradient * n
 
         elif self.method == 'secret_sharing':
-            # Simple sum aggregation (Shamir is for dropout handling)
-            aggregated = sum(gradients.values()) / len(gradients)
+            # Sum pre-weighted gradients (already normalized)
+            aggregated = sum(pre_weighted.values())
 
         elif self.method == 'homomorphic':
-            # Encrypt and aggregate
+            # Encrypt pre-weighted gradients
             encrypted = [
                 self.protocol.encrypt_gradient(grad)
-                for grad in gradients.values()
+                for grad in pre_weighted.values()
             ]
             agg_encrypted = self.protocol.aggregate_encrypted(encrypted)
-            aggregated = self.protocol.decrypt_result(agg_encrypted) / len(gradients)
-
-        # Apply weights if provided
-        if weights is not None:
-            total_weight = sum(weights.values())
-            weighted_agg = np.zeros(self.gradient_dim)
-
-            for cid, grad in gradients.items():
-                w = weights.get(cid, 1.0) / total_weight
-                weighted_agg += w * grad
-
-            # For secure methods, weighting must be done differently
-            # This is a simplification
-            aggregated = weighted_agg
+            # Protocol returns sum of encrypted values; already normalized
+            aggregated = self.protocol.decrypt_result(agg_encrypted)
 
         return aggregated
 
@@ -533,11 +547,20 @@ if __name__ == "__main__":
         for i in range(num_clients)
     }
 
-    # True average (for verification)
+    # True uniform average (for verification)
     true_average = np.mean(list(true_gradients.values()), axis=0)
 
+    # Weighted average (for verification)
+    test_weights = {0: 100, 1: 200, 2: 150, 3: 50, 4: 300}
+    total_w = sum(test_weights.values())
+    true_weighted = sum(
+        (test_weights[cid] / total_w) * grad
+        for cid, grad in true_gradients.items()
+    )
+
+    # ----------------------------------------------------------------
     print("\n" + "-" * 60)
-    print("Method 1: Pairwise Masking")
+    print("Method 1: Pairwise Masking (Uniform)")
     print("-" * 60)
 
     manager = SecureAggregationManager(
@@ -552,6 +575,19 @@ if __name__ == "__main__":
     print(f"Aggregation error: {error:.6e}")
     print(f"Error < 1e-10: {error < 1e-10} (masks should cancel)")
 
+    # ----------------------------------------------------------------
+    print("\n" + "-" * 60)
+    print("Method 1b: Pairwise Masking (Weighted)")
+    print("-" * 60)
+
+    result_w = manager.secure_aggregate(true_gradients, weights=test_weights)
+    error_w = np.linalg.norm(result_w - true_weighted)
+
+    print(f"Weights: {test_weights}")
+    print(f"Weighted aggregation error: {error_w:.6e}")
+    print(f"Error < 1e-10: {error_w < 1e-10} (pre-weighted masks cancel)")
+
+    # ----------------------------------------------------------------
     print("\n" + "-" * 60)
     print("Method 2: Secret Sharing")
     print("-" * 60)
@@ -569,20 +605,41 @@ if __name__ == "__main__":
     print(f"Reconstructed (3 shares): {reconstructed}")
     print(f"Match: {reconstructed == secret}")
 
+    # ----------------------------------------------------------------
+    print("\n" + "-" * 60)
+    print("Method 2b: Secret Sharing Aggregation (Weighted)")
+    print("-" * 60)
+
+    ss_manager = SecureAggregationManager(
+        num_clients=num_clients,
+        gradient_dim=gradient_dim,
+        method='secret_sharing'
+    )
+
+    result_ss_w = ss_manager.secure_aggregate(true_gradients, weights=test_weights)
+    error_ss_w = np.linalg.norm(result_ss_w - true_weighted)
+    print(f"Weighted aggregation error: {error_ss_w:.6e}")
+    print(f"Error < 1e-10: {error_ss_w < 1e-10}")
+
+    # ----------------------------------------------------------------
     print("\n" + "-" * 60)
     print("Security Properties")
     print("-" * 60)
     print("""
-    ✓ Honest-but-curious server protection:
-      Server only sees masked gradients, cannot learn individual updates
+    Honest-but-curious server protection:
+      Server only sees masked/encrypted gradients, not individual updates
 
-    ✓ Dropout resilience:
+    Weighted aggregation security:
+      Weights applied BEFORE masking/encryption (pre-weighting)
+      Server never observes raw individual gradients
+
+    Dropout resilience:
       With secret sharing, can handle up to (n-t) dropouts
 
-    ✓ Privacy guarantees:
-      Individual gradients protected by cryptographic masks
+    Full-entropy masks:
+      All 32 bytes of HKDF-derived seed used for mask generation (256-bit)
 
-    ✓ No trusted third party:
+    No trusted third party:
       Clients generate their own keys, no central key authority
     """)
 
@@ -599,9 +656,12 @@ if __name__ == "__main__":
 
         result_he = he_manager.secure_aggregate(true_gradients)
         error_he = np.linalg.norm(result_he - true_average)
-
-        print(f"HE Aggregation error: {error_he:.6e}")
+        print(f"HE uniform aggregation error: {error_he:.6e}")
         print("(Some error expected due to CKKS approximation)")
+
+        result_he_w = he_manager.secure_aggregate(true_gradients, weights=test_weights)
+        error_he_w = np.linalg.norm(result_he_w - true_weighted)
+        print(f"HE weighted aggregation error: {error_he_w:.6e}")
     else:
         print("\n[TenSEAL not installed - skipping HE demo]")
         print("Install with: pip install tenseal")
