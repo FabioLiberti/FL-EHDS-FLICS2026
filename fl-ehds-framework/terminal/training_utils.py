@@ -476,7 +476,7 @@ def create_trainer(
     elif dataset_type == "fhir":
         from data.fhir_loader import load_fhir_data
         if verbose:
-            print_info("Caricamento dati FHIR R4 (ospedali sintetici)...")
+            print_info("Caricamento dati FHIR R4...")
 
         fhir_cfg = {}
         try:
@@ -485,10 +485,25 @@ def create_trainer(
         except (ImportError, Exception):
             pass
 
+        # Auto-detect real FHIR bundles
+        bundle_paths = {}
+        bundles_dir = PROJECT_ROOT / "data" / "fhir_bundles"
+        if bundles_dir.exists():
+            bundle_files = sorted(bundles_dir.glob("hospital_*.json"))
+            if bundle_files:
+                if verbose:
+                    print_info(f"FHIR R4: caricamento da {len(bundle_files)} bundle reali")
+                for i, bf in enumerate(bundle_files[:num_clients]):
+                    bundle_paths[i] = str(bf)
+
+        if not bundle_paths and verbose:
+            print_info("FHIR R4: nessun bundle reale trovato, uso dati sintetici")
+
         fhir_train, fhir_test, fhir_meta = load_fhir_data(
             num_clients=num_clients,
             samples_per_client=fhir_cfg.get("samples_per_client", 500),
             hospital_profiles=fhir_cfg.get("profiles"),
+            bundle_paths=bundle_paths if bundle_paths else None,
             feature_spec=fhir_cfg.get("feature_spec"),
             label_name=fhir_cfg.get("label", "mortality_30day"),
             opt_out_registry_path=fhir_cfg.get("opt_out_registry_path"),

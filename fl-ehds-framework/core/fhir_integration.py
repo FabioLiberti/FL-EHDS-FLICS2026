@@ -827,7 +827,7 @@ class FHIRClient:
         Initialize FHIR client.
 
         Args:
-            base_url: FHIR server base URL
+            base_url: FHIR server base URL or file:// path to local bundles
             auth_token: Bearer token for authentication
             verify_ssl: Verify SSL certificates
             timeout: Request timeout in seconds
@@ -838,6 +838,36 @@ class FHIRClient:
         self.timeout = timeout
         self.parser = FHIRResourceParser()
         self._cache = {}
+        self._local_resources = {}  # Loaded from local bundles
+        self._is_local = self.base_url.startswith('file://')
+
+        if self._is_local:
+            self._load_local_bundles()
+
+    def _load_local_bundles(self):
+        """Load all FHIR bundles from a local directory."""
+        import json
+        from pathlib import Path
+
+        bundle_dir = Path(self.base_url.replace('file://', ''))
+        if not bundle_dir.exists():
+            logger.warning(f"Local bundle directory not found: {bundle_dir}")
+            return
+
+        for bundle_file in sorted(bundle_dir.glob("*.json")):
+            try:
+                with open(bundle_file, 'r') as f:
+                    bundle_data = json.load(f)
+                for entry in bundle_data.get('entry', []):
+                    resource = entry.get('resource', {})
+                    rtype = resource.get('resourceType')
+                    rid = resource.get('id')
+                    if rtype and rid:
+                        self._local_resources.setdefault(rtype, []).append(resource)
+                        self._cache[f"{rtype}/{rid}"] = resource
+                logger.info(f"Loaded bundle: {bundle_file.name}")
+            except Exception as e:
+                logger.warning(f"Failed to load bundle {bundle_file}: {e}")
 
     def _build_headers(self) -> Dict[str, str]:
         """Build request headers."""
@@ -878,8 +908,21 @@ class FHIRClient:
 
         logger.info(f"FHIR search: {resource_type} with params {query_params}")
 
-        # In real implementation, would use requests library
-        # For now, return simulation note
+        # Local bundle mode: return resources from loaded bundles
+        if self._is_local:
+            resources = self._local_resources.get(resource_type, [])
+            # Apply patient filter if specified
+            patient_filter = query_params.get('patient')
+            if patient_filter:
+                resources = [
+                    r for r in resources
+                    if patient_filter in r.get('subject', {}).get('reference', '')
+                ]
+            if max_results:
+                resources = resources[:max_results]
+            return resources
+
+        # HTTP mode: stub (would use requests library)
         return []
 
     def read(self, resource_type: str, resource_id: str) -> Optional[Dict]:
@@ -901,7 +944,11 @@ class FHIRClient:
         url = f"{self.base_url}/{resource_type}/{resource_id}"
         logger.info(f"FHIR read: {url}")
 
-        # In real implementation, would fetch from server
+        # Local bundle mode: return from cache
+        if self._is_local:
+            return self._cache.get(cache_key)
+
+        # HTTP mode: stub (would fetch from server)
         return None
 
     def batch_query(

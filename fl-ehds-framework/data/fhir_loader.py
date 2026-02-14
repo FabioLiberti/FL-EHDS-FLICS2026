@@ -428,6 +428,14 @@ class FHIRBundleLoader(FHIRDataLoader):
                     elif code == '2093-3':  # Cholesterol
                         record.cholesterol = value
 
+            # Derive mortality label from Patient resource
+            if patient_resource.get('deceasedBoolean') is True:
+                record.outcome_30day_mortality = True
+            elif patient_resource.get('deceasedDateTime'):
+                record.outcome_30day_mortality = True
+            else:
+                record.outcome_30day_mortality = False
+
             # Find related conditions
             for condition in resources_by_type.get('Condition', []):
                 subject_ref = condition.get('subject', {}).get('reference', '')
@@ -437,6 +445,41 @@ class FHIRBundleLoader(FHIRDataLoader):
                 code = condition.get('code', {}).get('coding', [{}])[0].get('code', '')
                 if code:
                     record.conditions.append(code)
+
+            # Parse MedicationRequest / MedicationStatement
+            for med_type in ('MedicationRequest', 'MedicationStatement'):
+                for med in resources_by_type.get(med_type, []):
+                    subject_ref = med.get('subject', {}).get('reference', '')
+                    if patient_id not in subject_ref:
+                        continue
+                    code = med.get('medicationCodeableConcept', {}).get(
+                        'coding', [{}]
+                    )[0].get('code', '')
+                    if code:
+                        record.medications.append(code)
+
+            # Parse Encounter resources for readmission/ICU detection
+            patient_encounters = []
+            for enc in resources_by_type.get('Encounter', []):
+                subject_ref = enc.get('subject', {}).get('reference', '')
+                if patient_id not in subject_ref:
+                    continue
+                enc_class = enc.get('class', {}).get('code', '')
+                period = enc.get('period', {})
+                patient_encounters.append({
+                    'class': enc_class,
+                    'start': period.get('start'),
+                    'end': period.get('end'),
+                })
+
+            # Detect readmission: >=2 inpatient encounters
+            inpatient_encounters = [
+                e for e in patient_encounters if e['class'] in ('IMP', 'EMER')
+            ]
+            if len(inpatient_encounters) >= 2:
+                record.outcome_readmission = True
+            else:
+                record.outcome_readmission = False
 
             records.append(record)
 
