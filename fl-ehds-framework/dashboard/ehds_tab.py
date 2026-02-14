@@ -29,6 +29,7 @@ try:
         MultiHDABCoordinator,
     )
     from governance.optout_registry import OptOutRegistry, OptOutChecker
+    from governance.persistence import GovernanceDB
     from core.models import (
         DataPermit,
         PermitStatus,
@@ -550,7 +551,9 @@ def _render_hdab_interactive():
 
     st.markdown("##### Gestione Permit Interattiva (Live)")
 
-    # Initialize session state for HDAB
+    # Initialize session state for HDAB with SQLite persistence
+    if "governance_db" not in st.session_state:
+        st.session_state.governance_db = GovernanceDB()
     if "hdab_client" not in st.session_state:
         config = HDABConfig(
             endpoint="https://hdab-it.ehds.eu/api/v1",
@@ -560,7 +563,7 @@ def _render_hdab_interactive():
             client_secret="demo-secret",
         )
         st.session_state.hdab_client = HDABClient(config=config)
-        st.session_state.permit_store = get_shared_permit_store()
+        st.session_state.permit_store = get_shared_permit_store(db=st.session_state.governance_db)
         st.session_state.hdab_connected = False
 
     client = st.session_state.hdab_client
@@ -746,30 +749,35 @@ def _render_optout_interactive():
     import uuid as _uuid
     from datetime import datetime as _dt
 
-    # Initialize session state
+    # Initialize session state with SQLite persistence
+    if "governance_db" not in st.session_state:
+        st.session_state.governance_db = GovernanceDB()
     if "optout_registry" not in st.session_state:
+        db = st.session_state.governance_db
         st.session_state.optout_registry = OptOutRegistry(
             cache_ttl=600,
             max_cache_size=1000,
+            db=db,
         )
-        # Pre-populate with sample opt-outs
-        sample_patients = [
-            ("IT-PAT-001", "Italy", "all"),
-            ("IT-PAT-042", "Italy", "category"),
-            ("DE-PAT-017", "Germany", "all"),
-            ("FR-PAT-099", "France", "purpose"),
-        ]
-        for pid, state, scope in sample_patients:
-            record = OptOutRecord(
-                record_id=f"OPT-{pid}",
-                patient_id=pid,
-                member_state=state,
-                scope=scope,
-                is_active=True,
-                opt_out_date=_dt.utcnow(),
-                metadata={},
-            )
-            st.session_state.optout_registry.register_optout(record)
+        # Pre-populate with sample opt-outs only if DB is empty
+        if st.session_state.optout_registry.get_opted_out_count() == 0:
+            sample_patients = [
+                ("IT-PAT-001", "Italy", "all"),
+                ("IT-PAT-042", "Italy", "category"),
+                ("DE-PAT-017", "Germany", "all"),
+                ("FR-PAT-099", "France", "purpose"),
+            ]
+            for pid, state, scope in sample_patients:
+                record = OptOutRecord(
+                    record_id=f"OPT-{pid}",
+                    patient_id=pid,
+                    member_state=state,
+                    scope=scope,
+                    is_active=True,
+                    opt_out_date=_dt.utcnow(),
+                    metadata={},
+                )
+                st.session_state.optout_registry.register_optout(record)
 
     registry = st.session_state.optout_registry
 

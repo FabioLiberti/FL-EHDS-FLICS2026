@@ -36,6 +36,7 @@ from core.models import (
 from governance.data_permits import DataPermitManager, PermitValidator
 from governance.hdab_integration import PermitStore, get_shared_permit_store
 from governance.optout_registry import OptOutRegistry, OptOutChecker
+from governance.persistence import GovernanceDB
 
 
 # Purpose display labels (Italian)
@@ -62,15 +63,20 @@ CATEGORY_LABELS = {
 
 
 def _init_session_state():
-    """Initialize session state for permit manager."""
+    """Initialize session state for permit manager with SQLite persistence."""
+    # Shared GovernanceDB instance (creates data/governance.db on first use)
+    if "governance_db" not in st.session_state:
+        st.session_state.governance_db = GovernanceDB()
+    db = st.session_state.governance_db
+
     if "pm_permit_store" not in st.session_state:
-        st.session_state.pm_permit_store = get_shared_permit_store()
+        st.session_state.pm_permit_store = get_shared_permit_store(db=db)
     if "pm_permit_manager" not in st.session_state:
         st.session_state.pm_permit_manager = DataPermitManager(
             validator=PermitValidator(strict_mode=False)
         )
     if "pm_optout_registry" not in st.session_state:
-        st.session_state.pm_optout_registry = OptOutRegistry()
+        st.session_state.pm_optout_registry = OptOutRegistry(db=db)
     if "pm_optout_checker" not in st.session_state:
         st.session_state.pm_optout_checker = OptOutChecker(
             st.session_state.pm_optout_registry
