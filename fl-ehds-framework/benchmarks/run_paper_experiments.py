@@ -22,8 +22,11 @@ Author: Fabio Liberti
 """
 
 import sys
+import os
 import json
 import time
+import shutil
+import tempfile
 import argparse
 import traceback
 from dataclasses import dataclass, asdict, field
@@ -141,17 +144,54 @@ COLAB_EARLY_STOPPING_CONFIG = dict(
 # ======================================================================
 
 def save_checkpoint(block_name: str, data: Any) -> None:
+    """Atomic checkpoint save: write to temp, backup old, rename new."""
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     path = OUTPUT_DIR / f"checkpoint_{block_name}.json"
-    with open(path, "w") as f:
-        json.dump(data, f, indent=2, default=str)
+    bak_path = OUTPUT_DIR / f"checkpoint_{block_name}.json.bak"
+
+    # Write to temp file in same directory (same FS = atomic rename)
+    fd, tmp_path = tempfile.mkstemp(
+        dir=str(OUTPUT_DIR),
+        prefix=f".checkpoint_{block_name}_",
+        suffix=".tmp",
+    )
+    try:
+        with os.fdopen(fd, "w") as f:
+            json.dump(data, f, indent=2, default=str)
+            f.flush()
+            os.fsync(f.fileno())
+
+        # Backup existing checkpoint
+        if path.exists():
+            shutil.copy2(str(path), str(bak_path))
+
+        # Atomic rename
+        os.replace(tmp_path, str(path))
+    except Exception:
+        try:
+            os.unlink(tmp_path)
+        except OSError:
+            pass
+        raise
 
 
 def load_checkpoint(block_name: str) -> Optional[Dict]:
+    """Load checkpoint with automatic fallback to .bak if primary is corrupt."""
     path = OUTPUT_DIR / f"checkpoint_{block_name}.json"
-    if path.exists():
-        with open(path, "r") as f:
-            return json.load(f)
+    bak_path = OUTPUT_DIR / f"checkpoint_{block_name}.json.bak"
+
+    for p in [path, bak_path]:
+        if p.exists():
+            try:
+                with open(p, "r") as f:
+                    data = json.load(f)
+                if p == bak_path:
+                    print(f"  WARNING: Loaded from backup {p.name} (primary was corrupt)")
+                return data
+            except (json.JSONDecodeError, IOError):
+                if p == path:
+                    print(f"  WARNING: Checkpoint {p.name} corrupt, trying backup...")
+                continue
     return None
 
 
@@ -195,6 +235,22 @@ class EarlyStoppingMonitor:
         if round_num < self.min_rounds:
             return False
         return self.counter >= self.patience
+
+    def get_state(self) -> Dict:
+        """Serialize mutable state for checkpoint."""
+        return {
+            "best_value": self.best_value,
+            "best_round": self.best_round,
+            "counter": self.counter,
+            "best_metrics": self.best_metrics,
+        }
+
+    def set_state(self, state: Dict) -> None:
+        """Restore mutable state from checkpoint."""
+        self.best_value = state.get("best_value", -float('inf'))
+        self.best_round = state.get("best_round", 0)
+        self.counter = state.get("counter", 0)
+        self.best_metrics = state.get("best_metrics")
 
 
 # ======================================================================
@@ -259,6 +315,8 @@ def run_single_imaging(
     mu: float = 0.1,
     early_stopping: Optional[Dict] = None,
     use_amp: bool = True,
+    resume_from: Optional[Dict] = None,
+    on_round_complete: Optional[Callable] = None,
 ) -> Dict[str, Any]:
     """Run a single imaging FL experiment with optional early stopping and AMP."""
     start = time.time()
@@ -296,9 +354,20 @@ def run_single_imaging(
             metric=early_stopping.get("metric", "accuracy"),
         )
 
+    # Resume from round-level checkpoint if available
+    start_round = 0
     history = []
+    if resume_from is not None:
+        ckpt_path = resume_from.get("trainer_checkpoint", "")
+        if Path(ckpt_path).exists():
+            start_round = trainer.load_checkpoint(ckpt_path)
+            history = list(resume_from.get("history_so_far", []))
+            if es_monitor and "early_stopping_state" in resume_from:
+                es_monitor.set_state(resume_from["early_stopping_state"])
+            print(f"[resumed from R{start_round}]", end=" ", flush=True)
+
     stopped_early = False
-    for r in range(num_rounds):
+    for r in range(start_round, num_rounds):
         result = trainer.train_round(r)
         round_metrics = {
             "round": r + 1,
@@ -310,6 +379,10 @@ def run_single_imaging(
             "auc": result.global_auc,
         }
         history.append(round_metrics)
+
+        # Round-level checkpoint callback
+        if on_round_complete is not None:
+            on_round_complete(trainer, r + 1, history, es_monitor)
 
         # Check early stopping
         if es_monitor and es_monitor.check(r + 1, round_metrics):
@@ -475,6 +548,33 @@ def run_p12_multi_dataset(resume: bool = False,
 
     es_config = EARLY_STOPPING_CONFIG if use_early_stopping else None
 
+    # Round-level checkpoint support for imaging experiments
+    trainer_ckpt_path = str(OUTPUT_DIR / ".training_state.pt")
+
+    def _make_round_callback(exp_key, ds_name, algo, seed):
+        """Create per-round checkpoint callback for an imaging experiment."""
+        def on_round_complete(trainer, round_num, history, es_monitor):
+            trainer.save_checkpoint(trainer_ckpt_path)
+            results["in_progress"] = {
+                "key": exp_key,
+                "dataset": ds_name,
+                "algorithm": algo,
+                "seed": seed,
+                "completed_rounds": round_num,
+                "history_so_far": history,
+                "trainer_checkpoint": trainer_ckpt_path,
+                "early_stopping_state": es_monitor.get_state() if es_monitor else None,
+            }
+            save_checkpoint(block, results)
+        return on_round_complete
+
+    # Check for in-progress experiment to resume
+    in_prog = results.get("in_progress")
+    resume_info = None
+    if in_prog and Path(in_prog.get("trainer_checkpoint", "")).exists():
+        print(f"  Resuming in-progress: {in_prog['key']} from round {in_prog['completed_rounds']}")
+        resume_info = in_prog
+
     count = 0
     for ds_name in run_datasets:
         if ds_name not in all_datasets:
@@ -492,6 +592,12 @@ def run_p12_multi_dataset(resume: bool = False,
 
                 print(f"  [{count}/{total}] {ds_name} / {algo} / seed={seed}", end=" ", flush=True)
 
+                # Check if this is the in-progress experiment to resume
+                this_resume = None
+                if resume_info and resume_info.get("key") == key:
+                    this_resume = resume_info
+                    resume_info = None  # Consumed
+
                 try:
                     if ds_name in IMAGING_DATASETS:
                         ds_info = IMAGING_DATASETS[ds_name]
@@ -507,6 +613,8 @@ def run_p12_multi_dataset(resume: bool = False,
                             mu=0.1,
                             early_stopping=es_config,
                             use_amp=use_amp,
+                            resume_from=this_resume,
+                            on_round_complete=_make_round_callback(key, ds_name, algo, seed),
                             **img_config,
                         )
                     elif ds_name == "Diabetes":
@@ -546,7 +654,13 @@ def run_p12_multi_dataset(resume: bool = False,
                     print(f"-> ERROR: {e}")
                     results["completed"][key] = {"error": str(e), "traceback": traceback.format_exc()}
 
+                # Clear in-progress and save
+                results["in_progress"] = None
                 save_checkpoint(block, results)
+                try:
+                    Path(trainer_ckpt_path).unlink(missing_ok=True)
+                except Exception:
+                    pass
                 _cleanup_gpu()
 
     return results
@@ -621,14 +735,45 @@ def run_p13_ablation(resume: bool = False) -> Dict[str, Any]:
     done = sum(1 for k, _, _ in experiments if k in results["completed"])
     print(f"  Total ablation experiments: {total}, already completed: {done}")
 
+    # Round-level checkpoint support
+    trainer_ckpt_path = str(OUTPUT_DIR / ".training_state.pt")
+
+    def _make_round_callback(exp_key):
+        def on_round_complete(trainer, round_num, history, es_monitor):
+            trainer.save_checkpoint(trainer_ckpt_path)
+            results["in_progress"] = {
+                "key": exp_key,
+                "completed_rounds": round_num,
+                "history_so_far": history,
+                "trainer_checkpoint": trainer_ckpt_path,
+                "early_stopping_state": es_monitor.get_state() if es_monitor else None,
+            }
+            save_checkpoint(block, results)
+        return on_round_complete
+
+    in_prog = results.get("in_progress")
+    resume_info = None
+    if in_prog and Path(in_prog.get("trainer_checkpoint", "")).exists():
+        print(f"  Resuming in-progress: {in_prog['key']} from round {in_prog['completed_rounds']}")
+        resume_info = in_prog
+
     for i, (key, params, label) in enumerate(experiments):
         if key in results["completed"]:
             continue
 
         print(f"  [{i+1}/{total}] {label}, seed={params['seed']}", end=" ", flush=True)
 
+        this_resume = None
+        if resume_info and resume_info.get("key") == key:
+            this_resume = resume_info
+            resume_info = None
+
         try:
-            record = run_single_imaging(**params)
+            record = run_single_imaging(
+                **params,
+                resume_from=this_resume,
+                on_round_complete=_make_round_callback(key),
+            )
             acc = record["final_metrics"]["accuracy"]
             t = record["runtime_seconds"]
             print(f"-> acc={acc:.3f} ({t:.0f}s)")
@@ -637,7 +782,12 @@ def run_p13_ablation(resume: bool = False) -> Dict[str, Any]:
             print(f"-> ERROR: {e}")
             results["completed"][key] = {"error": str(e)}
 
+        results["in_progress"] = None
         save_checkpoint(block, results)
+        try:
+            Path(trainer_ckpt_path).unlink(missing_ok=True)
+        except Exception:
+            pass
         _cleanup_gpu()
 
     return results
@@ -664,6 +814,28 @@ def run_p14_noniid_severity(resume: bool = False) -> Dict[str, Any]:
     done = sum(1 for v in results["completed"].values() if "error" not in v)
     print(f"  Total non-IID experiments: {total}, already completed: {done}")
 
+    # Round-level checkpoint support
+    trainer_ckpt_path = str(OUTPUT_DIR / ".training_state.pt")
+
+    def _make_round_callback(exp_key):
+        def on_round_complete(trainer, round_num, history, es_monitor):
+            trainer.save_checkpoint(trainer_ckpt_path)
+            results["in_progress"] = {
+                "key": exp_key,
+                "completed_rounds": round_num,
+                "history_so_far": history,
+                "trainer_checkpoint": trainer_ckpt_path,
+                "early_stopping_state": es_monitor.get_state() if es_monitor else None,
+            }
+            save_checkpoint(block, results)
+        return on_round_complete
+
+    in_prog = results.get("in_progress")
+    resume_info = None
+    if in_prog and Path(in_prog.get("trainer_checkpoint", "")).exists():
+        print(f"  Resuming in-progress: {in_prog['key']} from round {in_prog['completed_rounds']}")
+        resume_info = in_prog
+
     count = 0
     for alpha in NONIID_ALPHAS:
         for algo in NONIID_ALGOS:
@@ -674,6 +846,11 @@ def run_p14_noniid_severity(resume: bool = False) -> Dict[str, Any]:
                     continue
 
                 print(f"  [{count}/{total}] alpha={alpha}, {algo}, seed={seed}", end=" ", flush=True)
+
+                this_resume = None
+                if resume_info and resume_info.get("key") == key:
+                    this_resume = resume_info
+                    resume_info = None
 
                 try:
                     record = run_single_imaging(
@@ -690,6 +867,8 @@ def run_p14_noniid_severity(resume: bool = False) -> Dict[str, Any]:
                         model_type=IMAGING_CONFIG["model_type"],
                         is_iid=False,
                         mu=0.1,
+                        resume_from=this_resume,
+                        on_round_complete=_make_round_callback(key),
                     )
                     acc = record["final_metrics"]["accuracy"]
                     jain = record.get("fairness", {}).get("jain_index", 0)
@@ -700,7 +879,12 @@ def run_p14_noniid_severity(resume: bool = False) -> Dict[str, Any]:
                     print(f"-> ERROR: {e}")
                     results["completed"][key] = {"error": str(e)}
 
+                results["in_progress"] = None
                 save_checkpoint(block, results)
+                try:
+                    Path(trainer_ckpt_path).unlink(missing_ok=True)
+                except Exception:
+                    pass
                 _cleanup_gpu()
 
     return results
