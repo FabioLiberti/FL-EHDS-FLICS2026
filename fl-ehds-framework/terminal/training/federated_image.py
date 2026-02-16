@@ -11,6 +11,7 @@ import os
 
 import torch
 import torch.nn as nn
+from contextlib import nullcontext
 from torch.utils.data import DataLoader, TensorDataset
 from tqdm import tqdm
 
@@ -56,6 +57,12 @@ class ImageFederatedTrainer:
         use_class_weights: bool = True,
         # Byzantine defense
         byzantine_config=None,
+        # Mixed precision
+        use_amp: bool = True,
+        # FedBN: skip normalization layers during aggregation (Li et al., ICLR 2021)
+        use_fedbn: bool = False,
+        # Freeze level: 0=none, 1=conv1+bn1, 2=+layer1, 3=+layer2 (None=use freeze_backbone)
+        freeze_level: int = None,
     ):
         # Validate parameters
         if num_clients < 2:
@@ -90,6 +97,8 @@ class ImageFederatedTrainer:
         self.seed = seed
         self.progress_callback = progress_callback
         self.model_type = model_type
+        self.use_fedbn = use_fedbn
+        self.freeze_level = freeze_level
 
         # Server optimizer hyperparameters
         self.server_lr = server_lr
@@ -100,6 +109,9 @@ class ImageFederatedTrainer:
 
         # Auto-detect device (CUDA > MPS > CPU)
         self.device = _detect_device(device)
+        # AMP: enable only for CUDA/MPS, not CPU
+        self.use_amp = use_amp and self.device.type in ('cuda', 'mps')
+        self.amp_dtype = torch.float16
 
         # Auto-adjust img_size and LR for ResNet
         if model_type == "resnet18" and img_size < 224:
@@ -143,6 +155,7 @@ class ImageFederatedTrainer:
                 num_classes=self.num_classes,
                 pretrained=True,
                 freeze_backbone=freeze_backbone,
+                freeze_level=freeze_level,
             ).to(self.device)
             model_name = "HealthcareResNet (ResNet18)"
         else:
@@ -231,11 +244,8 @@ class ImageFederatedTrainer:
 
         dataset = TensorDataset(augmented, y_tensor)
 
-        # Optimized DataLoader settings per device
+        # DataLoader settings: num_workers=0 because tensors are already on device
         dl_kwargs = {"batch_size": self.batch_size, "shuffle": True}
-        if self.device.type == "cuda":
-            dl_kwargs.update(num_workers=2, pin_memory=True, persistent_workers=True)
-        # MPS and CPU: num_workers=0 (fork issues on macOS)
 
         return DataLoader(dataset, **dl_kwargs)
 
@@ -308,11 +318,13 @@ class ImageFederatedTrainer:
                 ncols=80,
                 bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}]'
             )
+            amp_ctx = torch.autocast(device_type=self.device.type, dtype=self.amp_dtype) if self.use_amp else nullcontext()
             for batch_X, batch_y in epoch_pbar:
                 optimizer.zero_grad()
 
-                outputs = local_model(batch_X)
-                loss = criterion(outputs, batch_y)
+                with amp_ctx:
+                    outputs = local_model(batch_X)
+                    loss = criterion(outputs, batch_y)
 
                 # FedProx: add proximal term
                 if self.algorithm == "FedProx":
@@ -586,10 +598,17 @@ class ImageFederatedTrainer:
             if name in robust_update:
                 param.data += robust_update[name]
 
+    def _is_norm_param(self, name: str) -> bool:
+        """Check if parameter belongs to a normalization layer (GroupNorm/BatchNorm)."""
+        return any(k in name for k in (".bn1.", ".bn2.", "bn1."))
+
     def _aggregate(self, client_results: List[ClientResult],
                    noise_scale_override: Optional[float] = None,
                    quality_weights: Optional[Dict[int, float]] = None) -> None:
         """Aggregate client updates. Supports all 15 FL algorithms.
+
+        FedBN: when use_fedbn=True, normalization layer params are excluded from
+        aggregation, keeping each client's local norm statistics (Li et al., ICLR 2021).
 
         Args:
             quality_weights: Optional {client_id: quality_weight} from Data Quality
@@ -730,6 +749,9 @@ class ImageFederatedTrainer:
             # FedAvg, FedProx, SCAFFOLD, Per-FedAvg, Ditto,
             # FedLC, FedSAM, FedDecorr, FedSpeed: weighted average
             for name, param in self.global_model.named_parameters():
+                # FedBN: skip normalization layers (keep local stats)
+                if self.use_fedbn and self._is_norm_param(name):
+                    continue
                 weighted_update = torch.zeros_like(param)
                 for cr in client_results:
                     weighted_update += cr.model_update[name] * cw[cr.client_id]
@@ -769,7 +791,8 @@ class ImageFederatedTrainer:
 
         criterion = nn.CrossEntropyLoss()
 
-        with torch.no_grad():
+        amp_ctx = torch.autocast(device_type=self.device.type, dtype=self.amp_dtype) if self.use_amp else nullcontext()
+        with torch.no_grad(), amp_ctx:
             for client_id in range(self.num_clients):
                 X, y = self.client_test_data[client_id]
 
@@ -849,7 +872,8 @@ class ImageFederatedTrainer:
         total_samples = 0
         criterion = nn.CrossEntropyLoss()
 
-        with torch.no_grad():
+        amp_ctx = torch.autocast(device_type=self.device.type, dtype=self.amp_dtype) if self.use_amp else nullcontext()
+        with torch.no_grad(), amp_ctx:
             for client_id in range(self.num_clients):
                 pers_model = self.personalized_models[client_id]
                 pers_model.eval()

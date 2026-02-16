@@ -81,18 +81,58 @@ TABULAR_DATASETS = {
     "Heart_Disease": {"num_features": 13, "short": "HD"},
 }
 
-ALGORITHMS = ["FedAvg", "FedProx", "SCAFFOLD", "FedNova", "Ditto"]
-ALGO_COLORS = ["#2196F3", "#FF9800", "#4CAF50", "#F44336", "#9C27B0"]
+ALGORITHMS = ["FedAvg", "FedLC", "FedSAM", "FedDecorr", "FedExP"]
+ALGO_COLORS = ["#2196F3", "#E91E63", "#4CAF50", "#FF9800", "#9C27B0"]
 
 IMAGING_CONFIG = dict(
-    num_clients=5, num_rounds=30, local_epochs=3,
+    num_clients=5, num_rounds=12, local_epochs=1,
     batch_size=32, learning_rate=0.0005,
     model_type="resnet18", is_iid=False, alpha=0.5,
+    freeze_backbone=True,
 )
+
+# Colab profile: optimized for GPU speed, higher quality
+COLAB_IMAGING_CONFIG = dict(
+    num_clients=5, num_rounds=20, local_epochs=3,
+    batch_size=32, learning_rate=0.0005,
+    model_type="resnet18", is_iid=False, alpha=0.5,
+    freeze_backbone=False, freeze_level=1,  # partial: only conv1+bn1 frozen
+    use_fedbn=True,
+)
+
+# Per-dataset overrides for imaging (merged into IMAGING_CONFIG at runtime)
+DATASET_OVERRIDES = {
+    "Brain_Tumor": {
+        "learning_rate": 0.0003,
+    },
+}
+
+COLAB_DATASET_OVERRIDES = {
+    "Brain_Tumor": {
+        "learning_rate": 0.0005,
+    },
+}
 
 TABULAR_CONFIG = dict(
     num_rounds=20, local_epochs=3,
-    batch_size=32, learning_rate=0.01, is_iid=False, alpha=0.5,
+    batch_size=32, learning_rate=0.01,
+)
+
+# Early stopping configuration
+EARLY_STOPPING_CONFIG = dict(
+    enabled=True,
+    patience=4,
+    min_delta=0.005,
+    min_rounds=6,
+    metric="accuracy",
+)
+
+COLAB_EARLY_STOPPING_CONFIG = dict(
+    enabled=True,
+    patience=5,
+    min_delta=0.003,
+    min_rounds=10,
+    metric="accuracy",
 )
 
 
@@ -126,6 +166,35 @@ def _cleanup_gpu():
             pass
     import gc
     gc.collect()
+
+
+class EarlyStoppingMonitor:
+    """Patience-based early stopping. Tracks best metrics without altering final results."""
+
+    def __init__(self, patience: int = 5, min_delta: float = 0.005,
+                 min_rounds: int = 10, metric: str = "accuracy"):
+        self.patience = patience
+        self.min_delta = min_delta
+        self.min_rounds = min_rounds
+        self.metric = metric
+        self.best_value = -float('inf')
+        self.best_round = 0
+        self.counter = 0
+        self.best_metrics = None
+
+    def check(self, round_num: int, metrics: dict) -> bool:
+        """Returns True if training should stop."""
+        value = metrics.get(self.metric, 0)
+        if value > self.best_value + self.min_delta:
+            self.best_value = value
+            self.best_round = round_num
+            self.counter = 0
+            self.best_metrics = metrics.copy()
+        else:
+            self.counter += 1
+        if round_num < self.min_rounds:
+            return False
+        return self.counter >= self.patience
 
 
 # ======================================================================
@@ -186,9 +255,12 @@ def run_single_imaging(
     model_type: str = "resnet18", is_iid: bool = False, alpha: float = 0.5,
     dp_enabled: bool = False, dp_epsilon: float = 10.0, dp_clip_norm: float = 1.0,
     use_class_weights: bool = True, freeze_backbone: bool = False,
+    freeze_level: int = None, use_fedbn: bool = False,
     mu: float = 0.1,
+    early_stopping: Optional[Dict] = None,
+    use_amp: bool = True,
 ) -> Dict[str, Any]:
-    """Run a single imaging FL experiment."""
+    """Run a single imaging FL experiment with optional early stopping and AMP."""
     start = time.time()
 
     trainer = ImageFederatedTrainer(
@@ -208,12 +280,27 @@ def run_single_imaging(
         model_type=model_type,
         use_class_weights=use_class_weights,
         freeze_backbone=freeze_backbone,
+        freeze_level=freeze_level,
+        use_fedbn=use_fedbn,
+        use_amp=use_amp,
     )
+    trainer.num_rounds = num_rounds  # Enable cosine LR scheduling
+
+    # Early stopping monitor
+    es_monitor = None
+    if early_stopping and early_stopping.get("enabled"):
+        es_monitor = EarlyStoppingMonitor(
+            patience=early_stopping.get("patience", 5),
+            min_delta=early_stopping.get("min_delta", 0.005),
+            min_rounds=early_stopping.get("min_rounds", 10),
+            metric=early_stopping.get("metric", "accuracy"),
+        )
 
     history = []
+    stopped_early = False
     for r in range(num_rounds):
         result = trainer.train_round(r)
-        history.append({
+        round_metrics = {
             "round": r + 1,
             "accuracy": result.global_acc,
             "loss": result.global_loss,
@@ -221,7 +308,14 @@ def run_single_imaging(
             "precision": result.global_precision,
             "recall": result.global_recall,
             "auc": result.global_auc,
-        })
+        }
+        history.append(round_metrics)
+
+        # Check early stopping
+        if es_monitor and es_monitor.check(r + 1, round_metrics):
+            stopped_early = True
+            print(f"[early stop @R{r+1}, best={es_monitor.best_value:.3f} @R{es_monitor.best_round}]", end=" ")
+            break
 
     elapsed = time.time() - start
     final = history[-1]
@@ -234,7 +328,7 @@ def run_single_imaging(
         per_client_acc = {}
         fairness = {}
 
-    return {
+    result_dict = {
         "dataset": dataset_name, "algorithm": algorithm, "seed": seed,
         "history": history,
         "final_metrics": {k: final[k] for k in ["accuracy", "loss", "f1", "precision", "recall", "auc"]},
@@ -247,8 +341,23 @@ def run_single_imaging(
             "dp_epsilon": dp_epsilon if dp_enabled else None,
             "dp_clip_norm": dp_clip_norm if dp_enabled else None,
             "use_class_weights": use_class_weights,
+            "freeze_backbone": freeze_backbone,
         },
     }
+
+    # Add early stopping info if used
+    if es_monitor:
+        result_dict["stopped_early"] = stopped_early
+        result_dict["actual_rounds"] = len(history)
+        if es_monitor.best_metrics:
+            result_dict["best_metrics"] = {
+                k: es_monitor.best_metrics[k]
+                for k in ["accuracy", "loss", "f1", "precision", "recall", "auc"]
+                if k in es_monitor.best_metrics
+            }
+            result_dict["best_round"] = es_monitor.best_round
+
+    return result_dict
 
 
 def run_single_tabular(
@@ -321,15 +430,40 @@ def run_single_tabular(
 # P1.2: Multi-Dataset Experiments
 # ======================================================================
 
+def _cleanup_imaging_checkpoint(results: Dict, expected_rounds: int) -> int:
+    """Remove imaging experiments with mismatched num_rounds (e.g. from --quick runs)."""
+    to_remove = []
+    for key, rec in results.get("completed", {}).items():
+        if "error" in rec:
+            continue
+        ds = rec.get("dataset", "")
+        if ds not in IMAGING_DATASETS:
+            continue
+        cfg_rounds = rec.get("config", {}).get("num_rounds", expected_rounds)
+        if cfg_rounds != expected_rounds:
+            to_remove.append(key)
+    for key in to_remove:
+        del results["completed"][key]
+    return len(to_remove)
+
+
 def run_p12_multi_dataset(resume: bool = False,
                           filter_dataset: Optional[str] = None,
-                          filter_algo: Optional[str] = None) -> Dict[str, Any]:
+                          filter_algo: Optional[str] = None,
+                          use_amp: bool = True,
+                          use_early_stopping: bool = True) -> Dict[str, Any]:
     """5 algorithms x 5 datasets x 3 seeds = 75 experiments."""
     block = "p12_multidataset"
     # Always load existing checkpoint to merge results incrementally
     results = load_checkpoint(block)
     if results is None:
         results = {"completed": {}}
+
+    # Cleanup: remove imaging experiments with wrong num_rounds (e.g. from --quick)
+    removed = _cleanup_imaging_checkpoint(results, IMAGING_CONFIG["num_rounds"])
+    if removed > 0:
+        print(f"  Checkpoint cleanup: removed {removed} experiments with mismatched rounds")
+        save_checkpoint(block, results)
 
     all_datasets = list(IMAGING_DATASETS.keys()) + list(TABULAR_DATASETS.keys())
     run_datasets = [filter_dataset] if filter_dataset else all_datasets
@@ -338,6 +472,8 @@ def run_p12_multi_dataset(resume: bool = False,
     total = len(run_algos) * len(run_datasets) * len(SEEDS)
     done = sum(1 for k, v in results["completed"].items() if "error" not in v)
     print(f"  Total experiments: {total}, already completed (all): {done}")
+
+    es_config = EARLY_STOPPING_CONFIG if use_early_stopping else None
 
     count = 0
     for ds_name in run_datasets:
@@ -359,13 +495,19 @@ def run_p12_multi_dataset(resume: bool = False,
                 try:
                     if ds_name in IMAGING_DATASETS:
                         ds_info = IMAGING_DATASETS[ds_name]
+                        # Merge base config with per-dataset overrides
+                        img_config = {**IMAGING_CONFIG}
+                        if ds_name in DATASET_OVERRIDES:
+                            img_config.update(DATASET_OVERRIDES[ds_name])
                         record = run_single_imaging(
                             dataset_name=ds_name,
                             data_dir=ds_info["data_dir"],
                             algorithm=algo,
                             seed=seed,
                             mu=0.1,
-                            **IMAGING_CONFIG,
+                            early_stopping=es_config,
+                            use_amp=use_amp,
+                            **img_config,
                         )
                     elif ds_name == "Diabetes":
                         train_d, test_d, meta = load_diabetes_data(
@@ -396,7 +538,8 @@ def run_p12_multi_dataset(resume: bool = False,
                     acc = record["final_metrics"]["accuracy"]
                     t = record["runtime_seconds"]
                     jain = record.get("fairness", {}).get("jain_index", 0)
-                    print(f"-> acc={acc:.3f} jain={jain:.3f} ({t:.0f}s)")
+                    es_info = f" ES@R{record['actual_rounds']}" if record.get("stopped_early") else ""
+                    print(f"-> acc={acc:.3f} jain={jain:.3f} ({t:.0f}s{es_info})")
                     results["completed"][key] = record
 
                 except Exception as e:
@@ -1472,6 +1615,81 @@ def _fig_communication(comm, out_dir, plt):
 # Main
 # ======================================================================
 
+def run_diagnostic(use_amp: bool = True) -> None:
+    """Run a single Brain_Tumor FedAvg experiment to validate the fix."""
+    print("\n>>> DIAGNOSTIC: Brain_Tumor FedAvg seed=42 (validating fix)")
+    ds_info = IMAGING_DATASETS["Brain_Tumor"]
+    img_config = {**IMAGING_CONFIG}
+    if "Brain_Tumor" in DATASET_OVERRIDES:
+        img_config.update(DATASET_OVERRIDES["Brain_Tumor"])
+
+    print(f"  Config: lr={img_config.get('learning_rate')}, "
+          f"freeze_backbone={img_config.get('freeze_backbone', False)}, "
+          f"num_rounds={img_config['num_rounds']}, AMP={use_amp}")
+
+    record = run_single_imaging(
+        dataset_name="Brain_Tumor",
+        data_dir=ds_info["data_dir"],
+        algorithm="FedAvg",
+        seed=42,
+        mu=0.1,
+        early_stopping=EARLY_STOPPING_CONFIG,
+        use_amp=use_amp,
+        **img_config,
+    )
+
+    # Print per-round convergence
+    print(f"\n  {'Round':>5} {'Acc':>8} {'F1':>8} {'Loss':>8} {'AUC':>8}")
+    print(f"  {'-'*41}")
+    for h in record["history"]:
+        marker = " *" if h["accuracy"] == max(r["accuracy"] for r in record["history"]) else ""
+        print(f"  {h['round']:>5} {h['accuracy']:>8.4f} {h['f1']:>8.4f} "
+              f"{h['loss']:>8.4f} {h['auc']:>8.4f}{marker}")
+
+    acc = record["final_metrics"]["accuracy"]
+    t = record["runtime_seconds"]
+    best = record.get("best_metrics", record["final_metrics"])
+    best_r = record.get("best_round", len(record["history"]))
+
+    print(f"\n  Final: acc={acc:.4f} | Best: acc={best['accuracy']:.4f} @R{best_r}")
+    print(f"  Runtime: {t:.0f}s")
+
+    if best["accuracy"] > 0.40:
+        print(f"\n  PASS: Brain_Tumor fix works (acc={best['accuracy']:.3f} > 0.40)")
+        print(f"  You can now run: --only p12 --dataset Brain_Tumor --resume")
+    else:
+        print(f"\n  WARN: Accuracy still low ({best['accuracy']:.3f}). "
+              f"Consider adjusting lr or alpha.")
+
+    _cleanup_gpu()
+
+
+# Micro-batch slice definitions: 1 dataset x 1 algo x 3 seeds (~15 min each)
+SLICE_DEFINITIONS = {
+    0:  {"desc": "Diagnostic: Brain_Tumor fix validation", "diagnostic": True},
+    # Brain_Tumor micro-batches (1-5)
+    1:  {"desc": "Brain_Tumor/FedAvg",    "dataset": "Brain_Tumor", "algo": "FedAvg"},
+    2:  {"desc": "Brain_Tumor/FedLC",     "dataset": "Brain_Tumor", "algo": "FedLC"},
+    3:  {"desc": "Brain_Tumor/FedSAM",    "dataset": "Brain_Tumor", "algo": "FedSAM"},
+    4:  {"desc": "Brain_Tumor/FedDecorr", "dataset": "Brain_Tumor", "algo": "FedDecorr"},
+    5:  {"desc": "Brain_Tumor/FedExP",    "dataset": "Brain_Tumor", "algo": "FedExP"},
+    # chest_xray micro-batches (6-10)
+    6:  {"desc": "chest_xray/FedAvg",     "dataset": "chest_xray", "algo": "FedAvg"},
+    7:  {"desc": "chest_xray/FedLC",      "dataset": "chest_xray", "algo": "FedLC"},
+    8:  {"desc": "chest_xray/FedSAM",     "dataset": "chest_xray", "algo": "FedSAM"},
+    9:  {"desc": "chest_xray/FedDecorr",  "dataset": "chest_xray", "algo": "FedDecorr"},
+    10: {"desc": "chest_xray/FedExP",     "dataset": "chest_xray", "algo": "FedExP"},
+    # Skin_Cancer micro-batches (11-15)
+    11: {"desc": "Skin_Cancer/FedAvg",    "dataset": "Skin_Cancer", "algo": "FedAvg"},
+    12: {"desc": "Skin_Cancer/FedLC",     "dataset": "Skin_Cancer", "algo": "FedLC"},
+    13: {"desc": "Skin_Cancer/FedSAM",    "dataset": "Skin_Cancer", "algo": "FedSAM"},
+    14: {"desc": "Skin_Cancer/FedDecorr", "dataset": "Skin_Cancer", "algo": "FedDecorr"},
+    15: {"desc": "Skin_Cancer/FedExP",    "dataset": "Skin_Cancer", "algo": "FedExP"},
+    # Output
+    99: {"desc": "Output generation (tables + figures)", "output": True},
+}
+
+
 def main():
     parser = argparse.ArgumentParser(description="FL-EHDS Paper Experiments (FLICS 2026)")
     parser.add_argument("--resume", action="store_true", help="Resume from checkpoints")
@@ -1483,9 +1701,29 @@ def main():
                         help="Filter: run only this dataset (e.g. Brain_Tumor, chest_xray, Diabetes)")
     parser.add_argument("--algo", type=str,
                         help="Filter: run only this algorithm (e.g. FedAvg, SCAFFOLD)")
+    parser.add_argument("--diagnostic", action="store_true",
+                        help="Run a single Brain_Tumor diagnostic to validate fix")
+    parser.add_argument("--slice", type=int, choices=list(SLICE_DEFINITIONS.keys()),
+                        help="Run a micro-batch slice (0=diagnostic, 1-5=Brain_Tumor, "
+                             "6-10=chest_xray, 11-15=Skin_Cancer, 99=output)")
+    parser.add_argument("--no-amp", action="store_true",
+                        help="Disable mixed precision (AMP)")
+    parser.add_argument("--no-early-stop", action="store_true",
+                        help="Disable early stopping")
+    parser.add_argument("--colab", action="store_true",
+                        help="Use Colab GPU profile: 20 rounds, 3 epochs, FedBN, partial freeze")
     args = parser.parse_args()
 
-    global SEEDS, IMAGING_CONFIG, TABULAR_CONFIG
+    global SEEDS, IMAGING_CONFIG, TABULAR_CONFIG, DATASET_OVERRIDES, EARLY_STOPPING_CONFIG
+
+    use_amp = not args.no_amp
+    use_early_stopping = not args.no_early_stop
+
+    # Colab profile: swap to optimized config
+    if args.colab:
+        IMAGING_CONFIG = COLAB_IMAGING_CONFIG.copy()
+        DATASET_OVERRIDES = COLAB_DATASET_OVERRIDES.copy()
+        EARLY_STOPPING_CONFIG = COLAB_EARLY_STOPPING_CONFIG.copy()
 
     if args.quick:
         SEEDS = [42]
@@ -1505,23 +1743,66 @@ def main():
     print(f"  Seeds:    {SEEDS}")
     print(f"  Output:   {OUTPUT_DIR}")
     print(f"  Resume:   {args.resume}")
+    print(f"  AMP:      {use_amp}")
+    print(f"  EarlyStop:{use_early_stopping}")
     if args.quick:
         print(f"  Mode:     QUICK (1 seed, 5 rounds)")
     if args.dataset:
         print(f"  Filter:   dataset={args.dataset}")
     if args.algo:
         print(f"  Filter:   algo={args.algo}")
+    if args.slice is not None:
+        sdef = SLICE_DEFINITIONS[args.slice]
+        print(f"  Slice:    {args.slice} - {sdef['desc']}")
+    if DATASET_OVERRIDES:
+        print(f"  Overrides: {list(DATASET_OVERRIDES.keys())}")
     print("=" * 70)
 
     t0 = time.time()
+
+    # --- Diagnostic mode ---
+    if args.diagnostic or (args.slice is not None and args.slice == 0):
+        run_diagnostic(use_amp=use_amp)
+        total_time = time.time() - t0
+        print(f"\n  Diagnostic completed in {total_time:.0f}s")
+        return
+
+    # --- Slice execution mode ---
+    if args.slice is not None:
+        sdef = SLICE_DEFINITIONS[args.slice]
+        if sdef.get("output"):
+            args.only = "output"
+        else:
+            args.only = "p12"
+            args.dataset = sdef.get("dataset", args.dataset)
+            # For multi-algo slices, run each sequentially
+            algos_to_run = sdef.get("algos", [sdef["algo"]] if "algo" in sdef else [])
+            if algos_to_run:
+                for algo in algos_to_run:
+                    print(f"\n>>> Slice {args.slice}: {sdef['desc']} ({algo})")
+                    run_p12_multi_dataset(
+                        resume=True,
+                        filter_dataset=args.dataset,
+                        filter_algo=algo,
+                        use_amp=use_amp,
+                        use_early_stopping=use_early_stopping,
+                    )
+                total_time = time.time() - t0
+                print(f"\n  Slice {args.slice} completed in {total_time/3600:.1f}h ({total_time:.0f}s)")
+                return
+            args.resume = True
 
     # --- P1.2 ---
     p12 = None
     if args.only in (None, "p12"):
         print("\n>>> P1.2: Multi-Dataset FL Comparison")
-        p12 = run_p12_multi_dataset(resume=args.resume,
-                                     filter_dataset=args.dataset,
-                                     filter_algo=args.algo)
+        p12 = run_p12_multi_dataset(
+            resume=args.resume,
+            filter_dataset=args.dataset,
+            filter_algo=args.algo,
+            use_amp=use_amp,
+            use_early_stopping=use_early_stopping,
+        )
 
     # --- P1.3 ---
     p13 = None

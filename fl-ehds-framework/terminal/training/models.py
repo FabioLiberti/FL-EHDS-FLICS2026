@@ -113,6 +113,7 @@ class HealthcareResNet(nn.Module):
         num_classes: int = 2,
         pretrained: bool = True,
         freeze_backbone: bool = False,
+        freeze_level: int = None,
         dropout: float = 0.3,
     ):
         super().__init__()
@@ -141,16 +142,22 @@ class HealthcareResNet(nn.Module):
             nn.Linear(512, num_classes),
         )
 
-        # Optionally freeze early layers
-        if freeze_backbone:
-            for param in self.conv1.parameters():
-                param.requires_grad = False
-            for param in self.bn1.parameters():
-                param.requires_grad = False
-            for param in self.layer1.parameters():
-                param.requires_grad = False
-            for param in self.layer2.parameters():
-                param.requires_grad = False
+        # Determine freeze level: 0=none, 1=conv1+bn1, 2=+layer1, 3=+layer2
+        # freeze_backbone=True is backward-compatible alias for freeze_level=3
+        if freeze_level is None:
+            freeze_level = 3 if freeze_backbone else 0
+        self.freeze_level = freeze_level
+
+        freeze_groups = [
+            [self.conv1, self.bn1],       # level >= 1
+            [self.layer1],                 # level >= 2
+            [self.layer2],                 # level >= 3
+        ]
+        for lvl, modules in enumerate(freeze_groups, 1):
+            if freeze_level >= lvl:
+                for mod in modules:
+                    for param in mod.parameters():
+                        param.requires_grad = False
 
     @staticmethod
     def _replace_bn_with_gn(module: nn.Module):
