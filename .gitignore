@@ -127,15 +127,10 @@ secrets.yaml
 # *.hdf5
 
 # -----------------------------------------------------------------------------
-# Large Clinical Imaging Datasets (too large for Git)
+# Datasets — ALL raw data directories (too large for Git)
+# Keeps .py loader files, ignores all dataset subdirectories
 # -----------------------------------------------------------------------------
-fl-ehds-framework/data/Brain Tumor MRI/
-fl-ehds-framework/data/Brain_Tumor/
-fl-ehds-framework/data/Retinopatia/
-fl-ehds-framework/data/Skin Cancer/
-fl-ehds-framework/data/chest_xray/
-fl-ehds-framework/data/ISIC/
-fl-ehds-framework/data/svhn/
+fl-ehds-framework/data/*/
 
 # Large model checkpoints
 *.pt

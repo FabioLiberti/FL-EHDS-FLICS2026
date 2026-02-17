@@ -1,0 +1,20 @@
+\begin{table*}[htbp]
+\centering
+\caption{Multi-Dataset Federated Learning Results}
+\label{tab:multi_dataset}
+\small
+\begin{tabular}{l|ccc|ccc|ccc|ccc|ccc|ccc|ccc|ccc}
+\toprule
+\textbf{Algorithm} & \multicolumn{3}{c|}{\textbf{BT}} & \multicolumn{3}{c|}{\textbf{CX}} & \multicolumn{3}{c|}{\textbf{SC}} & \multicolumn{3}{c|}{\textbf{DM}} & \multicolumn{3}{c|}{\textbf{HD}} & \multicolumn{3}{c|}{\textbf{PX}} & \multicolumn{3}{c|}{\textbf{CV}} & \multicolumn{3}{c}{\textbf{BC}} \\
+ & Acc & F1 & AUC & Acc & F1 & AUC & Acc & F1 & AUC & Acc & F1 & AUC & Acc & F1 & AUC & Acc & F1 & AUC & Acc & F1 & AUC & Acc & F1 & AUC \\
+\midrule
+FedAvg & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & 69.7{\tiny$\pm$0.04} & 0.70{\tiny$\pm$0.03} & 0.79{\tiny$\pm$0.00} & 63.8{\tiny$\pm$0.01} & 0.02{\tiny$\pm$0.02} & 0.97{\tiny$\pm$0.00} \\
+FedLC & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & 69.8{\tiny$\pm$0.04} & 0.70{\tiny$\pm$0.03} & 0.79{\tiny$\pm$0.00} & 63.8{\tiny$\pm$0.01} & 0.02{\tiny$\pm$0.02} & 0.97{\tiny$\pm$0.00} \\
+FedSAM & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & 71.5{\tiny$\pm$0.01} & 0.71{\tiny$\pm$0.02} & 0.79{\tiny$\pm$0.00} & 63.5{\tiny$\pm$0.01} & -- & 0.97{\tiny$\pm$0.00} \\
+FedDecorr & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & 69.7{\tiny$\pm$0.04} & 0.70{\tiny$\pm$0.03} & 0.79{\tiny$\pm$0.00} & 63.8{\tiny$\pm$0.01} & 0.02{\tiny$\pm$0.02} & 0.97{\tiny$\pm$0.00} \\
+FedExP & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & -- & 69.7{\tiny$\pm$0.04} & 0.70{\tiny$\pm$0.03} & 0.79{\tiny$\pm$0.00} & 63.8{\tiny$\pm$0.01} & 0.02{\tiny$\pm$0.02} & 0.97{\tiny$\pm$0.00} \\
+\bottomrule
+\end{tabular}
+\vspace{1mm}
+\footnotesize{Non-IID, ResNet18 (imaging) / MLP (tabular), 3 seeds. $^{*}p<0.05$, $^{**}p<0.01$ vs FedAvg (paired t-test). BT=Brain Tumor, CX=Chest X-ray, SC=Skin Cancer, DM=Diabetes, HD=Heart Disease, PX=PTB-XL ECG, CV=Cardiovascular, BC=Breast Cancer.}
+\end{table*}

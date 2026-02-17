@@ -76,6 +76,7 @@ class FederatedTrainer:
         external_data: Optional[Dict[int, tuple]] = None,
         external_test_data: Optional[Dict[int, tuple]] = None,
         input_dim: Optional[int] = None,
+        num_classes: Optional[int] = None,
         # Byzantine defense
         byzantine_config=None,
         # New algorithm params (2022-2023)
@@ -163,12 +164,13 @@ class FederatedTrainer:
             _input_dim = input_dim or 10
 
         # Initialize global model
-        self.global_model = HealthcareMLP(input_dim=_input_dim).to(self.device)
+        all_labels = np.concatenate([y for _, y in self.client_data.values()])
+        _num_classes = num_classes or len(np.unique(all_labels))
+        self.global_model = HealthcareMLP(input_dim=_input_dim, num_classes=_num_classes).to(self.device)
 
         # Class-weighted loss for imbalanced tabular datasets
         self.class_weights = None
-        all_labels = np.concatenate([y for _, y in self.client_data.values()])
-        num_classes = len(np.unique(all_labels))
+        num_classes = _num_classes
         counts = np.bincount(all_labels.astype(int), minlength=num_classes)
         if counts.min() > 0:
             max_ratio = counts.max() / counts.min()

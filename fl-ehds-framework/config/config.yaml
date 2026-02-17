@@ -872,6 +872,114 @@ dataset_parameters:
     recommended_algorithms: ["FedProx", "SCAFFOLD", "Ditto", "FedAvg"]
     notes: "Heart Disease UCI: 920 pazienti, 4 ospedali internazionali, 13 features cliniche, non-IID naturale"
 
+  stroke_prediction:
+    type: "tabular"
+    img_size: null
+    learning_rate: 0.01
+    batch_size: 32
+    num_rounds: 30
+    local_epochs: 5
+    alpha: 0.5
+    class_weight: true
+    recommended_algorithms: ["Ditto", "FedProx", "FedAvg"]
+    notes: "Stroke Prediction: 5,110 pazienti, 10 features cliniche, forte sbilanciamento (~5% positivi), Dirichlet partitioning"
+
+  cdc_diabetes:
+    type: "tabular"
+    img_size: null
+    learning_rate: 0.01
+    batch_size: 64
+    num_rounds: 20
+    local_epochs: 3
+    alpha: 0.5
+    class_weight: true
+    recommended_algorithms: ["FedAvg", "FedProx", "Ditto"]
+    notes: "CDC Diabetes BRFSS 2015: 253K survey, 21 health indicators, diabete binario (~14% pos), large-scale population"
+
+  chronic_kidney_disease:
+    type: "tabular"
+    img_size: null
+    learning_rate: 0.01
+    batch_size: 16
+    num_rounds: 30
+    local_epochs: 5
+    alpha: 0.5
+    class_weight: false
+    recommended_algorithms: ["Ditto", "FedProx", "FedAvg"]
+    notes: "CKD UCI: 400 pazienti, 24 features laboratorio renale (LOINC-mappabili), 62.5% CKD, small-data FL scenario"
+
+  cirrhosis_survival:
+    type: "tabular"
+    img_size: null
+    learning_rate: 0.01
+    batch_size: 16
+    num_rounds: 30
+    local_epochs: 5
+    alpha: 0.5
+    class_weight: true
+    recommended_algorithms: ["Ditto", "FedProx", "FedAvg"]
+    notes: "Cirrhosis Mayo/UCI: 418 pazienti PBC trial, 18 features epatologia, mortalita binaria, small-data FL scenario"
+
+  cardiovascular_disease:
+    type: "tabular"
+    img_size: null
+    learning_rate: 0.01
+    batch_size: 64
+    num_rounds: 25
+    local_epochs: 3
+    alpha: 0.5
+    class_weight: false
+    recommended_algorithms: ["FedAvg", "FedProx", "SCAFFOLD", "FedAdam"]
+    notes: "Cardiovascular Disease Kaggle: 70K pazienti, 11 features (vitali+lab), CVD binario ~50/50, large-scale FL"
+
+  breast_cancer_wisconsin:
+    type: "tabular"
+    img_size: null
+    learning_rate: 0.01
+    batch_size: 16
+    num_rounds: 30
+    local_epochs: 5
+    alpha: 0.5
+    class_weight: false
+    recommended_algorithms: ["Ditto", "FedProx", "FedAvg"]
+    notes: "Breast Cancer Wisconsin UCI: 569 pazienti, 30 features patologia FNA, maligno/benigno 37/63%, small-data FL"
+
+  ptbxl_ecg:
+    type: "tabular"
+    img_size: null
+    learning_rate: 0.005
+    batch_size: 64
+    num_rounds: 30
+    local_epochs: 3
+    alpha: null
+    class_weight: true
+    recommended_algorithms: ["SCAFFOLD", "FedProx", "Ditto", "FedAvg"]
+    notes: "PTB-XL ECG PhysioNet: 21.8K ECG tabular (PTB Germania), 9 features, 5 classi diagnostiche, non-IID naturale da 52 siti, EHDS europeo"
+
+  synthea_fhir:
+    type: "tabular"
+    img_size: null
+    learning_rate: 0.01
+    batch_size: 32
+    num_rounds: 30
+    local_epochs: 3
+    alpha: 0.5
+    class_weight: true
+    recommended_algorithms: ["FedAvg", "FedProx", "Ditto"]
+    notes: "Synthea FHIR R4: 1,180 pazienti sintetici, 14 features da FHIR bundle nativi, CVD binario, FHIR-native"
+
+  smart_bulk_fhir:
+    type: "tabular"
+    img_size: null
+    learning_rate: 0.01
+    batch_size: 16
+    num_rounds: 30
+    local_epochs: 5
+    alpha: 0.5
+    class_weight: true
+    recommended_algorithms: ["Ditto", "FedProx", "FedAvg"]
+    notes: "SMART Bulk FHIR: 120 pazienti, 12 features da NDJSON FHIR R4 bulk data, CVD binario, FHIR-native NDJSON"
+
   Retinopatia:
     type: "imaging"
     model_type: "resnet18"

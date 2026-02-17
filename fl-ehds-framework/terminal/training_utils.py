@@ -49,6 +49,11 @@ EHDS_CATEGORY_MAP = {
     "omop": ["ehr", "lab_results"],
     "diabetes": ["ehr", "lab_results"],
     "heart_disease": ["ehr", "lab_results"],
+    "cardiovascular": ["ehr", "vitals", "lab_results"],
+    "breast_cancer": ["pathology", "diagnostics"],
+    "ptbxl": ["ecg", "diagnostics"],
+    "synthea_fhir": ["ehr", "conditions", "medications"],
+    "smart_fhir": ["ehr", "conditions", "medications"],
     "imaging": ["imaging"],
 }
 
@@ -110,6 +115,87 @@ def build_dataset_choices(available_datasets: Dict[str, Dict]) -> Tuple[List[str
     except Exception:
         pass
 
+    try:
+        stroke_path = PROJECT_ROOT / "data" / "stroke_prediction" / "healthcare-dataset-stroke-data.csv"
+        if stroke_path.exists():
+            label = "Stroke Prediction (5,110 pazienti, 10 features, ictus)"
+            dataset_choices.insert(len([c for c in dataset_choices if "img" not in c.lower()]), label)
+            dataset_map[label] = "stroke"
+    except Exception:
+        pass
+
+    try:
+        cdc_path = PROJECT_ROOT / "data" / "cdc_diabetes" / "diabetes_binary_health_indicators_BRFSS2015.csv"
+        if cdc_path.exists():
+            label = "CDC Diabetes BRFSS (253K survey, 21 indicatori, diabete)"
+            dataset_choices.insert(len([c for c in dataset_choices if "img" not in c.lower()]), label)
+            dataset_map[label] = "cdc_diabetes"
+    except Exception:
+        pass
+
+    try:
+        ckd_path = PROJECT_ROOT / "data" / "chronic_kidney_disease" / "kidney_disease.csv"
+        if ckd_path.exists():
+            label = "Chronic Kidney Disease UCI (400 pazienti, 24 features, CKD)"
+            dataset_choices.insert(len([c for c in dataset_choices if "img" not in c.lower()]), label)
+            dataset_map[label] = "ckd"
+    except Exception:
+        pass
+
+    try:
+        cirr_path = PROJECT_ROOT / "data" / "cirrhosis" / "cirrhosis.csv"
+        if cirr_path.exists():
+            label = "Cirrhosis Survival (418 pazienti Mayo, 18 features, mortalita)"
+            dataset_choices.insert(len([c for c in dataset_choices if "img" not in c.lower()]), label)
+            dataset_map[label] = "cirrhosis"
+    except Exception:
+        pass
+
+    try:
+        cardio_path = PROJECT_ROOT / "data" / "cardiovascular_disease" / "cardio_train.csv"
+        if cardio_path.exists():
+            label = "Cardiovascular Disease (70K pazienti, 11 features, CVD)"
+            dataset_choices.insert(len([c for c in dataset_choices if "img" not in c.lower()]), label)
+            dataset_map[label] = "cardiovascular"
+    except Exception:
+        pass
+
+    try:
+        bc_path = PROJECT_ROOT / "data" / "breast_cancer_wisconsin" / "wdbc.data"
+        if bc_path.exists():
+            label = "Breast Cancer Wisconsin (569 pazienti, 30 features, patologia)"
+            dataset_choices.insert(len([c for c in dataset_choices if "img" not in c.lower()]), label)
+            dataset_map[label] = "breast_cancer"
+    except Exception:
+        pass
+
+    try:
+        ptbxl_path = PROJECT_ROOT / "data" / "ptb_xl" / "ptbxl_database.csv"
+        if ptbxl_path.exists():
+            label = "PTB-XL ECG (21.8K ECG, 9 features, 5 classi, 52 siti EU)"
+            dataset_choices.insert(len([c for c in dataset_choices if "img" not in c.lower()]), label)
+            dataset_map[label] = "ptbxl"
+    except Exception:
+        pass
+
+    try:
+        synthea_path = PROJECT_ROOT / "data" / "synthea_fhir" / "fhir"
+        if synthea_path.exists() and synthea_path.is_dir():
+            label = "Synthea FHIR R4 (1,180 pazienti, FHIR bundle nativi, CVD)"
+            dataset_choices.insert(len([c for c in dataset_choices if "img" not in c.lower()]), label)
+            dataset_map[label] = "synthea_fhir"
+    except Exception:
+        pass
+
+    try:
+        smart_path = PROJECT_ROOT / "data" / "smart_bulk_fhir" / "Patient.000.ndjson"
+        if smart_path.exists():
+            label = "SMART Bulk FHIR (120 pazienti, NDJSON FHIR R4, CVD)"
+            dataset_choices.insert(len([c for c in dataset_choices if "img" not in c.lower()]), label)
+            dataset_map[label] = "smart_fhir"
+    except Exception:
+        pass
+
     if available_datasets:
         for name, info in available_datasets.items():
             label = f"{name} ({info['samples']:,} img, {info['classes']} classi)"
@@ -168,6 +254,92 @@ def apply_dataset_selection(config: Dict[str, Any], selected_key: str,
         print_info("  13 features: demographics + vitali + ECG + stress test")
         print_info("  Partizione per ospedale (non-IID naturale, 4 client)")
         print_info("  FHIR R4: Patient, Observation, Condition, DiagnosticReport")
+    elif selected_key == "stroke":
+        config["dataset_type"] = "stroke"
+        config["dataset_name"] = "stroke_prediction"
+        config["dataset_path"] = str(PROJECT_ROOT / "data" / "stroke_prediction" / "healthcare-dataset-stroke-data.csv")
+        config["learning_rate"] = 0.01
+        print_info("Stroke Prediction: 5,110 pazienti, 10 features cliniche")
+        print_info("  Target: ictus (binario, ~5% positivi)")
+        print_info("  Features: demographics + comorbidita + BMI + glucosio + fumo")
+        print_info("  FHIR R4: Patient, Condition, Observation")
+    elif selected_key == "cdc_diabetes":
+        config["dataset_type"] = "cdc_diabetes"
+        config["dataset_name"] = "cdc_diabetes"
+        config["dataset_path"] = str(PROJECT_ROOT / "data" / "cdc_diabetes" / "diabetes_binary_health_indicators_BRFSS2015.csv")
+        config["learning_rate"] = 0.01
+        print_info("CDC Diabetes BRFSS 2015: 253,680 survey, 21 health indicators")
+        print_info("  Target: diabete binario (prediabete/diabete vs nessuno)")
+        print_info("  Features: BP, colesterolo, BMI, attivita fisica, salute mentale, reddito")
+        print_info("  FHIR R4: Patient, Condition, Observation, RiskAssessment")
+    elif selected_key == "ckd":
+        config["dataset_type"] = "ckd"
+        config["dataset_name"] = "chronic_kidney_disease"
+        config["dataset_path"] = str(PROJECT_ROOT / "data" / "chronic_kidney_disease" / "kidney_disease.csv")
+        config["learning_rate"] = 0.01
+        config["num_clients"] = min(config.get("num_clients", 4), 4)
+        print_info("Chronic Kidney Disease UCI: 400 pazienti, 24 features renali")
+        print_info("  Target: CKD (binario, 62.5% positivi)")
+        print_info("  Features: urinalisi + chimica ematica + ematologia + comorbidita")
+        print_info("  FHIR R4: Patient, Observation (vitals/lab/hematology), Condition")
+    elif selected_key == "cirrhosis":
+        config["dataset_type"] = "cirrhosis"
+        config["dataset_name"] = "cirrhosis_survival"
+        config["dataset_path"] = str(PROJECT_ROOT / "data" / "cirrhosis" / "cirrhosis.csv")
+        config["learning_rate"] = 0.01
+        config["num_clients"] = min(config.get("num_clients", 4), 4)
+        print_info("Cirrhosis Mayo/UCI: 418 pazienti PBC trial, 18 features epatologia")
+        print_info("  Target: mortalita (binario, D vs C+CL)")
+        print_info("  Features: bilirubin, albumin, copper, enzimi epatici, staging")
+        print_info("  FHIR R4: Patient, Condition, Observation (liver/hematology), MedicationStatement")
+    elif selected_key == "cardiovascular":
+        config["dataset_type"] = "cardiovascular"
+        config["dataset_name"] = "cardiovascular_disease"
+        config["dataset_path"] = str(PROJECT_ROOT / "data" / "cardiovascular_disease" / "cardio_train.csv")
+        config["learning_rate"] = 0.01
+        print_info("Cardiovascular Disease: 70,000 pazienti, 11 features cliniche")
+        print_info("  Target: malattia cardiovascolare (binario, ~50/50)")
+        print_info("  Features: demographics + vitali (BP) + lab (colesterolo, glucosio) + stile vita")
+        print_info("  FHIR R4: Patient, Observation (vitals/lab/social), Condition")
+    elif selected_key == "breast_cancer":
+        config["dataset_type"] = "breast_cancer"
+        config["dataset_name"] = "breast_cancer_wisconsin"
+        config["dataset_path"] = str(PROJECT_ROOT / "data" / "breast_cancer_wisconsin" / "wdbc.data")
+        config["learning_rate"] = 0.01
+        config["num_clients"] = min(config.get("num_clients", 4), 4)
+        print_info("Breast Cancer Wisconsin: 569 pazienti, 30 features patologia FNA")
+        print_info("  Target: maligno vs benigno (37/63%)")
+        print_info("  Features: 10 misure nucleo cellulare x 3 (media, SE, worst)")
+        print_info("  FHIR R4: DiagnosticReport (cytology), Observation (pathology), Condition")
+    elif selected_key == "ptbxl":
+        config["dataset_type"] = "ptbxl"
+        config["dataset_name"] = "ptbxl_ecg"
+        config["dataset_path"] = str(PROJECT_ROOT / "data" / "ptb_xl" / "ptbxl_database.csv")
+        config["learning_rate"] = 0.005
+        print_info("PTB-XL ECG: 21,799 ECG da 52 siti (PTB Germania, origine europea)")
+        print_info("  Target: 5 superclassi diagnostiche (NORM, MI, STTC, CD, HYP)")
+        print_info("  Features: age, sex, height, weight + 5 indicatori diagnostici")
+        print_info("  Partizione per sito ospedaliero (non-IID naturale)")
+        print_info("  SCP-ECG (EN 1064) - standard europeo per diagnostica ECG")
+    elif selected_key == "synthea_fhir":
+        config["dataset_type"] = "synthea_fhir"
+        config["dataset_name"] = "synthea_fhir"
+        config["dataset_path"] = str(PROJECT_ROOT / "data" / "synthea_fhir" / "fhir")
+        config["learning_rate"] = 0.01
+        print_info("Synthea FHIR R4: 1,180 pazienti sintetici in FHIR bundle nativi")
+        print_info("  Target: condizione cardiovascolare (binario)")
+        print_info("  Features: demographics + conteggi risorse + 8 flag condizioni croniche")
+        print_info("  FHIR R4 NATIVO: Patient, Condition, Encounter, MedicationRequest, Procedure")
+    elif selected_key == "smart_fhir":
+        config["dataset_type"] = "smart_fhir"
+        config["dataset_name"] = "smart_bulk_fhir"
+        config["dataset_path"] = str(PROJECT_ROOT / "data" / "smart_bulk_fhir")
+        config["learning_rate"] = 0.01
+        config["num_clients"] = min(config.get("num_clients", 4), 4)
+        print_info("SMART Bulk FHIR: 120 pazienti in formato NDJSON FHIR R4 Bulk Data")
+        print_info("  Target: condizione cardiovascolare (binario)")
+        print_info("  Features: demographics + conteggi + 6 flag condizioni croniche")
+        print_info("  FHIR R4 NDJSON: formato standard EHDS Art. 46 per accesso secondario")
     elif selected_key == "omop":
         config["dataset_type"] = "omop"
         config["dataset_name"] = "omop_harmonized"
@@ -206,7 +378,10 @@ def apply_dataset_selection(config: Dict[str, Any], selected_key: str,
 
 def apply_dataset_parameters(config: Dict[str, Any]) -> None:
     """Suggest and apply dataset-specific parameters from config.yaml."""
-    if config["dataset_type"] not in ("imaging", "fhir", "omop", "diabetes", "heart_disease"):
+    if config["dataset_type"] not in ("imaging", "fhir", "omop", "diabetes", "heart_disease",
+                                         "stroke", "cdc_diabetes", "ckd", "cirrhosis",
+                                         "cardiovascular", "breast_cancer", "ptbxl",
+                                         "synthea_fhir", "smart_fhir"):
         return
     if not config.get("dataset_name"):
         return
@@ -471,6 +646,350 @@ def create_trainer(
             server_lr=server_lr, beta1=beta1, beta2=beta2, tau=tau,
             external_data=diab_train, external_test_data=diab_test,
             input_dim=diab_meta["num_features"],
+        )
+
+    elif dataset_type == "stroke":
+        from data.stroke_loader import load_stroke_data
+        if verbose:
+            print_info("Caricamento Stroke Prediction (5,110 pazienti)...")
+
+        st_train, st_test, st_meta = load_stroke_data(
+            num_clients=num_clients,
+            is_iid=is_iid,
+            alpha=0.5,
+            test_split=0.2,
+            seed=seed,
+            data_path=config.get("dataset_path"),
+        )
+        meta.update(st_meta)
+
+        if verbose:
+            print_info(f"Stroke: {st_meta['total_samples']} campioni, "
+                       f"{st_meta['num_features']} features, "
+                       f"label={st_meta['label_name']}")
+            for cid in range(num_clients):
+                train_n = len(st_train[cid][1])
+                test_n = len(st_test[cid][1])
+                pos_rate = st_train[cid][1].mean()
+                print(f"  Client {cid}: {train_n} train, {test_n} test, "
+                      f"stroke_rate={pos_rate:.1%}")
+
+        trainer = FederatedTrainer(
+            num_clients=num_clients, algorithm=algorithm,
+            local_epochs=local_epochs, batch_size=batch_size,
+            learning_rate=learning_rate, mu=mu,
+            dp_enabled=dp_enabled, dp_epsilon=dp_epsilon,
+            dp_clip_norm=dp_clip_norm, seed=seed,
+            progress_callback=progress_callback,
+            server_lr=server_lr, beta1=beta1, beta2=beta2, tau=tau,
+            external_data=st_train, external_test_data=st_test,
+            input_dim=st_meta["num_features"],
+        )
+
+    elif dataset_type == "cdc_diabetes":
+        from data.cdc_diabetes_loader import load_cdc_diabetes_data
+        if verbose:
+            print_info("Caricamento CDC Diabetes BRFSS 2015 (253K survey)...")
+
+        cdc_train, cdc_test, cdc_meta = load_cdc_diabetes_data(
+            num_clients=num_clients,
+            is_iid=is_iid,
+            alpha=0.5,
+            test_split=0.2,
+            seed=seed,
+            data_path=config.get("dataset_path"),
+        )
+        meta.update(cdc_meta)
+
+        if verbose:
+            print_info(f"CDC Diabetes: {cdc_meta['total_samples']} campioni, "
+                       f"{cdc_meta['num_features']} features, "
+                       f"label={cdc_meta['label_name']}")
+            for cid in range(num_clients):
+                train_n = len(cdc_train[cid][1])
+                test_n = len(cdc_test[cid][1])
+                pos_rate = cdc_train[cid][1].mean()
+                print(f"  Client {cid}: {train_n} train, {test_n} test, "
+                      f"diabetes_rate={pos_rate:.1%}")
+
+        trainer = FederatedTrainer(
+            num_clients=num_clients, algorithm=algorithm,
+            local_epochs=local_epochs, batch_size=batch_size,
+            learning_rate=learning_rate, mu=mu,
+            dp_enabled=dp_enabled, dp_epsilon=dp_epsilon,
+            dp_clip_norm=dp_clip_norm, seed=seed,
+            progress_callback=progress_callback,
+            server_lr=server_lr, beta1=beta1, beta2=beta2, tau=tau,
+            external_data=cdc_train, external_test_data=cdc_test,
+            input_dim=cdc_meta["num_features"],
+        )
+
+    elif dataset_type == "ckd":
+        from data.ckd_loader import load_ckd_data
+        if verbose:
+            print_info("Caricamento Chronic Kidney Disease UCI (400 pazienti)...")
+
+        ckd_train, ckd_test, ckd_meta = load_ckd_data(
+            num_clients=num_clients,
+            is_iid=is_iid,
+            alpha=0.5,
+            test_split=0.2,
+            seed=seed,
+            data_path=config.get("dataset_path"),
+        )
+        meta.update(ckd_meta)
+
+        if verbose:
+            print_info(f"CKD: {ckd_meta['total_samples']} campioni, "
+                       f"{ckd_meta['num_features']} features, "
+                       f"label={ckd_meta['label_name']}")
+            for cid in range(num_clients):
+                train_n = len(ckd_train[cid][1])
+                test_n = len(ckd_test[cid][1])
+                pos_rate = ckd_train[cid][1].mean()
+                print(f"  Client {cid}: {train_n} train, {test_n} test, "
+                      f"ckd_rate={pos_rate:.1%}")
+
+        trainer = FederatedTrainer(
+            num_clients=num_clients, algorithm=algorithm,
+            local_epochs=local_epochs, batch_size=batch_size,
+            learning_rate=learning_rate, mu=mu,
+            dp_enabled=dp_enabled, dp_epsilon=dp_epsilon,
+            dp_clip_norm=dp_clip_norm, seed=seed,
+            progress_callback=progress_callback,
+            server_lr=server_lr, beta1=beta1, beta2=beta2, tau=tau,
+            external_data=ckd_train, external_test_data=ckd_test,
+            input_dim=ckd_meta["num_features"],
+        )
+
+    elif dataset_type == "cirrhosis":
+        from data.cirrhosis_loader import load_cirrhosis_data
+        if verbose:
+            print_info("Caricamento Cirrhosis Mayo/UCI (418 pazienti)...")
+
+        cirr_train, cirr_test, cirr_meta = load_cirrhosis_data(
+            num_clients=num_clients,
+            is_iid=is_iid,
+            alpha=0.5,
+            label_type="binary",
+            test_split=0.2,
+            seed=seed,
+            data_path=config.get("dataset_path"),
+        )
+        meta.update(cirr_meta)
+
+        if verbose:
+            print_info(f"Cirrhosis: {cirr_meta['total_samples']} campioni, "
+                       f"{cirr_meta['num_features']} features, "
+                       f"label={cirr_meta['label_name']}")
+            for cid in range(num_clients):
+                train_n = len(cirr_train[cid][1])
+                test_n = len(cirr_test[cid][1])
+                pos_rate = cirr_train[cid][1].mean()
+                print(f"  Client {cid}: {train_n} train, {test_n} test, "
+                      f"mortality_rate={pos_rate:.1%}")
+
+        trainer = FederatedTrainer(
+            num_clients=num_clients, algorithm=algorithm,
+            local_epochs=local_epochs, batch_size=batch_size,
+            learning_rate=learning_rate, mu=mu,
+            dp_enabled=dp_enabled, dp_epsilon=dp_epsilon,
+            dp_clip_norm=dp_clip_norm, seed=seed,
+            progress_callback=progress_callback,
+            server_lr=server_lr, beta1=beta1, beta2=beta2, tau=tau,
+            external_data=cirr_train, external_test_data=cirr_test,
+            input_dim=cirr_meta["num_features"],
+        )
+
+    elif dataset_type == "cardiovascular":
+        from data.cardiovascular_loader import load_cardiovascular_data
+        if verbose:
+            print_info("Caricamento Cardiovascular Disease (70K pazienti)...")
+
+        cardio_train, cardio_test, cardio_meta = load_cardiovascular_data(
+            num_clients=num_clients,
+            is_iid=is_iid,
+            alpha=0.5,
+            test_split=0.2,
+            seed=seed,
+            data_path=config.get("dataset_path"),
+        )
+        meta.update(cardio_meta)
+
+        if verbose:
+            print_info(f"Cardiovascular: {cardio_meta['total_samples']} campioni, "
+                       f"{cardio_meta['num_features']} features, "
+                       f"label={cardio_meta['label_name']}")
+            for cid in range(num_clients):
+                train_n = len(cardio_train[cid][1])
+                test_n = len(cardio_test[cid][1])
+                pos_rate = cardio_train[cid][1].mean()
+                print(f"  Client {cid}: {train_n} train, {test_n} test, "
+                      f"cvd_rate={pos_rate:.1%}")
+
+        trainer = FederatedTrainer(
+            num_clients=num_clients, algorithm=algorithm,
+            local_epochs=local_epochs, batch_size=batch_size,
+            learning_rate=learning_rate, mu=mu,
+            dp_enabled=dp_enabled, dp_epsilon=dp_epsilon,
+            dp_clip_norm=dp_clip_norm, seed=seed,
+            progress_callback=progress_callback,
+            server_lr=server_lr, beta1=beta1, beta2=beta2, tau=tau,
+            external_data=cardio_train, external_test_data=cardio_test,
+            input_dim=cardio_meta["num_features"],
+        )
+
+    elif dataset_type == "breast_cancer":
+        from data.breast_cancer_loader import load_breast_cancer_data
+        if verbose:
+            print_info("Caricamento Breast Cancer Wisconsin (569 pazienti)...")
+
+        bc_train, bc_test, bc_meta = load_breast_cancer_data(
+            num_clients=num_clients,
+            is_iid=is_iid,
+            alpha=0.5,
+            test_split=0.2,
+            seed=seed,
+            data_path=config.get("dataset_path"),
+        )
+        meta.update(bc_meta)
+
+        if verbose:
+            print_info(f"Breast Cancer: {bc_meta['total_samples']} campioni, "
+                       f"{bc_meta['num_features']} features, "
+                       f"label={bc_meta['label_name']}")
+            for cid in range(num_clients):
+                train_n = len(bc_train[cid][1])
+                test_n = len(bc_test[cid][1])
+                pos_rate = bc_train[cid][1].mean()
+                print(f"  Client {cid}: {train_n} train, {test_n} test, "
+                      f"malignant_rate={pos_rate:.1%}")
+
+        trainer = FederatedTrainer(
+            num_clients=num_clients, algorithm=algorithm,
+            local_epochs=local_epochs, batch_size=batch_size,
+            learning_rate=learning_rate, mu=mu,
+            dp_enabled=dp_enabled, dp_epsilon=dp_epsilon,
+            dp_clip_norm=dp_clip_norm, seed=seed,
+            progress_callback=progress_callback,
+            server_lr=server_lr, beta1=beta1, beta2=beta2, tau=tau,
+            external_data=bc_train, external_test_data=bc_test,
+            input_dim=bc_meta["num_features"],
+        )
+
+    elif dataset_type == "ptbxl":
+        from data.ptbxl_loader import load_ptbxl_data
+        if verbose:
+            print_info("Caricamento PTB-XL ECG tabular (21.8K ECG, 52 siti EU)...")
+
+        ptb_train, ptb_test, ptb_meta = load_ptbxl_data(
+            num_clients=num_clients,
+            partition_by_site=not is_iid,
+            is_iid=is_iid,
+            alpha=0.5,
+            test_split=0.2,
+            seed=seed,
+            data_path=config.get("dataset_path"),
+        )
+        meta.update(ptb_meta)
+
+        if verbose:
+            print_info(f"PTB-XL: {ptb_meta['total_samples']} campioni, "
+                       f"{ptb_meta['num_features']} features, "
+                       f"{ptb_meta['num_classes']} classi")
+            site_assign = ptb_meta.get("site_assignment", {})
+            for cid in range(min(num_clients, len(ptb_train))):
+                train_n = len(ptb_train[cid][1])
+                test_n = len(ptb_test[cid][1])
+                site = site_assign.get(cid, "mixed")
+                print(f"  Client {cid} (site {site}): {train_n} train, {test_n} test")
+            print_info(f"European origin: PTB Berlin, SCP-ECG (EN 1064)")
+
+        trainer = FederatedTrainer(
+            num_clients=min(num_clients, len(ptb_train)), algorithm=algorithm,
+            local_epochs=local_epochs, batch_size=batch_size,
+            learning_rate=learning_rate, mu=mu,
+            dp_enabled=dp_enabled, dp_epsilon=dp_epsilon,
+            dp_clip_norm=dp_clip_norm, seed=seed,
+            progress_callback=progress_callback,
+            server_lr=server_lr, beta1=beta1, beta2=beta2, tau=tau,
+            external_data=ptb_train, external_test_data=ptb_test,
+            input_dim=ptb_meta["num_features"],
+            num_classes=ptb_meta["num_classes"],
+        )
+
+    elif dataset_type == "synthea_fhir":
+        from data.synthea_fhir_loader import load_synthea_fhir_data
+        if verbose:
+            print_info("Caricamento Synthea FHIR R4 (bundle FHIR nativi)...")
+
+        syn_train, syn_test, syn_meta = load_synthea_fhir_data(
+            num_clients=num_clients,
+            is_iid=is_iid,
+            alpha=0.5,
+            test_split=0.2,
+            seed=seed,
+            data_path=config.get("dataset_path"),
+        )
+        meta.update(syn_meta)
+
+        if verbose:
+            print_info(f"Synthea FHIR: {syn_meta['total_samples']} pazienti, "
+                       f"{syn_meta['num_features']} features, FHIR-native")
+            for cid in range(num_clients):
+                train_n = len(syn_train[cid][1])
+                test_n = len(syn_test[cid][1])
+                pos_rate = syn_train[cid][1].mean()
+                print(f"  Client {cid}: {train_n} train, {test_n} test, "
+                      f"cvd_rate={pos_rate:.1%}")
+
+        trainer = FederatedTrainer(
+            num_clients=num_clients, algorithm=algorithm,
+            local_epochs=local_epochs, batch_size=batch_size,
+            learning_rate=learning_rate, mu=mu,
+            dp_enabled=dp_enabled, dp_epsilon=dp_epsilon,
+            dp_clip_norm=dp_clip_norm, seed=seed,
+            progress_callback=progress_callback,
+            server_lr=server_lr, beta1=beta1, beta2=beta2, tau=tau,
+            external_data=syn_train, external_test_data=syn_test,
+            input_dim=syn_meta["num_features"],
+        )
+
+    elif dataset_type == "smart_fhir":
+        from data.smart_fhir_loader import load_smart_fhir_data
+        if verbose:
+            print_info("Caricamento SMART Bulk FHIR (NDJSON FHIR R4)...")
+
+        sm_train, sm_test, sm_meta = load_smart_fhir_data(
+            num_clients=num_clients,
+            is_iid=is_iid,
+            alpha=0.5,
+            test_split=0.2,
+            seed=seed,
+            data_path=config.get("dataset_path"),
+        )
+        meta.update(sm_meta)
+
+        if verbose:
+            print_info(f"SMART FHIR: {sm_meta['total_samples']} pazienti, "
+                       f"{sm_meta['num_features']} features, FHIR NDJSON Bulk Data")
+            for cid in range(num_clients):
+                train_n = len(sm_train[cid][1])
+                test_n = len(sm_test[cid][1])
+                pos_rate = sm_train[cid][1].mean()
+                print(f"  Client {cid}: {train_n} train, {test_n} test, "
+                      f"cvd_rate={pos_rate:.1%}")
+
+        trainer = FederatedTrainer(
+            num_clients=num_clients, algorithm=algorithm,
+            local_epochs=local_epochs, batch_size=batch_size,
+            learning_rate=learning_rate, mu=mu,
+            dp_enabled=dp_enabled, dp_epsilon=dp_epsilon,
+            dp_clip_norm=dp_clip_norm, seed=seed,
+            progress_callback=progress_callback,
+            server_lr=server_lr, beta1=beta1, beta2=beta2, tau=tau,
+            external_data=sm_train, external_test_data=sm_test,
+            input_dim=sm_meta["num_features"],
         )
 
     elif dataset_type == "fhir":

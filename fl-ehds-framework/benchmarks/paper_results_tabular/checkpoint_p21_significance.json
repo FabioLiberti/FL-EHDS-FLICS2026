@@ -1,0 +1,76 @@
+{
+  "Brain_Tumor": {},
+  "chest_xray": {},
+  "Skin_Cancer": {},
+  "Diabetes": {},
+  "Heart_Disease": {},
+  "PTB_XL": {},
+  "Cardiovascular": {
+    "FedLC": {
+      "accuracy_p": 0.5214,
+      "accuracy_sig": "False",
+      "f1_p": 0.999,
+      "f1_sig": "False",
+      "auc_p": 0.2959,
+      "auc_sig": "False"
+    },
+    "FedSAM": {
+      "accuracy_p": 0.4322,
+      "accuracy_sig": "False",
+      "f1_p": 0.2891,
+      "f1_sig": "False",
+      "auc_p": 0.8699,
+      "auc_sig": "False"
+    },
+    "FedDecorr": {
+      "accuracy_p": NaN,
+      "accuracy_sig": "False",
+      "f1_p": NaN,
+      "f1_sig": "False",
+      "auc_p": NaN,
+      "auc_sig": "False"
+    },
+    "FedExP": {
+      "accuracy_p": NaN,
+      "accuracy_sig": "False",
+      "f1_p": NaN,
+      "f1_sig": "False",
+      "auc_p": NaN,
+      "auc_sig": "False"
+    }
+  },
+  "Breast_Cancer": {
+    "FedLC": {
+      "accuracy_p": NaN,
+      "accuracy_sig": "False",
+      "f1_p": NaN,
+      "f1_sig": "False",
+      "auc_p": 0.3536,
+      "auc_sig": "False"
+    },
+    "FedSAM": {
+      "accuracy_p": 0.4226,
+      "accuracy_sig": "False",
+      "f1_p": 0.4226,
+      "f1_sig": "False",
+      "auc_p": 0.4972,
+      "auc_sig": "False"
+    },
+    "FedDecorr": {
+      "accuracy_p": NaN,
+      "accuracy_sig": "False",
+      "f1_p": NaN,
+      "f1_sig": "False",
+      "auc_p": NaN,
+      "auc_sig": "False"
+    },
+    "FedExP": {
+      "accuracy_p": NaN,
+      "accuracy_sig": "False",
+      "f1_p": NaN,
+      "f1_sig": "False",
+      "auc_p": NaN,
+      "auc_sig": "False"
+    }
+  }
+}

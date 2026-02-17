@@ -3,7 +3,7 @@
 FL-EHDS Paper Experiments for FLICS 2026.
 
 Produces all experimental results for the paper:
-  P1.2 - Multi-dataset FL comparison (5 algos x 5 datasets x 3 seeds)
+  P1.2 - Multi-dataset FL comparison (5 algos x 8 datasets x 3 seeds)
   P1.3 - Ablation study on chest_xray
   P1.4 - Non-IID severity study (alpha sweep: 0.1, 0.5, 1.0, 5.0)
   P2.1 - Statistical significance via paired t-tests
@@ -53,6 +53,9 @@ from terminal.fl_trainer import (
 )
 from data.diabetes_loader import load_diabetes_data
 from data.heart_disease_loader import load_heart_disease_data
+from data.ptbxl_loader import load_ptbxl_data
+from data.cardiovascular_loader import load_cardiovascular_data
+from data.breast_cancer_loader import load_breast_cancer_data
 
 # ======================================================================
 # Configuration
@@ -82,6 +85,9 @@ IMAGING_DATASETS = {
 TABULAR_DATASETS = {
     "Diabetes": {"num_features": 22, "short": "DM"},
     "Heart_Disease": {"num_features": 13, "short": "HD"},
+    "PTB_XL": {"num_features": 9, "num_classes": 5, "short": "PX"},
+    "Cardiovascular": {"num_features": 11, "short": "CV"},
+    "Breast_Cancer": {"num_features": 30, "short": "BC"},
 }
 
 ALGORITHMS = ["FedAvg", "FedLC", "FedSAM", "FedDecorr", "FedExP"]
@@ -441,6 +447,7 @@ def run_single_tabular(
     batch_size: int = 32, learning_rate: float = 0.01,
     mu: float = 0.1,
     dp_enabled: bool = False, dp_epsilon: float = 10.0, dp_clip_norm: float = 1.0,
+    num_classes: Optional[int] = None,
 ) -> Dict[str, Any]:
     """Run a single tabular FL experiment."""
     start = time.time()
@@ -459,6 +466,7 @@ def run_single_tabular(
         external_data=client_train,
         external_test_data=client_test,
         input_dim=input_dim,
+        num_classes=num_classes,
     )
 
     history = []
@@ -525,7 +533,7 @@ def run_p12_multi_dataset(resume: bool = False,
                           filter_algo: Optional[str] = None,
                           use_amp: bool = True,
                           use_early_stopping: bool = True) -> Dict[str, Any]:
-    """5 algorithms x 5 datasets x 3 seeds = 75 experiments."""
+    """5 algorithms x 8 datasets x 3 seeds = 120 experiments."""
     block = "p12_multidataset"
     # Always load existing checkpoint to merge results incrementally
     results = load_checkpoint(block)
@@ -639,6 +647,37 @@ def run_p12_multi_dataset(resume: bool = False,
                             local_epochs=TABULAR_CONFIG["local_epochs"],
                             batch_size=TABULAR_CONFIG["batch_size"],
                             learning_rate=TABULAR_CONFIG["learning_rate"],
+                        )
+                    elif ds_name == "PTB_XL":
+                        train_d, test_d, meta = load_ptbxl_data(
+                            num_clients=5, partition_by_site=True, seed=seed,
+                        )
+                        record = run_single_tabular(
+                            dataset_name=ds_name,
+                            client_train=train_d, client_test=test_d,
+                            input_dim=9, algorithm=algo, seed=seed,
+                            num_classes=5,
+                            **TABULAR_CONFIG,
+                        )
+                    elif ds_name == "Cardiovascular":
+                        train_d, test_d, meta = load_cardiovascular_data(
+                            num_clients=5, is_iid=False, alpha=0.5, seed=seed,
+                        )
+                        record = run_single_tabular(
+                            dataset_name=ds_name,
+                            client_train=train_d, client_test=test_d,
+                            input_dim=11, algorithm=algo, seed=seed,
+                            **TABULAR_CONFIG,
+                        )
+                    elif ds_name == "Breast_Cancer":
+                        train_d, test_d, meta = load_breast_cancer_data(
+                            num_clients=4, is_iid=False, alpha=0.5, seed=seed,
+                        )
+                        record = run_single_tabular(
+                            dataset_name=ds_name,
+                            client_train=train_d, client_test=test_d,
+                            input_dim=30, algorithm=algo, seed=seed,
+                            **TABULAR_CONFIG,
                         )
                     else:
                         continue
@@ -1187,7 +1226,8 @@ def generate_multi_dataset_table(p12: Dict, sig: Dict) -> str:
     lines.append(r"\vspace{1mm}")
     lines.append(r"\footnotesize{Non-IID, ResNet18 (imaging) / MLP (tabular), 3 seeds. "
                  r"$^{*}p<0.05$, $^{**}p<0.01$ vs FedAvg (paired t-test). "
-                 r"BT=Brain Tumor, CX=Chest X-ray, SC=Skin Cancer, DM=Diabetes, HD=Heart Disease.}")
+                 r"BT=Brain Tumor, CX=Chest X-ray, SC=Skin Cancer, DM=Diabetes, HD=Heart Disease, "
+                 r"PX=PTB-XL ECG, CV=Cardiovascular, BC=Breast Cancer.}")
     lines.append(r"\end{table*}")
 
     return "\n".join(lines)

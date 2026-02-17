@@ -418,6 +418,65 @@ This section presents detailed experimental results from the FL-EHDS benchmark s
 \end{figure}
 
 % ============================================================================
+\section{Dataset Landscape}
+\label{sec:dataset_landscape}
+% ============================================================================
+
+The FL-EHDS framework supports 19 healthcare datasets spanning four modalities. Table~\ref{tab:dataset_landscape} provides a comprehensive overview. This diversity enables evaluation across multiple EHDS-relevant dimensions: data scale (120--253K samples), feature dimensionality (9--30 tabular, high-dimensional imaging), task complexity (binary to 5-class), partition strategies (natural hospital-based and synthetic Dirichlet), and interoperability standards (CSV, FHIR R4, OMOP-CDM). Experimentally evaluated datasets in the main paper are marked with~\checkmark.
+
+\begin{table*}[htbp]
+\centering
+\caption{FL-EHDS Dataset Landscape: Complete Framework Coverage}
+\label{tab:dataset_landscape}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llrrclllc}
+\toprule
+\textbf{Dataset} & \textbf{Type} & \textbf{Samples} & \textbf{Feat.} & \textbf{Classes} & \textbf{FL Partition} & \textbf{EHDS Category (Art.~33)} & \textbf{EHDS Level} & \textbf{Eval.} \\
+\midrule
+\multicolumn{9}{l}{\textit{A. Tabular --- Clinical EHR}} \\
+\midrule
+Diabetes 130-US & Tabular & 101,766 & 22 & 2 & Dirichlet ($\alpha{=}0.5$) & EHR, ICD-9, medications & L2: FHIR-mappable & \checkmark \\
+Heart Disease UCI & Tabular & 920 & 13 & 2 & Natural (4 hospitals) & Vitals, ECG, lab results & L2: FHIR-mappable & \checkmark \\
+PTB-XL ECG$^\dagger$ & Tabular & 21,799 & 9 & 5 & Natural (52 EU sites) & SCP-ECG (EN 1064), diagnostics & L2: FHIR-mappable & \checkmark \\
+Cardiovascular Disease & Tabular & 70,000 & 11 & 2 & Dirichlet ($\alpha{=}0.5$) & Vitals, lab, risk factors & L2: FHIR-mappable & \checkmark \\
+Breast Cancer Wisconsin & Tabular & 569 & 30 & 2 & Dirichlet ($\alpha{=}0.5$) & Pathology (FNA cytology) & L2: FHIR-mappable & \checkmark \\
+Stroke Prediction & Tabular & 5,110 & 10 & 2 & Dirichlet & Cardiovascular risk factors & L2: FHIR-mappable & --- \\
+CDC Diabetes BRFSS & Tabular & 253,680 & 21 & 2 & Dirichlet & Population health survey & L2: FHIR-mappable & --- \\
+CKD UCI & Tabular & 400 & 24 & 2 & Dirichlet & Renal panel, comorbidities & L2: FHIR-mappable & --- \\
+Cirrhosis Mayo & Tabular & 418 & 18 & 2 & Dirichlet & Hepatology, drug trial & L2: FHIR-mappable & --- \\
+\midrule
+\multicolumn{9}{l}{\textit{B. Tabular --- FHIR-Native}} \\
+\midrule
+Synthea FHIR R4 & FHIR & 1,180 & 14 & 2 & Hospital profile & Patient, Condition, Encounter & L1: FHIR-native & qual. \\
+SMART Bulk FHIR & FHIR & 120 & 12 & 2 & Single export & NDJSON Bulk Data (Art.~46) & L1: FHIR-native & qual. \\
+\midrule
+\multicolumn{9}{l}{\textit{C. Generated Pipelines (in-memory)}} \\
+\midrule
+FHIR R4 Synthetic & Gen. & config. & 10 & 2 & Hospital profile & Generated FHIR bundles & L1: FHIR-native & qual. \\
+OMOP-CDM Harmonized & Gen. & config. & $\sim$36 & 2 & Cross-border & Vocabulary harmonization & L3: OMOP & qual. \\
+\midrule
+\multicolumn{9}{l}{\textit{D. Medical Imaging}} \\
+\midrule
+Chest X-ray & Imaging & 5,856 & --- & 2 & Dirichlet ($\alpha{=}0.5$) & Radiology (DICOM) & L4: Imaging & \checkmark \\
+Brain Tumor MRI & Imaging & 3,064 & --- & 4 & Dirichlet ($\alpha{=}0.5$) & Neuro-imaging (DICOM) & L4: Imaging & \checkmark \\
+Skin Cancer & Imaging & 3,297 & --- & 2 & Dirichlet ($\alpha{=}0.5$) & Dermatology (DICOM) & L4: Imaging & \checkmark \\
+Diabetic Retinopathy & Imaging & 35,126 & --- & 5 & Dirichlet & Ophthalmology (DICOM) & L4: Imaging & --- \\
+Brain Tumor MRI (alt.) & Imaging & 3,264 & --- & 4 & Dirichlet & Neuro-imaging (DICOM) & L4: Imaging & --- \\
+ISIC Skin Lesions & Imaging & 2,357 & --- & 9 & Dirichlet & Dermatology (DICOM) & L4: Imaging & --- \\
+\bottomrule
+\end{tabular}%
+}
+
+\vspace{2mm}
+\footnotesize{%
+\textbf{EHDS Levels}: L1 = FHIR-native (Art.~46 compliant); L2 = FHIR-mappable (standard clinical features with FHIR mapping in metadata); L3 = OMOP-CDM harmonized (cross-border vocabulary alignment, Art.~50); L4 = Medical imaging (DICOM, Art.~33 ``medical images''). \\
+$^\dagger$PTB-XL: European-origin dataset (PTB, Berlin, Germany) with SCP-ECG coding (EN 1064). 52 recording sites enable natural hospital-based FL partitioning---the strongest EHDS benchmark in the framework. \\
+\textbf{Eval.}: \checkmark = quantitative experimental evaluation (P1.2); qual. = qualitative pipeline validation; --- = supported but not evaluated in current paper. \\
+\textbf{config.} = configurable sample count.
+}
+\end{table*}
+
+% ============================================================================
 \section{Extended Algorithm Comparison}
 \label{sec:algo_comparison}
 % ============================================================================
