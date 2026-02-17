@@ -1,0 +1,793 @@
+(flics2026) fxlybs@MacBook-Pro-di-FxLybs fl-ehds-framework % ./run_experiments.sh --only p12
+
+==============================================
+  FL-EHDS Paper Experiments
+  Started: 2026-02-16 19:54:11
+  Log:     benchmarks/paper_results/logs/experiment_20260216_195411.log
+  Args:    --resume --only p12
+==============================================
+======================================================================
+  FL-EHDS Paper Experiments for FLICS 2026
+======================================================================
+  Started:  2026-02-16 19:54
+  Device:   mps
+  Seeds:    [42, 123, 456]
+  Output:   /Users/fxlybs/Library/CloudStorage/OneDrive-CEI-OPBambinoGesù/__Univ Merc_PHD_2223__/_PHD_BD&AI_38_/___AA.2026__estensione/PAPER_Devs/FL-EHDS-FLICS2026/fl-ehds-framework/benchmarks/paper_results
+  Resume:   True
+  AMP:      True
+  EarlyStop:True
+  Overrides: ['Brain_Tumor']
+======================================================================
+
+>>> P1.2: Multi-Dataset FL Comparison
+  Total experiments: 75, already completed (all): 34
+  [5/75] Brain_Tumor / FedLC / seed=123 Loading dataset from: /Users/fxlybs/Library/CloudStorage/OneDrive-CEI-OPBambinoGesù/__Univ Merc_PHD_2223__/_PHD_BD&AI_38_/___AA.2026__estensione/PAPER_Devs/FL-EHDS-FLICS2026/fl-ehds-framework/data/Brain_Tumor
+Found 4 classes: ['glioma', 'healthy', 'meningioma', 'pituitary']
+  Class 0 (glioma): 1621 images
+  Class 1 (healthy): 2000 images
+  Class 2 (meningioma): 1645 images
+  Class 3 (pituitary): 1757 images
+Total: 7023 images loaded
+
+Client data distribution (train / test):
+  Client 0: 621 train / 155 test, train dist: {0: 262, 1: 20, 2: 194, 3: 145}
+  Client 1: 1666 train / 416 test, train dist: {0: 460, 2: 1, 3: 1205}
+  Client 2: 1064 train / 265 test, train dist: {0: 97, 1: 98, 2: 867, 3: 2}
+  Client 3: 488 train / 122 test, train dist: {0: 35, 1: 233, 2: 220}
+  Client 4: 1781 train / 445 test, train dist: {0: 450, 1: 1236, 2: 48, 3: 47}
+
+Model: HealthcareResNet (ResNet18) (4 classes)
+Device: mps
+Parameters: 11,178,564 (10,495,492 trainable)
+[early stop @R6, best=0.440 @R2] -> acc=0.378 jain=0.645 (445s ES@R6)                               
+  [6/75] Brain_Tumor / FedLC / seed=456 Loading dataset from: /Users/fxlybs/Library/CloudStorage/OneDrive-CEI-OPBambinoGesù/__Univ Merc_PHD_2223__/_PHD_BD&AI_38_/___AA.2026__estensione/PAPER_Devs/FL-EHDS-FLICS2026/fl-ehds-framework/data/Brain_Tumor
+Found 4 classes: ['glioma', 'healthy', 'meningioma', 'pituitary']
+  Class 0 (glioma): 1621 images
+  Class 1 (healthy): 2000 images
+  Class 2 (meningioma): 1645 images
+  Class 3 (pituitary): 1757 images
+Total: 7023 images loaded
+
+Client data distribution (train / test):
+  Client 0: 312 train / 77 test, train dist: {0: 58, 1: 60, 2: 21, 3: 173}
+  Client 1: 924 train / 231 test, train dist: {0: 208, 1: 146, 2: 539, 3: 31}
+  Client 2: 1485 train / 371 test, train dist: {0: 960, 1: 396, 3: 129}
+  Client 3: 1501 train / 375 test, train dist: {0: 17, 1: 382, 2: 60, 3: 1042}
+  Client 4: 1398 train / 349 test, train dist: {0: 57, 1: 631, 2: 679, 3: 31}
+
+Model: HealthcareResNet (ResNet18) (4 classes)
+Device: mps
+Parameters: 11,178,564 (10,495,492 trainable)
+-> acc=0.475 jain=0.795 (903s)                                                                      
+  [7/75] Brain_Tumor / FedSAM / seed=42 Loading dataset from: /Users/fxlybs/Library/CloudStorage/OneDrive-CEI-OPBambinoGesù/__Univ Merc_PHD_2223__/_PHD_BD&AI_38_/___AA.2026__estensione/PAPER_Devs/FL-EHDS-FLICS2026/fl-ehds-framework/data/Brain_Tumor
+Found 4 classes: ['glioma', 'healthy', 'meningioma', 'pituitary']
+  Class 0 (glioma): 1621 images
+  Class 1 (healthy): 2000 images
+  Class 2 (meningioma): 1645 images
+  Class 3 (pituitary): 1757 images
+Total: 7023 images loaded
+
+Client data distribution (train / test):
+  Client 0: 1837 train / 459 test, train dist: {0: 715, 1: 144, 2: 880, 3: 98}
+  Client 1: 447 train / 111 test, train dist: {0: 34, 1: 146, 2: 49, 3: 218}
+  Client 2: 749 train / 187 test, train dist: {0: 498, 1: 107, 2: 101, 3: 43}
+  Client 3: 607 train / 151 test, train dist: {0: 41, 1: 297, 2: 159, 3: 110}
+  Client 4: 1980 train / 495 test, train dist: {0: 3, 1: 934, 2: 121, 3: 922}
+
+Model: HealthcareResNet (ResNet18) (4 classes)
+Device: mps
+Parameters: 11,178,564 (10,495,492 trainable)
+-> acc=0.521 jain=0.912 (1260s)                                                                     
+  [8/75] Brain_Tumor / FedSAM / seed=123 Loading dataset from: /Users/fxlybs/Library/CloudStorage/OneDrive-CEI-OPBambinoGesù/__Univ Merc_PHD_2223__/_PHD_BD&AI_38_/___AA.2026__estensione/PAPER_Devs/FL-EHDS-FLICS2026/fl-ehds-framework/data/Brain_Tumor
+Found 4 classes: ['glioma', 'healthy', 'meningioma', 'pituitary']
+  Class 0 (glioma): 1621 images
+  Class 1 (healthy): 2000 images
+  Class 2 (meningioma): 1645 images
+  Class 3 (pituitary): 1757 images
+Total: 7023 images loaded
+
+Client data distribution (train / test):
+  Client 0: 621 train / 155 test, train dist: {0: 262, 1: 20, 2: 194, 3: 145}
+  Client 1: 1666 train / 416 test, train dist: {0: 460, 2: 1, 3: 1205}
+  Client 2: 1064 train / 265 test, train dist: {0: 97, 1: 98, 2: 867, 3: 2}
+  Client 3: 488 train / 122 test, train dist: {0: 35, 1: 233, 2: 220}
+  Client 4: 1781 train / 445 test, train dist: {0: 450, 1: 1236, 2: 48, 3: 47}
+
+Model: HealthcareResNet (ResNet18) (4 classes)
+Device: mps
+Parameters: 11,178,564 (10,495,492 trainable)
+[early stop @R12, best=0.503 @R8] -> acc=0.506 jain=0.777 (1270s ES@R12)                            
+  [9/75] Brain_Tumor / FedSAM / seed=456 Loading dataset from: /Users/fxlybs/Library/CloudStorage/OneDrive-CEI-OPBambinoGesù/__Univ Merc_PHD_2223__/_PHD_BD&AI_38_/___AA.2026__estensione/PAPER_Devs/FL-EHDS-FLICS2026/fl-ehds-framework/data/Brain_Tumor
+Found 4 classes: ['glioma', 'healthy', 'meningioma', 'pituitary']
+  Class 0 (glioma): 1621 images
+  Class 1 (healthy): 2000 images
+  Class 2 (meningioma): 1645 images
+  Class 3 (pituitary): 1757 images
+Total: 7023 images loaded
+
+Client data distribution (train / test):
+  Client 0: 312 train / 77 test, train dist: {0: 58, 1: 60, 2: 21, 3: 173}
+  Client 1: 924 train / 231 test, train dist: {0: 208, 1: 146, 2: 539, 3: 31}
+  Client 2: 1485 train / 371 test, train dist: {0: 960, 1: 396, 3: 129}
+  Client 3: 1501 train / 375 test, train dist: {0: 17, 1: 382, 2: 60, 3: 1042}
+  Client 4: 1398 train / 349 test, train dist: {0: 57, 1: 631, 2: 679, 3: 31}
+
+Model: HealthcareResNet (ResNet18) (4 classes)
+Device: mps
+Parameters: 11,178,564 (10,495,492 trainable)
+-> acc=0.482 jain=0.912 (1267s)                                                                     
+  [10/75] Brain_Tumor / FedDecorr / seed=42 Loading dataset from: /Users/fxlybs/Library/CloudStorage/OneDrive-CEI-OPBambinoGesù/__Univ Merc_PHD_2223__/_PHD_BD&AI_38_/___AA.2026__estensione/PAPER_Devs/FL-EHDS-FLICS2026/fl-ehds-framework/data/Brain_Tumor
+Found 4 classes: ['glioma', 'healthy', 'meningioma', 'pituitary']
+  Class 0 (glioma): 1621 images
+  Class 1 (healthy): 2000 images
+  Class 2 (meningioma): 1645 images
+  Class 3 (pituitary): 1757 images
+Total: 7023 images loaded
+
+Client data distribution (train / test):
+  Client 0: 1837 train / 459 test, train dist: {0: 715, 1: 144, 2: 880, 3: 98}
+  Client 1: 447 train / 111 test, train dist: {0: 34, 1: 146, 2: 49, 3: 218}
+  Client 2: 749 train / 187 test, train dist: {0: 498, 1: 107, 2: 101, 3: 43}
+  Client 3: 607 train / 151 test, train dist: {0: 41, 1: 297, 2: 159, 3: 110}
+  Client 4: 1980 train / 495 test, train dist: {0: 3, 1: 934, 2: 121, 3: 922}
+
+Model: HealthcareResNet (ResNet18) (4 classes)
+Device: mps
+Parameters: 11,178,564 (10,495,492 trainable)
+-> acc=0.473 jain=0.916 (1291s)                                                                     
+  [11/75] Brain_Tumor / FedDecorr / seed=123 Loading dataset from: /Users/fxlybs/Library/CloudStorage/OneDrive-CEI-OPBambinoGesù/__Univ Merc_PHD_2223__/_PHD_BD&AI_38_/___AA.2026__estensione/PAPER_Devs/FL-EHDS-FLICS2026/fl-ehds-framework/data/Brain_Tumor
+Found 4 classes: ['glioma', 'healthy', 'meningioma', 'pituitary']
+  Class 0 (glioma): 1621 images
+  Class 1 (healthy): 2000 images
+  Class 2 (meningioma): 1645 images
+  Class 3 (pituitary): 1757 images
+Total: 7023 images loaded
+
+Client data distribution (train / test):
+  Client 0: 621 train / 155 test, train dist: {0: 262, 1: 20, 2: 194, 3: 145}
+  Client 1: 1666 train / 416 test, train dist: {0: 460, 2: 1, 3: 1205}
+  Client 2: 1064 train / 265 test, train dist: {0: 97, 1: 98, 2: 867, 3: 2}
+  Client 3: 488 train / 122 test, train dist: {0: 35, 1: 233, 2: 220}
+  Client 4: 1781 train / 445 test, train dist: {0: 450, 1: 1236, 2: 48, 3: 47}
+
+Model: HealthcareResNet (ResNet18) (4 classes)
+Device: mps
+Parameters: 11,178,564 (10,495,492 trainable)
+[early stop @R8, best=0.500 @R4] -> acc=0.496 jain=0.758 (868s ES@R8)                               
+  [12/75] Brain_Tumor / FedDecorr / seed=456 Loading dataset from: /Users/fxlybs/Library/CloudStorage/OneDrive-CEI-OPBambinoGesù/__Univ Merc_PHD_2223__/_PHD_BD&AI_38_/___AA.2026__estensione/PAPER_Devs/FL-EHDS-FLICS2026/fl-ehds-framework/data/Brain_Tumor
+Found 4 classes: ['glioma', 'healthy', 'meningioma', 'pituitary']
+  Class 0 (glioma): 1621 images
+  Class 1 (healthy): 2000 images
+  Class 2 (meningioma): 1645 images
+  Class 3 (pituitary): 1757 images
+Total: 7023 images loaded
+
+Client data distribution (train / test):
+  Client 0: 312 train / 77 test, train dist: {0: 58, 1: 60, 2: 21, 3: 173}
+  Client 1: 924 train / 231 test, train dist: {0: 208, 1: 146, 2: 539, 3: 31}
+  Client 2: 1485 train / 371 test, train dist: {0: 960, 1: 396, 3: 129}
+  Client 3: 1501 train / 375 test, train dist: {0: 17, 1: 382, 2: 60, 3: 1042}
+  Client 4: 1398 train / 349 test, train dist: {0: 57, 1: 631, 2: 679, 3: 31}
+
+Model: HealthcareResNet (ResNet18) (4 classes)
+Device: mps
+Parameters: 11,178,564 (10,495,492 trainable)
+-> acc=0.444 jain=0.830 (1282s)                                                                     
+  [13/75] Brain_Tumor / FedExP / seed=42 Loading dataset from: /Users/fxlybs/Library/CloudStorage/OneDrive-CEI-OPBambinoGesù/__Univ Merc_PHD_2223__/_PHD_BD&AI_38_/___AA.2026__estensione/PAPER_Devs/FL-EHDS-FLICS2026/fl-ehds-framework/data/Brain_Tumor
+Found 4 classes: ['glioma', 'healthy', 'meningioma', 'pituitary']
+  Class 0 (glioma): 1621 images
+  Class 1 (healthy): 2000 images
+  Class 2 (meningioma): 1645 images
+  Class 3 (pituitary): 1757 images
+Total: 7023 images loaded
+
+Client data distribution (train / test):
+  Client 0: 1837 train / 459 test, train dist: {0: 715, 1: 144, 2: 880, 3: 98}
+  Client 1: 447 train / 111 test, train dist: {0: 34, 1: 146, 2: 49, 3: 218}
+  Client 2: 749 train / 187 test, train dist: {0: 498, 1: 107, 2: 101, 3: 43}
+  Client 3: 607 train / 151 test, train dist: {0: 41, 1: 297, 2: 159, 3: 110}
+  Client 4: 1980 train / 495 test, train dist: {0: 3, 1: 934, 2: 121, 3: 922}
+
+Model: HealthcareResNet (ResNet18) (4 classes)
+Device: mps
+Parameters: 11,178,564 (10,495,492 trainable)
+-> acc=0.463 jain=0.909 (911s)                                                                      
+  [14/75] Brain_Tumor / FedExP / seed=123 Loading dataset from: /Users/fxlybs/Library/CloudStorage/OneDrive-CEI-OPBambinoGesù/__Univ Merc_PHD_2223__/_PHD_BD&AI_38_/___AA.2026__estensione/PAPER_Devs/FL-EHDS-FLICS2026/fl-ehds-framework/data/Brain_Tumor
+Found 4 classes: ['glioma', 'healthy', 'meningioma', 'pituitary']
+  Class 0 (glioma): 1621 images
+  Class 1 (healthy): 2000 images
+  Class 2 (meningioma): 1645 images
+  Class 3 (pituitary): 1757 images
+Total: 7023 images loaded
+
+Client data distribution (train / test):
+  Client 0: 621 train / 155 test, train dist: {0: 262, 1: 20, 2: 194, 3: 145}
+  Client 1: 1666 train / 416 test, train dist: {0: 460, 2: 1, 3: 1205}
+  Client 2: 1064 train / 265 test, train dist: {0: 97, 1: 98, 2: 867, 3: 2}
+  Client 3: 488 train / 122 test, train dist: {0: 35, 1: 233, 2: 220}
+  Client 4: 1781 train / 445 test, train dist: {0: 450, 1: 1236, 2: 48, 3: 47}
+
+Model: HealthcareResNet (ResNet18) (4 classes)
+Device: mps
+Parameters: 11,178,564 (10,495,492 trainable)
+[early stop @R8, best=0.501 @R4] -> acc=0.480 jain=0.718 (594s ES@R8)                               
+  [15/75] Brain_Tumor / FedExP / seed=456 Loading dataset from: /Users/fxlybs/Library/CloudStorage/OneDrive-CEI-OPBambinoGesù/__Univ Merc_PHD_2223__/_PHD_BD&AI_38_/___AA.2026__estensione/PAPER_Devs/FL-EHDS-FLICS2026/fl-ehds-framework/data/Brain_Tumor
+Found 4 classes: ['glioma', 'healthy', 'meningioma', 'pituitary']
+  Class 0 (glioma): 1621 images
+  Class 1 (healthy): 2000 images
+  Class 2 (meningioma): 1645 images
+  Class 3 (pituitary): 1757 images
+Total: 7023 images loaded
+
+Client data distribution (train / test):
+  Client 0: 312 train / 77 test, train dist: {0: 58, 1: 60, 2: 21, 3: 173}
+  Client 1: 924 train / 231 test, train dist: {0: 208, 1: 146, 2: 539, 3: 31}
+  Client 2: 1485 train / 371 test, train dist: {0: 960, 1: 396, 3: 129}
+  Client 3: 1501 train / 375 test, train dist: {0: 17, 1: 382, 2: 60, 3: 1042}
+  Client 4: 1398 train / 349 test, train dist: {0: 57, 1: 631, 2: 679, 3: 31}
+
+Model: HealthcareResNet (ResNet18) (4 classes)
+Device: mps
+Parameters: 11,178,564 (10,495,492 trainable)
+-> acc=0.445 jain=0.834 (894s)                                                                      
+  [16/75] chest_xray / FedAvg / seed=42 Loading dataset from: /Users/fxlybs/Library/CloudStorage/OneDrive-CEI-OPBambinoGesù/__Univ Merc_PHD_2223__/_PHD_BD&AI_38_/___AA.2026__estensione/PAPER_Devs/FL-EHDS-FLICS2026/fl-ehds-framework/data/chest_xray
+Found 2 classes: ['NORMAL', 'PNEUMONIA']
+  Class 0 (NORMAL): 1583 images
+  Class 1 (PNEUMONIA): 4273 images
+Total: 5856 images loaded
+
+Client data distribution (train / test):
+  Client 0: 988 train / 246 test, train dist: {0: 412, 1: 576}
+  Client 1: 138 train / 34 test, train dist: {0: 35, 1: 103}
+  Client 2: 2653 train / 663 test, train dist: {0: 365, 1: 2288}
+  Client 3: 494 train / 123 test, train dist: {0: 155, 1: 339}
+  Client 4: 414 train / 103 test, train dist: {0: 311, 1: 103}
+Class weights: {'NORMAL': '1.45', 'PNEUMONIA': '0.55'}
+
+Model: HealthcareResNet (ResNet18) (2 classes)
+Device: mps
+Parameters: 11,177,538 (10,494,466 trainable)
+[early stop @R9, best=0.847 @R5] -> acc=0.737 jain=0.992 (662s ES@R9)                               
+  [17/75] chest_xray / FedAvg / seed=123 Loading dataset from: /Users/fxlybs/Library/CloudStorage/OneDrive-CEI-OPBambinoGesù/__Univ Merc_PHD_2223__/_PHD_BD&AI_38_/___AA.2026__estensione/PAPER_Devs/FL-EHDS-FLICS2026/fl-ehds-framework/data/chest_xray
+Found 2 classes: ['NORMAL', 'PNEUMONIA']
+  Class 0 (NORMAL): 1583 images
+  Class 1 (PNEUMONIA): 4273 images
+Total: 5856 images loaded
+
+Client data distribution (train / test):
+  Client 0: 189 train / 47 test, train dist: {1: 189}
+  Client 1: 2795 train / 698 test, train dist: {0: 535, 1: 2260}
+  Client 2: 404 train / 100 test, train dist: {0: 265, 1: 139}
+  Client 3: 376 train / 94 test, train dist: {0: 209, 1: 167}
+  Client 4: 923 train / 230 test, train dist: {0: 263, 1: 660}
+Class weights: {'NORMAL': '1.46', 'PNEUMONIA': '0.54'}
+
+Model: HealthcareResNet (ResNet18) (2 classes)
+Device: mps
+Parameters: 11,177,538 (10,494,466 trainable)
+-> acc=0.858 jain=0.998 (856s)                                                                      
+  [18/75] chest_xray / FedAvg / seed=456 Loading dataset from: /Users/fxlybs/Library/CloudStorage/OneDrive-CEI-OPBambinoGesù/__Univ Merc_PHD_2223__/_PHD_BD&AI_38_/___AA.2026__estensione/PAPER_Devs/FL-EHDS-FLICS2026/fl-ehds-framework/data/chest_xray
+Found 2 classes: ['NORMAL', 'PNEUMONIA']
+  Class 0 (NORMAL): 1583 images
+  Class 1 (PNEUMONIA): 4273 images
+Total: 5856 images loaded
+
+Client data distribution (train / test):
+  Client 0: 1475 train / 368 test, train dist: {0: 5, 1: 1470}
+  Client 1: 283 train / 70 test, train dist: {1: 283}
+  Client 2: 531 train / 132 test, train dist: {0: 255, 1: 276}
+  Client 3: 1655 train / 413 test, train dist: {0: 993, 1: 662}
+  Client 4: 744 train / 185 test, train dist: {0: 1, 1: 743}
+Class weights: {'NORMAL': '1.47', 'PNEUMONIA': '0.53'}
+
+Model: HealthcareResNet (ResNet18) (2 classes)
+Device: mps
+Parameters: 11,177,538 (10,494,466 trainable)
+[early stop @R6, best=0.718 @R1] -> acc=0.718 jain=0.878 (443s ES@R6)                               
+  [19/75] chest_xray / FedLC / seed=42 Loading dataset from: /Users/fxlybs/Library/CloudStorage/OneDrive-CEI-OPBambinoGesù/__Univ Merc_PHD_2223__/_PHD_BD&AI_38_/___AA.2026__estensione/PAPER_Devs/FL-EHDS-FLICS2026/fl-ehds-framework/data/chest_xray
+Found 2 classes: ['NORMAL', 'PNEUMONIA']
+  Class 0 (NORMAL): 1583 images
+  Class 1 (PNEUMONIA): 4273 images
+Total: 5856 images loaded
+
+Client data distribution (train / test):
+  Client 0: 988 train / 246 test, train dist: {0: 412, 1: 576}
+  Client 1: 138 train / 34 test, train dist: {0: 35, 1: 103}
+  Client 2: 2653 train / 663 test, train dist: {0: 365, 1: 2288}
+  Client 3: 494 train / 123 test, train dist: {0: 155, 1: 339}
+  Client 4: 414 train / 103 test, train dist: {0: 311, 1: 103}
+Class weights: {'NORMAL': '1.45', 'PNEUMONIA': '0.55'}
+
+Model: HealthcareResNet (ResNet18) (2 classes)
+Device: mps
+Parameters: 11,177,538 (10,494,466 trainable)
+[early stop @R6, best=0.739 @R1] -> acc=0.608 jain=0.972 (448s ES@R6)                               
+  [20/75] chest_xray / FedLC / seed=123 Loading dataset from: /Users/fxlybs/Library/CloudStorage/OneDrive-CEI-OPBambinoGesù/__Univ Merc_PHD_2223__/_PHD_BD&AI_38_/___AA.2026__estensione/PAPER_Devs/FL-EHDS-FLICS2026/fl-ehds-framework/data/chest_xray
+Found 2 classes: ['NORMAL', 'PNEUMONIA']
+  Class 0 (NORMAL): 1583 images
+  Class 1 (PNEUMONIA): 4273 images
+Total: 5856 images loaded
+
+Client data distribution (train / test):
+  Client 0: 189 train / 47 test, train dist: {1: 189}
+  Client 1: 2795 train / 698 test, train dist: {0: 535, 1: 2260}
+  Client 2: 404 train / 100 test, train dist: {0: 265, 1: 139}
+  Client 3: 376 train / 94 test, train dist: {0: 209, 1: 167}
+  Client 4: 923 train / 230 test, train dist: {0: 263, 1: 660}
+Class weights: {'NORMAL': '1.46', 'PNEUMONIA': '0.54'}
+
+Model: HealthcareResNet (ResNet18) (2 classes)
+Device: mps
+Parameters: 11,177,538 (10,494,466 trainable)
+[early stop @R7, best=0.853 @R3] -> acc=0.750 jain=0.991 (506s ES@R7)                               
+  [21/75] chest_xray / FedLC / seed=456 Loading dataset from: /Users/fxlybs/Library/CloudStorage/OneDrive-CEI-OPBambinoGesù/__Univ Merc_PHD_2223__/_PHD_BD&AI_38_/___AA.2026__estensione/PAPER_Devs/FL-EHDS-FLICS2026/fl-ehds-framework/data/chest_xray
+Found 2 classes: ['NORMAL', 'PNEUMONIA']
+  Class 0 (NORMAL): 1583 images
+  Class 1 (PNEUMONIA): 4273 images
+Total: 5856 images loaded
+
+Client data distribution (train / test):
+  Client 0: 1475 train / 368 test, train dist: {0: 5, 1: 1470}
+  Client 1: 283 train / 70 test, train dist: {1: 283}
+  Client 2: 531 train / 132 test, train dist: {0: 255, 1: 276}
+  Client 3: 1655 train / 413 test, train dist: {0: 993, 1: 662}
+  Client 4: 744 train / 185 test, train dist: {0: 1, 1: 743}
+Class weights: {'NORMAL': '1.47', 'PNEUMONIA': '0.53'}
+
+Model: HealthcareResNet (ResNet18) (2 classes)
+Device: mps
+Parameters: 11,177,538 (10,494,466 trainable)
+[early stop @R6, best=0.718 @R1] -> acc=0.718 jain=0.878 (426s ES@R6)                               
+  [22/75] chest_xray / FedSAM / seed=42 Loading dataset from: /Users/fxlybs/Library/CloudStorage/OneDrive-CEI-OPBambinoGesù/__Univ Merc_PHD_2223__/_PHD_BD&AI_38_/___AA.2026__estensione/PAPER_Devs/FL-EHDS-FLICS2026/fl-ehds-framework/data/chest_xray
+Found 2 classes: ['NORMAL', 'PNEUMONIA']
+  Class 0 (NORMAL): 1583 images
+  Class 1 (PNEUMONIA): 4273 images
+Total: 5856 images loaded
+
+Client data distribution (train / test):
+  Client 0: 988 train / 246 test, train dist: {0: 412, 1: 576}
+  Client 1: 138 train / 34 test, train dist: {0: 35, 1: 103}
+  Client 2: 2653 train / 663 test, train dist: {0: 365, 1: 2288}
+  Client 3: 494 train / 123 test, train dist: {0: 155, 1: 339}
+  Client 4: 414 train / 103 test, train dist: {0: 311, 1: 103}
+Class weights: {'NORMAL': '1.45', 'PNEUMONIA': '0.55'}
+
+Model: HealthcareResNet (ResNet18) (2 classes)
+Device: mps
+Parameters: 11,177,538 (10,494,466 trainable)
+-> acc=0.854 jain=0.998 (1184s)                                                                     
+  [23/75] chest_xray / FedSAM / seed=123 Loading dataset from: /Users/fxlybs/Library/CloudStorage/OneDrive-CEI-OPBambinoGesù/__Univ Merc_PHD_2223__/_PHD_BD&AI_38_/___AA.2026__estensione/PAPER_Devs/FL-EHDS-FLICS2026/fl-ehds-framework/data/chest_xray
+Found 2 classes: ['NORMAL', 'PNEUMONIA']
+  Class 0 (NORMAL): 1583 images
+  Class 1 (PNEUMONIA): 4273 images
+Total: 5856 images loaded
+
+Client data distribution (train / test):
+  Client 0: 189 train / 47 test, train dist: {1: 189}
+  Client 1: 2795 train / 698 test, train dist: {0: 535, 1: 2260}
+  Client 2: 404 train / 100 test, train dist: {0: 265, 1: 139}
+  Client 3: 376 train / 94 test, train dist: {0: 209, 1: 167}
+  Client 4: 923 train / 230 test, train dist: {0: 263, 1: 660}
+Class weights: {'NORMAL': '1.46', 'PNEUMONIA': '0.54'}
+
+Model: HealthcareResNet (ResNet18) (2 classes)
+Device: mps
+Parameters: 11,177,538 (10,494,466 trainable)
+[early stop @R9, best=0.885 @R5] -> acc=0.858 jain=0.998 (832s ES@R9)                               
+  [24/75] chest_xray / FedSAM / seed=456 Loading dataset from: /Users/fxlybs/Library/CloudStorage/OneDrive-CEI-OPBambinoGesù/__Univ Merc_PHD_2223__/_PHD_BD&AI_38_/___AA.2026__estensione/PAPER_Devs/FL-EHDS-FLICS2026/fl-ehds-framework/data/chest_xray
+Found 2 classes: ['NORMAL', 'PNEUMONIA']
+  Class 0 (NORMAL): 1583 images
+  Class 1 (PNEUMONIA): 4273 images
+Total: 5856 images loaded
+
+Client data distribution (train / test):
+  Client 0: 1475 train / 368 test, train dist: {0: 5, 1: 1470}
+  Client 1: 283 train / 70 test, train dist: {1: 283}
+  Client 2: 531 train / 132 test, train dist: {0: 255, 1: 276}
+  Client 3: 1655 train / 413 test, train dist: {0: 993, 1: 662}
+  Client 4: 744 train / 185 test, train dist: {0: 1, 1: 743}
+Class weights: {'NORMAL': '1.47', 'PNEUMONIA': '0.53'}
+
+Model: HealthcareResNet (ResNet18) (2 classes)
+Device: mps
+Parameters: 11,177,538 (10,494,466 trainable)
+[early stop @R6, best=0.718 @R1] -> acc=0.718 jain=0.878 (562s ES@R6)                               
+  [25/75] chest_xray / FedDecorr / seed=42 Loading dataset from: /Users/fxlybs/Library/CloudStorage/OneDrive-CEI-OPBambinoGesù/__Univ Merc_PHD_2223__/_PHD_BD&AI_38_/___AA.2026__estensione/PAPER_Devs/FL-EHDS-FLICS2026/fl-ehds-framework/data/chest_xray
+Found 2 classes: ['NORMAL', 'PNEUMONIA']
+  Class 0 (NORMAL): 1583 images
+  Class 1 (PNEUMONIA): 4273 images
+Total: 5856 images loaded
+
+Client data distribution (train / test):
+  Client 0: 988 train / 246 test, train dist: {0: 412, 1: 576}
+  Client 1: 138 train / 34 test, train dist: {0: 35, 1: 103}
+  Client 2: 2653 train / 663 test, train dist: {0: 365, 1: 2288}
+  Client 3: 494 train / 123 test, train dist: {0: 155, 1: 339}
+  Client 4: 414 train / 103 test, train dist: {0: 311, 1: 103}
+Class weights: {'NORMAL': '1.45', 'PNEUMONIA': '0.55'}
+
+Model: HealthcareResNet (ResNet18) (2 classes)
+Device: mps
+Parameters: 11,177,538 (10,494,466 trainable)
+[early stop @R6, best=0.739 @R1] -> acc=0.585 jain=0.964 (557s ES@R6)                               
+  [26/75] chest_xray / FedDecorr / seed=123 Loading dataset from: /Users/fxlybs/Library/CloudStorage/OneDrive-CEI-OPBambinoGesù/__Univ Merc_PHD_2223__/_PHD_BD&AI_38_/___AA.2026__estensione/PAPER_Devs/FL-EHDS-FLICS2026/fl-ehds-framework/data/chest_xray
+Found 2 classes: ['NORMAL', 'PNEUMONIA']
+  Class 0 (NORMAL): 1583 images
+  Class 1 (PNEUMONIA): 4273 images
+Total: 5856 images loaded
+
+Client data distribution (train / test):
+  Client 0: 189 train / 47 test, train dist: {1: 189}
+  Client 1: 2795 train / 698 test, train dist: {0: 535, 1: 2260}
+  Client 2: 404 train / 100 test, train dist: {0: 265, 1: 139}
+  Client 3: 376 train / 94 test, train dist: {0: 209, 1: 167}
+  Client 4: 923 train / 230 test, train dist: {0: 263, 1: 660}
+Class weights: {'NORMAL': '1.46', 'PNEUMONIA': '0.54'}
+
+Model: HealthcareResNet (ResNet18) (2 classes)
+Device: mps
+Parameters: 11,177,538 (10,494,466 trainable)
+-> acc=0.814 jain=0.996 (1118s)                                                                     
+  [27/75] chest_xray / FedDecorr / seed=456 Loading dataset from: /Users/fxlybs/Library/CloudStorage/OneDrive-CEI-OPBambinoGesù/__Univ Merc_PHD_2223__/_PHD_BD&AI_38_/___AA.2026__estensione/PAPER_Devs/FL-EHDS-FLICS2026/fl-ehds-framework/data/chest_xray
+Found 2 classes: ['NORMAL', 'PNEUMONIA']
+  Class 0 (NORMAL): 1583 images
+  Class 1 (PNEUMONIA): 4273 images
+Total: 5856 images loaded
+
+Client data distribution (train / test):
+  Client 0: 1475 train / 368 test, train dist: {0: 5, 1: 1470}
+  Client 1: 283 train / 70 test, train dist: {1: 283}
+  Client 2: 531 train / 132 test, train dist: {0: 255, 1: 276}
+  Client 3: 1655 train / 413 test, train dist: {0: 993, 1: 662}
+  Client 4: 744 train / 185 test, train dist: {0: 1, 1: 743}
+Class weights: {'NORMAL': '1.47', 'PNEUMONIA': '0.53'}
+
+Model: HealthcareResNet (ResNet18) (2 classes)
+Device: mps
+Parameters: 11,177,538 (10,494,466 trainable)
+[early stop @R6, best=0.718 @R1] -> acc=0.718 jain=0.878 (556s ES@R6)                               
+  [28/75] chest_xray / FedExP / seed=42 Loading dataset from: /Users/fxlybs/Library/CloudStorage/OneDrive-CEI-OPBambinoGesù/__Univ Merc_PHD_2223__/_PHD_BD&AI_38_/___AA.2026__estensione/PAPER_Devs/FL-EHDS-FLICS2026/fl-ehds-framework/data/chest_xray
+Found 2 classes: ['NORMAL', 'PNEUMONIA']
+  Class 0 (NORMAL): 1583 images
+  Class 1 (PNEUMONIA): 4273 images
+Total: 5856 images loaded
+
+Client data distribution (train / test):
+  Client 0: 988 train / 246 test, train dist: {0: 412, 1: 576}
+  Client 1: 138 train / 34 test, train dist: {0: 35, 1: 103}
+  Client 2: 2653 train / 663 test, train dist: {0: 365, 1: 2288}
+  Client 3: 494 train / 123 test, train dist: {0: 155, 1: 339}
+  Client 4: 414 train / 103 test, train dist: {0: 311, 1: 103}
+Class weights: {'NORMAL': '1.45', 'PNEUMONIA': '0.55'}
+
+Model: HealthcareResNet (ResNet18) (2 classes)
+Device: mps
+Parameters: 11,177,538 (10,494,466 trainable)
+[early stop @R9, best=0.853 @R5] -> acc=0.839 jain=0.998 (608s ES@R9)                               
+  [29/75] chest_xray / FedExP / seed=123 Loading dataset from: /Users/fxlybs/Library/CloudStorage/OneDrive-CEI-OPBambinoGesù/__Univ Merc_PHD_2223__/_PHD_BD&AI_38_/___AA.2026__estensione/PAPER_Devs/FL-EHDS-FLICS2026/fl-ehds-framework/data/chest_xray
+Found 2 classes: ['NORMAL', 'PNEUMONIA']
+  Class 0 (NORMAL): 1583 images
+  Class 1 (PNEUMONIA): 4273 images
+Total: 5856 images loaded
+
+Client data distribution (train / test):
+  Client 0: 189 train / 47 test, train dist: {1: 189}
+  Client 1: 2795 train / 698 test, train dist: {0: 535, 1: 2260}
+  Client 2: 404 train / 100 test, train dist: {0: 265, 1: 139}
+  Client 3: 376 train / 94 test, train dist: {0: 209, 1: 167}
+  Client 4: 923 train / 230 test, train dist: {0: 263, 1: 660}
+Class weights: {'NORMAL': '1.46', 'PNEUMONIA': '0.54'}
+
+Model: HealthcareResNet (ResNet18) (2 classes)
+Device: mps
+Parameters: 11,177,538 (10,494,466 trainable)
+[early stop @R9, best=0.873 @R5] -> acc=0.824 jain=0.996 (611s ES@R9)                               
+  [30/75] chest_xray / FedExP / seed=456 Loading dataset from: /Users/fxlybs/Library/CloudStorage/OneDrive-CEI-OPBambinoGesù/__Univ Merc_PHD_2223__/_PHD_BD&AI_38_/___AA.2026__estensione/PAPER_Devs/FL-EHDS-FLICS2026/fl-ehds-framework/data/chest_xray
+Found 2 classes: ['NORMAL', 'PNEUMONIA']
+  Class 0 (NORMAL): 1583 images
+  Class 1 (PNEUMONIA): 4273 images
+Total: 5856 images loaded
+
+Client data distribution (train / test):
+  Client 0: 1475 train / 368 test, train dist: {0: 5, 1: 1470}
+  Client 1: 283 train / 70 test, train dist: {1: 283}
+  Client 2: 531 train / 132 test, train dist: {0: 255, 1: 276}
+  Client 3: 1655 train / 413 test, train dist: {0: 993, 1: 662}
+  Client 4: 744 train / 185 test, train dist: {0: 1, 1: 743}
+Class weights: {'NORMAL': '1.47', 'PNEUMONIA': '0.53'}
+
+Model: HealthcareResNet (ResNet18) (2 classes)
+Device: mps
+Parameters: 11,177,538 (10,494,466 trainable)
+[early stop @R6, best=0.718 @R1] -> acc=0.718 jain=0.878 (402s ES@R6)                               
+  [31/75] Skin_Cancer / FedAvg / seed=42 Loading dataset from: /Users/fxlybs/Library/CloudStorage/OneDrive-CEI-OPBambinoGesù/__Univ Merc_PHD_2223__/_PHD_BD&AI_38_/___AA.2026__estensione/PAPER_Devs/FL-EHDS-FLICS2026/fl-ehds-framework/data/Skin Cancer
+Found 2 classes: ['benign', 'malignant']
+  Class 0 (benign): 1800 images
+  Class 1 (malignant): 1497 images
+Total: 3297 images loaded
+
+Client data distribution (train / test):
+  Client 0: 55 train / 13 test, train dist: {0: 21, 1: 34}
+  Client 1: 740 train / 185 test, train dist: {0: 610, 1: 130}
+  Client 2: 818 train / 204 test, train dist: {0: 741, 1: 77}
+  Client 3: 874 train / 218 test, train dist: {0: 22, 1: 852}
+  Client 4: 152 train / 38 test, train dist: {0: 40, 1: 112}
+
+Model: HealthcareResNet (ResNet18) (2 classes)
+Device: mps
+Parameters: 11,177,538 (10,494,466 trainable)
+[early stop @R6, best=0.444 @R1] -> acc=0.447 jain=0.695 (193s ES@R6)                               
+  [32/75] Skin_Cancer / FedAvg / seed=123 Loading dataset from: /Users/fxlybs/Library/CloudStorage/OneDrive-CEI-OPBambinoGesù/__Univ Merc_PHD_2223__/_PHD_BD&AI_38_/___AA.2026__estensione/PAPER_Devs/FL-EHDS-FLICS2026/fl-ehds-framework/data/Skin Cancer
+Found 2 classes: ['benign', 'malignant']
+  Class 0 (benign): 1800 images
+  Class 1 (malignant): 1497 images
+Total: 3297 images loaded
+
+Client data distribution (train / test):
+  Client 0: 1635 train / 408 test, train dist: {0: 1408, 1: 227}
+  Client 1: 92 train / 23 test, train dist: {1: 92}
+  Client 2: 103 train / 25 test, train dist: {1: 103}
+  Client 3: 28 train / 6 test, train dist: {0: 5, 1: 23}
+  Client 4: 782 train / 195 test, train dist: {0: 23, 1: 759}
+
+Model: HealthcareResNet (ResNet18) (2 classes)
+Device: mps
+Parameters: 11,177,538 (10,494,466 trainable)
+[early stop @R6, best=0.554 @R2] -> acc=0.479 jain=0.867 (187s ES@R6)                               
+  [33/75] Skin_Cancer / FedAvg / seed=456 Loading dataset from: /Users/fxlybs/Library/CloudStorage/OneDrive-CEI-OPBambinoGesù/__Univ Merc_PHD_2223__/_PHD_BD&AI_38_/___AA.2026__estensione/PAPER_Devs/FL-EHDS-FLICS2026/fl-ehds-framework/data/Skin Cancer
+Found 2 classes: ['benign', 'malignant']
+  Class 0 (benign): 1800 images
+  Class 1 (malignant): 1497 images
+Total: 3297 images loaded
+
+Client data distribution (train / test):
+  Client 0: 1116 train / 279 test, train dist: {0: 115, 1: 1001}
+  Client 1: 168 train / 42 test, train dist: {0: 45, 1: 123}
+  Client 2: 28 train / 6 test, train dist: {0: 28}
+  Client 3: 155 train / 38 test, train dist: {0: 88, 1: 67}
+  Client 4: 1172 train / 293 test, train dist: {0: 1170, 1: 2}
+
+Model: HealthcareResNet (ResNet18) (2 classes)
+Device: mps
+Parameters: 11,177,538 (10,494,466 trainable)
+[early stop @R6, best=0.538 @R1] -> acc=0.538 jain=0.704 (189s ES@R6)                               
+  [34/75] Skin_Cancer / FedLC / seed=42 Loading dataset from: /Users/fxlybs/Library/CloudStorage/OneDrive-CEI-OPBambinoGesù/__Univ Merc_PHD_2223__/_PHD_BD&AI_38_/___AA.2026__estensione/PAPER_Devs/FL-EHDS-FLICS2026/fl-ehds-framework/data/Skin Cancer
+Found 2 classes: ['benign', 'malignant']
+  Class 0 (benign): 1800 images
+  Class 1 (malignant): 1497 images
+Total: 3297 images loaded
+
+Client data distribution (train / test):
+  Client 0: 55 train / 13 test, train dist: {0: 21, 1: 34}
+  Client 1: 740 train / 185 test, train dist: {0: 610, 1: 130}
+  Client 2: 818 train / 204 test, train dist: {0: 741, 1: 77}
+  Client 3: 874 train / 218 test, train dist: {0: 22, 1: 852}
+  Client 4: 152 train / 38 test, train dist: {0: 40, 1: 112}
+
+Model: HealthcareResNet (ResNet18) (2 classes)
+Device: mps
+Parameters: 11,177,538 (10,494,466 trainable)
+[early stop @R9, best=0.556 @R5] -> acc=0.527 jain=0.834 (292s ES@R9)                               
+  [35/75] Skin_Cancer / FedLC / seed=123 Loading dataset from: /Users/fxlybs/Library/CloudStorage/OneDrive-CEI-OPBambinoGesù/__Univ Merc_PHD_2223__/_PHD_BD&AI_38_/___AA.2026__estensione/PAPER_Devs/FL-EHDS-FLICS2026/fl-ehds-framework/data/Skin Cancer
+Found 2 classes: ['benign', 'malignant']
+  Class 0 (benign): 1800 images
+  Class 1 (malignant): 1497 images
+Total: 3297 images loaded
+
+Client data distribution (train / test):
+  Client 0: 1635 train / 408 test, train dist: {0: 1408, 1: 227}
+  Client 1: 92 train / 23 test, train dist: {1: 92}
+  Client 2: 103 train / 25 test, train dist: {1: 103}
+  Client 3: 28 train / 6 test, train dist: {0: 5, 1: 23}
+  Client 4: 782 train / 195 test, train dist: {0: 23, 1: 759}
+
+Model: HealthcareResNet (ResNet18) (2 classes)
+Device: mps
+Parameters: 11,177,538 (10,494,466 trainable)
+[early stop @R7, best=0.624 @R3] -> acc=0.557 jain=0.908 (222s ES@R7)                               
+  [36/75] Skin_Cancer / FedLC / seed=456 Loading dataset from: /Users/fxlybs/Library/CloudStorage/OneDrive-CEI-OPBambinoGesù/__Univ Merc_PHD_2223__/_PHD_BD&AI_38_/___AA.2026__estensione/PAPER_Devs/FL-EHDS-FLICS2026/fl-ehds-framework/data/Skin Cancer
+Found 2 classes: ['benign', 'malignant']
+  Class 0 (benign): 1800 images
+  Class 1 (malignant): 1497 images
+Total: 3297 images loaded
+
+Client data distribution (train / test):
+  Client 0: 1116 train / 279 test, train dist: {0: 115, 1: 1001}
+  Client 1: 168 train / 42 test, train dist: {0: 45, 1: 123}
+  Client 2: 28 train / 6 test, train dist: {0: 28}
+  Client 3: 155 train / 38 test, train dist: {0: 88, 1: 67}
+  Client 4: 1172 train / 293 test, train dist: {0: 1170, 1: 2}
+
+Model: HealthcareResNet (ResNet18) (2 classes)
+Device: mps
+Parameters: 11,177,538 (10,494,466 trainable)
+[early stop @R6, best=0.538 @R1] -> acc=0.538 jain=0.704 (192s ES@R6)                               
+  [37/75] Skin_Cancer / FedSAM / seed=42 Loading dataset from: /Users/fxlybs/Library/CloudStorage/OneDrive-CEI-OPBambinoGesù/__Univ Merc_PHD_2223__/_PHD_BD&AI_38_/___AA.2026__estensione/PAPER_Devs/FL-EHDS-FLICS2026/fl-ehds-framework/data/Skin Cancer
+Found 2 classes: ['benign', 'malignant']
+  Class 0 (benign): 1800 images
+  Class 1 (malignant): 1497 images
+Total: 3297 images loaded
+
+Client data distribution (train / test):
+  Client 0: 55 train / 13 test, train dist: {0: 21, 1: 34}
+  Client 1: 740 train / 185 test, train dist: {0: 610, 1: 130}
+  Client 2: 818 train / 204 test, train dist: {0: 741, 1: 77}
+  Client 3: 874 train / 218 test, train dist: {0: 22, 1: 852}
+  Client 4: 152 train / 38 test, train dist: {0: 40, 1: 112}
+
+Model: HealthcareResNet (ResNet18) (2 classes)
+Device: mps
+Parameters: 11,177,538 (10,494,466 trainable)
+[early stop @R6, best=0.444 @R1] -> acc=0.444 jain=0.691 (277s ES@R6)                               
+  [38/75] Skin_Cancer / FedSAM / seed=123 Loading dataset from: /Users/fxlybs/Library/CloudStorage/OneDrive-CEI-OPBambinoGesù/__Univ Merc_PHD_2223__/_PHD_BD&AI_38_/___AA.2026__estensione/PAPER_Devs/FL-EHDS-FLICS2026/fl-ehds-framework/data/Skin Cancer
+Found 2 classes: ['benign', 'malignant']
+  Class 0 (benign): 1800 images
+  Class 1 (malignant): 1497 images
+Total: 3297 images loaded
+
+Client data distribution (train / test):
+  Client 0: 1635 train / 408 test, train dist: {0: 1408, 1: 227}
+  Client 1: 92 train / 23 test, train dist: {1: 92}
+  Client 2: 103 train / 25 test, train dist: {1: 103}
+  Client 3: 28 train / 6 test, train dist: {0: 5, 1: 23}
+  Client 4: 782 train / 195 test, train dist: {0: 23, 1: 759}
+
+Model: HealthcareResNet (ResNet18) (2 classes)
+Device: mps
+Parameters: 11,177,538 (10,494,466 trainable)
+[early stop @R8, best=0.749 @R4] -> acc=0.609 jain=0.930 (354s ES@R8)                               
+  [39/75] Skin_Cancer / FedSAM / seed=456 Loading dataset from: /Users/fxlybs/Library/CloudStorage/OneDrive-CEI-OPBambinoGesù/__Univ Merc_PHD_2223__/_PHD_BD&AI_38_/___AA.2026__estensione/PAPER_Devs/FL-EHDS-FLICS2026/fl-ehds-framework/data/Skin Cancer
+Found 2 classes: ['benign', 'malignant']
+  Class 0 (benign): 1800 images
+  Class 1 (malignant): 1497 images
+Total: 3297 images loaded
+
+Client data distribution (train / test):
+  Client 0: 1116 train / 279 test, train dist: {0: 115, 1: 1001}
+  Client 1: 168 train / 42 test, train dist: {0: 45, 1: 123}
+  Client 2: 28 train / 6 test, train dist: {0: 28}
+  Client 3: 155 train / 38 test, train dist: {0: 88, 1: 67}
+  Client 4: 1172 train / 293 test, train dist: {0: 1170, 1: 2}
+
+Model: HealthcareResNet (ResNet18) (2 classes)
+Device: mps
+Parameters: 11,177,538 (10,494,466 trainable)
+[early stop @R6, best=0.538 @R1] -> acc=0.538 jain=0.704 (264s ES@R6)                               
+  [40/75] Skin_Cancer / FedDecorr / seed=42 Loading dataset from: /Users/fxlybs/Library/CloudStorage/OneDrive-CEI-OPBambinoGesù/__Univ Merc_PHD_2223__/_PHD_BD&AI_38_/___AA.2026__estensione/PAPER_Devs/FL-EHDS-FLICS2026/fl-ehds-framework/data/Skin Cancer
+Found 2 classes: ['benign', 'malignant']
+  Class 0 (benign): 1800 images
+  Class 1 (malignant): 1497 images
+Total: 3297 images loaded
+
+Client data distribution (train / test):
+  Client 0: 55 train / 13 test, train dist: {0: 21, 1: 34}
+  Client 1: 740 train / 185 test, train dist: {0: 610, 1: 130}
+  Client 2: 818 train / 204 test, train dist: {0: 741, 1: 77}
+  Client 3: 874 train / 218 test, train dist: {0: 22, 1: 852}
+  Client 4: 152 train / 38 test, train dist: {0: 40, 1: 112}
+
+Model: HealthcareResNet (ResNet18) (2 classes)
+Device: mps
+Parameters: 11,177,538 (10,494,466 trainable)
+[early stop @R8, best=0.634 @R4] -> acc=0.445 jain=0.693 (358s ES@R8)                               
+  [41/75] Skin_Cancer / FedDecorr / seed=123 Loading dataset from: /Users/fxlybs/Library/CloudStorage/OneDrive-CEI-OPBambinoGesù/__Univ Merc_PHD_2223__/_PHD_BD&AI_38_/___AA.2026__estensione/PAPER_Devs/FL-EHDS-FLICS2026/fl-ehds-framework/data/Skin Cancer
+Found 2 classes: ['benign', 'malignant']
+  Class 0 (benign): 1800 images
+  Class 1 (malignant): 1497 images
+Total: 3297 images loaded
+
+Client data distribution (train / test):
+  Client 0: 1635 train / 408 test, train dist: {0: 1408, 1: 227}
+  Client 1: 92 train / 23 test, train dist: {1: 92}
+  Client 2: 103 train / 25 test, train dist: {1: 103}
+  Client 3: 28 train / 6 test, train dist: {0: 5, 1: 23}
+  Client 4: 782 train / 195 test, train dist: {0: 23, 1: 759}
+
+Model: HealthcareResNet (ResNet18) (2 classes)
+Device: mps
+Parameters: 11,177,538 (10,494,466 trainable)
+[early stop @R6, best=0.769 @R2] -> acc=0.536 jain=0.897 (264s ES@R6)                               
+  [42/75] Skin_Cancer / FedDecorr / seed=456 Loading dataset from: /Users/fxlybs/Library/CloudStorage/OneDrive-CEI-OPBambinoGesù/__Univ Merc_PHD_2223__/_PHD_BD&AI_38_/___AA.2026__estensione/PAPER_Devs/FL-EHDS-FLICS2026/fl-ehds-framework/data/Skin Cancer
+Found 2 classes: ['benign', 'malignant']
+  Class 0 (benign): 1800 images
+  Class 1 (malignant): 1497 images
+Total: 3297 images loaded
+
+Client data distribution (train / test):
+  Client 0: 1116 train / 279 test, train dist: {0: 115, 1: 1001}
+  Client 1: 168 train / 42 test, train dist: {0: 45, 1: 123}
+  Client 2: 28 train / 6 test, train dist: {0: 28}
+  Client 3: 155 train / 38 test, train dist: {0: 88, 1: 67}
+  Client 4: 1172 train / 293 test, train dist: {0: 1170, 1: 2}
+
+Model: HealthcareResNet (ResNet18) (2 classes)
+Device: mps
+Parameters: 11,177,538 (10,494,466 trainable)
+[early stop @R6, best=0.538 @R1] -> acc=0.538 jain=0.704 (324s ES@R6)                               
+  [43/75] Skin_Cancer / FedExP / seed=42 Loading dataset from: /Users/fxlybs/Library/CloudStorage/OneDrive-CEI-OPBambinoGesù/__Univ Merc_PHD_2223__/_PHD_BD&AI_38_/___AA.2026__estensione/PAPER_Devs/FL-EHDS-FLICS2026/fl-ehds-framework/data/Skin Cancer
+Found 2 classes: ['benign', 'malignant']
+  Class 0 (benign): 1800 images
+  Class 1 (malignant): 1497 images
+Total: 3297 images loaded
+
+Client data distribution (train / test):
+  Client 0: 55 train / 13 test, train dist: {0: 21, 1: 34}
+  Client 1: 740 train / 185 test, train dist: {0: 610, 1: 130}
+  Client 2: 818 train / 204 test, train dist: {0: 741, 1: 77}
+  Client 3: 874 train / 218 test, train dist: {0: 22, 1: 852}
+  Client 4: 152 train / 38 test, train dist: {0: 40, 1: 112}
+
+Model: HealthcareResNet (ResNet18) (2 classes)
+Device: mps
+Parameters: 11,177,538 (10,494,466 trainable)
+[early stop @R8, best=0.454 @R4] -> acc=0.444 jain=0.691 (16075s ES@R8)                             
+  [44/75] Skin_Cancer / FedExP / seed=123 Loading dataset from: /Users/fxlybs/Library/CloudStorage/OneDrive-CEI-OPBambinoGesù/__Univ Merc_PHD_2223__/_PHD_BD&AI_38_/___AA.2026__estensione/PAPER_Devs/FL-EHDS-FLICS2026/fl-ehds-framework/data/Skin Cancer
+Found 2 classes: ['benign', 'malignant']
+  Class 0 (benign): 1800 images
+  Class 1 (malignant): 1497 images
+Total: 3297 images loaded
+
+Client data distribution (train / test):
+  Client 0: 1635 train / 408 test, train dist: {0: 1408, 1: 227}
+  Client 1: 92 train / 23 test, train dist: {1: 92}
+  Client 2: 103 train / 25 test, train dist: {1: 103}
+  Client 3: 28 train / 6 test, train dist: {0: 5, 1: 23}
+  Client 4: 782 train / 195 test, train dist: {0: 23, 1: 759}
+
+Model: HealthcareResNet (ResNet18) (2 classes)
+Device: mps
+Parameters: 11,177,538 (10,494,466 trainable)
+[early stop @R9, best=0.658 @R5] -> acc=0.486 jain=0.871 (347s ES@R9)                               
+  [45/75] Skin_Cancer / FedExP / seed=456 Loading dataset from: /Users/fxlybs/Library/CloudStorage/OneDrive-CEI-OPBambinoGesù/__Univ Merc_PHD_2223__/_PHD_BD&AI_38_/___AA.2026__estensione/PAPER_Devs/FL-EHDS-FLICS2026/fl-ehds-framework/data/Skin Cancer
+Found 2 classes: ['benign', 'malignant']
+  Class 0 (benign): 1800 images
+  Class 1 (malignant): 1497 images
+Total: 3297 images loaded
+
+Client data distribution (train / test):
+  Client 0: 1116 train / 279 test, train dist: {0: 115, 1: 1001}
+  Client 1: 168 train / 42 test, train dist: {0: 45, 1: 123}
+  Client 2: 28 train / 6 test, train dist: {0: 28}
+  Client 3: 155 train / 38 test, train dist: {0: 88, 1: 67}
+  Client 4: 1172 train / 293 test, train dist: {0: 1170, 1: 2}
+
+Model: HealthcareResNet (ResNet18) (2 classes)
+Device: mps
+Parameters: 11,177,538 (10,494,466 trainable)
+[early stop @R6, best=0.538 @R1] -> acc=0.538 jain=0.704 (194s ES@R6)                               
+  [49/75] Diabetes / FedLC / seed=42 -> acc=0.670 jain=0.991 (72s)              
+  [50/75] Diabetes / FedLC / seed=123 -> acc=0.718 jain=0.993 (72s)
+  [51/75] Diabetes / FedLC / seed=456 -> acc=0.602 jain=0.989 (72s)
+  [52/75] Diabetes / FedSAM / seed=42 -> acc=0.771 jain=0.995 (142s)
+  [53/75] Diabetes / FedSAM / seed=123 -> acc=0.768 jain=0.994 (148s)
+  [54/75] Diabetes / FedSAM / seed=456 -> acc=0.758 jain=0.996 (150s)
+  [55/75] Diabetes / FedDecorr / seed=42 -> acc=0.693 jain=0.992 (78s)
+  [56/75] Diabetes / FedDecorr / seed=123 -> acc=0.731 jain=0.994 (73s)
+  [57/75] Diabetes / FedDecorr / seed=456 -> acc=0.628 jain=0.990 (76s)
+  [58/75] Diabetes / FedExP / seed=42 -> acc=0.684 jain=0.992 (69s)
+  [59/75] Diabetes / FedExP / seed=123 -> acc=0.730 jain=0.993 (68s)
+  [60/75] Diabetes / FedExP / seed=456 -> acc=0.634 jain=0.991 (69s)
+  [64/75] Heart_Disease / FedLC / seed=42 -> acc=0.731 jain=0.958 (1s)
+  [65/75] Heart_Disease / FedLC / seed=123 -> acc=0.533 jain=0.903 (1s)
+  [66/75] Heart_Disease / FedLC / seed=456 -> acc=0.643 jain=0.966 (1s)
+  [67/75] Heart_Disease / FedSAM / seed=42 -> acc=0.736 jain=0.962 (1s)
+  [68/75] Heart_Disease / FedSAM / seed=123 -> acc=0.505 jain=0.897 (2s)
+  [69/75] Heart_Disease / FedSAM / seed=456 -> acc=0.643 jain=0.966 (2s)
+  [70/75] Heart_Disease / FedDecorr / seed=42 -> acc=0.709 jain=0.962 (1s)
+  [71/75] Heart_Disease / FedDecorr / seed=123 -> acc=0.516 jain=0.900 (1s)
+  [72/75] Heart_Disease / FedDecorr / seed=456 -> acc=0.648 jain=0.968 (1s)
+  [73/75] Heart_Disease / FedExP / seed=42 -> acc=0.709 jain=0.962 (1s)
+  [74/75] Heart_Disease / FedExP / seed=123 -> acc=0.516 jain=0.900 (1s)
+  [75/75] Heart_Disease / FedExP / seed=456 -> acc=0.648 jain=0.968 (1s)
+
+======================================================================
+  Completed in 11.6 hours (41860s)
+  Output: /Users/fxlybs/Library/CloudStorage/OneDrive-CEI-OPBambinoGesù/__Univ Merc_PHD_2223__/_PHD_BD&AI_38_/___AA.2026__estensione/PAPER_Devs/FL-EHDS-FLICS2026/fl-ehds-framework/benchmarks/paper_results
+======================================================================
+
+==============================================
+  Finished: 2026-02-17 07:32:00
+  Duration: 11h 37m 49s
+  Log: benchmarks/paper_results/logs/experiment_20260216_195411.log
+==============================================
+(flics2026) fxlybs@MacBook-Pro-di-FxLybs fl-ehds-framework % 
