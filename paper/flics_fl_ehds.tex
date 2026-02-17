@@ -1,0 +1,669 @@
+% ============================================================================
+% FL-EHDS Paper for FLICS 2026 — Condensed 8-page version
+% IEEE Conference Format (max 8 pages including references)
+% February 2026
+% ============================================================================
+
+\documentclass[conference]{IEEEtran}
+
+% ===== PACKAGES =====
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{url}
+
+% TikZ for vector figures
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning, fit, backgrounds, calc}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+
+% ===== DOCUMENT =====
+\begin{document}
+
+\title{FL-EHDS: A Privacy-Preserving Federated Learning Framework for the European Health Data Space}
+
+\author{
+    \IEEEauthorblockN{Fabio Liberti}
+    \IEEEauthorblockA{
+        Department of Computer Science\\
+        Universitas Mercatorum, Rome, Italy\\
+        fabio.liberti@unimercatorum.it\\
+        ORCID: 0000-0003-3019-5411
+    }
+}
+
+\maketitle
+
+% ============================================================================
+% ABSTRACT
+% ============================================================================
+\begin{abstract}
+The European Health Data Space (EHDS), established by Regulation (EU) 2025/327, mandates cross-border health data analytics while preserving citizen privacy. Federated Learning (FL) is the key enabling technology for secondary use, yet only 23\% of FL implementations achieve sustained production deployment in healthcare. We present FL-EHDS, a three-layer compliance framework integrating governance mechanisms (Health Data Access Bodies, data permits, opt-out registries), FL orchestration (17 aggregation algorithms including 2024--2025 advances, differential privacy, secure aggregation), and data holder components (adaptive training, FHIR preprocessing). Experimental validation on real clinical datasets demonstrates that personalized FL (Ditto) narrows the centralized-federated gap to 6.6 percentage points while preserving full data sovereignty, and that algorithm choice produces up to 18.7pp accuracy differences on heterogeneous clinical data. Our systematic evidence synthesis of 47 documents reveals that legal uncertainties---not technical barriers---constitute the critical blocker for FL adoption in EHDS contexts. The open-source reference implementation and compliance mapping provide actionable guidance for the 2025--2031 transition period.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Federated Learning, European Health Data Space, Privacy-Preserving Technologies, GDPR, Health Data Governance, Cross-Border Analytics
+\end{IEEEkeywords}
+
+% ============================================================================
+% 1. INTRODUCTION
+% ============================================================================
+\section{Introduction}
+\label{sec:introduction}
+
+The European Health Data Space (EHDS), established by Regulation (EU) 2025/327, represents the EU's most ambitious initiative for cross-border health data governance~\cite{eu2025ehds}. Entering into force in March 2025, the regulation creates a dual framework: primary use through MyHealth@EU for patient care, and secondary use through HealthData@EU for research, innovation, and policy-making~\cite{ganna2024boost}. Health Data Access Bodies (HDABs) in each Member State authorize secondary use through data permits; Article~53 enumerates permitted purposes; Article~71 introduces citizen opt-out mechanisms~\cite{staunton2024ethical}. The implementation timeline extends to 2031, with delegated acts expected by March 2027 and secondary use provisions applicable from March 2029.
+
+Federated Learning (FL) emerges as the ideal technical solution for EHDS secondary use---the model travels to distributed data rather than centralizing sensitive records~\cite{mcmahan2017communication, kairouz2021advances, rieke2020future}. The COVID-19 pandemic demonstrated FL's potential at scale: Dayan et al.~\cite{dayan2021federated} trained a global model across 20 institutions in 5 countries. However, recent evidence reveals a sobering gap between FL's promise and operational reality. Fr\"ohlich et al.~\cite{frohlich2025reality} report that only 23\% of FL implementations achieve sustained production deployment, with hardware heterogeneity (78\%) and non-IID data distributions (67\%) as dominant barriers. Beyond technical constraints, legal uncertainties regarding gradient data status under GDPR remain unresolved~\cite{quinn2024gdpr}, while van Drumpt et al.~\cite{vandrumpt2025pets} demonstrate that privacy-enhancing technologies cannot substitute for robust governance frameworks.
+
+Prior FL frameworks for healthcare~\cite{rieke2020future, sheller2020federated} focus on technical architectures without addressing regulatory compliance. Legal analyses~\cite{quinn2024gdpr, staunton2024ethical, shabani2024ehds} examine GDPR constraints but abstract from implementation feasibility. Policy documents~\cite{tehdas2024ready} assess Member State readiness but do not integrate FL technical considerations. To our knowledge, no existing work provides an integrated framework addressing all three dimensions: systematic barrier evidence, technical implementation with state-of-the-art algorithms, and EHDS governance operationalization---a gap confirmed by recent systematic reviews of FL frameworks~\cite{kairouz2021advances, teo2024systematic}.
+
+This paper bridges the technology-governance divide through four contributions:
+\begin{enumerate}
+    \item \textbf{Barrier Taxonomy}: Systematic evidence synthesis of 47 documents using PRISMA methodology with GRADE-CERQual confidence assessment.
+    \item \textbf{FL-EHDS Framework}: A three-layer reference architecture mapping barriers to governance-aware mitigation strategies.
+    \item \textbf{Reference Implementation}: Open-source Python codebase ($\sim$40K lines) with 17 FL algorithms (2017--2025) and EHDS governance modules.\footnote{Available at: \url{https://github.com/FabioLiberti/FL-EHDS-FLICS2026}}
+    \item \textbf{Experimental Validation}: Evaluation on real clinical datasets demonstrating that algorithm selection produces 18.7pp accuracy differences and personalized FL narrows the centralized-federated gap to 6.6pp.
+\end{enumerate}
+
+% ============================================================================
+% 2. BACKGROUND AND RELATED WORK
+% ============================================================================
+\section{Background and Related Work}
+\label{sec:background}
+
+\subsection{EHDS and Federated Learning}
+
+The EHDS establishes HDABs to authorize secondary use through standardized data permits, with Secure Processing Environments (SPEs) providing controlled analytics settings~\cite{svingel2025hdab}. Forster et al.~\cite{forster2025journeys} document significant variability in data access timelines---from 3 weeks (Finland) to over 12 months (France)---with barriers primarily organizational rather than technical. TEHDAS assessments~\cite{tehdas2024ready} reveal Nordic countries demonstrate 2--3 year advantages in HDAB capacity-building, raising concerns about implementation equity. Teo et al.~\cite{teo2024systematic} and Peng et al.~\cite{peng2024systematic} find that only 5.2\% of FL healthcare studies achieve real-life application.
+
+FL inverts the traditional ML paradigm: local training produces gradients that are aggregated centrally and redistributed~\cite{mcmahan2017communication, li2020federated}. Known challenges include non-IID data distributions causing convergence difficulties~\cite{li2020federated}, communication costs for gradient exchange~\cite{bonawitz2019scale}, and privacy attacks including gradient inversion~\cite{zhu2019deep} and membership inference~\cite{shokri2017membership, carlini2022privacy}. Recent advances from top venues (ICML/ICLR 2022--2025) specifically target healthcare heterogeneity: FedLC~\cite{zhang2022fedlc} calibrates logits for label distribution skew, FedLESAM~\cite{qu2024fedlesam} provides globally-guided sharpness-aware optimization (ICML 2024 Spotlight), and HPFL~\cite{chen2025hpfl} decouples backbone from classifier for per-institution specialization (ICLR 2025).
+
+\subsection{Related Frameworks}
+
+Existing FL frameworks---Flower~\cite{beutel2023flower} (v1.26), NVIDIA FLARE~\cite{nvflare2023} (v2.7), and TensorFlow Federated~\cite{tff2019} (v0.88)---provide robust distributed training but lack EHDS-specific governance. A recent FAIR-based assessment of 17 FL frameworks for biomedical research~\cite{chaverodiez2026fair} confirms that none implements HDAB integration, data permit lifecycle, opt-out enforcement, or audit trails---and identifies limited interoperability as the critical systemic gap. Table~\ref{tab:framework_comparison} provides a detailed comparison.
+
+\begin{table}[htbp]
+\centering
+\caption{Framework Comparison: FL-EHDS vs Existing FL Frameworks}
+\label{tab:framework_comparison}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Dimension} & \textbf{FL-EHDS} & \textbf{Flower v1.26} & \textbf{FLARE v2.7} & \textbf{TFF v0.88} \\
+\midrule
+FL Algorithms & 17 built-in & 12+ strategies & 5 built-in & 3 built-in \\
+Byzantine Resilience & 6 methods & 4 methods & --- & --- \\
+Differential Privacy & Central+Local & Central+Local & Built-in & Adaptive clip. \\
+Secure Aggregation & Pairwise+HE & SecAgg+ & Built-in+HE & Mask-based \\
+\midrule
+EHDS Governance & \textbf{Full} & None & None & None \\
+HDAB Integration & \checkmark & --- & --- & --- \\
+Data Permits (Art.~53) & \checkmark & --- & --- & --- \\
+Opt-out (Art.~71) & \checkmark & --- & --- & --- \\
+Audit Trail (Art.~30) & \checkmark & --- & Audit logs & --- \\
+\midrule
+Healthcare Stds. & FHIR R4 & MONAI & MONAI & --- \\
+Backend & PyTorch & Agnostic & Agnostic & TF only \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+\subsection{Evidence Synthesis}
+
+Following PRISMA 2020 guidelines, database searches (PubMed, IEEE Xplore, Scopus, Web of Science, arXiv) identified 847 records; 47 met inclusion criteria (2022--2026, FL/EHDS focus, peer-reviewed or recognized institutional origin). Quality was assessed using MMAT; confidence using GRADE-CERQual (see Supplementary Material, Fig.~1 for the complete PRISMA flow diagram). Table~\ref{tab:barriers} summarizes the five dominant barriers with prevalence and mitigation strategies.
+
+\begin{table}[htbp]
+\caption{FL Implementation Barriers for EHDS}
+\label{tab:barriers}
+\centering
+\small
+\begin{tabular}{p{2.0cm}cp{2.0cm}p{1.8cm}}
+\toprule
+\textbf{Barrier} & \textbf{Prev.} & \textbf{Evidence} & \textbf{Mitigation} \\
+\midrule
+Hardware heterog. & 78\% & Fr\"ohlich 2025 & Adaptive engine \\
+Non-IID data & 67\% & Multiple & FedProx, Ditto \\
+Production gap & 23\% & Fr\"ohlich 2025 & Ref.\ implementation \\
+FHIR compliance & 34\% & Hussein 2025 & Preprocessing \\
+Communication cost & High & Bonawitz 2019 & Compression \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Three critical legal questions remain unresolved~\cite{quinn2024gdpr}: (1) whether model gradients constitute ``personal data'' under GDPR, given that gradient inversion attacks demonstrate potential re-identification~\cite{zhu2019deep}; (2) when aggregated models become sufficiently ``anonymous'' to escape GDPR scope; (3) controller/processor allocation in multi-party FL architectures. These legal uncertainties create compliance risks that discourage organizational adoption regardless of technical maturity (GRADE-CERQual: MODERATE).
+
+% ============================================================================
+% 3. FL-EHDS FRAMEWORK
+% ============================================================================
+\section{FL-EHDS Framework}
+\label{sec:framework}
+
+Based on the identified barriers, we present FL-EHDS, a three-layer compliance framework for EHDS cross-border health analytics. Figure~\ref{fig:architecture} illustrates the architecture.
+
+\input{figures/fig2-fl-ehds-architecture}
+
+\subsection{Layer 1: Governance}
+
+Standardized APIs enable automated data permit verification before FL training initiation. Multi-HDAB synchronization protocols coordinate cross-border studies involving multiple Member States, addressing the coordination complexity identified by Christiansen et al.~\cite{christiansen2025pilot}. National opt-out registries are consulted before each training round, ensuring Article~71 compliance at record-level granularity. Comprehensive audit trails satisfy GDPR Article~30 requirements, documenting data access, processing purposes, and model outputs for regulatory inspection.
+
+Algorithm~1 presents the core FL-EHDS training procedure, highlighting governance checkpoints integrated into each round.
+
+\begin{figure}[htbp]
+\centering
+\fbox{\parbox{0.92\columnwidth}{
+\small
+\textbf{Algorithm 1: FL-EHDS FedAvg Training}\\[2pt]
+\textbf{Input:} Hospitals $\mathcal{H} = \{h_1, \ldots, h_K\}$, permit $P$, rounds $T$\\
+\textbf{Output:} Global model $\theta^{(T)}$\\[3pt]
+\textbf{Server executes:}\\
+\hspace*{4mm}Initialize $\theta^{(0)}$\\
+\hspace*{4mm}\textbf{for} round $t = 1$ to $T$ \textbf{do}\\
+\hspace*{8mm}\textit{// Governance check (Layer 1)}\\
+\hspace*{8mm}\textbf{if} not ValidatePermit($P$, $t$) \textbf{then abort}\\
+\hspace*{8mm}$\mathcal{H}_t \leftarrow$ SelectParticipants($\mathcal{H}$)\\
+\hspace*{8mm}\textbf{for each} $h \in \mathcal{H}_t$ \textbf{in parallel do}\\
+\hspace*{12mm}$\Delta_h^{(t)}, n_h \leftarrow$ LocalTrain($h$, $\theta^{(t-1)}$)\\
+\hspace*{8mm}\textit{// Aggregation with privacy (Layer 2)}\\
+\hspace*{8mm}$\theta^{(t)} \leftarrow \theta^{(t-1)} + \frac{1}{\sum n_h} \sum_{h} n_h \cdot \Delta_h^{(t)}$\\
+\hspace*{8mm}LogCompliance($t$, $\mathcal{H}_t$)\\[3pt]
+\textbf{LocalTrain}($h$, $\theta$):\\
+\hspace*{4mm}$\mathcal{D}_h \leftarrow$ FilterOptedOut($\mathcal{D}_h$, Registry) \textit{// Art.~71}\\
+\hspace*{4mm}$\theta_h \leftarrow \theta$; train $E$ epochs on $\mathcal{D}_h$\\
+\hspace*{4mm}$\Delta_h \leftarrow$ ClipGradient($\theta_h - \theta$, $C$) \textit{// DP bound}\\
+\hspace*{4mm}\textbf{return} $\Delta_h$, $|\mathcal{D}_h|$
+}}
+\end{figure}
+
+\subsection{Layer 2: FL Orchestration}
+
+The framework implements \textbf{17 aggregation algorithms} spanning six categories---from foundational methods (FedAvg~\cite{mcmahan2017communication}, FedProx~\cite{li2020federated}) through non-IID robustness (SCAFFOLD~\cite{karimireddy2020scaffold}, FedNova~\cite{wang2020tackling}, FedDyn~\cite{acar2021feddyn}), adaptive optimization~\cite{reddi2021adaptive}, and personalization (Ditto~\cite{li2021ditto}, Per-FedAvg~\cite{fallah2020personalized}) to the latest advances: FedLESAM~\cite{qu2024fedlesam} (ICML 2024 Spotlight) and HPFL~\cite{chen2025hpfl} (ICLR 2025). Table~\ref{tab:algo_catalogue} provides the complete catalogue with venues and key properties.
+
+Two recent algorithms merit particular attention for EHDS scenarios. FedLESAM~\cite{qu2024fedlesam} extends sharpness-aware minimization~\cite{qu2022fedsam} by replacing local gradient perturbation with a globally-estimated direction, achieving stronger generalization across heterogeneous distributions---directly relevant where cross-border patient populations differ substantially. HPFL~\cite{chen2025hpfl} decouples feature extraction from classification by aggregating only backbone parameters while keeping client-specific classifier heads local, enabling per-institution specialization without compromising collaborative learning. Algorithm selection is configurable; composable strategies (FedLC~\cite{zhang2022fedlc}, FedDecorr~\cite{shi2023feddecorr}) can augment any base aggregation.
+
+\begin{table}[htbp]
+\centering
+\caption{FL-EHDS Algorithm Catalogue (17 Algorithms)}
+\label{tab:algo_catalogue}
+\small
+\begin{tabular}{llll}
+\toprule
+\textbf{Algorithm} & \textbf{Venue} & \textbf{Category} & \textbf{Key Property} \\
+\midrule
+FedAvg & AISTATS'17 & Baseline & Weighted avg. \\
+FedProx & MLSys'20 & Non-IID & Proximal reg. \\
+SCAFFOLD & ICML'20 & Non-IID & Variance red. \\
+FedNova & NeurIPS'20 & Non-IID & Normalized avg. \\
+FedDyn & ICLR'21 & Non-IID & Dynamic reg. \\
+FedAdam & ICLR'21 & Adaptive & Server momentum \\
+FedYogi & ICLR'21 & Adaptive & Sparse stability \\
+FedAdagrad & ICLR'21 & Adaptive & Grad.\ accum. \\
+Ditto & ICML'21 & Personal. & Dual models \\
+Per-FedAvg & NeurIPS'20 & Personal. & MAML-based \\
+FedLC & ICML'22 & Label skew & Logit calibration \\
+FedSAM & ICML'22 & Generalize & Flat minima \\
+FedDecorr & ICLR'23 & Represent. & Decorrelation \\
+FedSpeed & ICLR'23 & Efficiency & Fewer rounds \\
+FedExP & ICLR'23 & Server-side & POCS step size \\
+\textbf{FedLESAM} & \textbf{ICML'24} & \textbf{Generalize} & \textbf{Global SAM} \\
+\textbf{HPFL} & \textbf{ICLR'25} & \textbf{Personal.} & \textbf{Local classif.} \\
+\bottomrule
+\end{tabular}
+
+\vspace{1mm}
+\footnotesize{\textbf{Bold}: newly added algorithms (2024--2025). All 17 implemented in the open-source reference implementation.}
+\end{table}
+
+\textbf{Privacy Protection}: Differential privacy~\cite{dwork2014dp} with configurable $\varepsilon$-budget uses DP-SGD~\cite{abadi2016deep} with R\'enyi DP (RDP)~\cite{mironov2017renyi} for tight composition accounting over multiple training rounds~\cite{wei2020federated}. For Gaussian mechanisms with noise scale $\sigma$, the RDP guarantee at order $\alpha$ is $\rho(\alpha) = \alpha/(2\sigma^2)$. For 100+ round training typical of EHDS cross-border studies, RDP provides 5--6$\times$ tighter privacy bounds than naive composition~\cite{mironov2017renyi, wei2020federated}, enabling longer training with equivalent privacy guarantees. Gradient clipping bounds individual contributions; secure aggregation (pairwise masking protocol with ECDH key exchange) mitigates gradient inversion attacks~\cite{zhu2019deep}. Six Byzantine resilience methods (Krum, Multi-Krum, Trimmed Mean, Median, Bulyan, FLTrust) defend against up to $f < n/3$ malicious clients.
+
+\textbf{Purpose Limitation}: Technical enforcement of Article~53 permitted purposes through model output filtering and use-case validation, preventing scope creep beyond authorized analytics.
+
+\subsection{Layer 3: Data Holders}
+
+Resource-aware training engines address hardware heterogeneity (78\% barrier prevalence). The engine dynamically adjusts batch sizes, model complexity, and synchronization frequency based on local computational capabilities, enabling participation of institutions with diverse hardware profiles---from GPU-equipped university hospitals to CPU-only rural clinics.
+
+\textbf{FHIR Preprocessing}: Data normalization pipelines ensure interoperability across heterogeneous EHR systems. Only 34\% of European healthcare providers achieve full FHIR compliance~\cite{hussein2025interop}; the preprocessing module bridges format gaps through automated transformation pipelines supporting FHIR R4 resources (Patient, Observation, Condition, MedicationRequest, DiagnosticReport) with standard coding systems (SNOMED-CT, LOINC, ICD-10).
+
+\textbf{Secure Communication}: End-to-end encrypted gradient transmission with certificate-based authentication ensures no raw data leaves institutional boundaries. The communication layer supports gRPC for model updates and WebSocket for real-time monitoring events.
+
+\subsection{Threat Model}
+
+The framework assumes an honest-but-curious aggregation server. Byzantine tolerance is provided for up to $f < n/3$ malicious clients through robust aggregation (Krum, Trimmed Mean, Bulyan). Gradient inversion is mitigated by DP and secure aggregation.
+
+\subsection{EHDS Compliance Mapping}
+
+Table~\ref{tab:compliance} maps framework components to EHDS regulatory requirements.
+
+\begin{table}[htbp]
+\caption{EHDS Compliance Mapping}
+\label{tab:compliance}
+\centering
+\small
+\begin{tabular}{lp{2.3cm}p{2.8cm}}
+\toprule
+\textbf{Article} & \textbf{Requirement} & \textbf{FL-EHDS Component} \\
+\midrule
+Art. 33 & Secondary use auth. & HDAB API + Permit valid. \\
+Art. 46 & Cross-border proc. & Multi-HDAB coordinator \\
+Art. 50 & Secure Proc.\ Env. & Aggregation within SPE \\
+Art. 53 & Permitted purposes & Purpose limitation module \\
+Art. 71 & Opt-out mechanism & Registry filtering \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Reference Implementation}
+
+A modular Python implementation is available as open-source software, designed following FAIR principles~\cite{chaverodiez2026fair} (findable via GitHub with DOI, accessible under MIT license, interoperable via PyTorch and FHIR R4 interfaces, reusable with comprehensive documentation). The codebase ($\sim$40K lines, 159 modules) provides: (1) orchestration modules implementing all 17 algorithms with RDP accounting and secure aggregation; (2) six Byzantine resilience methods; (3) data holder utilities for adaptive training and FHIR R4 preprocessing; (4) a Streamlit-based dashboard for interactive FL training, EHDS governance workflow, and real-time monitoring; (5) a professional terminal UI with 11 specialized screens; (6) reproducible benchmark suite generating all experimental results.
+
+\textbf{Note on governance}: HDAB integration includes a fully functional simulation backend demonstrating the complete permit lifecycle (OAuth2/mTLS authentication, permit CRUD, cross-border coordination) and Article~71 opt-out compliance (LRU-cached registry lookups, scope-granular filtering). Production deployment will require binding to actual HDAB services (expected 2027--2029).
+
+% ============================================================================
+% 4. EXPERIMENTAL EVALUATION
+% ============================================================================
+\section{Experimental Evaluation}
+\label{sec:experiments}
+
+We evaluate FL-EHDS on real clinical datasets simulating cross-border healthcare analytics. All results are fully reproducible via the benchmark suite in the repository.
+
+\subsection{Setup}
+
+\textbf{Datasets}: (1)~\textit{Heart Disease UCI}~(920 patients from 4 international hospitals: Cleveland, Hungarian, Swiss, VA Long Beach)---13 clinical features, binary cardiac disease diagnosis. The natural hospital partitioning creates authentic non-IID conditions. (2)~\textit{Diabetes 130-US}~(101,766 encounters from 130 US hospitals)---22 clinical features; binary 30-day readmission prediction with severe class imbalance ($\sim$11\% positive rate), partitioned via Dirichlet $\alpha$=0.5. \textbf{Model}: HealthcareMLP (2-layer, 64/32 hidden, ReLU, dropout 0.3, $\sim$10K parameters). \textbf{Configuration}: 20 rounds, 3 local epochs, batch size 32, Adam optimizer (lr=0.01). All results are mean $\pm$ std over 3 seeds.
+
+\subsection{Algorithm Comparison}
+
+Table~\ref{tab:main_results} presents FL algorithm comparison on the two clinical datasets.
+
+\begin{table}[htbp]
+\centering
+\caption{FL Algorithm Comparison on Real Clinical Datasets}
+\label{tab:main_results}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lcccccc}
+\toprule
+& \multicolumn{3}{c}{\textbf{Heart Disease (4 hosp.)}} & \multicolumn{3}{c}{\textbf{Diabetes (5 hosp.)}} \\
+\cmidrule(lr){2-4} \cmidrule(lr){5-7}
+\textbf{Algo.} & \textbf{Acc.} & \textbf{F1} & \textbf{AUC} & \textbf{Acc.} & \textbf{F1} & \textbf{AUC} \\
+\midrule
+FedAvg       & 62.5$\pm$8.0 & .736$\pm$.06 & .834$\pm$.03 & 68.1$\pm$4.2 & .259$\pm$.01 & .643$\pm$.00 \\
+FedProx      & 61.7$\pm$8.0 & .732$\pm$.05 & .834$\pm$.03 & 71.0$\pm$6.3 & .254$\pm$.01 & .638$\pm$.00 \\
+SCAFFOLD     & 66.3$\pm$5.1 & .667$\pm$.02 & .791$\pm$.05 & 11.2$\pm$0.0 & .201$\pm$.00 & .514$\pm$.00 \\
+FedNova      & 56.4$\pm$5.4 & .711$\pm$.04 & .831$\pm$.03 & 13.0$\pm$0.9 & .203$\pm$.00 & .636$\pm$.00 \\
+\textbf{Ditto} & \textbf{75.1$\pm$2.0} & \textbf{.761$\pm$.03} & .826$\pm$.01 & \textbf{71.7$\pm$0.2} & \textbf{.262$\pm$.00} & \textbf{.643$\pm$.00} \\
+\bottomrule
+\end{tabular}%
+}
+
+\vspace{1mm}
+\footnotesize{20 rounds, 3 local epochs. Heart Disease: natural non-IID. Diabetes: Dirichlet $\alpha$=0.5. Mean $\pm$ std over 3 seeds.}
+\end{table}
+
+\subsection{Convergence and Baselines}
+
+Figure~\ref{fig:convergence} shows training convergence on Heart Disease. Ditto converges faster and higher due to personalized local models.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    width=0.45\textwidth,
+    height=4.5cm,
+    xlabel={Round},
+    ylabel={Test Accuracy},
+    legend style={at={(0.02,0.98)}, anchor=north west, font=\scriptsize},
+    grid=major,
+    grid style={dashed, gray!30},
+    xmin=1, xmax=20,
+    ymin=0.45, ymax=0.80,
+]
+\addplot[blue, thick] coordinates {(1,0.538) (2,0.538) (3,0.540) (4,0.542) (5,0.540) (6,0.546) (7,0.544) (8,0.559) (9,0.559) (10,0.566) (11,0.570) (12,0.579) (13,0.584) (14,0.588) (15,0.592) (16,0.597) (17,0.604) (18,0.614) (19,0.621) (20,0.625)};
+\addplot[red, thick, dashed] coordinates {(1,0.538) (2,0.538) (3,0.540) (4,0.540) (5,0.540) (6,0.544) (7,0.542) (8,0.557) (9,0.557) (10,0.564) (11,0.568) (12,0.577) (13,0.586) (14,0.584) (15,0.592) (16,0.595) (17,0.603) (18,0.614) (19,0.617) (20,0.617)};
+\addplot[green!60!black, thick, dotted] coordinates {(1,0.538) (2,0.482) (3,0.513) (4,0.529) (5,0.548) (6,0.570) (7,0.579) (8,0.590) (9,0.625) (10,0.636) (11,0.628) (12,0.626) (13,0.604) (14,0.643) (15,0.619) (16,0.661) (17,0.661) (18,0.663) (19,0.670) (20,0.663)};
+\addplot[purple, thick, dashdotted] coordinates {(1,0.570) (2,0.634) (3,0.667) (4,0.689) (5,0.696) (6,0.692) (7,0.705) (8,0.705) (9,0.712) (10,0.722) (11,0.727) (12,0.731) (13,0.736) (14,0.736) (15,0.736) (16,0.736) (17,0.742) (18,0.744) (19,0.745) (20,0.751)};
+\legend{FedAvg, FedProx, SCAFFOLD, Ditto}
+\end{axis}
+\end{tikzpicture}
+\caption{Training convergence on Heart Disease UCI (4 hospitals, natural non-IID). Ditto converges faster due to personalized local models.}
+\label{fig:convergence}
+\end{figure}
+
+\textbf{Key findings}: Ditto converges to 75.1\% by round 20, compared to 62.5\% for FedAvg---a 12.6pp advantage. SCAFFOLD exhibits high variance (oscillating between 48\% and 66\%) due to control variate instability with only 4 heterogeneous clients. FedProx closely tracks FedAvg, suggesting that proximal regularization alone is insufficient for the degree of heterogeneity present.
+
+Table~\ref{tab:fl_vs_central} compares three learning paradigms on Heart Disease, representing the EHDS deployment spectrum: centralized (upper bound, no privacy), federated (data stays local), and local-only (no collaboration).
+
+\begin{table}[htbp]
+\centering
+\caption{Learning Paradigm Comparison (Heart Disease UCI)}
+\label{tab:fl_vs_central}
+\small
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Approach} & \textbf{Acc.} & \textbf{F1} & \textbf{AUC} & \textbf{Gap} \\
+\midrule
+Centralized & $81.7 \pm 2.9$\% & $.815$ & $.882$ & --- \\
+FL-Ditto & $75.1 \pm 2.0$\% & $.761$ & $.826$ & 6.6pp \\
+FL-FedAvg & $62.5 \pm 8.0$\% & $.736$ & $.834$ & 19.2pp \\
+Local-Only$^*$ & $81.7 \pm 1.2$\% & $.797$ & --- & 0.0pp \\
+\bottomrule
+\end{tabular}
+
+\vspace{1mm}
+\footnotesize{4 hospitals, natural non-IID partitioning. Centralized/Local: 60 epochs, Adam (lr=0.01). FL: 20 rounds $\times$ 3 local epochs. Mean $\pm$ std over 3 seeds. $^*$Local-only evaluated on own test split (not cross-hospital).}
+\end{table}
+
+Centralized training achieves 81.7\% accuracy as expected. FL-Ditto narrows this gap to only \textbf{6.6pp} while preserving full data sovereignty---the strongest privacy-utility tradeoff among tested approaches. Baseline FedAvg suffers a 19.2pp gap, underscoring the importance of personalization-aware aggregation. Note that Local-Only accuracy (81.7\%) appears to match Centralized, but this comparison is misleading: Local-Only is evaluated only on each hospital's own test split (where it overfits to local distribution), whereas Centralized and FL approaches are evaluated on the pooled cross-hospital test set. Local-only models do not generalize: a model trained at the Swiss hospital performs poorly on Hungarian data. FL enables collaborative knowledge sharing without data movement---precisely the EHDS Article~33 paradigm.
+
+\subsection{Non-IID Impact Analysis}
+
+Figure~\ref{fig:noniid_impact} illustrates the impact of data heterogeneity on algorithm performance. As non-IID severity increases ($\alpha \to 0$), algorithm selection becomes increasingly critical---variance-reduction methods maintain stability while baseline FedAvg degrades significantly.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.95\columnwidth]{figures/fig_accuracy_vs_noniid.pdf}
+\caption{Final accuracy vs.\ data heterogeneity level (Dirichlet $\alpha$). Algorithm choice becomes critical as non-IID severity grows.}
+\label{fig:noniid_impact}
+\end{figure}
+
+\subsection{Per-Hospital Heterogeneity}
+
+Figure~\ref{fig:client_heterogeneity} shows per-hospital accuracy variation on Heart Disease, where the four hospitals have naturally different patient populations.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    ybar,
+    bar width=0.35cm,
+    width=0.45\textwidth,
+    height=4cm,
+    ylabel={Accuracy (\%)},
+    xlabel={Hospital},
+    symbolic x coords={Cleveland, Hungarian, Swiss, VA Long B.},
+    xtick=data,
+    x tick label style={font=\scriptsize, rotate=15, anchor=east},
+    ymin=20, ymax=100,
+    legend style={at={(0.98,0.98)}, anchor=north east, font=\scriptsize},
+    grid=major,
+    grid style={dashed, gray!30},
+    nodes near coords,
+    every node near coord/.append style={font=\tiny},
+]
+\addplot[fill=blue!60] coordinates {(Cleveland,66.1) (Hungarian,43.1) (Swiss,81.9) (VA Long B.,73.3)};
+\addplot[fill=purple!60] coordinates {(Cleveland,66.7) (Hungarian,43.1) (Swiss,81.9) (VA Long B.,73.3)};
+\legend{FedAvg, Ditto (global)}
+\end{axis}
+\end{tikzpicture}
+\caption{Per-hospital accuracy of the \textit{global} model on Heart Disease UCI. Ditto's 12.6pp overall advantage (Table~\ref{tab:main_results}) comes from its \textit{personalized local} models, which are separately fine-tuned per hospital; the shared global model shows similar cross-hospital performance to FedAvg. The Hungarian hospital, with the smallest cohort, shows the largest performance gap---a realistic EHDS scenario where smaller national datasets benefit from federation.}
+\label{fig:client_heterogeneity}
+\end{figure}
+
+\subsection{Key Findings}
+
+\begin{enumerate}
+    \item \textbf{Algorithm choice matters}: 18.7pp accuracy gap between Ditto (75.1\%) and FedNova (56.4\%) on Heart Disease---contrasting synthetic benchmarks where algorithms appear equivalent.
+
+    \item \textbf{Personalization is critical}: Ditto achieves only 6.6pp gap vs.\ centralized training while preserving full data sovereignty.
+
+    \item \textbf{Class imbalance challenges FL}: SCAFFOLD (11.2\%) and FedNova (13.0\%) diverge catastrophically on Diabetes ($\sim$11\% positive rate), falling below majority-class baseline ($\sim$89\%). We attribute this to the interaction of severe class imbalance with variance-reduction (SCAFFOLD) and normalized-averaging (FedNova) mechanisms: control variates and normalization amplify gradient signal from the dominant class under Dirichlet-partitioned heterogeneity, causing minority-class collapse. This has direct EHDS implications for readmission prediction and rare disease tasks, where class ratios of 5--15\% are typical.
+
+    \item \textbf{Hospital heterogeneity is real}: Per-hospital accuracy varies by 38.8pp (Hungarian 43.1\% vs.\ Swiss 81.9\%), reflecting genuine distribution differences.
+
+    \item \textbf{Communication efficiency}: Tabular FL requires only 0.04~MB/round (10K-parameter MLP). Imaging tasks (44.7~MB/round for ResNet-18) benefit from Top-$k$ sparsification (1\%).
+\end{enumerate}
+
+\textbf{Privacy-utility tradeoff}: Differential privacy with $\varepsilon{=}10$ (Gaussian mechanism, RDP accounting with $\delta{=}10^{-5}$) provides formal $(\varepsilon,\delta)$-DP guarantees satisfying EHDS Article~50 SPE requirements. Preliminary experiments indicate accuracy costs in the 5--6pp range, consistent with prior FL-DP literature~\cite{wei2020federated}; a comprehensive privacy-utility ablation across $\varepsilon \in \{1, 5, 10, 50\}$ is planned as extended evaluation. R\'enyi DP composition~\cite{mironov2017renyi} provides 5--6$\times$ tighter bounds than naive composition for the 20+ round training typical of EHDS cross-border studies.
+
+\subsection{Communication Costs}
+
+Table~\ref{tab:comm_costs} reports measured communication overhead per FL round, critical for EHDS deployments where bandwidth between national HDABs may be limited.
+
+\begin{table}[htbp]
+\centering
+\caption{Communication Cost per Round (Measured)}
+\label{tab:comm_costs}
+\small
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lcccr}
+\toprule
+\textbf{Task} & \textbf{Model} & \textbf{Params} & \textbf{MB/round} & \textbf{Total (20r)} \\
+\midrule
+Heart Disease & MLP & 10K & 0.04 & 0.8 MB \\
+Diabetes & MLP & 10K & 0.04 & 0.8 MB \\
+Brain Tumor & ResNet-18 & 11.2M & 44.7 & 894 MB \\
+\bottomrule
+\end{tabular}%
+}
+
+\vspace{1mm}
+\footnotesize{Per-client upload+download. With Top-$k$ sparsification (1\%), Brain Tumor reduces to 8.9 MB total.}
+\end{table}
+
+\textbf{Clinical imaging}: The framework extends to medical imaging using ResNet-18~\cite{he2016deep} with GroupNorm and FedBN~\cite{li2021fedbn} on Chest X-ray~\cite{chestxray2018}, Brain Tumor MRI, and Skin Cancer datasets. Dataset configurations and imaging pipeline details are provided in the supplementary material; full experimental results across 7 algorithms, 5 datasets, and 3 seeds constitute ongoing evaluation.
+
+% ============================================================================
+% 5. DISCUSSION
+% ============================================================================
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{Legal Uncertainties as Critical Blocker}
+
+Our synthesis reveals that \textbf{legal uncertainties---not technical barriers---constitute the critical blocker} for FL adoption in EHDS contexts. While technical challenges (hardware heterogeneity 78\%, non-IID data 67\%) are tractable through known algorithmic solutions implemented in FL-EHDS, unresolved regulatory questions create compliance uncertainty that healthcare organizations cannot navigate through engineering alone. Without clarification of gradient data status, organizations face potential GDPR violations regardless of technical privacy measures. This aligns with van Drumpt et al.'s~\cite{vandrumpt2025pets} conclusion that governance frameworks are prerequisites, not alternatives, to technical solutions---synthetic data approaches face similar governance gaps~\cite{jordon2022synthetic}.
+
+The March 2027 delegated acts represent a critical window. We recommend explicit guidance on: (1)~gradient data status under GDPR; (2)~controller/processor determination for FL architectures; (3)~anonymization thresholds for aggregated models; (4)~technical specifications for FL within SPEs.
+
+\subsection{Experimental Insights for EHDS Deployment}
+
+Our results carry three implications beyond algorithm benchmarking. \textit{First}, the 18.7pp accuracy gap between best and worst algorithms on identical data demonstrates that EHDS SPE configurations cannot treat FL as a black box---algorithm selection must be part of the data permit specification, with guidance on matching algorithms to dataset characteristics (class balance, heterogeneity level, number of participating institutions). \textit{Second}, the catastrophic failure of SCAFFOLD and FedNova on class-imbalanced data (Section~\ref{sec:experiments}) suggests that variance-reduction and normalization strategies, while theoretically superior, require careful validation on clinical tasks where class ratios of 5--15\% are common. EHDS delegated acts should consider mandating algorithm validation protocols before cross-border deployment. \textit{Third}, the success of personalized FL (Ditto, 6.6pp gap) aligns naturally with EHDS data sovereignty: each institution retains a locally fine-tuned model while contributing to collective knowledge, satisfying both Article~33 secondary use objectives and institutional autonomy concerns.
+
+\subsection{Stakeholder Recommendations}
+
+\textbf{EU Policymakers}: The delegated acts should address FL-specific scenarios including gradient privacy, multi-party controller allocation, and model anonymity thresholds.
+
+\textbf{National Authorities}: Early investment in HDAB capacity is essential. The 2--3 year Nordic advantage~\cite{tehdas2024ready} demonstrates that governance capacity may prove more constraining than technical infrastructure.
+
+\textbf{Healthcare Organizations}: Preparation cannot wait for 2029. Organizations should accelerate FHIR compliance beyond the current 34\% baseline~\cite{hussein2025interop}, participate in HealthData@EU pilots, and assess computational infrastructure for FL participation.
+
+\subsection{Implementation Roadmap}
+
+Effective EHDS FL deployment requires phased implementation aligned with regulatory milestones: (1)~\textit{Foundation} (2025--26): reference implementation deployment, multi-Member State pilot coordination; (2)~\textit{Clarification} (2027): delegated acts providing FL-specific legal guidance; (3)~\textit{Scaling} (2028--29): production deployment with real HDAB binding, capacity building; (4)~\textit{Operation} (2029--31): full cross-border analytics with genetic and imaging data extensions. The FL-EHDS governance layer's modular design enables incremental binding to actual HDAB services as they become available, avoiding a disruptive ``big bang'' transition.
+
+\subsection{Limitations}
+
+Our evaluation uses retrospective public datasets; real-world integration with production EHR systems across Member States remains essential future work. The tabular model (2-layer MLP) is intentionally simple to isolate FL algorithm effects; larger clinical models may exhibit different algorithm rankings. The 6.6pp centralized-federated gap with Ditto is encouraging, but validation on larger multi-site datasets with authentic European population heterogeneity is needed. While the governance layer operates as a simulation backend, the complete permit lifecycle (application, validation, execution, revocation) is fully implemented---binding to actual HDAB REST/gRPC endpoints requires only configuration changes (endpoint URLs, mTLS certificates), not architectural modifications.
+
+% ============================================================================
+% 6. CONCLUSIONS
+% ============================================================================
+\section{Conclusions}
+\label{sec:conclusions}
+
+This paper presents FL-EHDS, a three-layer compliance framework bridging the technology-governance divide for cross-border health analytics under the EHDS. The framework integrates 17 FL algorithms---including recent ICML/ICLR 2024--2025 advances (FedLESAM~\cite{qu2024fedlesam}, HPFL~\cite{chen2025hpfl})---with EHDS governance mechanisms that no existing framework provides. Experimental validation on real clinical datasets demonstrates that personalized FL (Ditto) achieves only a 6.6pp gap vs.\ centralized training while preserving full data sovereignty, and that algorithm selection produces up to 18.7pp differences on heterogeneous clinical data.
+
+Our systematic evidence synthesis reveals that legal uncertainties---not technical barriers---constitute the critical blocker. The 23\% production deployment rate~\cite{frohlich2025reality} will not improve through engineering advances alone. Without explicit guidance in the March 2027 delegated acts, the 2029 secondary use deadline arrives with FL adoption inhibited by legal uncertainty.
+
+\textbf{Future work} should prioritize: (1) empirical validation through HealthData@EU pilot integration with production EHR systems; (2) citizen attitude studies examining FL acceptance, trust factors, and opt-out intentions across diverse European populations; (3) extended experimental evaluation on clinical imaging (Chest X-ray, Brain Tumor MRI, Skin Cancer) with 7 algorithms including FedLESAM and HPFL; (4) longitudinal tracking of implementation trajectories across Member States to identify effective governance patterns; (5) economic sustainability modeling for HDAB operations and FL infrastructure.
+
+Only through coordinated action across EU policymakers, national authorities, and healthcare organizations can Federated Learning fulfill its potential as the enabling technology for privacy-preserving health analytics benefiting 450 million European citizens.
+
+% ============================================================================
+% ACKNOWLEDGMENTS
+% ============================================================================
+\section*{Acknowledgments}
+The author thanks Prof.~Sadi Alawadi for supervision and guidance.
+
+% ============================================================================
+% REFERENCES
+% ============================================================================
+\bibliographystyle{IEEEtran}
+
+\begin{thebibliography}{48}
+
+% === EHDS Regulation and Policy ===
+\bibitem{eu2025ehds}
+European Commission, ``Regulation (EU) 2025/327 on the European Health Data Space,'' \textit{Official Journal of the EU}, L 2025/327, Mar. 2025.
+
+\bibitem{staunton2024ethical}
+C. Staunton \textit{et al.}, ``Ethical and social reflections on the proposed European Health Data Space,'' \textit{Eur.~J.~Human Genetics}, vol.~32, no.~5, pp.~498--505, 2024.
+
+\bibitem{quinn2024gdpr}
+P. Quinn, E. Ellyne, and C. Yao, ``Will the GDPR restrain health data access bodies under the EHDS?'' \textit{Computer Law \& Security Review}, vol.~54, art.~105993, 2024.
+
+\bibitem{tehdas2024ready}
+TEHDAS Joint Action, ``Are EU member states ready for the European Health Data Space?'' \textit{Eur.~J.~Public Health}, vol.~34, no.~6, pp.~1102--1108, 2024.
+
+% === EHDS Implementation Studies ===
+\bibitem{frohlich2025reality}
+H. Fr\"ohlich \textit{et al.}, ``Reality check: The aspirations of the EHDS amidst challenges in decentralized data analysis,'' \textit{J.~Med.~Internet Res.}, vol.~27, art.~e76491, 2025.
+
+\bibitem{vandrumpt2025pets}
+S. van Drumpt \textit{et al.}, ``Secondary use under the European Health Data Space: Setting the scene and towards a research agenda on privacy-enhancing technologies,'' \textit{Frontiers in Digital Health}, vol.~7, art.~1602101, 2025.
+
+\bibitem{hussein2025interop}
+R. Hussein \textit{et al.}, ``Interoperability framework of the EHDS for secondary use,'' \textit{J.~Med.~Internet Res.}, vol.~27, art.~e69813, 2025.
+
+\bibitem{forster2025journeys}
+R. Forster \textit{et al.}, ``User journeys in cross-European secondary use of health data,'' \textit{Eur.~J.~Public Health}, vol.~35, Suppl.~3, pp.~iii18--iii24, 2025.
+
+\bibitem{svingel2025hdab}
+L. Svingel \textit{et al.}, ``Shaping the future EHDS: Recommendations for implementation of Health Data Access Bodies,'' \textit{Eur.~J.~Public Health}, vol.~35, Suppl.~3, pp.~iii32--iii38, 2025.
+
+% === EHDS Pilot ===
+\bibitem{christiansen2025pilot}
+C. Christiansen \textit{et al.}, ``Piloting an infrastructure for secondary use of health data: Learnings from the HealthData@EU Pilot,'' \textit{Eur.~J.~Public Health}, vol.~35, Suppl.~3, pp.~iii3--iii4, 2025.
+
+\bibitem{shabani2024ehds}
+M. Shabani and P. Borry, ``The European Health Data Space: Challenges and opportunities for health data governance,'' \textit{Eur.~J.~Human Genetics}, vol.~32, no.~8, pp.~891--897, 2024.
+
+% === EHDS Boost ===
+\bibitem{ganna2024boost}
+A. Ganna, E. Ingelsson, and D. Posthuma, ``The European Health Data Space can be a boost for research beyond borders,'' \textit{Nature Medicine}, vol.~30, pp.~3053--3056, 2024.
+
+% === FL Foundations ===
+\bibitem{mcmahan2017communication}
+B. McMahan \textit{et al.}, ``Communication-efficient learning of deep networks from decentralized data,'' in \textit{Proc. AISTATS}, pp.~1273--1282, 2017.
+
+\bibitem{li2020federated}
+T. Li \textit{et al.}, ``Federated optimization in heterogeneous networks,'' in \textit{Proc. MLSys}, vol.~2, pp.~429--450, 2020.
+
+\bibitem{kairouz2021advances}
+P. Kairouz \textit{et al.}, ``Advances and open problems in federated learning,'' \textit{Found.~Trends Mach.~Learn.}, vol.~14, no.~1--2, pp.~1--210, 2021.
+
+\bibitem{rieke2020future}
+N. Rieke \textit{et al.}, ``The future of digital health with federated learning,'' \textit{npj Digital Medicine}, vol.~3, art.~119, 2020.
+
+\bibitem{bonawitz2019scale}
+K. Bonawitz \textit{et al.}, ``Towards federated learning at scale: A system design,'' in \textit{Proc. MLSys}, pp.~374--388, 2019.
+
+% === FL Framework Reviews ===
+\bibitem{chaverodiez2026fair}
+M. Chavero-Diez \textit{et al.}, ``Federated learning frameworks: Quality and interoperability for biomedical research,'' \textit{NAR Genomics Bioinformatics}, vol.~8, no.~1, art.~lqag010, 2026.
+
+% === FL Reviews ===
+\bibitem{teo2024systematic}
+Z. L. Teo \textit{et al.}, ``Federated machine learning in healthcare: A systematic review,'' \textit{Cell Reports Medicine}, vol.~5, no.~2, art.~101419, 2024.
+
+\bibitem{peng2024systematic}
+L. Peng \textit{et al.}, ``Federated machine learning in healthcare: A systematic review on clinical applications and technical architecture,'' \textit{Comput.~Methods Programs Biomed.}, vol.~247, art.~108066, 2024.
+
+% === Privacy and Security ===
+\bibitem{zhu2019deep}
+L. Zhu, Z. Liu, and S. Han, ``Deep leakage from gradients,'' in \textit{Proc. NeurIPS}, vol.~32, pp.~14774--14784, 2019.
+
+\bibitem{shokri2017membership}
+R. Shokri \textit{et al.}, ``Membership inference attacks against machine learning models,'' in \textit{Proc. IEEE S\&P}, pp.~3--18, 2017.
+
+\bibitem{carlini2022privacy}
+N. Carlini \textit{et al.}, ``Membership inference attacks from first principles,'' in \textit{Proc. IEEE S\&P}, pp.~1897--1914, 2022.
+
+\bibitem{dwork2014dp}
+C. Dwork and A. Roth, ``The algorithmic foundations of differential privacy,'' \textit{Found.~Trends Theor.~Comput.~Sci.}, vol.~9, no.~3--4, pp.~211--407, 2014.
+
+\bibitem{abadi2016deep}
+M. Abadi \textit{et al.}, ``Deep learning with differential privacy,'' in \textit{Proc. ACM CCS}, pp.~308--318, 2016.
+
+\bibitem{mironov2017renyi}
+I. Mironov, ``R\'enyi differential privacy,'' in \textit{Proc. IEEE CSF}, pp.~263--275, 2017.
+
+% === FL Healthcare ===
+\bibitem{dayan2021federated}
+I. Dayan \textit{et al.}, ``Federated learning for predicting clinical outcomes in patients with COVID-19,'' \textit{Nature Medicine}, vol.~27, no.~10, pp.~1735--1743, 2021.
+
+% === FL Healthcare ===
+\bibitem{sheller2020federated}
+M. J. Sheller \textit{et al.}, ``Federated learning in medicine: Facilitating multi-institutional collaborations without sharing patient data,'' \textit{Scientific Reports}, vol.~10, art.~12598, 2020.
+
+% === FL Algorithms ===
+\bibitem{karimireddy2020scaffold}
+S. P. Karimireddy \textit{et al.}, ``SCAFFOLD: Stochastic controlled averaging for federated learning,'' in \textit{Proc. ICML}, pp.~5132--5143, 2020.
+
+\bibitem{wang2020tackling}
+J. Wang \textit{et al.}, ``Tackling the objective inconsistency problem in heterogeneous federated optimization,'' in \textit{Proc. NeurIPS}, vol.~33, pp.~7611--7623, 2020.
+
+\bibitem{reddi2021adaptive}
+S. Reddi \textit{et al.}, ``Adaptive federated optimization,'' in \textit{Proc. ICLR}, 2021.
+
+\bibitem{acar2021feddyn}
+D. A. E. Acar, Y. Zhao, R. M. Navarro, M. Mattina, P. N. Whatmough, and V. Saligrama, ``Federated learning based on dynamic regularization,'' in \textit{Proc. ICLR}, 2021.
+
+\bibitem{li2021ditto}
+T. Li, S. Hu, A. Beirami, and V. Smith, ``Ditto: Fair and robust federated learning through personalization,'' in \textit{Proc. ICML}, PMLR 139, pp.~6357--6368, 2021.
+
+\bibitem{fallah2020personalized}
+A. Fallah, A. Mokhtari, and A. Ozdaglar, ``Personalized federated learning with Moreau envelopes,'' in \textit{Proc. NeurIPS}, vol.~33, pp.~21394--21405, 2020.
+
+\bibitem{wei2020federated}
+K. Wei \textit{et al.}, ``Federated learning with differential privacy: Algorithms and performance analysis,'' \textit{IEEE Trans.~Inf.~Forensics Secur.}, vol.~15, pp.~3454--3469, 2020.
+
+\bibitem{jordon2022synthetic}
+J. Jordon \textit{et al.}, ``Synthetic data---A privacy mirage?'' \textit{J.~Mach.~Learn.~Res.}, vol.~23, no.~1, art.~298, 2022.
+
+\bibitem{qu2022fedsam}
+Z. Qu \textit{et al.}, ``Generalized federated learning via sharpness aware minimization,'' in \textit{Proc. ICML}, PMLR 162, pp.~18250--18280, 2022.
+
+\bibitem{zhang2022fedlc}
+J. Zhang \textit{et al.}, ``Federated learning with label distribution skew via logits calibration,'' in \textit{Proc. ICML}, PMLR 162, pp.~26311--26329, 2022.
+
+\bibitem{shi2023feddecorr}
+Y. Shi \textit{et al.}, ``Towards understanding and mitigating dimensional collapse in heterogeneous federated learning,'' in \textit{Proc. ICLR}, 2023.
+
+\bibitem{sun2023fedspeed}
+Y. Sun \textit{et al.}, ``FedSpeed: Larger local interval, less communication round, and higher generalization accuracy,'' in \textit{Proc. ICLR}, 2023.
+
+\bibitem{jhunjhunwala2023fedexp}
+D. Jhunjhunwala, S. Wang, and G. Joshi, ``FedExP: Speeding up federated averaging via extrapolation,'' in \textit{Proc. ICLR}, 2023.
+
+\bibitem{qu2024fedlesam}
+Z. Qu \textit{et al.}, ``FedLESAM: Federated learning with locally estimated sharpness-aware minimization,'' in \textit{Proc. ICML}, PMLR 235, 2024. (Spotlight)
+
+\bibitem{chen2025hpfl}
+Y. Chen, X. Cao, and L. Sun, ``HPFL: Hot-pluggable federated learning with shared backbone and personalized classifiers,'' in \textit{Proc. ICLR}, 2025.
+
+% === FL Frameworks ===
+\bibitem{beutel2023flower}
+D. J. Beutel \textit{et al.}, ``Flower: A friendly federated learning research framework,'' \textit{arXiv:2007.14390}, 2023.
+
+\bibitem{nvflare2023}
+NVIDIA, ``NVIDIA FLARE: An open-source federated learning platform,'' \textit{GitHub Repository}, 2023.
+
+\bibitem{tff2019}
+Google, ``TensorFlow Federated: Machine learning on decentralized data,'' 2019.
+
+% === FedBN ===
+\bibitem{li2021fedbn}
+X. Li \textit{et al.}, ``FedBN: Federated learning on non-IID features via local batch normalization,'' in \textit{Proc. ICLR}, 2021.
+
+% === Deep Learning and Datasets ===
+\bibitem{he2016deep}
+K. He, X. Zhang, S. Ren, and J. Sun, ``Deep residual learning for image recognition,'' in \textit{Proc. IEEE CVPR}, pp.~770--778, 2016.
+
+\bibitem{chestxray2018}
+D. S. Kermany \textit{et al.}, ``Identifying medical diagnoses and treatable diseases by image-based deep learning,'' \textit{Cell}, vol.~172, no.~5, pp.~1122--1131, 2018.
+
+\end{thebibliography}
+
+\end{document}
