@@ -79,7 +79,8 @@ class ImageFederatedTrainer:
         SUPPORTED_ALGORITHMS = [
             "FedAvg", "FedProx", "SCAFFOLD", "FedAdam", "FedYogi",
             "FedAdagrad", "FedNova", "FedDyn", "Per-FedAvg", "Ditto",
-            "FedLC", "FedSAM", "FedDecorr", "FedSpeed", "FedExP"
+            "FedLC", "FedSAM", "FedDecorr", "FedSpeed", "FedExP",
+            "FedLESAM", "HPFL"
         ]
         if algorithm not in SUPPORTED_ALGORITHMS:
             raise ValueError(
@@ -221,6 +222,22 @@ class ImageFederatedTrainer:
                 for i in range(self.num_clients)
             }
 
+        # FedLESAM: previous global model params (Fan et al., ICML 2024)
+        if algorithm == "FedLESAM":
+            self.prev_global_params = {
+                name: param.clone().detach()
+                for name, param in self.global_model.named_parameters()
+            }
+
+        # HPFL: local classifiers per client (Shen et al., ICLR 2025)
+        if algorithm == "HPFL":
+            self._hpfl_classifier_names = self._identify_classifier_params()
+            self.client_classifiers = {
+                i: {n: self.global_model.state_dict()[n].clone()
+                    for n in self._hpfl_classifier_names}
+                for i in range(self.num_clients)
+            }
+
         # Byzantine defense (lazy-initialized)
         self._byzantine_manager = None
         self._last_byzantine_result = None
@@ -230,6 +247,14 @@ class ImageFederatedTrainer:
 
         # History
         self.history = []
+
+    def _identify_classifier_params(self):
+        """Identify classifier (head) parameter names for HPFL algorithm."""
+        names = set()
+        for n, _ in self.global_model.named_parameters():
+            if 'classifier' in n or 'fc.' in n or 'head.' in n:
+                names.add(n)
+        return names
 
     def _get_client_dataloader(self, client_id: int) -> DataLoader:
         """Create DataLoader for client with data augmentation."""
@@ -297,6 +322,12 @@ class ImageFederatedTrainer:
                 name: param.clone().detach()
                 for name, param in self.global_model.named_parameters()
             }
+
+        # HPFL: load client's local classifier before training
+        if self.algorithm == "HPFL":
+            for n, p in local_model.named_parameters():
+                if n in self._hpfl_classifier_names:
+                    p.data.copy_(self.client_classifiers[client_id][n])
 
         # Store initial params for SCAFFOLD
         if self.algorithm == "SCAFFOLD":
@@ -400,6 +431,39 @@ class ImageFederatedTrainer:
 
                     # Skip normal backward - already done
                     # Gradient clipping
+                    clip_norm = self.dp_clip_norm if self.dp_enabled else 1.0
+                    torch.nn.utils.clip_grad_norm_(local_model.parameters(), clip_norm)
+                    optimizer.step()
+
+                    total_loss += loss.item() * len(batch_y)
+                    preds = outputs.argmax(dim=1)
+                    total_correct += (preds == batch_y).sum().item()
+                    total_samples += len(batch_y)
+                    steps += 1
+                    continue  # Skip standard backward/step below
+
+                # FedLESAM: globally estimated sharpness-aware minimization (Fan et al., ICML 2024)
+                if self.algorithm == "FedLESAM":
+                    loss.backward()
+
+                    global_params_dict = dict(self.global_model.named_parameters())
+                    delta_norm = sum(
+                        (self.prev_global_params[n] - global_params_dict[n].data).norm() ** 2
+                        for n in self.prev_global_params
+                    ) ** 0.5
+
+                    if delta_norm > 1e-12:
+                        old_params = {n: p.data.clone() for n, p in local_model.named_parameters()}
+                        for n, p in local_model.named_parameters():
+                            delta = self.prev_global_params[n] - global_params_dict[n].data
+                            p.data += 0.05 * delta / delta_norm
+                        optimizer.zero_grad()
+                        outputs2 = local_model(batch_X)
+                        loss2 = criterion(outputs2, batch_y)
+                        loss2.backward()
+                        for n, p in local_model.named_parameters():
+                            p.data = old_params[n]
+
                     clip_norm = self.dp_clip_norm if self.dp_enabled else 1.0
                     torch.nn.utils.clip_grad_norm_(local_model.parameters(), clip_norm)
                     optimizer.step()
@@ -522,6 +586,14 @@ class ImageFederatedTrainer:
                 self.fedspeed_corrections[client_id][name] -= (
                     (1.0 / fedspeed_lambda) * (param.data - global_param.data)
                 )
+
+        # HPFL: save client's updated classifier (Shen et al., ICLR 2025)
+        if self.algorithm == "HPFL":
+            self.client_classifiers[client_id] = {
+                n: p.data.clone()
+                for n, p in local_model.named_parameters()
+                if n in self._hpfl_classifier_names
+            }
 
         # Ditto: train personalized model with regularization towards global
         if self.algorithm == "Ditto":
@@ -747,15 +819,25 @@ class ImageFederatedTrainer:
 
         else:
             # FedAvg, FedProx, SCAFFOLD, Per-FedAvg, Ditto,
-            # FedLC, FedSAM, FedDecorr, FedSpeed: weighted average
+            # FedLC, FedSAM, FedDecorr, FedSpeed, FedLESAM, HPFL: weighted average
             for name, param in self.global_model.named_parameters():
                 # FedBN: skip normalization layers (keep local stats)
                 if self.use_fedbn and self._is_norm_param(name):
+                    continue
+                # HPFL: skip classifier params (keep local per client)
+                if self.algorithm == "HPFL" and name in self._hpfl_classifier_names:
                     continue
                 weighted_update = torch.zeros_like(param)
                 for cr in client_results:
                     weighted_update += cr.model_update[name] * cw[cr.client_id]
                 param.data += weighted_update
+
+        # FedLESAM: update prev_global_params after aggregation
+        if self.algorithm == "FedLESAM":
+            self.prev_global_params = {
+                name: param.clone().detach()
+                for name, param in self.global_model.named_parameters()
+            }
 
         # SCAFFOLD: update server control variate using proper delta
         if self.algorithm == "SCAFFOLD":
@@ -791,9 +873,20 @@ class ImageFederatedTrainer:
 
         criterion = nn.CrossEntropyLoss()
 
+        # HPFL: save global classifier before per-client evaluation
+        if self.algorithm == "HPFL":
+            _saved_cls = {n: p.data.clone() for n, p in self.global_model.named_parameters()
+                          if n in self._hpfl_classifier_names}
+
         amp_ctx = torch.autocast(device_type=self.device.type, dtype=self.amp_dtype) if self.use_amp else nullcontext()
         with torch.no_grad(), amp_ctx:
             for client_id in range(self.num_clients):
+                # HPFL: load client's local classifier
+                if self.algorithm == "HPFL":
+                    for n, p in self.global_model.named_parameters():
+                        if n in self._hpfl_classifier_names:
+                            p.data.copy_(self.client_classifiers[client_id][n])
+
                 X, y = self.client_test_data[client_id]
 
                 # Process in batches for memory efficiency
@@ -812,6 +905,12 @@ class ImageFederatedTrainer:
                     all_labels.extend(y_batch.cpu().numpy())
                     all_probs.extend(probs.cpu().numpy())
                     total_samples += len(y_batch)
+
+        # HPFL: restore global classifier after evaluation
+        if self.algorithm == "HPFL":
+            for n, p in self.global_model.named_parameters():
+                if n in self._hpfl_classifier_names:
+                    p.data.copy_(_saved_cls[n])
 
         all_preds = np.array(all_preds)
         all_labels = np.array(all_labels)
@@ -1159,6 +1258,13 @@ class ImageFederatedTrainer:
         if self.algorithm == "FedSpeed":
             checkpoint["fedspeed_corrections"] = self.fedspeed_corrections
 
+        if self.algorithm == "FedLESAM":
+            checkpoint["prev_global_params"] = self.prev_global_params
+
+        if self.algorithm == "HPFL":
+            checkpoint["client_classifiers"] = self.client_classifiers
+            checkpoint["hpfl_classifier_names"] = list(self._hpfl_classifier_names)
+
         os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
         torch.save(checkpoint, path)
 
@@ -1246,6 +1352,17 @@ class ImageFederatedTrainer:
             self.fedspeed_corrections = {
                 cid: {k: v.to(self.device) for k, v in corr.items()}
                 for cid, corr in checkpoint["fedspeed_corrections"].items()
+            }
+
+        if self.algorithm == "FedLESAM" and "prev_global_params" in checkpoint:
+            self.prev_global_params = {
+                k: v.to(self.device) for k, v in checkpoint["prev_global_params"].items()
+            }
+
+        if self.algorithm == "HPFL" and "client_classifiers" in checkpoint:
+            self.client_classifiers = {
+                cid: {k: v.to(self.device) for k, v in cls.items()}
+                for cid, cls in checkpoint["client_classifiers"].items()
             }
 
         if "client_steps" in checkpoint:

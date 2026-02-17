@@ -1,0 +1,250 @@
+{
+  "completed": {
+    "Brain_Tumor_FedAvg_42": {
+      "dataset": "Brain_Tumor",
+      "algorithm": "FedAvg",
+      "seed": 42,
+      "history": [
+        {
+          "round": 1,
+          "accuracy": 0.26514611546685674,
+          "loss": 1.7720105936929997,
+          "f1": 0.1047887323943662,
+          "precision": 0.06628652886671418,
+          "recall": 0.25,
+          "auc": 0.6317761386414529
+        },
+        {
+          "round": 2,
+          "accuracy": 0.26514611546685674,
+          "loss": 3.6164690843243643,
+          "f1": 0.1047887323943662,
+          "precision": 0.06628652886671418,
+          "recall": 0.25,
+          "auc": 0.46702489820635606
+        },
+        {
+          "round": 3,
+          "accuracy": 0.26514611546685674,
+          "loss": 4.099574809404076,
+          "f1": 0.1047887323943662,
+          "precision": 0.06628652886671418,
+          "recall": 0.25,
+          "auc": 0.5357398192328011
+        },
+        {
+          "round": 4,
+          "accuracy": 0.26514611546685674,
+          "loss": 3.675414387872197,
+          "f1": 0.1047887323943662,
+          "precision": 0.06628652886671418,
+          "recall": 0.25,
+          "auc": 0.7076984734390276
+        },
+        {
+          "round": 5,
+          "accuracy": 0.26514611546685674,
+          "loss": 3.7723564455871146,
+          "f1": 0.1047887323943662,
+          "precision": 0.06628652886671418,
+          "recall": 0.25,
+          "auc": 0.7095936995766894
+        }
+      ],
+      "final_metrics": {
+        "round": 5,
+        "accuracy": 0.26514611546685674,
+        "loss": 3.7723564455871146,
+        "f1": 0.1047887323943662,
+        "precision": 0.06628652886671418,
+        "recall": 0.25,
+        "auc": 0.7095936995766894
+      },
+      "per_client_acc": {
+        "0": 0.054466230936819175,
+        "1": 0.3333333333333333,
+        "2": 0.10695187165775401,
+        "3": 0.44370860927152317,
+        "4": 0.4505050505050505
+      },
+      "fairness": {
+        "mean": 0.2778,
+        "std": 0.167,
+        "min": 0.0545,
+        "max": 0.4505,
+        "jain_index": 0.7345,
+        "gini": 0.3251
+      },
+      "runtime_seconds": 442.4,
+      "config": {
+        "num_clients": 5,
+        "num_rounds": 5,
+        "local_epochs": 1,
+        "batch_size": 32,
+        "learning_rate": 0.0005,
+        "model_type": "resnet18",
+        "is_iid": false,
+        "alpha": 0.5,
+        "freeze_backbone": false,
+        "freeze_level": 1,
+        "use_fedbn": true,
+        "use_class_weights": true,
+        "use_amp": true,
+        "mu": 0.1
+      },
+      "stopped_early": false,
+      "actual_rounds": 5,
+      "best_metrics": {
+        "accuracy": 0.26514611546685674,
+        "round": 1
+      },
+      "best_round": 1
+    },
+    "Brain_Tumor_FedProx_42": {
+      "dataset": "Brain_Tumor",
+      "algorithm": "FedProx",
+      "seed": 42,
+      "history": [
+        {
+          "round": 1,
+          "accuracy": 0.23877405559515325,
+          "loss": 1.6053208368468608,
+          "f1": 0.09637514384349828,
+          "precision": 0.05969351389878831,
+          "recall": 0.25,
+          "auc": 0.6792198527628692
+        },
+        {
+          "round": 2,
+          "accuracy": 0.26514611546685674,
+          "loss": 3.196461607538116,
+          "f1": 0.1047887323943662,
+          "precision": 0.06628652886671418,
+          "recall": 0.25,
+          "auc": 0.577887351144489
+        },
+        {
+          "round": 3,
+          "accuracy": 0.26514611546685674,
+          "loss": 3.616747014452879,
+          "f1": 0.1047887323943662,
+          "precision": 0.06628652886671418,
+          "recall": 0.25,
+          "auc": 0.5331331754750888
+        },
+        {
+          "round": 4,
+          "accuracy": 0.26514611546685674,
+          "loss": 4.271908151874012,
+          "f1": 0.1047887323943662,
+          "precision": 0.06628652886671418,
+          "recall": 0.25,
+          "auc": 0.5499547073648713
+        },
+        {
+          "round": 5,
+          "accuracy": 0.26514611546685674,
+          "loss": 3.9845345268399055,
+          "f1": 0.1047887323943662,
+          "precision": 0.06628652886671418,
+          "recall": 0.25,
+          "auc": 0.645065556653714
+        }
+      ],
+      "final_metrics": {
+        "round": 5,
+        "accuracy": 0.26514611546685674,
+        "loss": 3.9845345268399055,
+        "f1": 0.1047887323943662,
+        "precision": 0.06628652886671418,
+        "recall": 0.25,
+        "auc": 0.645065556653714
+      },
+      "per_client_acc": {
+        "0": 0.054466230936819175,
+        "1": 0.3333333333333333,
+        "2": 0.10695187165775401,
+        "3": 0.44370860927152317,
+        "4": 0.4505050505050505
+      },
+      "fairness": {
+        "mean": 0.2778,
+        "std": 0.167,
+        "min": 0.0545,
+        "max": 0.4505,
+        "jain_index": 0.7345,
+        "gini": 0.3251
+      },
+      "runtime_seconds": 514.8,
+      "config": {
+        "num_clients": 5,
+        "num_rounds": 5,
+        "local_epochs": 1,
+        "batch_size": 32,
+        "learning_rate": 0.0005,
+        "model_type": "resnet18",
+        "is_iid": false,
+        "alpha": 0.5,
+        "freeze_backbone": false,
+        "freeze_level": 1,
+        "use_fedbn": true,
+        "use_class_weights": true,
+        "use_amp": true,
+        "mu": 0.1
+      },
+      "stopped_early": false,
+      "actual_rounds": 5,
+      "best_metrics": {
+        "accuracy": 0.26514611546685674,
+        "round": 2
+      },
+      "best_round": 2
+    }
+  },
+  "metadata": {
+    "total_experiments": 35,
+    "algorithms": [
+      "FedAvg",
+      "FedProx",
+      "Ditto",
+      "FedLC",
+      "FedExP",
+      "FedLESAM",
+      "HPFL"
+    ],
+    "seeds": [
+      42
+    ],
+    "imaging_config": {
+      "num_clients": 5,
+      "num_rounds": 5,
+      "local_epochs": 1,
+      "batch_size": 32,
+      "learning_rate": 0.001,
+      "model_type": "resnet18",
+      "is_iid": false,
+      "alpha": 0.5,
+      "freeze_backbone": false,
+      "freeze_level": 1,
+      "use_fedbn": true,
+      "use_class_weights": true,
+      "use_amp": true,
+      "mu": 0.1
+    },
+    "tabular_config": {
+      "num_rounds": 5,
+      "local_epochs": 2,
+      "batch_size": 32,
+      "learning_rate": 0.01,
+      "mu": 0.1
+    },
+    "early_stopping": {
+      "enabled": false
+    },
+    "start_time": "2026-02-17T10:15:15.611728",
+    "last_save": "2026-02-17T10:31:15.304360",
+    "version": "v2",
+    "done": 2,
+    "elapsed_seconds": 959.6710970401764
+  }
+}
