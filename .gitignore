@@ -132,6 +132,11 @@ secrets.yaml
 # -----------------------------------------------------------------------------
 fl-ehds-framework/data/*/
 
+# Experiment results (large JSON checkpoints + generated outputs)
+fl-ehds-framework/benchmarks/paper_results/
+fl-ehds-framework/benchmarks/paper_results_tabular/
+fl-ehds-framework/benchmarks/paper_results_delta/
+
 # Large model checkpoints
 *.pt
 *.pth

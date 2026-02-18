@@ -214,6 +214,11 @@ def _partition_dirichlet(X, y, num_clients, alpha, test_split, rng):
         rng.shuffle(class_idx)
         proportions = rng.dirichlet([alpha] * num_clients)
         proportions = (proportions * len(class_idx)).astype(int)
+        # Ensure each client gets at least 1 sample per class (prevents empty partitions)
+        for i in range(num_clients):
+            if proportions[i] == 0 and len(class_idx) > num_clients:
+                proportions[i] = 1
+        # Adjust first client for any remainder
         proportions[0] += len(class_idx) - proportions.sum()
         start = 0
         for cid in range(num_clients):
@@ -222,9 +227,14 @@ def _partition_dirichlet(X, y, num_clients, alpha, test_split, rng):
             start = end
     client_train, client_test = {}, {}
     for cid in range(num_clients):
-        indices = np.array(client_indices[cid])
+        indices = np.array(client_indices[cid], dtype=np.int64)
+        if len(indices) == 0:
+            # Safety fallback: empty client gets a random sample
+            indices = np.array([rng.randint(0, len(X))], dtype=np.int64)
         rng.shuffle(indices)
         n_test = max(1, int(len(indices) * test_split))
+        if n_test >= len(indices):
+            n_test = max(1, len(indices) // 2)
         client_train[cid] = (X[indices[n_test:]], y[indices[n_test:]])
         client_test[cid] = (X[indices[:n_test]], y[indices[:n_test]])
     return client_train, client_test
