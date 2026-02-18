@@ -81,7 +81,7 @@ ALGO_INFO = {
     "HPFL":     {"year": 2025, "venue": "ICLR",           "role": "Hot-pluggable nodes"},
 }
 
-SEEDS = [42, 123, 456]
+SEEDS = [42, 123, 456, 789, 999]
 
 # === ISOLATED OUTPUT — no conflicts with imaging experiments ===
 OUTPUT_DIR = FRAMEWORK_DIR / "benchmarks" / "paper_results_tabular"

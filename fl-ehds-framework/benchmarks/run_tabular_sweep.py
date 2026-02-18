@@ -63,7 +63,7 @@ CHECKPOINT_FILE = "checkpoint_sweep.json"
 LOG_FILE = "experiment_sweep.log"
 
 ALGORITHMS = ["FedAvg", "FedProx", "Ditto", "FedLC", "FedExP", "FedLESAM", "HPFL"]
-SEEDS = [42, 123, 456]
+SEEDS = [42, 123, 456, 789, 999]
 
 # Per-dataset BASELINE training configs (same as run_tabular_optimized.py)
 BASELINE_CONFIGS = {

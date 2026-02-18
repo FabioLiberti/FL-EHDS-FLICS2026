@@ -1,7 +1,7 @@
 % ============================================================================
 % Supplementary Material for FL-EHDS (FLICS 2026)
 % ============================================================================
-\documentclass[conference]{IEEEtran}
+\documentclass[conference,a4paper]{IEEEtran}
 
 \usepackage{cite}
 \usepackage{amsmath,amssymb,amsfonts}
@@ -1012,7 +1012,7 @@ Repository: \url{https://github.com/FabioLiberti/FL-EHDS-FLICS2026}
 \label{sec:architecture_detail}
 % ============================================================================
 
-This section provides a comprehensive technical specification of the FL-EHDS three-layer architecture, detailing all modules, services, protocols, and standards implemented in the reference framework. Figure~\ref{fig:architecture} in the main paper provides the high-level view; Figure~\ref{fig:arch_detailed} presents the detailed component-level diagram; the description below enumerates every component with its specific technical parameters.
+This section provides a comprehensive technical specification of the FL-EHDS three-layer architecture, detailing all modules, services, protocols, and standards implemented in the reference framework. Figure~2 in the main paper provides the high-level view; Figure~\ref{fig:arch_detailed} presents the detailed component-level diagram; the description below enumerates every component with its specific technical parameters.
 
 \begin{figure*}[t]
 \centering
@@ -1081,7 +1081,7 @@ Each data holder institution (hospitals, disease registries, research centers ac
 \label{sec:extended_tabular}
 % ============================================================================
 
-This section presents comprehensive experimental results from 731 federated learning experiments across three tabular healthcare datasets: PTB-XL ECG (21,799 records, 52 European recording sites, 5-class cardiac diagnosis), Cardiovascular Disease (70,000 patients, binary classification), and Breast Cancer Wisconsin (569 samples, binary classification). The evaluation comprises a baseline comparison (63 experiments, 7 algorithms $\times$ 3 datasets $\times$ 3 seeds) and three sweep phases: heterogeneity ($\alpha$ variation, 252 experiments), client scaling (189 experiments), and learning rate sensitivity (108 experiments). All results are reproducible via the benchmark suite.
+This section presents comprehensive experimental results from 1,230 federated learning experiments across three tabular healthcare datasets: PTB-XL ECG (21,799 records, 52 European recording sites, 5-class cardiac diagnosis), Cardiovascular Disease (70,000 patients, binary classification), and Breast Cancer Wisconsin (569 samples, binary classification). The evaluation comprises a baseline comparison (105 experiments, 7 algorithms $\times$ 3 datasets $\times$ 5 seeds) and three sweep phases: heterogeneity ($\alpha$ variation, 560 experiments), client scaling (385 experiments), and learning rate sensitivity (180 experiments). All results are reproducible via the benchmark suite.
 
 \subsection{Heterogeneity Impact}
 
@@ -1089,41 +1089,41 @@ Table~\ref{tab:heterogeneity} shows accuracy as a function of Dirichlet $\alpha$
 
 \begin{table*}[t]
 \centering
-\caption{Impact of data heterogeneity ($\alpha$) on FL accuracy (\%). Lower $\alpha$ = more non-IID. Mean over 3 seeds. PX = PTB-XL, CV = Cardiovascular, BC = Breast Cancer.}
+\caption{Impact of data heterogeneity ($\alpha$) on FL accuracy (\%). Lower $\alpha$ = more non-IID. Mean over 5 seeds. PX = PTB-XL, CV = Cardiovascular, BC = Breast Cancer.}
 \label{tab:heterogeneity}
 \small
 \begin{tabular}{llcccccc}
 \toprule
 \textbf{DS} & \textbf{Algorithm} & \textbf{IID} & \textbf{$\alpha$=0.1} & \textbf{$\alpha$=0.3} & \textbf{$\alpha$=0.5} & \textbf{$\alpha$=1.0} & \textbf{Site} \\
 \midrule
-PX & FedAvg & 90.8 & 88.9 & 91.3 & 91.1 & 91.9 & 92.0 \\
- & FedProx & 91.1 & 88.8 & 91.3 & 91.1 & 91.9 & 91.6 \\
- & Ditto & 91.9 & \textbf{96.4} & \textbf{96.6} & \textbf{95.4} & 93.3 & 91.8 \\
- & FedLC & 90.8 & 88.9 & 91.3 & 90.6 & 91.4 & 92.0 \\
- & FedExP & 90.8 & 88.9 & 91.3 & 91.1 & 91.9 & 92.0 \\
- & FedLESAM & 90.8 & 88.9 & 91.3 & 91.1 & 91.9 & 92.0 \\
- & HPFL & 91.8 & 96.3 & 96.0 & 94.9 & \textbf{93.8} & \textbf{92.6} \\
+PX & FedAvg & 90.8 & 89.8 & 91.2 & 90.8 & 91.7 & 91.9 \\
+ & FedProx & 91.0 & 89.7 & 91.3 & 90.7 & 91.7 & 91.6 \\
+ & Ditto & 91.7 & \textbf{96.5} & \textbf{96.5} & \textbf{95.4} & 93.9 & 91.8 \\
+ & FedLC & 90.7 & 89.7 & 91.2 & 90.4 & 91.4 & 91.9 \\
+ & FedExP & 90.8 & 89.8 & 91.2 & 90.8 & 91.7 & 92.0 \\
+ & FedLESAM & 90.8 & 89.8 & 91.2 & 90.8 & 91.7 & 91.9 \\
+ & HPFL & 91.3 & 96.3 & 96.2 & 95.2 & \textbf{94.0} & \textbf{92.5} \\
 \midrule
-CV & FedAvg & 72.6 & 60.7 & 63.3 & 71.0 & 72.6 & -- \\
- & FedProx & 72.6 & 60.9 & 63.2 & 71.4 & 72.6 & -- \\
- & Ditto & 72.7 & \textbf{89.3} & \textbf{91.5} & 81.7 & 81.4 & -- \\
- & FedLC & 72.6 & 60.9 & 63.5 & 70.8 & 72.6 & -- \\
- & FedExP & 72.6 & 60.7 & 63.4 & 71.0 & 72.6 & -- \\
- & FedLESAM & 72.6 & 60.7 & 63.4 & 71.0 & 72.6 & -- \\
- & HPFL & \textbf{72.6} & 89.2 & 91.5 & \textbf{81.7} & \textbf{81.2} & -- \\
+CV & FedAvg & 72.7 & 61.2 & 65.7 & 71.1 & 72.6 & -- \\
+ & FedProx & 72.7 & 62.5 & 65.9 & 71.6 & 72.5 & -- \\
+ & Ditto & 72.6 & \textbf{92.4} & \textbf{90.7} & \textbf{82.5} & 81.5 & -- \\
+ & FedLC & 72.7 & 61.9 & 66.0 & 71.1 & 72.6 & -- \\
+ & FedExP & 72.7 & 61.2 & 65.7 & 71.1 & 72.6 & -- \\
+ & FedLESAM & 72.7 & 61.2 & 65.7 & 71.1 & 72.6 & -- \\
+ & HPFL & \textbf{72.7} & 92.4 & 90.7 & 82.3 & \textbf{81.4} & -- \\
 \midrule
-BC & FedAvg & 58.7 & 72.6 & 59.6 & 61.1 & 60.4 & -- \\
- & FedProx & 58.7 & 72.6 & 59.6 & 61.1 & 60.4 & -- \\
- & Ditto & 59.6 & 80.5 & 81.4 & 79.9 & 71.9 & -- \\
- & FedLC & 59.0 & 72.6 & 59.3 & 61.1 & 60.4 & -- \\
- & FedExP & 58.7 & 72.6 & 59.6 & 61.1 & 60.4 & -- \\
- & FedLESAM & 58.7 & 72.6 & 59.6 & 61.1 & 60.4 & -- \\
- & HPFL & 59.9 & \textbf{80.5} & \textbf{81.4} & \textbf{80.5} & \textbf{71.9} & -- \\
+BC & FedAvg & 47.1 & 62.1 & 57.3 & 52.3 & 51.5 & -- \\
+ & FedProx & 47.1 & 62.1 & 57.3 & 52.3 & 51.5 & -- \\
+ & Ditto & 51.5 & \textbf{88.3} & \textbf{84.8} & \textbf{79.1} & 72.4 & -- \\
+ & FedLC & 47.3 & 63.2 & 57.2 & 52.1 & 51.5 & -- \\
+ & FedExP & 47.1 & 62.1 & 57.3 & 52.3 & 51.5 & -- \\
+ & FedLESAM & 47.1 & 62.1 & 57.3 & 52.3 & 51.5 & -- \\
+ & HPFL & 51.9 & 88.3 & 84.8 & 74.1 & \textbf{66.9} & -- \\
 \bottomrule
 \end{tabular}
 \end{table*}
 
-\textbf{Key finding}: Personalized algorithms (Ditto, HPFL) exhibit a counter-intuitive pattern: accuracy \textit{increases} under extreme non-IID ($\alpha{=}0.1$) on Cardiovascular (89.3\% vs.\ 81.7\% at $\alpha{=}0.5$) and Breast Cancer (80.5\% vs.\ 79.9\%). This occurs because personalized methods maintain local decision boundaries that become more specialized---and therefore more accurate---when client distributions are highly distinct. In contrast, baseline algorithms (FedAvg, FedExP, FedLESAM) degrade monotonically as $\alpha$ decreases, consistent with theoretical predictions. For PTB-XL, natural site-based partitioning produces the most realistic non-IID conditions and yields strong performance across all algorithms (88.9--96.6\%).
+\textbf{Key finding}: Personalized algorithms (Ditto, HPFL) exhibit a counter-intuitive pattern: accuracy \textit{increases} under extreme non-IID ($\alpha{=}0.1$) on Cardiovascular (92.4\% vs.\ 82.5\% at $\alpha{=}0.5$) and Breast Cancer (88.3\% vs.\ 79.1\%). This occurs because personalized methods maintain local decision boundaries that become more specialized---and therefore more accurate---when client distributions are highly distinct. In contrast, baseline algorithms (FedAvg, FedExP, FedLESAM) degrade monotonically as $\alpha$ decreases, consistent with theoretical predictions. For PTB-XL, natural site-based partitioning produces the most realistic non-IID conditions and yields strong performance across all algorithms (89.7--96.5\%).
 
 \subsection{Client Scaling}
 
@@ -1131,56 +1131,59 @@ Table~\ref{tab:client_scaling} reports accuracy as a function of client count $K
 
 \begin{table*}[t]
 \centering
-\caption{Impact of client count on FL accuracy (\%). Mean over 3 seeds. PX = PTB-XL, CV = Cardiovascular, BC = Breast Cancer.}
+\caption{Impact of client count on FL accuracy (\%). Mean over 5 seeds. PX = PTB-XL, CV = Cardiovascular, BC = Breast Cancer.}
 \label{tab:client_scaling}
 \small
 \begin{tabular}{lcccc}
 \toprule
 \multicolumn{5}{c}{\textbf{PTB-XL ECG (5-class)}} \\
+\midrule
 \textbf{Algorithm} & \textbf{K=3} & \textbf{K=5} & \textbf{K=10} & \textbf{K=20} \\
 \midrule
-FedAvg & 91.5 & 92.0 & 91.5 & 91.5 \\
-FedProx & 91.5 & 91.6 & 91.5 & 91.5 \\
-Ditto & \textbf{92.5} & 91.8 & 91.4 & 91.4 \\
-FedLC & 92.1 & 92.0 & 92.0 & 92.0 \\
-FedExP & 91.5 & 92.0 & 92.2 & \textbf{92.2} \\
-FedLESAM & 91.5 & 92.0 & 91.5 & 91.5 \\
-HPFL & \textbf{92.6} & \textbf{92.6} & \textbf{92.4} & \textbf{92.4} \\
+FedAvg & 91.7 & 91.9 & 91.5 & 91.5 \\
+FedProx & 91.7 & 91.6 & 91.5 & 91.5 \\
+Ditto & 92.5 & 91.8 & 91.5 & 91.5 \\
+FedLC & 91.8 & 91.9 & 91.8 & 91.8 \\
+FedExP & 91.7 & 92.0 & 92.2 & 92.2 \\
+FedLESAM & 91.7 & 91.9 & 91.5 & 91.5 \\
+HPFL & \textbf{92.6} & \textbf{92.5} & \textbf{92.5} & \textbf{92.5} \\
 \bottomrule
 \end{tabular}
 \hspace{3mm}
 \begin{tabular}{lcccc}
 \toprule
 \multicolumn{5}{c}{\textbf{Cardiovascular (binary)}} \\
+\midrule
 \textbf{Algorithm} & \textbf{K=3} & \textbf{K=5} & \textbf{K=8} & \textbf{K=10} \\
 \midrule
-FedAvg & 71.9 & 71.0 & 69.2 & 67.3 \\
-FedProx & 72.0 & 71.4 & 69.6 & 67.7 \\
-Ditto & 78.5 & 81.7 & 84.2 & \textbf{87.3} \\
-FedLC & 71.9 & 70.8 & 69.5 & 66.4 \\
-FedExP & 71.9 & 71.0 & 69.2 & 67.3 \\
-FedLESAM & 71.9 & 71.0 & 69.2 & 67.3 \\
-HPFL & \textbf{78.6} & \textbf{81.7} & \textbf{84.1} & 86.7 \\
+FedAvg & 72.1 & 71.1 & 70.5 & 69.4 \\
+FedProx & 72.0 & 71.6 & 70.7 & 69.6 \\
+Ditto & 80.9 & 82.5 & 83.3 & \textbf{85.0} \\
+FedLC & 72.1 & 71.1 & 70.7 & 68.9 \\
+FedExP & 72.1 & 71.1 & 70.5 & 69.4 \\
+FedLESAM & 72.1 & 71.1 & 70.5 & 69.4 \\
+HPFL & \textbf{80.9} & \textbf{82.3} & \textbf{83.3} & 84.7 \\
 \bottomrule
 \end{tabular}
 \hspace{3mm}
 \begin{tabular}{lccc}
 \toprule
 \multicolumn{4}{c}{\textbf{Breast Cancer (binary)}} \\
+\midrule
 \textbf{Algorithm} & \textbf{K=2} & \textbf{K=3} & \textbf{K=5} \\
 \midrule
-FedAvg & 68.1 & 61.1 & 58.3 \\
-FedProx & 68.1 & 61.1 & 58.3 \\
-Ditto & \textbf{82.9} & 79.9 & 76.2 \\
-FedLC & 59.9 & 61.1 & 58.6 \\
-FedExP & 68.1 & 61.1 & 58.3 \\
-FedLESAM & 68.1 & 61.1 & 58.3 \\
-HPFL & \textbf{82.9} & \textbf{80.5} & \textbf{76.2} \\
+FedAvg & 61.6 & 52.3 & 59.1 \\
+FedProx & 61.6 & 52.3 & 59.1 \\
+Ditto & \textbf{84.2} & \textbf{79.1} & 78.4 \\
+FedLC & 56.6 & 52.1 & 50.1 \\
+FedExP & 61.6 & 52.3 & 59.1 \\
+FedLESAM & 61.6 & 52.3 & 59.1 \\
+HPFL & \textbf{84.2} & 74.1 & \textbf{78.4} \\
 \bottomrule
 \end{tabular}
 \end{table*}
 
-\textbf{Key finding}: Baseline algorithms (FedAvg, FedExP, FedLESAM) degrade as client count increases on Cardiovascular (71.9\% at K=3 $\to$ 67.3\% at K=10), because more clients means less data per client and higher aggregation noise. Personalized methods show the opposite trend: Ditto \textit{improves} from 78.5\% (K=3) to 87.3\% (K=10), demonstrating that personalization enables each client to exploit its local specialization even with smaller data partitions. This has direct EHDS implications: as more Member States join a federation, personalized algorithms become increasingly advantageous.
+\textbf{Key finding}: Baseline algorithms (FedAvg, FedExP, FedLESAM) degrade as client count increases on Cardiovascular (72.1\% at K=3 $\to$ 69.4\% at K=10), because more clients means less data per client and higher aggregation noise. Personalized methods show the opposite trend: Ditto \textit{improves} from 80.9\% (K=3) to 85.0\% (K=10), demonstrating that personalization enables each client to exploit its local specialization even with smaller data partitions. This has direct EHDS implications: as more Member States join a federation, personalized algorithms become increasingly advantageous.
 
 \subsection{Learning Rate Sensitivity}
 
@@ -1188,29 +1191,29 @@ Table~\ref{tab:lr_sensitivity} evaluates robustness to learning rate selection f
 
 \begin{table}[t]
 \centering
-\caption{Learning rate sensitivity analysis. Accuracy (\%) mean over 3 seeds. Top-3 algorithms: HPFL, Ditto, FedAvg.}
+\caption{Learning rate sensitivity analysis. Accuracy (\%) mean over 5 seeds. Top-3 algorithms: HPFL, Ditto, FedAvg.}
 \label{tab:lr_sensitivity}
 \small
 \begin{tabular}{llcccc}
 \toprule
 \textbf{DS} & \textbf{Algo} & \textbf{0.0005} & \textbf{0.001} & \textbf{0.005} & \textbf{0.01} \\
 \midrule
-PX & Ditto & 56.5 & 83.4 & 91.8 & 92.6 \\
- & FedAvg & 78.9 & 89.9 & 92.0 & 92.2 \\
- & HPFL & 61.2 & 86.8 & 92.6 & \textbf{92.7} \\
+PX & Ditto & 58.1 & 84.1 & 91.8 & \textbf{92.6} \\
+ & FedAvg & 80.3 & 90.4 & 91.9 & 92.2 \\
+ & HPFL & 63.2 & 82.4 & 92.5 & \textbf{92.6} \\
 \midrule
-CV & Ditto & 74.3 & 75.4 & 81.6 & \textbf{81.7} \\
- & FedAvg & 50.2 & 55.4 & 71.2 & 71.0 \\
- & HPFL & 74.3 & 75.1 & \textbf{81.7} & \textbf{81.7} \\
+CV & Ditto & 76.2 & 77.4 & 82.2 & \textbf{82.5} \\
+ & FedAvg & 55.1 & 60.6 & 70.9 & 71.1 \\
+ & HPFL & 76.1 & 77.1 & 82.2 & 82.3 \\
 \midrule
-BC & Ditto & 80.8 & 79.9 & \textbf{95.9} & \textbf{95.9} \\
- & FedAvg & 61.1 & 61.1 & 66.1 & 64.9 \\
- & HPFL & 80.5 & 80.5 & \textbf{96.2} & 95.9 \\
+BC & Ditto & 64.0 & 79.1 & 89.5 & 89.5 \\
+ & FedAvg & 52.1 & 52.3 & 64.0 & 74.7 \\
+ & HPFL & 63.8 & 74.1 & \textbf{89.7} & 89.5 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\textbf{Key finding}: All algorithms are sensitive to learning rate at the low end (lr=0.0005), where convergence is incomplete within the configured round budget. HPFL and Ditto achieve near-optimal performance across a wider range (0.005--0.01), while FedAvg requires careful tuning. On Breast Cancer, HPFL reaches 96.2\% accuracy at lr=0.005---substantially higher than the baseline configuration (80.5\% at lr=0.001)---suggesting that per-dataset hyperparameter optimization is critical for small datasets.
+\textbf{Key finding}: All algorithms are sensitive to learning rate at the low end (lr=0.0005), where convergence is incomplete within the configured round budget. HPFL and Ditto achieve near-optimal performance across a wider range (0.005--0.01), while FedAvg requires careful tuning. On Breast Cancer, HPFL reaches 89.7\% accuracy at lr=0.005---substantially higher than FedAvg's best of 74.7\% at lr=0.01---confirming that personalized methods are more robust to hyperparameter selection on small datasets.
 
 \subsection{Fairness Analysis}
 
@@ -1218,31 +1221,41 @@ Table~\ref{tab:fairness_detail} provides per-client fairness metrics across all 
 
 \begin{table}[t]
 \centering
-\caption{Per-client fairness analysis. Gap = max--min client accuracy. Lower Gap and Gini indicate fairer distribution.}
+\caption{Per-client fairness analysis. Gap = max--min client accuracy. Lower Gap and Gini indicate fairer distribution. Mean over 5 seeds.}
 \label{tab:fairness_detail}
 \footnotesize
 \begin{tabular}{ll cccc}
 \toprule
 \textbf{DS} & \textbf{Algo} & \textbf{Jain} & \textbf{Gini} & \textbf{Gap (\%)} & \textbf{Std (\%)} \\
 \midrule
-PX & FedAvg & 0.999 & 0.012 & 6.7 & 2.3 \\
- & FedProx & 0.999 & 0.010 & 5.2 & 1.8 \\
- & Ditto & 0.999 & 0.013 & 6.2 & 2.2 \\
- & HPFL & 0.999 & 0.019 & 9.7 & 3.4 \\
+PX & FedAvg & 0.999 & 0.013 & 6.5 & 2.3 \\
+ & FedProx & 0.999 & 0.012 & 5.6 & 2.0 \\
+ & Ditto & 0.999 & 0.014 & 6.7 & 2.4 \\
+ & FedLC & 0.999 & 0.013 & 6.3 & 2.3 \\
+ & FedExP & 0.999 & 0.011 & 5.7 & 2.0 \\
+ & FedLESAM & 0.999 & 0.013 & 6.5 & 2.3 \\
+ & HPFL & 0.999 & 0.018 & 9.1 & 3.1 \\
 \midrule
-CV & FedAvg & 0.982 & 0.063 & 22.6 & 8.6 \\
- & FedProx & 0.985 & 0.058 & 21.0 & 7.9 \\
- & Ditto & 0.984 & 0.062 & 22.7 & 8.6 \\
- & HPFL & 0.984 & 0.069 & 26.1 & 11.2 \\
+CV & FedAvg & 0.981 & 0.063 & 22.5 & 8.6 \\
+ & FedProx & 0.986 & 0.056 & 19.9 & 7.5 \\
+ & Ditto & 0.980 & 0.065 & 23.0 & 8.7 \\
+ & FedLC & 0.982 & 0.062 & 21.9 & 8.3 \\
+ & FedExP & 0.981 & 0.063 & 22.5 & 8.6 \\
+ & FedLESAM & 0.981 & 0.063 & 22.5 & 8.6 \\
+ & HPFL & 0.984 & 0.065 & 26.0 & 10.8 \\
 \midrule
-BC & FedAvg & 0.536 & 0.473 & 87.6 & 40.0 \\
- & Ditto & 0.536 & 0.473 & 87.6 & 40.0 \\
- & HPFL & \textbf{0.785} & \textbf{0.230} & \textbf{70.5} & \textbf{33.1} \\
+BC & FedAvg & 0.608 & 0.405 & 71.5 & 32.3 \\
+ & FedProx & 0.608 & 0.405 & 71.5 & 32.3 \\
+ & Ditto & 0.606 & 0.411 & 73.2 & 33.0 \\
+ & FedLC & 0.606 & 0.413 & 74.2 & 33.4 \\
+ & FedExP & 0.608 & 0.405 & 71.5 & 32.3 \\
+ & FedLESAM & 0.608 & 0.405 & 71.5 & 32.3 \\
+ & HPFL & \textbf{0.867} & \textbf{0.159} & \textbf{47.6} & \textbf{22.1} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\textbf{Key finding}: HPFL uniquely improves fairness on Breast Cancer (Jain 0.785 vs.\ 0.536 for all other algorithms, Gini reduction from 0.473 to 0.230). This occurs because HPFL's personalized classifier heads enable each client to specialize, reducing the performance gap between clients with different class distributions. On PTB-XL, all algorithms achieve near-perfect fairness (Jain $\geq$ 0.999) due to the large dataset size providing sufficient per-client samples.
+\textbf{Key finding}: HPFL uniquely improves fairness on Breast Cancer (Jain 0.867 vs.\ 0.608 for all other algorithms, Gini reduction from 0.405 to 0.159). This occurs because HPFL's personalized classifier heads enable each client to specialize, reducing the performance gap between clients with different class distributions (Gap reduced from 71.5\% to 47.6\%). On PTB-XL, all algorithms achieve near-perfect fairness (Jain $\geq$ 0.999) due to the large dataset size providing sufficient per-client samples.
 
 \subsection{Statistical Significance}
 
@@ -1250,24 +1263,24 @@ Table~\ref{tab:significance} reports Wilcoxon signed-rank test $p$-values compar
 
 \begin{table}[t]
 \centering
-\caption{Wilcoxon signed-rank $p$-values vs FedAvg baseline. $\dagger$: $p < 0.05$.}
+\caption{Wilcoxon signed-rank $p$-values vs FedAvg baseline. $\dagger$: $p < 0.05$, *: $p < 0.10$. Computed over 5 seeds.}
 \label{tab:significance}
 \small
 \begin{tabular}{lccc}
 \toprule
 \textbf{vs FedAvg} & \textbf{PX} & \textbf{CV} & \textbf{BC} \\
 \midrule
-FedProx & 0.250 & 1.000 & 1.000 \\
-Ditto & 0.250 & 0.250 & 0.250 \\
-FedLC & 1.000 & 0.750 & 1.000 \\
+FedProx & 0.062* & 0.812 & 1.000 \\
+Ditto & 0.812 & 0.062* & 0.062* \\
+FedLC & 0.875 & 1.000 & 1.000 \\
 FedExP & 0.750 & 1.000 & 1.000 \\
 FedLESAM & 1.000 & 1.000 & 1.000 \\
-HPFL & 0.250 & 0.250 & 0.250 \\
+HPFL & 0.062* & 0.062* & 0.062* \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\textbf{Note}: With only 3 seeds, the minimum achievable $p$-value for Wilcoxon is 0.250, insufficient for conventional significance thresholds. The consistent directional advantage of HPFL and Ditto across all datasets (effect sizes of 10--19pp on Cardiovascular and Breast Cancer) provides practical significance despite the limited seed count. Extended evaluation with additional seeds is planned as future work.
+\textbf{Key finding}: With 5 seeds, HPFL achieves marginal significance ($p = 0.062$, $< 0.10$) against FedAvg on \emph{all three datasets}---the only algorithm to do so consistently. Ditto reaches marginal significance on Cardiovascular and Breast Cancer ($p = 0.062$), where personalization yields large effect sizes (11.4pp and 26.8pp respectively). The $p = 0.062$ value represents the minimum achievable with the Wilcoxon test over 5 paired observations; the consistent directional advantage across all datasets and metrics provides strong practical significance.
 
 \subsection{Experimental Configuration Summary}
 
@@ -1290,9 +1303,9 @@ Breast Cancer & 0.001 & 16 & 40 & 3 & 0.5 & Dirichlet \\
 \textbf{Reproducibility}: All experiments are fully reproducible via:
 \begin{verbatim}
 cd fl-ehds-framework
-# Baseline (63 experiments, ~27 min)
+# Baseline (105 experiments, ~45 min)
 python -m benchmarks.run_tabular_optimized
-# Multi-phase sweep (668 experiments, ~3.2h)
+# Multi-phase sweep (1125 experiments, ~4.5h)
 python -m benchmarks.run_tabular_sweep --phase all
 # Extended analysis (tables + plots)
 python -m benchmarks.analyze_tabular_extended
@@ -1302,7 +1315,7 @@ Results, checkpoints, and analysis outputs are auto-saved to \texttt{benchmarks/
 
 \subsection{Extended Tabular Experiment Figures}
 
-Figures~\ref{fig:tab_convergence}--\ref{fig:tab_best_config} present visual analysis of the 731 tabular experiments. All plots are auto-generated by the benchmark analysis suite.
+Figures~\ref{fig:tab_convergence}--\ref{fig:tab_best_config} present visual analysis of the 1,230 tabular experiments. All plots are auto-generated by the benchmark analysis suite.
 
 \begin{figure}[htbp]
 \centering
@@ -1314,14 +1327,14 @@ Figures~\ref{fig:tab_convergence}--\ref{fig:tab_best_config} present visual anal
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.95\columnwidth]{figures/01_accuracy_bars.pdf}
-\caption{Final accuracy comparison across algorithms and datasets. Error bars show standard deviation over 3 seeds. HPFL achieves the best accuracy on all three datasets.}
+\caption{Final accuracy comparison across algorithms and datasets. Error bars show standard deviation over 5 seeds. HPFL achieves the best accuracy on all three datasets.}
 \label{fig:tab_accuracy_bars}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.95\columnwidth]{figures/02_fairness_bars.pdf}
-\caption{Jain fairness index per algorithm and dataset. PTB-XL achieves near-perfect fairness (0.999) across all algorithms. HPFL uniquely improves fairness on Breast Cancer (0.785 vs.\ 0.536).}
+\caption{Jain fairness index per algorithm and dataset. PTB-XL achieves near-perfect fairness (0.999) across all algorithms. HPFL uniquely improves fairness on Breast Cancer (0.867 vs.\ 0.608).}
 \label{fig:tab_fairness_bars}
 \end{figure}
 
