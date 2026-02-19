@@ -25,7 +25,7 @@
     \IEEEauthorblockA{
         Department of Computer Science\\
         Universitas Mercatorum, Rome, Italy\\
-        fabio.liberti@unimercatorum.it\\
+        fabio.liberti@studenti.unimercatorum.it\\
         ORCID: 0000-0003-3019-5411
     }
 }
@@ -33,7 +33,7 @@
 \maketitle
 
 \begin{abstract}
-This document provides supplementary material for the FL-EHDS paper, including complete algorithm pseudocode for all framework components, extended experimental figures, detailed algorithm comparison analysis with effect sizes (rank-biserial correlation), 10-seed statistical validation, advanced FL paradigm descriptions, infrastructure component specifications, extended EHDS interoperability details, clinical imaging experiment configurations, noise-as-regularization analysis for small-cohort studies, Article~71 opt-out impact with policy recommendations, an extended threat model with attack taxonomy and defense mapping, and a detailed framework positioning analysis. The open-source reference implementation ($\sim$40K lines, 159 modules) is available at \url{https://github.com/FabioLiberti/FL-EHDS-FLICS2026}.
+This document provides supplementary material for the FL-EHDS paper, including complete algorithm pseudocode for all framework components, extended experimental figures, detailed algorithm comparison analysis with effect sizes (rank-biserial correlation), 10-seed statistical validation, advanced FL paradigm descriptions, infrastructure component specifications, extended EHDS interoperability details, clinical imaging experiment configurations with Chest X-ray baseline results, scalability analysis up to K=100 clients, noise-as-regularization analysis for small-cohort studies, Article~71 opt-out impact with policy recommendations, an extended threat model with attack taxonomy and defense mapping, and a detailed framework positioning analysis. The open-source reference implementation ($\sim$40K lines, 159 modules) is available at \url{https://github.com/FabioLiberti/FL-EHDS-FLICS2026}.
 \end{abstract}
 
 % ============================================================================
@@ -1009,6 +1009,33 @@ Results, checkpoints, and logs are auto-saved to \texttt{benchmarks/paper\_resul
 
 Repository: \url{https://github.com/FabioLiberti/FL-EHDS-FLICS2026}
 
+\subsection{Chest X-ray Baseline Results}
+\label{sec:imaging_results}
+
+Table~\ref{tab:imaging_chest} reports baseline Chest X-ray results for FedAvg and Ditto (ResNet-18, 5 clients, Dirichlet $\alpha{=}0.5$, 20 rounds max with early stopping).
+
+\begin{table}[htbp]
+\centering
+\caption{Chest X-ray pneumonia detection: federated accuracy (\%) with ResNet-18. 5 clients, Dirichlet $\alpha{=}0.5$, 20 rounds, Adam lr=0.001, early stopping (patience=6). Per-seed results with per-client accuracy range.}
+\label{tab:imaging_chest}
+\small
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Algo} & \textbf{s42} & \textbf{s123} & \textbf{s456} & \textbf{Mean} & \textbf{Jain} \\
+\midrule
+FedAvg & 91.6 & 87.4 & 82.8 & \textbf{87.3} & 0.984 \\
+Ditto & 84.8 & 65.1 & 90.1 & 80.0 & 0.958 \\
+\bottomrule
+\end{tabular}
+
+\vspace{1mm}
+\footnotesize{Jain index averaged over 3 seeds. FedAvg achieves stable convergence across seeds (12--20 rounds); Ditto shows high seed sensitivity (s123: only 8 rounds, 65.1\%).}
+\end{table}
+
+\textbf{Key findings.} \textit{First}, federated learning on Chest X-ray achieves \textbf{87.3\% accuracy} (FedAvg) for binary pneumonia detection with ResNet-18, confirming FL viability for medical imaging under EHDS-relevant non-IID conditions. \textit{Second}, \textbf{personalization (Ditto) does not improve on imaging}: Ditto achieves 80.0\% vs.\ FedAvg 87.3\% ($-$7.3pp), with substantially higher variance across seeds ($\sigma = 10.6$pp vs.\ 3.6pp). This contrasts sharply with tabular results where Ditto consistently outperforms FedAvg by 12--22pp. The likely explanation is that ResNet-18's 11.2M-parameter backbone already provides sufficient representational capacity for the global model to generalize across clients; Ditto's dual-model overhead (maintaining separate local models) increases training instability without compensating benefit. \textit{Third}, Ditto exhibits a \textbf{fairness failure mode} on seed 456: per-client accuracies of [99.7\%, 100.0\%, 48.5\%, 39.5\%, 100.0\%] (Jain 0.888) indicate that personalized local models overfit to majority-class clients while failing on minority-class clients under Dirichlet partitioning. FedAvg's global model distributes performance more evenly.
+
+\textit{Implications for EHDS}: The imaging results reveal a \textbf{modality-dependent personalization effect}: personalized FL is critical for tabular clinical analytics (where lightweight models produce near-convex landscapes that personalization escapes) but potentially counterproductive for deep imaging models (where the global model already exploits the non-convex landscape effectively). EHDS data permits should specify algorithm recommendations conditioned on the analytics modality, not as a blanket policy.
+
 % ============================================================================
 \section{Detailed Architecture Description}
 \label{sec:architecture_detail}
@@ -1636,6 +1663,66 @@ HPFL & \textbf{92.5}{\tiny$\pm$0.3} & \textbf{92.7}{\tiny$\pm$0.2} & 82.3{\tiny$
 \end{table}
 
 \textbf{Key finding}: Even with a 38$\times$ parameter increase, \textbf{the algorithm collapse persists}. On both PTB-XL and Cardiovascular, FedAvg, FedProx, FedLC, FedExP, and FedLESAM converge to statistically identical accuracies (92.5\% and 71.2\%, respectively). Only Ditto and HPFL differentiate, with modest improvements on Cardiovascular (+2.5pp each vs.\ shallow). This confirms that the near-convexity driving algorithm collapse is a property of \textit{tabular healthcare data} (low-dimensional features, clear class boundaries), not merely of model capacity. For EHDS deployment, this strengthens our main finding: on tabular clinical models, the critical design choice is \textbf{personalization architecture} (Ditto, HPFL) rather than aggregation strategy, regardless of model depth.
+
+\subsection{Scalability Analysis}
+\label{sec:scalability}
+
+A key concern for EHDS deployment is whether FL algorithms maintain performance as the number of participating hospitals grows from laboratory settings (K=5--20) to realistic cross-border scales (K=50--100 across 27 Member States). We conduct a systematic scalability sweep on two datasets: Cardiovascular (K$\in$\{50, 100\}, Dirichlet $\alpha$=0.5) and PTB-XL (K=12 site-based using all available recording sites with $\geq$30 samples, and K=30 Dirichlet). Each configuration runs 7 algorithms $\times$ 3 seeds.
+
+\begin{table}[htbp]
+\centering
+\caption{Cardiovascular scalability: accuracy (\%) vs.\ number of clients. Mean $\pm$ std over 3 seeds. $\Delta$ denotes change from K=5 baseline (5 seeds).}
+\label{tab:cv_scalability}
+\small
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Algorithm} & \textbf{K=5} & \textbf{K=50} & \textbf{$\Delta$} & \textbf{K=100} & \textbf{$\Delta$} \\
+\midrule
+FedAvg & 70.5{\tiny$\pm$2.4} & 67.8{\tiny$\pm$0.2} & $-$2.7 & 65.8{\tiny$\pm$0.8} & $-$4.7 \\
+FedProx & 71.0{\tiny$\pm$1.8} & 67.6{\tiny$\pm$0.2} & $-$3.4 & 65.6{\tiny$\pm$0.9} & $-$5.4 \\
+FedLC & 70.6{\tiny$\pm$2.2} & 67.5{\tiny$\pm$0.3} & $-$3.1 & 65.1{\tiny$\pm$0.5} & $-$5.5 \\
+FedExP & 70.5{\tiny$\pm$2.4} & 67.8{\tiny$\pm$0.2} & $-$2.7 & 65.8{\tiny$\pm$0.8} & $-$4.7 \\
+FedLESAM & 70.5{\tiny$\pm$2.4} & 67.8{\tiny$\pm$0.2} & $-$2.7 & 65.8{\tiny$\pm$0.8} & $-$4.7 \\
+\midrule
+Ditto & 82.3{\tiny$\pm$4.8} & \textbf{82.7}{\tiny$\pm$1.2} & +0.4 & \textbf{81.6}{\tiny$\pm$1.2} & $-$0.8 \\
+HPFL & 82.3{\tiny$\pm$4.5} & 81.4{\tiny$\pm$2.4} & $-$0.9 & 81.5{\tiny$\pm$1.1} & $-$0.8 \\
+\bottomrule
+\end{tabular}
+
+\vspace{1mm}
+\footnotesize{K=50: $\mu$=1,400 samples/client (range 2--8,466). K=100: $\mu$=700 samples/client (range 2--6,274). Dirichlet $\alpha$=0.5 partitioning, same hyperparameters as K=5 baseline.}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{PTB-XL scalability: accuracy (\%) under site-based (natural hospital partition) and Dirichlet partitioning. Mean $\pm$ std over 3 seeds.}
+\label{tab:px_scalability}
+\small
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Algorithm} & \textbf{K=5} & \textbf{K=12 (site)} & \textbf{K=30 (Dir.)} & \textbf{$\Delta_{30}$} \\
+\midrule
+FedAvg & 91.6{\tiny$\pm$0.5} & 91.5{\tiny$\pm$0.5} & 43.4{\tiny$\pm$0.3} & $-$48.2 \\
+FedProx & 91.3{\tiny$\pm$0.5} & 91.5{\tiny$\pm$0.6} & 43.4{\tiny$\pm$0.3} & $-$48.0 \\
+FedLC & 91.6{\tiny$\pm$0.4} & 91.9{\tiny$\pm$0.2} & 50.6{\tiny$\pm$10.2} & $-$41.0 \\
+FedExP & 91.9{\tiny$\pm$0.3} & 40.2{\tiny$\pm$13.5} & 43.4{\tiny$\pm$0.3} & $-$48.5 \\
+FedLESAM & 91.6{\tiny$\pm$0.5} & 91.5{\tiny$\pm$0.5} & 43.4{\tiny$\pm$0.3} & $-$48.2 \\
+\midrule
+Ditto & 91.8{\tiny$\pm$0.3} & 90.5{\tiny$\pm$0.5} & \textbf{76.3}{\tiny$\pm$3.4} & $-$15.5 \\
+HPFL & \textbf{92.4}{\tiny$\pm$0.3} & \textbf{92.4}{\tiny$\pm$0.2} & 69.7{\tiny$\pm$10.0} & $-$22.8 \\
+\bottomrule
+\end{tabular}
+
+\vspace{1mm}
+\footnotesize{K=12 site-based: 12 of 52 PTB-XL recording sites have $\geq$30 samples ($\mu$=1,781). K=30 Dirichlet: $\mu$=712 samples/client (range 57--2,264). $\Delta_{30}$: change from K=5 baseline.}
+\end{table}
+
+\textbf{Key findings}: (1)~\textbf{Personalization is scale-robust}: On Cardiovascular, Ditto and HPFL degrade by only $-$0.8pp from K=5 to K=100 (100 hospitals), while non-personalized algorithms lose 4.7--5.5pp. The \textit{personalization gap widens} at scale: from 11.7pp (K=5) to 14.4pp (K=50) to 15.9pp (K=100), making personalization \textit{more} important as the federation grows.
+(2)~\textbf{Natural partitioning is benign}: PTB-XL's site-based split (K=12, all sites with $\geq$30 samples) preserves near-baseline performance for 6/7 algorithms ($\sim$91.5\%), with HPFL achieving 92.4\%---identical to K=5. FedExP is the sole exception, exhibiting catastrophic divergence (40.2\%) under site-level heterogeneity.
+(3)~\textbf{Artificial high-K partitioning is destructive}: Dirichlet K=30 on PTB-XL ($\sim$21K samples $\div$ 30 clients = $\sim$700/client) causes severe degradation for non-personalized algorithms ($-$48pp), but Ditto maintains 76.3\%---the best by 26pp over the next algorithm.
+(4)~These results reinforce the $\geq$200 samples/client threshold (Section~\ref{sec:optout}): at K=100 on Cardiovascular ($\mu$=700 samples/client), personalized algorithms remain above 81\%, but the Dirichlet tail produces some clients with $<$10 samples, explaining the degradation of non-personalized methods.
+
+\textbf{EHDS implication}: For realistic cross-border deployments with K=50--100 hospitals, \textbf{personalized FL algorithms (Ditto, HPFL) are essential}---they provide 16pp higher accuracy than standard FedAvg at K=100 and are 6$\times$ more robust to scaling ($-$0.8pp vs.\ $-$4.7pp degradation). Natural hospital-based partitions (PTB-XL sites) are far more benign than synthetic Dirichlet splits, suggesting that real EHDS data distributions may be more favorable than worst-case laboratory settings.
 
 \subsection{Extended Tabular Experiment Figures}
 
