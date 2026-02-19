@@ -33,7 +33,7 @@
 \maketitle
 
 \begin{abstract}
-This document provides supplementary material for the FL-EHDS paper, including complete algorithm pseudocode for all framework components, extended experimental figures, detailed algorithm comparison analysis with effect sizes (rank-biserial correlation), 10-seed statistical validation, advanced FL paradigm descriptions, infrastructure component specifications, extended EHDS interoperability details, clinical imaging experiment configurations with Chest X-ray baseline results, scalability analysis up to K=100 clients, noise-as-regularization analysis for small-cohort studies, Article~71 opt-out impact with policy recommendations, an extended threat model with attack taxonomy and defense mapping, and a detailed framework positioning analysis. The open-source reference implementation ($\sim$40K lines, 159 modules) is available at \url{https://github.com/FabioLiberti/FL-EHDS-FLICS2026}.
+This document provides supplementary material for the FL-EHDS paper, including complete algorithm pseudocode for all framework components, extended experimental figures, detailed algorithm comparison analysis with effect sizes (rank-biserial correlation), 10-seed statistical validation, advanced FL paradigm descriptions, infrastructure component specifications, extended EHDS interoperability details, clinical imaging experiment configurations with Chest X-ray baseline results, local epochs sweep, scalability analysis up to K=100 clients, noise-as-regularization analysis for small-cohort studies, Article~71 opt-out impact with policy recommendations, an extended threat model with attack taxonomy and defense mapping, and a detailed framework positioning analysis. The open-source reference implementation ($\sim$40K lines, 159 modules) is available at \url{https://github.com/FabioLiberti/FL-EHDS-FLICS2026}.
 \end{abstract}
 
 % ============================================================================
@@ -1663,6 +1663,40 @@ HPFL & \textbf{92.5}{\tiny$\pm$0.3} & \textbf{92.7}{\tiny$\pm$0.2} & 82.3{\tiny$
 \end{table}
 
 \textbf{Key finding}: Even with a 38$\times$ parameter increase, \textbf{the algorithm collapse persists}. On both PTB-XL and Cardiovascular, FedAvg, FedProx, FedLC, FedExP, and FedLESAM converge to statistically identical accuracies (92.5\% and 71.2\%, respectively). Only Ditto and HPFL differentiate, with modest improvements on Cardiovascular (+2.5pp each vs.\ shallow). This confirms that the near-convexity driving algorithm collapse is a property of \textit{tabular healthcare data} (low-dimensional features, clear class boundaries), not merely of model capacity. For EHDS deployment, this strengthens our main finding: on tabular clinical models, the critical design choice is \textbf{personalization architecture} (Ditto, HPFL) rather than aggregation strategy, regardless of model depth.
+
+\subsection{Local Epochs Sweep}
+\label{sec:epochs_sweep}
+
+To test whether increased client drift breaks the algorithm collapse, we sweep local epochs $E \in \{1, 5, 10, 20\}$ on Cardiovascular (7 algorithms $\times$ 4 epochs $\times$ 5 seeds = 140 experiments). The hypothesis is that with $E$=10--20, client models diverge sufficiently from the global model that variance-reduction (FedProx proximal term), adaptive (FedExP, FedLESAM), and logit-calibration (FedLC) strategies should differentiate from FedAvg.
+
+\begin{table}[htbp]
+\centering
+\caption{Local epochs sweep on Cardiovascular. Accuracy (\%), mean $\pm$ std over 5 seeds.}
+\label{tab:epochs_sweep}
+\small
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Algorithm} & \textbf{E=1} & \textbf{E=5} & \textbf{E=10} & \textbf{E=20} \\
+\midrule
+FedAvg & 70.6{\tiny$\pm$2.2} & 70.5{\tiny$\pm$2.6} & 70.1{\tiny$\pm$3.6} & 70.3{\tiny$\pm$3.6} \\
+FedProx & 70.3{\tiny$\pm$3.0} & 71.0{\tiny$\pm$2.0} & 71.5{\tiny$\pm$1.5} & 71.3{\tiny$\pm$1.9} \\
+FedLC & 70.5{\tiny$\pm$2.6} & 70.7{\tiny$\pm$2.3} & 70.3{\tiny$\pm$3.5} & 70.4{\tiny$\pm$3.4} \\
+FedExP & 70.6{\tiny$\pm$2.2} & 70.5{\tiny$\pm$2.6} & 70.1{\tiny$\pm$3.6} & 70.3{\tiny$\pm$3.6} \\
+FedLESAM & 70.6{\tiny$\pm$2.2} & 70.5{\tiny$\pm$2.6} & 70.1{\tiny$\pm$3.6} & 70.3{\tiny$\pm$3.6} \\
+\midrule
+Ditto & \textbf{81.9}{\tiny$\pm$4.7} & \textbf{82.5}{\tiny$\pm$4.7} & \textbf{82.6}{\tiny$\pm$4.8} & \textbf{82.8}{\tiny$\pm$4.8} \\
+HPFL & \textbf{81.9}{\tiny$\pm$4.7} & \textbf{82.4}{\tiny$\pm$4.8} & \textbf{82.4}{\tiny$\pm$4.8} & \textbf{82.6}{\tiny$\pm$4.8} \\
+\midrule
+\textit{Collapse gap} & \textit{11.4pp} & \textit{11.9pp} & \textit{12.1pp} & \textit{12.1pp} \\
+\textit{Collapsed spread} & \textit{0.3pp} & \textit{0.5pp} & \textit{1.4pp} & \textit{1.0pp} \\
+\bottomrule
+\end{tabular}
+
+\vspace{1mm}
+\footnotesize{Collapse gap = mean(Ditto, HPFL) $-$ mean(others). Collapsed spread = max $-$ min within the 5 non-personalized algorithms. Same hyperparameters as baseline (Table~\ref{tab:dataset_config}).}
+\end{table}
+
+\textbf{Key finding}: \textbf{The algorithm collapse is robust to local epochs}. Even at $E$=20 (20$\times$ more local computation per round), the five non-personalized algorithms remain within 1.0pp of each other, and the personalization gap stays at $\sim$12pp. FedProx shows marginal differentiation at $E$=10 (+1.4pp over FedAvg) due to its proximal term limiting client drift, but remains firmly in the collapsed group. Combined with the deep MLP results above, this establishes that algorithm collapse on tabular healthcare data is \textbf{robust to model capacity, local epochs, and client count} (Section~\ref{sec:scalability})---it is a fundamental property of the low-dimensional, near-convex optimization landscape, not a training artifact.
 
 \subsection{Scalability Analysis}
 \label{sec:scalability}
