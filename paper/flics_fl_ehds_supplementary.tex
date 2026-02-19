@@ -564,6 +564,8 @@ Per-hosp.\ classif. & HPFL & Local boundaries \\
 \label{sec:advanced}
 % ============================================================================
 
+\textbf{Note:} The paradigms in this section are \textit{implemented in the reference framework} and available for use, but are \textit{not experimentally evaluated} in this paper's benchmark suite. Our experimental validation (Section~IV of the main paper) focuses on horizontal FL with 7 algorithms across 5 tabular datasets and 3 imaging datasets. The advanced paradigms below are provided as architectural capabilities for future evaluation on appropriate multi-institutional datasets.
+
 The core FL-EHDS pipeline (Section~II) addresses the standard ``horizontal'' FL scenario where all hospitals share the same feature schema. However, real EHDS deployments will encounter more complex configurations: institutions with complementary features for the same patients (vertical FL), adversarial participants (Byzantine resilience), evolving data distributions over the 2025--2031 timeline (continual FL), heterogeneous clinical objectives (multi-task FL), and the hierarchical governance structure of the EU itself (hierarchical FL). This section presents the advanced paradigms implemented in the reference framework, each motivated by a specific EHDS deployment challenge. Algorithms~S9--S13 formalize the core mechanisms.
 
 \subsection{Vertical Federated Learning}
@@ -1533,6 +1535,8 @@ python -m benchmarks.run_tabular_dp
 python -m benchmarks.run_tabular_seeds10
 # Article 71 opt-out impact (225 experiments, ~1.5h)
 python -m benchmarks.run_tabular_optout
+# Deep MLP differentiation (70 experiments, ~1.5h)
+python -m benchmarks.run_tabular_deep_mlp
 # Extended analysis (tables + plots)
 python -m benchmarks.analyze_tabular_extended
 \end{verbatim}

@@ -67,7 +67,7 @@ This paper bridges the technology-governance divide through four contributions:
     \item \textbf{Barrier Taxonomy}: Systematic evidence synthesis of 47 documents using PRISMA methodology with GRADE-CERQual confidence assessment.
     \item \textbf{FL-EHDS Framework}: A three-layer reference architecture mapping barriers to governance-aware mitigation strategies.
     \item \textbf{Reference Implementation}: Open-source Python codebase ($\sim$40K lines) with 17 FL algorithms (2017--2025) and EHDS governance modules.\footnote{Available at: \url{https://github.com/FabioLiberti/FL-EHDS-FLICS2026}}
-    \item \textbf{Experimental Validation}: 1,740 experiments on 5 tabular clinical datasets (including the European-origin PTB-XL ECG) with differential privacy ablation across $\varepsilon \in \{1, 5, 10, 50\}$, demonstrating that algorithm selection produces 18.7pp accuracy differences and personalized FL narrows the centralized-federated gap to 6.6pp.
+    \item \textbf{Experimental Validation}: 1,740 experiments on 5 tabular clinical datasets (including the European-origin PTB-XL ECG) with differential privacy ablation across $\varepsilon \in \{1, 5, 10, 50\}$, demonstrating that algorithm selection produces up to 18.7pp accuracy differences and personalized FL narrows the centralized-federated gap to 6.6pp.
 \end{enumerate}
 
 % ============================================================================
@@ -304,7 +304,7 @@ Skin Cancer & 3,297 & --- & 2 & Dirichlet \\
 
 \subsection{Algorithm Comparison}
 
-Table~\ref{tab:main_results} presents FL algorithm comparison on Heart Disease and Diabetes. Table~\ref{tab:tabular_main} extends evaluation to PTB-XL, Cardiovascular, and Breast Cancer with 7 algorithms including FedLESAM and HPFL---1,515 total experiments across heterogeneity sweeps, client scaling, learning rate sensitivity, and differential privacy ablation (see Supplementary Material, ``Extended Tabular Experiment Results'').
+Table~\ref{tab:tabular_main} presents the primary evaluation: 7 algorithms (including FedLESAM and HPFL) on the European-origin PTB-XL ECG, Cardiovascular, and Breast Cancer---the core EHDS-relevant benchmarks. Table~\ref{tab:main_results} provides supplementary validation on Heart Disease and Diabetes with 5 foundational algorithms. Together, 1,740 experiments span heterogeneity sweeps, client scaling, learning rate sensitivity, differential privacy ablation, and Article~71 opt-out simulation (see Supplementary Material).
 
 \begin{table}[htbp]
 \centering
@@ -455,7 +455,7 @@ Figure~\ref{fig:client_heterogeneity} shows per-hospital accuracy variation on H
 \subsection{Key Findings}
 
 \begin{enumerate}
-    \item \textbf{Algorithm choice matters}: 18.7pp accuracy gap between Ditto (75.1\%) and FedNova (56.4\%) on Heart Disease. On Cardiovascular, personalized methods (Ditto 82.5\%, HPFL 82.3\%) outperform FedAvg (71.1\%) by 11.4pp.
+    \item \textbf{Algorithm choice matters}: up to 18.7pp accuracy gap between best (Ditto, 75.1\%) and worst (FedNova, 56.4\%) on Heart Disease; FedNova and SCAFFOLD exhibit known failure modes on class-imbalanced tabular data (see Discussion). Excluding these, personalized methods still dominate: 12.6pp on Heart Disease (Ditto vs.\ FedAvg), 11.4pp on Cardiovascular (Ditto 82.5\% vs.\ FedAvg 71.1\%).
 
     \item \textbf{Personalization dominates across scales}: HPFL (ICLR 2025) and Ditto consistently outperform baseline algorithms on all datasets. On Breast Cancer---a challenging small-data regime (569 samples, 3 clients)---Ditto achieves 79.1\% vs.\ FedAvg 52.3\% (26.8pp gap). HPFL uniquely improves fairness (Jain 0.867 vs.\ 0.608), reducing the inter-client performance gap from 71.5\% to 47.6\%. HPFL achieves marginal statistical significance ($p{=}0.062$, Wilcoxon signed-rank) against FedAvg on all three datasets---the minimum achievable $p$-value with 5 paired observations.
 
@@ -468,32 +468,25 @@ Figure~\ref{fig:client_heterogeneity} shows per-hospital accuracy variation on H
 
 \textbf{Privacy-utility tradeoff}: A comprehensive ablation across $\varepsilon \in \{1, 5, 10, 50\}$ (180 experiments; Gaussian mechanism, $C{=}1.0$, $\delta{=}10^{-5}$) reveals that personalized methods are remarkably DP-robust: at $\varepsilon{=}10$, Ditto and HPFL lose $<$1pp on PTB-XL, while FedAvg collapses ($-$39.6pp at $\varepsilon{=}1$). Privacy is essentially free at $\varepsilon{=}10$ ($<$2pp cost), satisfying EHDS Article~50 SPE requirements. \textbf{Article~71 opt-out}: simulating citizen opt-out at 5--30\% rates (225 experiments) confirms $<$1pp accuracy loss on adequately-sized datasets even at 30\% opt-out---citizen privacy rights are compatible with FL quality. Full privacy results in Supplementary Material.
 
-\subsection{Communication Costs}
-
-Table~\ref{tab:comm_costs} reports measured communication overhead per FL round, critical for EHDS deployments where bandwidth between national HDABs may be limited.
+Table~\ref{tab:dp_mini} confirms the privacy-utility tradeoff on PTB-XL, our primary European dataset: at $\varepsilon{=}10$ all algorithms recover to within 1pp of their no-DP baselines, while at $\varepsilon{=}1$ only personalized methods (Ditto, HPFL) retain $>$87\% accuracy---FedAvg collapses to 52.3\%.
 
 \begin{table}[htbp]
 \centering
-\caption{Communication Cost per Round (Measured)}
-\label{tab:comm_costs}
+\caption{Privacy-utility on PTB-XL ECG: accuracy (\%) under central DP. Gaussian mechanism, $C{=}1.0$, $\delta{=}10^{-5}$. Mean over 5 seeds.}
+\label{tab:dp_mini}
 \small
-\resizebox{\columnwidth}{!}{%
-\begin{tabular}{lcccr}
+\begin{tabular}{lccc}
 \toprule
-\textbf{Task} & \textbf{Model} & \textbf{Params} & \textbf{MB/round} & \textbf{Total (20r)} \\
+\textbf{Algorithm} & $\boldsymbol{\varepsilon{=}1}$ & $\boldsymbol{\varepsilon{=}10}$ & \textbf{No DP} \\
 \midrule
-Heart Disease & MLP & 10K & 0.04 & 0.8 MB \\
-Diabetes & MLP & 10K & 0.04 & 0.8 MB \\
-Brain Tumor & ResNet-18 & 11.2M & 44.7 & 894 MB \\
+FedAvg & 52.3 & \textbf{92.4} & 91.9 \\
+Ditto & 89.2 & 91.6 & 91.8 \\
+HPFL & 87.1 & 92.4 & 92.5 \\
 \bottomrule
-\end{tabular}%
-}
-
-\vspace{1mm}
-\footnotesize{Per-client upload+download. With Top-$k$ sparsification (1\%), Brain Tumor reduces to 8.9 MB total.}
+\end{tabular}
 \end{table}
 
-\textbf{Clinical imaging}: The framework extends to medical imaging using ResNet-18~\cite{he2016deep} with GroupNorm and FedBN~\cite{li2021fedbn} on Chest X-ray~\cite{chestxray2018}, Brain Tumor MRI, and Skin Cancer datasets. Dataset configurations and imaging pipeline details are provided in the supplementary material. Preliminary imaging experiments confirm framework functionality; comprehensive imaging evaluation across all 7 algorithms is reserved for future work.
+\textbf{Communication \& imaging}: Tabular FL requires only 0.04~MB/round (10K-param MLP, 0.8~MB total). Imaging (ResNet-18, 11.2M params) requires 44.7~MB/round, reducible with Top-$k$ sparsification (1\%). The framework supports ResNet-18~\cite{he2016deep} with GroupNorm and FedBN~\cite{li2021fedbn} on Chest X-ray~\cite{chestxray2018}, Brain Tumor MRI, and Skin Cancer; comprehensive imaging evaluation is reserved for future work.
 
 % ============================================================================
 % 5. DISCUSSION
@@ -509,7 +502,7 @@ A concrete example illustrates this impasse: consider a German hospital ($\varep
 
 \subsection{Experimental Insights for EHDS Deployment}
 
-Our results carry three implications beyond algorithm benchmarking. \textit{First}, the 18.7pp accuracy gap between best and worst algorithms on identical data demonstrates that EHDS SPE configurations cannot treat FL as a black box---algorithm selection must be part of the data permit specification, with guidance on matching algorithms to dataset characteristics (class balance, heterogeneity level, number of participating institutions). \textit{Second}, the catastrophic failure of SCAFFOLD and FedNova on class-imbalanced data (Section~\ref{sec:experiments}) suggests that variance-reduction and normalization strategies, while theoretically superior, require careful validation on clinical tasks where class ratios of 5--15\% are common. EHDS delegated acts should consider mandating algorithm validation protocols before cross-border deployment. \textit{Third}, the success of personalized FL (Ditto, 6.6pp gap; HPFL, $p < 0.005$ on all datasets, Wilcoxon 10-seed) aligns naturally with EHDS data sovereignty: each institution retains a locally fine-tuned model while contributing to collective knowledge, satisfying both Article~33 secondary use objectives and institutional autonomy concerns. \textit{Fourth}, on the compact tabular MLP ($\sim$10K parameters), only methods maintaining \textit{separate local models} (Ditto, HPFL) differentiate from FedAvg; server-side strategies converge to equivalent solutions on the nearly convex loss landscape, indicating that personalization architecture---not aggregation strategy---is the critical design choice for lightweight clinical models.
+Our results carry three implications. \textit{First}, the up to 18.7pp accuracy gap between best and worst algorithms---12.6pp excluding known failure modes---demonstrates that EHDS SPE configurations cannot treat FL as a black box; algorithm selection must be part of data permit specification. \textit{Second}, SCAFFOLD and FedNova fail catastrophically on class-imbalanced tabular data: SCAFFOLD's control variates overcorrect under severe label skew with few heterogeneous clients (oscillating convergence), while FedNova's normalized averaging amplifies noise from divergent local objectives. These are known failure modes~\cite{karimireddy2020scaffold, wang2020tackling} exacerbated by clinical-scale class ratios (5--15\%); EHDS delegated acts should mandate algorithm validation protocols. \textit{Third}, the success of personalized FL (Ditto, 6.6pp gap; HPFL, $p < 0.005$ on all datasets, Wilcoxon 10-seed) aligns naturally with EHDS data sovereignty: each institution retains a locally fine-tuned model while contributing to collective knowledge, satisfying both Article~33 secondary use objectives and institutional autonomy concerns. \textit{Fourth}, on the compact tabular MLP ($\sim$10K parameters), only methods maintaining \textit{separate local models} (Ditto, HPFL) differentiate from FedAvg; server-side strategies converge to equivalent solutions on the nearly convex loss landscape, indicating that personalization architecture---not aggregation strategy---is the critical design choice for lightweight clinical models.
 
 \subsection{Multi-Modal EHDS Coverage}
 
@@ -525,7 +518,11 @@ PTB-XL merits particular attention: originating from a European institution (Phy
 
 \subsection{Limitations}
 
-Our evaluation uses retrospective public datasets; real-world integration with production EHR systems remains essential future work. The tabular MLP ($\sim$10K parameters) produces a nearly convex loss landscape where server-side strategies (FedLESAM, FedExP, FedLC) converge to FedAvg-equivalent solutions; deeper models are expected to differentiate these algorithms. While PTB-XL provides authentic European multi-site heterogeneity (52 sites), true cross-border validation requires datasets spanning multiple Member States with distinct national healthcare systems---a resource that does not yet exist publicly and that the EHDS itself aims to enable. The governance layer operates as a simulation backend; binding to actual HDAB REST/gRPC endpoints requires only configuration changes (endpoint URLs, mTLS certificates), not architectural modifications. No direct experimental comparison with Flower~\cite{beutel2020flower} or FLARE~\cite{roth2023nvidia} is provided: since no existing framework implements HDAB permit integration, Article~71 output filtering, or EHDS-compliant audit trails, such a comparison would reduce to pure FL algorithm performance---equivalent by design across frameworks implementing the same canonical algorithms. FL-EHDS's contribution lies in the governance-technical integration layer, not in algorithmic novelty (detailed analysis in Supplementary Material).
+\textbf{Dataset}: Our evaluation uses retrospective public datasets; real-world integration with production EHR systems remains essential future work. While PTB-XL provides authentic European multi-site heterogeneity (52 sites), true cross-border validation requires datasets spanning multiple Member States with distinct national healthcare systems---a resource that does not yet exist publicly and that the EHDS itself aims to enable.
+
+\textbf{Evaluation}: The tabular MLP ($\sim$10K parameters) produces a nearly convex loss landscape where server-side strategies (FedLESAM, FedExP, FedLC) converge to FedAvg-equivalent solutions; deeper models are expected to differentiate these algorithms. No direct experimental comparison with Flower~\cite{beutel2023flower} or FLARE~\cite{nvflare2023} is provided: since no existing framework implements HDAB permit integration, Article~71 output filtering, or EHDS-compliant audit trails, such a comparison would reduce to pure FL algorithm performance---equivalent by design (detailed analysis in Supplementary Material).
+
+\textbf{Framework}: The governance layer operates as a simulation backend; binding to actual HDAB REST/gRPC endpoints requires only configuration changes (endpoint URLs, mTLS certificates), not architectural modifications.
 
 % ============================================================================
 % 6. CONCLUSIONS
