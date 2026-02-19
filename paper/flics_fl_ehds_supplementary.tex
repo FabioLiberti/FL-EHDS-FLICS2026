@@ -1224,13 +1224,14 @@ Table~\ref{tab:dp_tradeoff} quantifies accuracy under central differential priva
 \caption{Privacy-utility tradeoff: accuracy (\%) under central DP with varying $\varepsilon$. Gaussian mechanism, $C{=}1.0$, $\delta{=}10^{-5}$. Mean $\pm$ std over 5 seeds. No-DP baselines from Table~7 (main paper). $\Delta$ = drop from No-DP.}
 \label{tab:dp_tradeoff}
 \footnotesize
+\resizebox{\columnwidth}{!}{%
 \begin{tabular}{ll ccccc}
 \toprule
 \textbf{DS} & \textbf{Algo} & \textbf{No-DP} & $\boldsymbol{\varepsilon{=}1}$ & $\boldsymbol{\varepsilon{=}5}$ & $\boldsymbol{\varepsilon{=}10}$ & $\boldsymbol{\varepsilon{=}50}$ \\
 \midrule
 PX & FedAvg & 91.9\tiny{$\pm$0.5} & 52.3\tiny{$\pm$13.3} & 84.2\tiny{$\pm$4.3} & \textbf{92.4}\tiny{$\pm$0.3} & 92.4\tiny{$\pm$0.3} \\
  & Ditto & 91.8\tiny{$\pm$0.3} & 89.2\tiny{$\pm$0.4} & 90.9\tiny{$\pm$0.6} & 91.6\tiny{$\pm$0.5} & 91.9\tiny{$\pm$0.3} \\
- & HPFL & 92.6\tiny{$\pm$0.3} & 87.1\tiny{$\pm$2.8} & 90.6\tiny{$\pm$2.2} & 92.4\tiny{$\pm$0.4} & \textbf{92.7}\tiny{$\pm$0.2} \\
+ & HPFL & 92.5\tiny{$\pm$0.3} & 87.1\tiny{$\pm$2.8} & 90.6\tiny{$\pm$2.2} & 92.4\tiny{$\pm$0.4} & \textbf{92.7}\tiny{$\pm$0.2} \\
 \midrule
 CV & FedAvg & 71.1\tiny{$\pm$1.8} & 54.7\tiny{$\pm$3.2} & 59.8\tiny{$\pm$4.7} & 69.1\tiny{$\pm$3.7} & 71.0\tiny{$\pm$2.4} \\
  & Ditto & \textbf{82.5}\tiny{$\pm$4.7} & 76.9\tiny{$\pm$7.5} & 80.4\tiny{$\pm$5.8} & 81.9\tiny{$\pm$4.9} & \textbf{82.5}\tiny{$\pm$4.8} \\
@@ -1240,7 +1241,8 @@ BC & FedAvg & 52.3\tiny{$\pm$17.9} & 65.2\tiny{$\pm$8.1} & \textbf{78.7}\tiny{$\
  & Ditto & 79.1\tiny{$\pm$12.5} & 73.8\tiny{$\pm$20.6} & 74.0\tiny{$\pm$20.7} & 74.0\tiny{$\pm$20.7} & 74.0\tiny{$\pm$20.7} \\
  & HPFL & 74.1\tiny{$\pm$20.9} & \textbf{86.9}\tiny{$\pm$13.8} & 84.9\tiny{$\pm$13.0} & 80.0\tiny{$\pm$17.6} & 80.7\tiny{$\pm$21.8} \\
 \bottomrule
-\end{tabular}
+\end{tabular}%
+}
 \end{table}
 
 \textbf{Key findings}: (1)~\textit{Personalized methods are remarkably DP-robust}: At $\varepsilon{=}10$, Ditto and HPFL lose $<$1pp on PTB-XL and $<$1.5pp on Cardiovascular, while FedAvg collapses to 52.3\% on PTB-XL at $\varepsilon{=}1$ ($-$39.6pp). This robustness arises because personalized local adaptation (Ditto's fine-tuning, HPFL's classifier heads) is unaffected by central DP noise injected during aggregation.
@@ -1619,7 +1621,7 @@ S. Reddi \textit{et al.}, ``Adaptive federated optimization,'' in \textit{Proc. 
 T. Li \textit{et al.}, ``Ditto: Fair and robust federated learning through personalization,'' in \textit{Proc. ICML}, PMLR 139, pp.~6357--6368, 2021.
 
 \bibitem{fallah2020personalized}
-A. Fallah, A. Mokhtari, and A. Ozdaglar, ``Personalized federated learning with Moreau envelopes,'' in \textit{Proc. NeurIPS}, vol.~33, pp.~21394--21405, 2020.
+T. Dinh, N. Tran, and J. Nguyen, ``Personalized federated learning with Moreau envelopes,'' in \textit{Proc. NeurIPS}, vol.~33, pp.~21394--21405, 2020.
 
 \bibitem{qu2022fedsam}
 Z. Qu \textit{et al.}, ``Generalized federated learning via sharpness aware minimization,'' in \textit{Proc. ICML}, PMLR 162, pp.~18250--18280, 2022.

@@ -43,7 +43,7 @@
 % ABSTRACT
 % ============================================================================
 \begin{abstract}
-The European Health Data Space (EHDS), established by Regulation (EU) 2025/327, mandates cross-border health data analytics while preserving citizen privacy. Federated Learning (FL) is the key enabling technology for secondary use, yet only 23\% of FL implementations achieve sustained production deployment in healthcare. We present FL-EHDS, a three-layer compliance framework integrating governance mechanisms (Health Data Access Bodies, data permits, opt-out registries), FL orchestration (17 aggregation algorithms including 2024--2025 advances, differential privacy, secure aggregation), and data holder components (adaptive training, FHIR preprocessing). Experimental validation on 5 tabular clinical datasets---including the European-origin PTB-XL ECG with natural 52-site partitioning---with 3 additional imaging datasets under evaluation, demonstrates that personalized FL (Ditto) narrows the centralized-federated gap to 6.6 percentage points while preserving full data sovereignty, and that algorithm choice produces up to 18.7pp accuracy differences on heterogeneous clinical data. Our systematic evidence synthesis of 47 documents reveals that legal uncertainties---not technical barriers---constitute the critical blocker for FL adoption in EHDS contexts. The open-source reference implementation and compliance mapping provide actionable guidance for the 2025--2031 transition period.
+The European Health Data Space (EHDS), established by Regulation (EU) 2025/327, mandates cross-border health data analytics while preserving citizen privacy. Federated Learning (FL) is the key enabling technology for secondary use, yet only 23\% of FL implementations achieve sustained production deployment in healthcare. We present FL-EHDS, a three-layer compliance framework integrating governance mechanisms (Health Data Access Bodies, data permits, opt-out registries), FL orchestration (17 aggregation algorithms including 2024--2025 advances, differential privacy, secure aggregation), and data holder components (adaptive training, FHIR preprocessing). Experimental validation on 5 tabular clinical datasets---including the European-origin PTB-XL ECG with natural 52-site partitioning---with an imaging pipeline supporting 3 medical imaging benchmarks, demonstrates that personalized FL (Ditto) narrows the centralized-federated gap to 6.6 percentage points while preserving full data sovereignty, and that algorithm choice produces up to 18.7pp accuracy differences on heterogeneous clinical data. Our systematic evidence synthesis of 47 documents reveals that legal uncertainties---not technical barriers---constitute the critical blocker for FL adoption in EHDS contexts. The open-source reference implementation and compliance mapping provide actionable guidance for the 2025--2031 transition period.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -67,7 +67,7 @@ This paper bridges the technology-governance divide through four contributions:
     \item \textbf{Barrier Taxonomy}: Systematic evidence synthesis of 47 documents using PRISMA methodology with GRADE-CERQual confidence assessment.
     \item \textbf{FL-EHDS Framework}: A three-layer reference architecture mapping barriers to governance-aware mitigation strategies.
     \item \textbf{Reference Implementation}: Open-source Python codebase ($\sim$40K lines) with 17 FL algorithms (2017--2025) and EHDS governance modules.\footnote{Available at: \url{https://github.com/FabioLiberti/FL-EHDS-FLICS2026}}
-    \item \textbf{Experimental Validation}: Evaluation on 5 tabular clinical datasets (including the European-origin PTB-XL ECG) with 3 imaging datasets under extended evaluation, demonstrating that algorithm selection produces 18.7pp accuracy differences and personalized FL narrows the centralized-federated gap to 6.6pp.
+    \item \textbf{Experimental Validation}: 1,410 experiments on 5 tabular clinical datasets (including the European-origin PTB-XL ECG) with differential privacy ablation across $\varepsilon \in \{1, 5, 10, 50\}$, demonstrating that algorithm selection produces 18.7pp accuracy differences and personalized FL narrows the centralized-federated gap to 6.6pp.
 \end{enumerate}
 
 % ============================================================================
@@ -272,7 +272,7 @@ We evaluate FL-EHDS on real clinical datasets simulating cross-border healthcare
 
 \subsection{Setup}
 
-\textbf{Datasets}: We evaluate on 8 datasets spanning tabular EHR and medical imaging (Table~\ref{tab:dataset_coverage}). Tabular datasets cover three scale regimes: \textit{small-data FL} (Heart Disease UCI, 920 patients from 4 international hospitals with natural non-IID partitioning; Breast Cancer Wisconsin, 569 FNA pathology samples), \textit{medium-scale} (PTB-XL ECG, 21,799 European-origin records from 52 German recording sites with natural hospital partitioning and 5-class SCP-ECG diagnosis), and \textit{large-scale} (Diabetes 130-US, 101,766 encounters; Cardiovascular Disease, 70,000 patients). Imaging datasets include Chest X-ray (5,856, binary), Brain Tumor MRI (3,064, 4-class), and Skin Cancer (3,297, binary). The full 19-dataset framework landscape is detailed in Supplementary Material, Table~S1. \textbf{Model}: HealthcareMLP (2-layer, 64/32 hidden, ReLU, dropout 0.3, $\sim$10K parameters) for tabular; ResNet-18 ($\sim$11.2M parameters) for imaging. \textbf{Configuration}: Per-dataset optimized hyperparameters (see Supplementary Material, Table~S9): PTB-XL (lr=0.005, bs=64, 30 rounds), Cardiovascular (lr=0.01, bs=64, 25 rounds), Breast Cancer (lr=0.001, bs=16, 40 rounds, 1 local epoch to prevent overfitting on 569 samples). All other datasets use 3 local epochs. Adam optimizer throughout; early stopping with patience=6. All results are mean $\pm$ std over 5 seeds.
+\textbf{Datasets}: We evaluate on 8 datasets spanning tabular EHR and medical imaging (Table~\ref{tab:dataset_coverage}). Tabular datasets cover three scale regimes: \textit{small-data FL} (Heart Disease UCI, 920 patients from 4 international hospitals with natural non-IID partitioning; Breast Cancer Wisconsin, 569 FNA pathology samples), \textit{medium-scale} (PTB-XL ECG~\cite{wagner2020ptbxl}, 21,799 European-origin records from 52 German recording sites with natural hospital partitioning and 5-class SCP-ECG diagnosis), and \textit{large-scale} (Diabetes 130-US~\cite{strack2014diabetes}, 101,766 encounters; Cardiovascular Disease, 70,000 patients). Imaging datasets include Chest X-ray (5,856, binary), Brain Tumor MRI (3,064, 4-class), and Skin Cancer (3,297, binary). The full 19-dataset framework landscape is detailed in Supplementary Material, Table~S1. \textbf{Model}: HealthcareMLP (2-layer, 64/32 hidden, ReLU, dropout 0.3, $\sim$10K parameters) for tabular; ResNet-18 ($\sim$11.2M parameters) for imaging. \textbf{Configuration}: Per-dataset optimized hyperparameters (see Supplementary Material, Table~S9): PTB-XL (lr=0.005, bs=64, 30 rounds), Cardiovascular (lr=0.01, bs=64, 25 rounds), Breast Cancer (lr=0.001, bs=16, 40 rounds, 1 local epoch to prevent overfitting on 569 samples). All other datasets use 3 local epochs. Adam optimizer throughout; early stopping with patience=6. All results are mean $\pm$ std over 5 seeds.
 
 \begin{table}[htbp]
 \centering
@@ -304,7 +304,7 @@ Skin Cancer & 3,297 & --- & 2 & Dirichlet \\
 
 \subsection{Algorithm Comparison}
 
-Table~\ref{tab:main_results} presents FL algorithm comparison on Heart Disease and Diabetes. Table~\ref{tab:tabular_main} extends evaluation to PTB-XL, Cardiovascular, and Breast Cancer with 7 algorithms including FedLESAM and HPFL---1,410 total experiments across heterogeneity sweeps, client scaling, learning rate sensitivity, and differential privacy ablation (see Supplementary Material, Section~S11).
+Table~\ref{tab:main_results} presents FL algorithm comparison on Heart Disease and Diabetes. Table~\ref{tab:tabular_main} extends evaluation to PTB-XL, Cardiovascular, and Breast Cancer with 7 algorithms including FedLESAM and HPFL---1,410 total experiments across heterogeneity sweeps, client scaling, learning rate sensitivity, and differential privacy ablation (see Supplementary Material, ``Extended Tabular Experiment Results'').
 
 \begin{table}[htbp]
 \centering
@@ -466,7 +466,7 @@ Figure~\ref{fig:client_heterogeneity} shows per-hospital accuracy variation on H
     \item \textbf{Communication efficiency}: Tabular FL requires only 0.04~MB/round (10K-parameter MLP). Imaging tasks (44.7~MB/round for ResNet-18) benefit from Top-$k$ sparsification (1\%).
 \end{enumerate}
 
-\textbf{Privacy-utility tradeoff}: A comprehensive ablation across $\varepsilon \in \{1, 5, 10, 50\}$ (180 experiments; Gaussian mechanism, $C{=}1.0$, $\delta{=}10^{-5}$) reveals that personalized methods are remarkably DP-robust: at $\varepsilon{=}10$, Ditto and HPFL lose $<$1pp on PTB-XL and $<$1.5pp on Cardiovascular, while FedAvg collapses ($-$39.6pp on PTB-XL at $\varepsilon{=}1$). On Breast Cancer, DP noise acts as regularization---HPFL at $\varepsilon{=}1$ achieves 86.9\% vs.\ 74.1\% without DP. Privacy is essentially free at $\varepsilon{=}10$ ($<$2pp cost), satisfying EHDS Article~50 SPE requirements. Full results in Supplementary Material, Table~S6. R\'enyi DP composition~\cite{mironov2017renyi} provides 5--6$\times$ tighter bounds than naive composition for the 20+ round training typical of EHDS cross-border studies.
+\textbf{Privacy-utility tradeoff}: A comprehensive ablation across $\varepsilon \in \{1, 5, 10, 50\}$ (180 experiments; Gaussian mechanism, $C{=}1.0$, $\delta{=}10^{-5}$) reveals that personalized methods are remarkably DP-robust: at $\varepsilon{=}10$, Ditto and HPFL lose $<$1pp on PTB-XL and $<$1.5pp on Cardiovascular, while FedAvg collapses ($-$39.6pp on PTB-XL at $\varepsilon{=}1$). On Breast Cancer, DP noise acts as regularization---HPFL at $\varepsilon{=}1$ achieves 86.9\% vs.\ 74.1\% without DP. Privacy is essentially free at $\varepsilon{=}10$ ($<$2pp cost), satisfying EHDS Article~50 SPE requirements. Full results in Supplementary Material, Table~S6.
 
 \subsection{Communication Costs}
 
@@ -493,7 +493,7 @@ Brain Tumor & ResNet-18 & 11.2M & 44.7 & 894 MB \\
 \footnotesize{Per-client upload+download. With Top-$k$ sparsification (1\%), Brain Tumor reduces to 8.9 MB total.}
 \end{table}
 
-\textbf{Clinical imaging}: The framework extends to medical imaging using ResNet-18~\cite{he2016deep} with GroupNorm and FedBN~\cite{li2021fedbn} on Chest X-ray~\cite{chestxray2018}, Brain Tumor MRI, and Skin Cancer datasets. Dataset configurations and imaging pipeline details are provided in the supplementary material; full experimental results across 7 algorithms, 3 imaging datasets, and 3 seeds constitute ongoing evaluation.
+\textbf{Clinical imaging}: The framework extends to medical imaging using ResNet-18~\cite{he2016deep} with GroupNorm and FedBN~\cite{li2021fedbn} on Chest X-ray~\cite{chestxray2018}, Brain Tumor MRI, and Skin Cancer datasets. Dataset configurations and imaging pipeline details are provided in the supplementary material. Preliminary imaging experiments confirm framework functionality; comprehensive imaging evaluation across all 7 algorithms is reserved for future work.
 
 % ============================================================================
 % 5. DISCUSSION
@@ -562,7 +562,7 @@ The author thanks Prof.~Sadi Alawadi for supervision and guidance.
 % ============================================================================
 \bibliographystyle{IEEEtran}
 
-\begin{thebibliography}{48}
+\begin{thebibliography}{51}
 
 % === EHDS Regulation and Policy ===
 \bibitem{eu2025ehds}
@@ -675,7 +675,7 @@ D. A. E. Acar, Y. Zhao, R. M. Navarro, M. Mattina, P. N. Whatmough, and V. Salig
 T. Li, S. Hu, A. Beirami, and V. Smith, ``Ditto: Fair and robust federated learning through personalization,'' in \textit{Proc. ICML}, PMLR 139, pp.~6357--6368, 2021.
 
 \bibitem{fallah2020personalized}
-A. Fallah, A. Mokhtari, and A. Ozdaglar, ``Personalized federated learning with Moreau envelopes,'' in \textit{Proc. NeurIPS}, vol.~33, pp.~21394--21405, 2020.
+A. Fallah, A. Mokhtari, and A. Ozdaglar, ``Personalized federated learning with theoretical guarantees: A model-agnostic meta-learning approach,'' in \textit{Proc. NeurIPS}, vol.~33, pp.~3557--3568, 2020.
 
 \bibitem{wei2020federated}
 K. Wei \textit{et al.}, ``Federated learning with differential privacy: Algorithms and performance analysis,'' \textit{IEEE Trans.~Inf.~Forensics Secur.}, vol.~15, pp.~3454--3469, 2020.
@@ -724,6 +724,12 @@ K. He, X. Zhang, S. Ren, and J. Sun, ``Deep residual learning for image recognit
 
 \bibitem{chestxray2018}
 D. S. Kermany \textit{et al.}, ``Identifying medical diagnoses and treatable diseases by image-based deep learning,'' \textit{Cell}, vol.~172, no.~5, pp.~1122--1131, 2018.
+
+\bibitem{wagner2020ptbxl}
+P. Wagner \textit{et al.}, ``PTB-XL, a large publicly available electrocardiography dataset,'' \textit{Scientific Data}, vol.~7, art.~154, 2020.
+
+\bibitem{strack2014diabetes}
+B. Strack \textit{et al.}, ``Impact of HbA1c measurement on hospital readmission rates: Analysis of 70,000 clinical database patient records,'' \textit{BioMed Research International}, vol.~2014, art.~781670, 2014.
 
 \end{thebibliography}
 
