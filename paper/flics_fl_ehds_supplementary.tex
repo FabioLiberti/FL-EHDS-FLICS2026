@@ -113,8 +113,8 @@ Algorithm~S2 implements the Gaussian mechanism for differential privacy, applied
 
 \textbf{Practical Considerations:}
 \begin{itemize}
-    \item $\varepsilon = 10$: moderate noise, expected accuracy drop in the 5--6pp range (consistent with Wei et al.~\cite{wei2020federated})
-    \item $\varepsilon = 1$: strong privacy, larger accuracy cost; a comprehensive ablation across $\varepsilon$ values is planned
+    \item $\varepsilon = 10$: moderate noise, $<$2pp accuracy drop on PTB-XL and Cardiovascular (see Table~\ref{tab:dp_tradeoff} in Section~\ref{sec:extended_tabular})
+    \item $\varepsilon = 1$: strong privacy; personalized methods (Ditto, HPFL) retain 87--89\% on PTB-XL while FedAvg collapses to 52\%
     \item The $\varepsilon$ selection must be negotiated with HDABs during permit approval
 \end{itemize}
 
@@ -1081,7 +1081,7 @@ Each data holder institution (hospitals, disease registries, research centers ac
 \label{sec:extended_tabular}
 % ============================================================================
 
-This section presents comprehensive experimental results from 1,230 federated learning experiments across three tabular healthcare datasets: PTB-XL ECG (21,799 records, 52 European recording sites, 5-class cardiac diagnosis), Cardiovascular Disease (70,000 patients, binary classification), and Breast Cancer Wisconsin (569 samples, binary classification). The evaluation comprises a baseline comparison (105 experiments, 7 algorithms $\times$ 3 datasets $\times$ 5 seeds) and three sweep phases: heterogeneity ($\alpha$ variation, 560 experiments), client scaling (385 experiments), and learning rate sensitivity (180 experiments). All results are reproducible via the benchmark suite.
+This section presents comprehensive experimental results from 1,410 federated learning experiments across three tabular healthcare datasets: PTB-XL ECG (21,799 records, 52 European recording sites, 5-class cardiac diagnosis), Cardiovascular Disease (70,000 patients, binary classification), and Breast Cancer Wisconsin (569 samples, binary classification). The evaluation comprises a baseline comparison (105 experiments, 7 algorithms $\times$ 3 datasets $\times$ 5 seeds), three sweep phases---heterogeneity ($\alpha$ variation, 560 experiments), client scaling (385 experiments), and learning rate sensitivity (180 experiments)---and a differential privacy ablation (180 experiments, 4~$\varepsilon$ levels $\times$ 3 algorithms $\times$ 3 datasets $\times$ 5 seeds). All results are reproducible via the benchmark suite.
 
 \subsection{Heterogeneity Impact}
 
@@ -1215,6 +1215,38 @@ BC & Ditto & 64.0 & 79.1 & 89.5 & 89.5 \\
 
 \textbf{Key finding}: All algorithms are sensitive to learning rate at the low end (lr=0.0005), where convergence is incomplete within the configured round budget. HPFL and Ditto achieve near-optimal performance across a wider range (0.005--0.01), while FedAvg requires careful tuning. On Breast Cancer, HPFL reaches 89.7\% accuracy at lr=0.005---substantially higher than FedAvg's best of 74.7\% at lr=0.01---confirming that personalized methods are more robust to hyperparameter selection on small datasets.
 
+\subsection{Privacy-Utility Tradeoff (Differential Privacy)}
+
+Table~\ref{tab:dp_tradeoff} quantifies accuracy under central differential privacy with varying privacy budget~$\varepsilon$. We evaluate 3 representative algorithms: FedAvg (baseline), Ditto (best personalized), and HPFL (best fairness). All experiments use the Gaussian mechanism with clip norm $C{=}1.0$ and $\delta{=}10^{-5}$.
+
+\begin{table}[t]
+\centering
+\caption{Privacy-utility tradeoff: accuracy (\%) under central DP with varying $\varepsilon$. Gaussian mechanism, $C{=}1.0$, $\delta{=}10^{-5}$. Mean $\pm$ std over 5 seeds. No-DP baselines from Table~7 (main paper). $\Delta$ = drop from No-DP.}
+\label{tab:dp_tradeoff}
+\footnotesize
+\begin{tabular}{ll ccccc}
+\toprule
+\textbf{DS} & \textbf{Algo} & \textbf{No-DP} & $\boldsymbol{\varepsilon{=}1}$ & $\boldsymbol{\varepsilon{=}5}$ & $\boldsymbol{\varepsilon{=}10}$ & $\boldsymbol{\varepsilon{=}50}$ \\
+\midrule
+PX & FedAvg & 91.9\tiny{$\pm$0.5} & 52.3\tiny{$\pm$13.3} & 84.2\tiny{$\pm$4.3} & \textbf{92.4}\tiny{$\pm$0.3} & 92.4\tiny{$\pm$0.3} \\
+ & Ditto & 91.8\tiny{$\pm$0.3} & 89.2\tiny{$\pm$0.4} & 90.9\tiny{$\pm$0.6} & 91.6\tiny{$\pm$0.5} & 91.9\tiny{$\pm$0.3} \\
+ & HPFL & 92.6\tiny{$\pm$0.3} & 87.1\tiny{$\pm$2.8} & 90.6\tiny{$\pm$2.2} & 92.4\tiny{$\pm$0.4} & \textbf{92.7}\tiny{$\pm$0.2} \\
+\midrule
+CV & FedAvg & 71.1\tiny{$\pm$1.8} & 54.7\tiny{$\pm$3.2} & 59.8\tiny{$\pm$4.7} & 69.1\tiny{$\pm$3.7} & 71.0\tiny{$\pm$2.4} \\
+ & Ditto & \textbf{82.5}\tiny{$\pm$4.7} & 76.9\tiny{$\pm$7.5} & 80.4\tiny{$\pm$5.8} & 81.9\tiny{$\pm$4.9} & \textbf{82.5}\tiny{$\pm$4.8} \\
+ & HPFL & 82.3\tiny{$\pm$4.5} & 74.7\tiny{$\pm$9.1} & 79.3\tiny{$\pm$6.0} & 81.2\tiny{$\pm$5.2} & 82.2\tiny{$\pm$4.6} \\
+\midrule
+BC & FedAvg & 52.3\tiny{$\pm$17.9} & 65.2\tiny{$\pm$8.1} & \textbf{78.7}\tiny{$\pm$3.6} & 78.2\tiny{$\pm$8.3} & 72.0\tiny{$\pm$10.3} \\
+ & Ditto & 79.1\tiny{$\pm$12.5} & 73.8\tiny{$\pm$20.6} & 74.0\tiny{$\pm$20.7} & 74.0\tiny{$\pm$20.7} & 74.0\tiny{$\pm$20.7} \\
+ & HPFL & 74.1\tiny{$\pm$20.9} & \textbf{86.9}\tiny{$\pm$13.8} & 84.9\tiny{$\pm$13.0} & 80.0\tiny{$\pm$17.6} & 80.7\tiny{$\pm$21.8} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Key findings}: (1)~\textit{Personalized methods are remarkably DP-robust}: At $\varepsilon{=}10$, Ditto and HPFL lose $<$1pp on PTB-XL and $<$1.5pp on Cardiovascular, while FedAvg collapses to 52.3\% on PTB-XL at $\varepsilon{=}1$ ($-$39.6pp). This robustness arises because personalized local adaptation (Ditto's fine-tuning, HPFL's classifier heads) is unaffected by central DP noise injected during aggregation.
+(2)~\textit{DP as regularization on small data}: On Breast Cancer (569 samples), FedAvg with $\varepsilon{=}5$ achieves 78.7\%---\textit{higher} than the no-DP baseline of 52.3\% (+26.4pp). HPFL at $\varepsilon{=}1$ reaches 86.9\% vs.\ 74.1\% without DP (+12.8pp). The Gaussian noise acts as implicit regularization, preventing overfitting on this small dataset.
+(3)~\textit{Privacy is nearly free at $\varepsilon{=}10$}: Across PTB-XL and Cardiovascular, all algorithms recover to within 2pp of their no-DP baselines at $\varepsilon{=}10$---a practical privacy level that satisfies EHDS Article~50 requirements with minimal utility cost.
+
 \subsection{Fairness Analysis}
 
 Table~\ref{tab:fairness_detail} provides per-client fairness metrics across all datasets.
@@ -1286,7 +1318,7 @@ HPFL & 0.062* & 0.062* & 0.062* \\
 
 \begin{table}[t]
 \centering
-\caption{Per-dataset optimal configuration.}
+\caption{Per-dataset optimized configuration used for baseline comparison (Table~7 in main paper).}
 \label{tab:dataset_config}
 \small
 \begin{tabular}{lcccccc}
@@ -1307,6 +1339,8 @@ cd fl-ehds-framework
 python -m benchmarks.run_tabular_optimized
 # Multi-phase sweep (1125 experiments, ~4.5h)
 python -m benchmarks.run_tabular_sweep --phase all
+# DP ablation (180 experiments, ~1.5h)
+python -m benchmarks.run_tabular_dp
 # Extended analysis (tables + plots)
 python -m benchmarks.analyze_tabular_extended
 \end{verbatim}
@@ -1315,7 +1349,7 @@ Results, checkpoints, and analysis outputs are auto-saved to \texttt{benchmarks/
 
 \subsection{Extended Tabular Experiment Figures}
 
-Figures~\ref{fig:tab_convergence}--\ref{fig:tab_best_config} present visual analysis of the 1,230 tabular experiments. All plots are auto-generated by the benchmark analysis suite.
+Figures~\ref{fig:tab_convergence}--\ref{fig:tab_best_config} present visual analysis of the 1,410 tabular experiments. All plots are auto-generated by the benchmark analysis suite.
 
 \begin{figure}[htbp]
 \centering

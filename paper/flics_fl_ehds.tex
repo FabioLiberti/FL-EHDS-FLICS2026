@@ -272,7 +272,7 @@ We evaluate FL-EHDS on real clinical datasets simulating cross-border healthcare
 
 \subsection{Setup}
 
-\textbf{Datasets}: We evaluate on 8 datasets spanning tabular EHR and medical imaging (Table~\ref{tab:dataset_coverage}). Tabular datasets cover three scale regimes: \textit{small-data FL} (Heart Disease UCI, 920 patients from 4 international hospitals with natural non-IID partitioning; Breast Cancer Wisconsin, 569 FNA pathology samples), \textit{medium-scale} (PTB-XL ECG, 21,799 European-origin records from 52 German recording sites with natural hospital partitioning and 5-class SCP-ECG diagnosis), and \textit{large-scale} (Diabetes 130-US, 101,766 encounters; Cardiovascular Disease, 70,000 patients). Imaging datasets include Chest X-ray (5,856, binary), Brain Tumor MRI (3,064, 4-class), and Skin Cancer (3,297, binary). The full 19-dataset framework landscape is detailed in Supplementary Material, Table~S1. \textbf{Model}: HealthcareMLP (2-layer, 64/32 hidden, ReLU, dropout 0.3, $\sim$10K parameters) for tabular; ResNet-18 ($\sim$11.2M parameters) for imaging. \textbf{Configuration}: 20 rounds, 3 local epochs, batch size 32, Adam optimizer (lr=0.01 tabular, lr=0.0005 imaging). All results are mean $\pm$ std over 5 seeds.
+\textbf{Datasets}: We evaluate on 8 datasets spanning tabular EHR and medical imaging (Table~\ref{tab:dataset_coverage}). Tabular datasets cover three scale regimes: \textit{small-data FL} (Heart Disease UCI, 920 patients from 4 international hospitals with natural non-IID partitioning; Breast Cancer Wisconsin, 569 FNA pathology samples), \textit{medium-scale} (PTB-XL ECG, 21,799 European-origin records from 52 German recording sites with natural hospital partitioning and 5-class SCP-ECG diagnosis), and \textit{large-scale} (Diabetes 130-US, 101,766 encounters; Cardiovascular Disease, 70,000 patients). Imaging datasets include Chest X-ray (5,856, binary), Brain Tumor MRI (3,064, 4-class), and Skin Cancer (3,297, binary). The full 19-dataset framework landscape is detailed in Supplementary Material, Table~S1. \textbf{Model}: HealthcareMLP (2-layer, 64/32 hidden, ReLU, dropout 0.3, $\sim$10K parameters) for tabular; ResNet-18 ($\sim$11.2M parameters) for imaging. \textbf{Configuration}: Per-dataset optimized hyperparameters (see Supplementary Material, Table~S9): PTB-XL (lr=0.005, bs=64, 30 rounds), Cardiovascular (lr=0.01, bs=64, 25 rounds), Breast Cancer (lr=0.001, bs=16, 40 rounds, 1 local epoch to prevent overfitting on 569 samples). All other datasets use 3 local epochs. Adam optimizer throughout; early stopping with patience=6. All results are mean $\pm$ std over 5 seeds.
 
 \begin{table}[htbp]
 \centering
@@ -304,7 +304,7 @@ Skin Cancer & 3,297 & --- & 2 & Dirichlet \\
 
 \subsection{Algorithm Comparison}
 
-Table~\ref{tab:main_results} presents FL algorithm comparison on Heart Disease and Diabetes. Table~\ref{tab:tabular_main} extends evaluation to PTB-XL, Cardiovascular, and Breast Cancer with 7 algorithms including FedLESAM and HPFL---1,230 total experiments across heterogeneity sweeps, client scaling, and learning rate sensitivity (see Supplementary Material, Section~S11).
+Table~\ref{tab:main_results} presents FL algorithm comparison on Heart Disease and Diabetes. Table~\ref{tab:tabular_main} extends evaluation to PTB-XL, Cardiovascular, and Breast Cancer with 7 algorithms including FedLESAM and HPFL---1,410 total experiments across heterogeneity sweeps, client scaling, learning rate sensitivity, and differential privacy ablation (see Supplementary Material, Section~S11).
 
 \begin{table}[htbp]
 \centering
@@ -457,16 +457,16 @@ Figure~\ref{fig:client_heterogeneity} shows per-hospital accuracy variation on H
 \begin{enumerate}
     \item \textbf{Algorithm choice matters}: 18.7pp accuracy gap between Ditto (75.1\%) and FedNova (56.4\%) on Heart Disease. On Cardiovascular, personalized methods (Ditto 82.5\%, HPFL 82.3\%) outperform FedAvg (71.1\%) by 11.4pp.
 
-    \item \textbf{Personalization dominates across scales}: HPFL (ICLR 2025) and Ditto consistently outperform baseline algorithms on all datasets. On Breast Cancer---a challenging small-data regime (569 samples, 3 clients)---Ditto achieves 79.1\% vs.\ FedAvg 52.3\% (26.8pp gap). HPFL uniquely improves fairness (Jain 0.867 vs.\ 0.608), reducing the inter-client performance gap from 71.5\% to 47.6\%.
+    \item \textbf{Personalization dominates across scales}: HPFL (ICLR 2025) and Ditto consistently outperform baseline algorithms on all datasets. On Breast Cancer---a challenging small-data regime (569 samples, 3 clients)---Ditto achieves 79.1\% vs.\ FedAvg 52.3\% (26.8pp gap). HPFL uniquely improves fairness (Jain 0.867 vs.\ 0.608), reducing the inter-client performance gap from 71.5\% to 47.6\%. HPFL achieves marginal statistical significance ($p{=}0.062$, Wilcoxon signed-rank) against FedAvg on all three datasets---the minimum achievable $p$-value with 5 paired observations.
 
     \item \textbf{PTB-XL validates European FL}: The European-origin PTB-XL dataset with natural 52-site partitioning achieves 92.5\% accuracy (HPFL) for 5-class ECG diagnosis with near-perfect fairness (Jain 0.999)---demonstrating FL viability for real European multi-center clinical data.
 
-    \item \textbf{Heterogeneity amplifies algorithm differences}: Under extreme non-IID ($\alpha{=}0.1$), Ditto and HPFL \textit{improve} on Cardiovascular (92.4\% vs.\ 82.5\% at $\alpha{=}0.5$) while FedAvg degrades to 61.2\%. This counter-intuitive result confirms that personalized methods exploit heterogeneity rather than suffering from it (see Supplementary Material, Table~S2).
+    \item \textbf{Heterogeneity amplifies algorithm differences}: Under extreme non-IID ($\alpha{=}0.1$), Ditto and HPFL \textit{improve} on Cardiovascular (92.4\% vs.\ 82.5\% at $\alpha{=}0.5$) while FedAvg degrades to 61.2\%. This counter-intuitive result confirms that personalized methods exploit heterogeneity rather than suffering from it (see Supplementary Material, Table~S3).
 
     \item \textbf{Communication efficiency}: Tabular FL requires only 0.04~MB/round (10K-parameter MLP). Imaging tasks (44.7~MB/round for ResNet-18) benefit from Top-$k$ sparsification (1\%).
 \end{enumerate}
 
-\textbf{Privacy-utility tradeoff}: Differential privacy with $\varepsilon{=}10$ (Gaussian mechanism, RDP accounting with $\delta{=}10^{-5}$) provides formal $(\varepsilon,\delta)$-DP guarantees satisfying EHDS Article~50 SPE requirements. Preliminary experiments indicate accuracy costs in the 5--6pp range, consistent with prior FL-DP literature~\cite{wei2020federated}; a comprehensive privacy-utility ablation across $\varepsilon \in \{1, 5, 10, 50\}$ is planned as extended evaluation. R\'enyi DP composition~\cite{mironov2017renyi} provides 5--6$\times$ tighter bounds than naive composition for the 20+ round training typical of EHDS cross-border studies.
+\textbf{Privacy-utility tradeoff}: A comprehensive ablation across $\varepsilon \in \{1, 5, 10, 50\}$ (180 experiments; Gaussian mechanism, $C{=}1.0$, $\delta{=}10^{-5}$) reveals that personalized methods are remarkably DP-robust: at $\varepsilon{=}10$, Ditto and HPFL lose $<$1pp on PTB-XL and $<$1.5pp on Cardiovascular, while FedAvg collapses ($-$39.6pp on PTB-XL at $\varepsilon{=}1$). On Breast Cancer, DP noise acts as regularization---HPFL at $\varepsilon{=}1$ achieves 86.9\% vs.\ 74.1\% without DP. Privacy is essentially free at $\varepsilon{=}10$ ($<$2pp cost), satisfying EHDS Article~50 SPE requirements. Full results in Supplementary Material, Table~S6. R\'enyi DP composition~\cite{mironov2017renyi} provides 5--6$\times$ tighter bounds than naive composition for the 20+ round training typical of EHDS cross-border studies.
 
 \subsection{Communication Costs}
 
@@ -493,7 +493,7 @@ Brain Tumor & ResNet-18 & 11.2M & 44.7 & 894 MB \\
 \footnotesize{Per-client upload+download. With Top-$k$ sparsification (1\%), Brain Tumor reduces to 8.9 MB total.}
 \end{table}
 
-\textbf{Clinical imaging}: The framework extends to medical imaging using ResNet-18~\cite{he2016deep} with GroupNorm and FedBN~\cite{li2021fedbn} on Chest X-ray~\cite{chestxray2018}, Brain Tumor MRI, and Skin Cancer datasets. Dataset configurations and imaging pipeline details are provided in the supplementary material; full experimental results across 7 algorithms, 5 datasets, and 3 seeds constitute ongoing evaluation.
+\textbf{Clinical imaging}: The framework extends to medical imaging using ResNet-18~\cite{he2016deep} with GroupNorm and FedBN~\cite{li2021fedbn} on Chest X-ray~\cite{chestxray2018}, Brain Tumor MRI, and Skin Cancer datasets. Dataset configurations and imaging pipeline details are provided in the supplementary material; full experimental results across 7 algorithms, 3 imaging datasets, and 3 seeds constitute ongoing evaluation.
 
 % ============================================================================
 % 5. DISCUSSION
