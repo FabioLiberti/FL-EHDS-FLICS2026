@@ -1,123 +1,119 @@
 # FL-EHDS: A Privacy-Preserving Federated Learning Framework for the European Health Data Space
 
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![PyTorch 2.0+](https://img.shields.io/badge/pytorch-2.0+-ee4c2c.svg)](https://pytorch.org/)
-[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-green.svg)](https://opensource.org/licenses/Apache-2.0)
-[![Conference: FLICS 2026](https://img.shields.io/badge/Conference-FLICS%202026-orange.svg)](https://www.flics-conference.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
+[![PyTorch](https://img.shields.io/badge/PyTorch-2.0%2B-ee4c2c.svg)](https://pytorch.org/)
+[![Code: ~40K lines](https://img.shields.io/badge/Code-~40K%20lines-green.svg)]()
+[![Modules: 159](https://img.shields.io/badge/Modules-159-green.svg)]()
+[![Experiments: 1740+](https://img.shields.io/badge/Experiments-1%2C740%2B-orange.svg)]()
 
-> **Accompanying paper**: *FL-EHDS: A Privacy-Preserving Federated Learning Framework for the European Health Data Space*
-> Submitted to [FLICS 2026](https://www.flics-conference.org/) -- 2nd International Conference on Federated Learning and Intelligent Computing Systems, Valencia, Spain, June 9--12, 2026.
+> **Paper accepted at [FLICS 2026](https://www.flics-conference.org/) — IEEE International Conference on Federated Learning in Integrated Computing and Services.**
+
+**FL-EHDS** is a three-layer compliance framework that bridges the technology–governance divide for cross-border health analytics under the [European Health Data Space (EHDS)](https://health.ec.europa.eu/ehealth-digital-health-and-care/european-health-data-space_en), Regulation (EU) 2025/327. It integrates 17 federated learning algorithms (2017–2025) with EHDS governance mechanisms—Health Data Access Bodies (HDABs), data permits, citizen opt-out registries—and data holder components for adaptive training with FHIR R4 preprocessing.
 
 ---
 
-## Abstract
+## Table of Contents
 
-FL-EHDS is a **three-layer compliance framework** that enables privacy-preserving federated learning across European healthcare institutions under the [EHDS Regulation (EU) 2025/327](https://eur-lex.europa.eu/). The framework implements **10 federated aggregation algorithms**, **Renyi Differential Privacy (RDP)** accounting, and **secure aggregation**, validated on **6 real-world clinical imaging datasets** (56,923 images) spanning radiology, dermatology, and ophthalmology.
+- [Motivation](#motivation)
+- [Architecture](#architecture)
+- [Key Contributions](#key-contributions)
+- [Experimental Highlights](#experimental-highlights)
+- [Dataset Coverage](#dataset-coverage)
+- [Algorithm Catalogue](#algorithm-catalogue)
+- [Installation](#installation)
+- [Reproducing Experiments](#reproducing-experiments)
+- [Repository Structure](#repository-structure)
+- [Citation](#citation)
+- [License](#license)
+- [Acknowledgements](#acknowledgements)
 
-### Key Results
+---
 
-| Metric | Centralized | Federated (FedAvg) | Privacy Cost |
-|--------|:-----------:|:-------------------:|:------------:|
-| Accuracy | 95.4% | 91.2% | -4.2 pp |
-| F1 Score | 0.939 | 0.890 | -0.049 |
-| AUC | 0.985 | 0.960 | -0.025 |
+## Motivation
 
-*Chest X-ray pneumonia detection -- Non-IID (Dirichlet alpha=0.5), 5 hospitals, HealthcareCNN (~422K params)*
+The EHDS mandates cross-border secondary use of health data across 27 EU Member States by 2029, yet fewer than one in four FL implementations achieve sustained production deployment in healthcare (Fröhlich et al., JMIR 2025). The dominant barriers are not purely technical: unresolved legal questions—gradient data classification under GDPR, cross-border privacy budget harmonization, controller/processor allocation—create compliance uncertainties that no engineering solution alone can resolve. FL-EHDS addresses this gap by providing an integrated framework that operationalises EHDS governance requirements alongside state-of-the-art FL algorithms.
 
 ---
 
 ## Architecture
 
-FL-EHDS bridges the technology-governance divide through a three-layer design aligned with EHDS articles:
+FL-EHDS is organised into three layers following the EHDS data flow:
 
-```
-+-------------------------------------------------------------------+
-|                   LAYER 1: GOVERNANCE                              |
-|  +-------------+ +-------------+ +-------------+ +--------------+ |
-|  |    HDAB     | |    Data     | |   Opt-out   | |  Compliance  | |
-|  | Integration | |   Permits   | |  Registry   | |   Logging    | |
-|  | (Art. 46)   | | (Art. 46)   | | (Art. 71)   | | (GDPR Art.30)| |
-|  +-------------+ +-------------+ +-------------+ +--------------+ |
-+-------------------------------------------------------------------+
-|          LAYER 2: FL ORCHESTRATION (within SPE)                    |
-|  +------------------+ +------------------+ +------------------+   |
-|  |   Aggregation    | |     Privacy      | |   Compliance     |   |
-|  | 10 FL Algorithms | | DP + RDP + SecAgg| | Purpose Limit.   |   |
-|  | (Art. 50)        | | (Art. 53)        | | (Art. 53)        |   |
-|  +------------------+ +------------------+ +------------------+   |
-+-------------------------------------------------------------------+
-|                   LAYER 3: DATA HOLDERS                            |
-|  +------------------+ +------------------+ +------------------+   |
-|  | Training Engine  | | FHIR Preprocess  | | Secure Comms     |   |
-|  | CNN + Tabular    | | (HL7 FHIR R4)   | | E2E Encrypted    |   |
-|  +------------------+ +------------------+ +------------------+   |
-+-------------------------------------------------------------------+
-```
+| Layer | Scope | Key Components |
+|-------|-------|----------------|
+| **L1 — Governance** | HDAB integration, regulatory compliance | Data Permit Manager (Art. 53), Opt-Out Registry (Art. 71), Cross-Border Coordinator (Arts. 46, 50), GDPR Art. 30 audit trail |
+| **L2 — FL Orchestration** | Secure Processing Environment (SPE) | 17 aggregation algorithms, DP-SGD with RDP accounting, secure aggregation (pairwise masking, ECDH), 6 Byzantine resilience methods, compliance module |
+| **L3 — Data Holders** | Institutional computation | Adaptive local training engine, FHIR R4 preprocessing, OMOP-CDM harmonization, secure gradient communication (AES-256-GCM, mTLS) |
+
+**Architectural invariant:** raw health data never leaves institutional boundaries—only encrypted model gradients are exchanged within the SPE.
+
+The governance layer includes a fully functional simulation backend (OAuth2/mTLS authentication, permit CRUD, LRU-cached registry lookups) that requires only endpoint configuration—not architectural changes—for production binding to HDAB services (expected 2027–2029).
 
 ---
 
-## Federated Learning Algorithms
+## Key Contributions
 
-The framework implements **10 state-of-the-art FL aggregation strategies** with full PyTorch training:
+1. **Barrier Taxonomy.** Systematic evidence synthesis of 47 documents (PRISMA methodology, GRADE-CERQual confidence assessment) identifying legal uncertainties as the critical adoption blocker.
 
-| Algorithm | Category | Key Mechanism | Reference |
-|-----------|----------|---------------|-----------|
-| **FedAvg** | Baseline | Weighted model averaging | McMahan et al. (2017) |
-| **FedProx** | Robustness | Proximal regularization term (mu) | Li et al. (2020) |
-| **SCAFFOLD** | Variance Reduction | Control variates for drift correction | Karimireddy et al. (2020) |
-| **FedNova** | Heterogeneity | Normalized averaging for unequal local steps | Wang et al. (2020) |
-| **FedDyn** | Dynamic Reg. | Proximal + linear gradient correction | Acar et al. (2021) |
-| **FedAdam** | Server Optimizer | Server-side Adam (momentum + adaptive LR) | Reddi et al. (2021) |
-| **FedYogi** | Server Optimizer | Controlled adaptive learning rate | Reddi et al. (2021) |
-| **FedAdagrad** | Server Optimizer | Server-side sum of squared gradients | Reddi et al. (2021) |
-| **Per-FedAvg** | Personalization | MAML-inspired local fine-tuning | Fallah et al. (2020) |
-| **Ditto** | Personalization | L2-regularized personal models | Li et al. (2021) |
+2. **FL-EHDS Framework.** Three-layer reference architecture mapping identified barriers to governance-aware mitigation strategies, designed for incremental deployment during the 2025–2031 EHDS transition.
 
-All algorithms support both **IID** and **Non-IID** (Dirichlet-based) data partitioning across clients.
+3. **Reference Implementation.** Open-source Python codebase (~40K lines, 159 modules) with 17 FL algorithms, EHDS governance modules, and an interactive deployment dashboard.
+
+4. **Experimental Validation.** 1,740+ experiments across tabular clinical and medical imaging datasets with differential privacy ablation (ε ∈ {1, 5, 10, 50}), Article 71 opt-out simulation, and 10-seed statistical validation.
 
 ---
 
-## Clinical Datasets
+## Experimental Highlights
 
-Validated on **6 real-world medical imaging datasets** covering major diagnostic domains:
+Results from the primary evaluation (7 algorithms × 3 datasets × 5 seeds, plus sweep phases, DP ablation, opt-out simulation, and extended 10-seed validation):
 
-| Dataset | Domain | Images | Classes | Task |
-|---------|--------|-------:|:-------:|------|
-| **Diabetic Retinopathy** | Ophthalmology | 35,126 | 5 | DR severity grading (0-4) |
-| **Brain Tumor** | Neuroradiology | 7,023 | 4 | Tumor type classification |
-| **Chest X-ray** | Pulmonology | 5,856 | 2 | Pneumonia detection |
-| **Skin Cancer** | Dermatology | 3,297 | 2 | Benign vs. malignant |
-| **Brain Tumor MRI** | Neuroradiology | 3,264 | 4 | MRI-based tumor classification |
-| **ISIC** | Dermatology | 2,357 | 9 | Skin lesion classification |
-| | | **56,923** | | |
-
-The framework also includes a **synthetic tabular** healthcare dataset generator for controlled experimentation.
+| Finding | Evidence |
+|---------|----------|
+| Personalized FL narrows the centralized–federated gap to **6.6 pp** | Ditto 75.1% vs. centralized 81.7% on Heart Disease UCI |
+| Algorithm selection yields up to **12.6 pp** accuracy differences | Ditto 75.1% vs. FedAvg 62.5% (Heart Disease); 11.4 pp on Cardiovascular |
+| **HPFL** (ICLR 2025) outperforms FedAvg on all datasets | p = 0.004, 0.002, 0.031 (Wilcoxon, 10-seed); pooled p < 0.001 |
+| Privacy at ε = 10 is essentially free | < 2 pp accuracy cost across PTB-XL and Cardiovascular |
+| DP noise as regularisation on small cohorts | FedAvg with ε = 5 reaches 78.7% vs. 52.3% without DP on Breast Cancer (+26.4 pp) |
+| Article 71 opt-out at 30% has negligible impact | < 1 pp drop on adequately sized datasets (PTB-XL, Cardiovascular) |
+| Personalization scales with federation size | Ditto degrades by only −0.8 pp from K = 5 to K = 100 (vs. −4.7 pp for FedAvg) |
+| PTB-XL validates European FL | 92.5% accuracy (HPFL) on 5-class ECG diagnosis with Jain fairness 0.999 |
 
 ---
 
-## Privacy and Compliance
+## Dataset Coverage
 
-### Differential Privacy
+The framework supports 19 healthcare datasets across four modalities. Eight are experimentally evaluated:
 
-- **Renyi Differential Privacy (RDP)** accounting with 6-10x tighter bounds than naive composition
-- Configurable privacy budget (epsilon) with automatic noise calibration
-- Per-round tracking with cumulative budget monitoring
+| Dataset | Samples | Type | Classes | FL Partition | EHDS Category |
+|---------|---------|------|---------|--------------|---------------|
+| PTB-XL ECG | 21,799 | Tabular | 5 | Natural (52 EU sites) | SCP-ECG diagnostics |
+| Cardiovascular Disease | 70,000 | Tabular | 2 | Dirichlet (α = 0.5) | Vitals, lab, risk factors |
+| Diabetes 130-US | 101,766 | Tabular | 2 | Dirichlet (α = 0.5) | EHR, ICD-9, medications |
+| Heart Disease UCI | 920 | Tabular | 2 | Natural (4 hospitals) | Vitals, ECG, lab results |
+| Breast Cancer Wisconsin | 569 | Tabular | 2 | Dirichlet (α = 0.5) | Pathology (FNA cytology) |
+| Chest X-ray | 5,856 | Imaging | 2 | Dirichlet (α = 0.5) | Radiology (DICOM) |
+| Brain Tumor MRI | 3,064 | Imaging | 4 | Dirichlet (α = 0.5) | Neuro-imaging (DICOM) |
+| Skin Cancer | 3,297 | Imaging | 2 | Dirichlet (α = 0.5) | Dermatology (DICOM) |
 
-### EHDS Regulatory Mapping
+Additional supported datasets include Stroke Prediction, CDC Diabetes BRFSS, CKD UCI, Cirrhosis Mayo, Synthea FHIR R4, SMART Bulk FHIR, Diabetic Retinopathy, and ISIC Skin Lesions. Full details in Supplementary Material, Table S1.
 
-| EHDS Article | Requirement | Framework Component |
-|:------------:|-------------|---------------------|
-| Art. 46 | Health Data Access Body authorization | `governance/hdab_integration.py` |
-| Art. 50 | Secure Processing Environment | `orchestration/` (all training within SPE) |
-| Art. 53 | Purpose limitation & minimization | `orchestration/compliance/purpose_limitation.py` |
-| Art. 71 | Natural persons' right to opt out | `governance/optout_registry.py` |
-| GDPR Art. 30 | Records of processing activities | `governance/compliance_logging.py` |
+---
 
-### Additional Privacy Features
+## Algorithm Catalogue
 
-- **Secure Aggregation**: Cryptographic protection of individual model updates (TenSEAL CKKS)
-- **Gradient Clipping**: Bounded sensitivity for formal privacy guarantees
-- **Byzantine Resilience**: Robust aggregation against malicious participants
+17 FL algorithms spanning six categories:
+
+| Category | Algorithms | Venues |
+|----------|-----------|--------|
+| Baseline | FedAvg, FedProx, FedNova, FedDyn | AISTATS'17, MLSys'20, NeurIPS'20, ICLR'21 |
+| Non-IID robustness | SCAFFOLD | ICML'20 |
+| Adaptive optimisation | FedAdam, FedYogi, FedAdagrad | ICLR'21 |
+| Personalisation | Ditto, Per-FedAvg | ICML'21, NeurIPS'20 |
+| Label skew / Representation | FedLC, FedDecorr, FedSAM | ICML'22, ICLR'23, ICML'22 |
+| Recent advances (2023–2025) | FedSpeed, FedExP, **FedLESAM**, **HPFL** | ICLR'23, ICLR'23, **ICML'24 Spotlight**, **ICLR'25** |
+
+Six Byzantine resilience methods: Krum, Multi-Krum, Trimmed Mean, Coordinate-wise Median, Bulyan, FLTrust.
 
 ---
 
@@ -125,244 +121,141 @@ The framework also includes a **synthetic tabular** healthcare dataset generator
 
 ### Prerequisites
 
-- Python >= 3.9
-- PyTorch >= 2.0
-- CUDA (optional, for GPU acceleration)
+- Python ≥ 3.10
+- PyTorch ≥ 2.0
+- CUDA-capable GPU (optional; CPU and Apple Silicon MPS supported)
 
-### Setup with Conda (Recommended)
-
-```bash
-git clone https://github.com/fabioliberti/FL-EHDS-FLICS2026.git
-cd FL-EHDS-FLICS2026/fl-ehds-framework
-
-conda create -n flics2026 python=3.11 -y
-conda activate flics2026
-
-pip install -e .
-```
-
-### Setup with pip
+### Setup
 
 ```bash
-git clone https://github.com/fabioliberti/FL-EHDS-FLICS2026.git
-cd FL-EHDS-FLICS2026/fl-ehds-framework
-
-python -m venv venv
-source venv/bin/activate
-
-pip install -e .
-```
-
-### Dependencies
-
-Core: `torch`, `numpy`, `scipy`, `scikit-learn`, `pydantic`, `cryptography`, `structlog`
-CLI: `questionary`, `tqdm`
-Dashboard: `streamlit`, `plotly`
-Healthcare: `fhir.resources`, `hl7apy` *(optional)*
-
----
-
-## Usage
-
-### Terminal Interface (CLI)
-
-The terminal interface provides full access to all framework features with interactive menus:
-
-```bash
-cd fl-ehds-framework
-python -m terminal
-```
-
-**Available screens:**
-
-| Menu | Function |
-|------|----------|
-| 1. Training | Single algorithm training with dataset selection |
-| 2. Comparison | Multi-algorithm benchmark (up to 10 algorithms) |
-| 3. Guided Comparison | Pre-configured clinical scenarios |
-| 4. Algorithm Explorer | Detailed algorithm documentation |
-| 5. Dataset Management | Browse, preview, and analyze datasets |
-| 6. Privacy Dashboard | DP budget analysis and RDP accounting |
-| 7. Benchmark Suite | Reproducible experiment configurations |
-| 8. Byzantine Resilience | Adversarial robustness testing |
-
-### Web Dashboard (Streamlit)
-
-```bash
-cd fl-ehds-framework
-streamlit run dashboard/app.py
-```
-
-### Programmatic API
-
-```python
-from terminal.fl_trainer import ImageFederatedTrainer
-
-trainer = ImageFederatedTrainer(
-    data_dir="data/chest_xray",
-    num_clients=5,
-    algorithm="FedAvg",
-    num_rounds=15,
-    local_epochs=3,
-    is_iid=False,
-    alpha=0.5,
-    img_size=64,
-    device="cuda"  # or "cpu"
-)
-
-results = trainer.train()
-# results contain: accuracy, f1, precision, recall, auc, loss per round
+git clone https://github.com/FabioLiberti/FL-EHDS-FLICS2026.git
+cd FL-EHDS-FLICS2026
+pip install -r requirements.txt
 ```
 
 ---
 
-## Experiments
+## Reproducing Experiments
 
-### Centralized vs. Federated Comparison
+All experiments reported in the paper can be reproduced via the benchmark suite. Results, checkpoints, and analysis outputs are auto-saved to `benchmarks/paper_results/` and `benchmarks/paper_results_tabular/`.
 
-```bash
-cd fl-ehds-framework
-python -m experiments.centralized_vs_federated --dataset chest_xray --quick
-```
-
-Options: `--algorithms FedAvg FedProx SCAFFOLD`, `--num-rounds 15`, `--seeds 42 123 456`
-
-### Imaging Benchmarks
+### Tabular Experiments
 
 ```bash
-python -m benchmarks.run_imaging_experiments --dataset chest_xray --algorithms FedAvg FedProx
+# Baseline comparison (105 experiments, ~45 min)
+python -m benchmarks.run_tabular_optimized
+
+# Multi-phase sweep: heterogeneity, client scaling, learning rate (1,125 experiments, ~4.5h)
+python -m benchmarks.run_tabular_sweep --phase all
+
+# Differential privacy ablation (180 experiments, ~1.5h)
+python -m benchmarks.run_tabular_dp
+
+# 10-seed statistical validation (105 experiments, ~40 min)
+python -m benchmarks.run_tabular_seeds10
+
+# Article 71 opt-out impact (225 experiments, ~1.5h)
+python -m benchmarks.run_tabular_optout
+
+# Deep MLP differentiation (70 experiments, ~1.5h)
+python -m benchmarks.run_tabular_deep_mlp
+
+# Extended analysis: generates all tables and figures
+python -m benchmarks.analyze_tabular_extended
 ```
 
-### Full Benchmark Suite
+### Imaging Experiments
 
 ```bash
-python -m benchmarks.run_experiments          # Tabular data, 9 algorithms
-python -m benchmarks.run_extended_experiments  # Scalability and convergence
-python -m benchmarks.run_heterogeneity_experiments  # Non-IID analysis
+# Full imaging experiments (7 algorithms × 5 datasets × 3 seeds)
+python -m benchmarks.run_full_experiments
+
+# Quick validation (~1–2h)
+python -m benchmarks.run_full_experiments --quick
+
+# Resume after interruption
+python -m benchmarks.run_full_experiments --resume
 ```
 
-All experiments auto-save results (JSON, CSV, LaTeX tables, PNG plots) to `results/`.
+### Per-Dataset Configuration
+
+| Dataset | lr | Batch size | Rounds | K | Partition |
+|---------|-----|-----------|--------|---|-----------|
+| PTB-XL | 0.005 | 64 | 30 | 5 | Site-based |
+| Cardiovascular | 0.01 | 64 | 25 | 5 | Dirichlet α = 0.5 |
+| Breast Cancer | 0.001 | 16 | 40 | 3 | Dirichlet α = 0.5 |
+
+All tabular experiments use HealthcareMLP (~10K parameters, 2 hidden layers [64, 32], ReLU, dropout 0.3) with Adam optimiser and early stopping (patience = 6). Imaging experiments use ResNet-18 (~11.2M parameters) with GroupNorm and FedBN.
 
 ---
 
-## Benchmark Results
-
-### Tabular Data (Synthetic, 3 seeds, 30 rounds, 5 hospitals)
-
-| Algorithm | Accuracy | F1 | AUC |
-|-----------|:--------:|:--:|:---:|
-| FedAvg (IID) | 60.5 +/- 0.02 | 0.62 +/- 0.02 | 0.66 +/- 0.01 |
-| FedAvg (Non-IID) | 60.9 +/- 0.02 | 0.61 +/- 0.01 | 0.66 +/- 0.01 |
-| FedProx (mu=0.1) | 60.9 +/- 0.02 | 0.62 +/- 0.01 | 0.66 +/- 0.01 |
-| SCAFFOLD | 60.5 +/- 0.01 | 0.61 +/- 0.02 | 0.66 +/- 0.01 |
-| FedNova | 60.7 +/- 0.02 | 0.62 +/- 0.01 | 0.66 +/- 0.01 |
-| DP (epsilon=10) | 55.7 +/- 0.01 | 0.61 +/- 0.04 | 0.55 +/- 0.03 |
-| DP (epsilon=1) | 55.1 +/- 0.01 | 0.59 +/- 0.04 | 0.55 +/- 0.01 |
-
-### Clinical Imaging (Chest X-ray, Non-IID, 5 hospitals)
-
-| Approach | Accuracy | F1 | AUC | Time |
-|----------|:--------:|:--:|:---:|:----:|
-| Centralized (pooled) | 95.4% | 0.939 | 0.985 | 154s |
-| FedAvg (Non-IID) | 91.2% | 0.890 | 0.960 | 145s |
-| **Gap** | **4.2 pp** | **0.049** | **0.025** | |
-
----
-
-## Project Structure
+## Repository Structure
 
 ```
 FL-EHDS-FLICS2026/
-|-- main.tex                        # Conference paper (LaTeX, IEEE format)
-|-- figures/                        # Paper figures
-|-- fl-ehds-framework/              # Framework source code
-    |-- core/                       # Core FL engine (32 modules)
-    |   |-- fl_algorithms.py        # Algorithm implementations
-    |   |-- secure_aggregation.py   # CKKS-based secure aggregation
-    |   |-- byzantine_resilience.py # Byzantine fault tolerance
-    |   +-- ...
-    |-- orchestration/              # Layer 2: FL orchestration
-    |   |-- aggregation/            # FedAvg, FedProx strategies
-    |   |-- privacy/                # DP, gradient clipping, SecAgg
-    |   +-- compliance/             # Purpose limitation enforcement
-    |-- governance/                 # Layer 1: EHDS governance
-    |   |-- hdab_integration.py     # Health Data Access Body API
-    |   |-- optout_registry.py      # Art. 71 opt-out management
-    |   +-- compliance_logging.py   # GDPR Art. 30 audit trails
-    |-- data_holders/               # Layer 3: Data holder components
-    |-- terminal/                   # CLI interface (questionary + tqdm)
-    |   |-- fl_trainer.py           # 10 FL algorithms + image training
-    |   +-- screens/                # Interactive terminal screens
-    |-- dashboard/                  # Streamlit web interface
-    |-- models/                     # HealthcareCNN + model zoo
-    |-- benchmarks/                 # Reproducible experiment scripts
-    |-- experiments/                # Centralized vs. federated comparison
-    |-- tests/                      # Unit test suite (pytest)
-    |-- data/                       # Clinical datasets (not in repo)
-    +-- results/                    # Auto-generated experiment outputs
+├── fl_ehds/                    # Core framework (~40K lines, 159 modules)
+│   ├── governance/             # Layer 1: HDAB integration, permits, opt-out
+│   │   ├── hdab_integration/   #   OAuth2/mTLS, permit store, strictness levels
+│   │   ├── permit_manager/     #   Article 53 lifecycle (PENDING→ACTIVE→EXPIRED)
+│   │   ├── optout_registry/    #   Article 71 filtering (record/patient/dataset)
+│   │   └── cross_border/       #   Multi-HDAB coordination, 10 EU country profiles
+│   ├── orchestration/          # Layer 2: FL within SPE
+│   │   ├── algorithms/         #   17 FL algorithms
+│   │   ├── privacy/            #   DP-SGD, RDP accounting, secure aggregation
+│   │   ├── byzantine/          #   6 resilience methods + attack simulation
+│   │   ├── compliance/         #   GDPR Art. 30 audit, purpose limitation
+│   │   └── communication/      #   gRPC/WebSocket, compression, serialisation
+│   ├── data_holders/           # Layer 3: institutional components
+│   │   ├── training/           #   Adaptive local training engine
+│   │   ├── preprocessing/      #   FHIR R4 pipeline, OMOP-CDM harmonisation
+│   │   └── security/           #   AES-256-GCM, ECDHE, mTLS
+│   └── monitoring/             # Prometheus metrics, Grafana dashboards
+├── benchmarks/                 # Reproducible experiment suite
+│   ├── run_tabular_optimized.py
+│   ├── run_tabular_sweep.py
+│   ├── run_tabular_dp.py
+│   ├── run_tabular_seeds10.py
+│   ├── run_tabular_optout.py
+│   ├── run_tabular_deep_mlp.py
+│   ├── run_full_experiments.py
+│   ├── analyze_tabular_extended.py
+│   └── paper_results/          # Auto-generated results and figures
+├── dashboard/                  # Streamlit interactive UI
+├── datasets/                   # Dataset loaders and preprocessing
+├── docs/                       # Extended documentation
+├── requirements.txt
+└── README.md
 ```
-
-**Codebase**: ~75,000 lines of Python across 106 modules.
-
----
-
-## Reproducibility
-
-All experiments are fully reproducible with fixed random seeds. Each run generates:
-
-| Output | Format | Description |
-|--------|--------|-------------|
-| `results.json` | JSON | Complete results, histories, configuration |
-| `summary_results.csv` | CSV | Final metrics with standard deviations |
-| `history_all_metrics.csv` | CSV | Per-round metrics (Acc, Loss, F1, Prec, Rec, AUC) |
-| `table_results.tex` | LaTeX | Publication-ready table |
-| `plot_convergence_*.png` | PNG | Convergence curves for all metrics |
-| `plot_metrics_comparison.png` | PNG | Bar chart of final metric comparison |
 
 ---
 
 ## Citation
 
-If you use this framework in your research, please cite:
+If you use FL-EHDS in your research, please cite:
 
 ```bibtex
 @inproceedings{liberti2026flehds,
-  title     = {{FL-EHDS}: A Privacy-Preserving Federated Learning Framework
-               for the European Health Data Space},
+  title     = {{FL-EHDS}: A Privacy-Preserving Federated Learning Framework 
+               for the {European Health Data Space}},
   author    = {Liberti, Fabio},
-  booktitle = {Proceedings of the 2nd International Conference on Federated
-               Learning and Intelligent Computing Systems (FLICS)},
-  year      = {2026},
-  address   = {Valencia, Spain}
+  booktitle = {Proceedings of the IEEE International Conference on 
+               Federated Learning in Integrated Computing and Services (FLICS)},
+  year      = {2026}
 }
 ```
 
 ---
 
-## References
-
-1. McMahan, B. et al. "Communication-Efficient Learning of Deep Networks from Decentralized Data." AISTATS (2017).
-2. Li, T. et al. "Federated Optimization in Heterogeneous Networks." MLSys (2020).
-3. Karimireddy, S.P. et al. "SCAFFOLD: Stochastic Controlled Averaging for Federated Learning." ICML (2020).
-4. Wang, J. et al. "Tackling the Objective Inconsistency Problem in Heterogeneous Federated Optimization." NeurIPS (2020).
-5. Acar, D.A.E. et al. "Federated Learning Based on Dynamic Regularization." ICLR (2021).
-6. Reddi, S. et al. "Adaptive Federated Optimization." ICLR (2021).
-7. Fallah, A. et al. "Personalized Federated Learning with Moreau Envelopes." NeurIPS (2020).
-8. Li, T. et al. "Ditto: Fair and Robust Federated Learning Through Personalization." ICML (2021).
-9. European Union. "Regulation (EU) 2025/327 on the European Health Data Space." (2025).
-10. Dwork, C. & Roth, A. "The Algorithmic Foundations of Differential Privacy." Foundations and Trends in Theoretical Computer Science (2014).
-
----
-
 ## License
 
-This project is licensed under the [Apache License 2.0](https://opensource.org/licenses/Apache-2.0).
+This project is released under the [MIT License](LICENSE).
 
 ---
 
-## Author
+## Acknowledgements
 
-**Fabio Liberti, PhD**
-Department of Computer Science
-Universitas Mercatorum, Rome, Italy
-[fabio.liberti@unimercatorum.it](mailto:fabio.liberti@unimercatorum.it) | [ORCID: 0000-0003-3019-5411](https://orcid.org/0000-0003-3019-5411)
+The author thanks Prof. Sadi Alawadi for supervision and guidance.
+
+---
+
+**Contact:** Fabio Liberti — [fabio.liberti@studenti.unimercatorum.it](mailto:fabio.liberti@studenti.unimercatorum.it) — ORCID: [0000-0003-3019-5411](https://orcid.org/0000-0003-3019-5411)
