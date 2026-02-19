@@ -19,9 +19,17 @@
 </p>
 
 <p align="center">
-  <em>IEEE 2nd International Conference on Federated Learning and Intelligent Computing Systems</em><br/>
-  <em>Valencia, Spain — June 9–12, 2026</em>
+  <strong>IEEE 2nd International Conference on Federated Learning and Intelligent Computing Systems - FLICS2026</strong><br/>
+  <em>(Valencia, Spain — June 9–12, 2026)</em>
 </p>
+
+---
+
+
+<p align="center">
+  <em>FL-EHDS represents the meeting point between federated artificial intelligence and European health data governance:<br/>a framework that translates the regulatory complexity of the EHDS into an operational, federated, and secure computational architecture.<br/>By bridging the gap between regulation and technology, FL-EHDS demonstrates that data sovereignty is not an obstacle to collaborative research, but its strongest foundation.</em>
+</p>
+
 
 ---
 
