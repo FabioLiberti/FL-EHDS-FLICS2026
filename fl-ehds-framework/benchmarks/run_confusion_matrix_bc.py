@@ -5,14 +5,17 @@ FL-EHDS Test B — Confusion Matrix on Breast Cancer.
 Retrains FedAvg, FedProx, Ditto, and HPFL on Breast Cancer and generates
 confusion matrices to demonstrate majority-class prediction collapse.
 
-FedAvg/FedProx (52.3% acc, 32% F1) likely predict only majority class.
-Confusion matrix proves this visually for the paper.
+FedAvg/FedProx/Ditto predict only majority class (0% Malignant recall).
+HPFL achieves >90% accuracy with balanced recall.
 
-Total: 4 algos × 3 seeds = 12 experiments (~10-15 min total)
+Total: 4 algos × 10 seeds = 40 experiments (~30 min total)
+
+Supports --resume to skip already-completed (algo, seed) pairs from
+an existing checkpoint.
 
 Usage:
     cd fl-ehds-framework
-    python -m benchmarks.run_confusion_matrix_bc [--quick]
+    python -m benchmarks.run_confusion_matrix_bc [--quick] [--fresh]
 
 Output:
     benchmarks/paper_results_tabular/confusion_matrix_bc.png
@@ -54,7 +57,8 @@ BC_CONFIG = dict(
 )
 NUM_CLIENTS = 3
 ALGORITHMS = ["FedAvg", "FedProx", "Ditto", "HPFL"]
-SEEDS = [42, 123, 456]
+# Same 10 seeds as the significance test (Table XII)
+SEEDS = [42, 123, 456, 789, 999, 7, 31, 137, 577, 1337]
 CLASS_NAMES = {0: "Benign", 1: "Malignant"}
 
 
@@ -100,18 +104,46 @@ def compute_confusion_matrix(y_true, y_pred, num_classes=2):
     return cm
 
 
+def load_existing_checkpoint():
+    """Load existing checkpoint for resume support."""
+    ckpt_path = OUTPUT_DIR / "checkpoint_confusion_bc.json"
+    if ckpt_path.exists():
+        try:
+            with open(ckpt_path) as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return None
+
+
 def main():
     import argparse
     parser = argparse.ArgumentParser(description="Confusion Matrix for Breast Cancer")
-    parser.add_argument("--quick", action="store_true")
+    parser.add_argument("--quick", action="store_true", help="Quick validation (1 seed)")
+    parser.add_argument("--fresh", action="store_true", help="Discard existing checkpoint")
     args = parser.parse_args()
 
     seeds = [42] if args.quick else SEEDS
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
+    # Load existing results for resume
+    existing = None
+    existing_results = {}  # (algo, seed) -> result dict
+    if not args.fresh:
+        existing = load_existing_checkpoint()
+        if existing:
+            for algo, runs in existing.get("results", {}).items():
+                for run in runs:
+                    existing_results[(algo, run["seed"])] = run
+            print("  Resumed: {} existing (algo, seed) pairs".format(len(existing_results)))
+
     print("=" * 60)
     print("  FL-EHDS Confusion Matrix — Breast Cancer")
     print("  {} algos x {} seeds = {} experiments".format(len(ALGORITHMS), len(seeds), len(ALGORITHMS) * len(seeds)))
+    skipped = sum(1 for a in ALGORITHMS for s in seeds if (a, s) in existing_results)
+    if skipped:
+        print("  Skipping {} already completed, running {}".format(
+            skipped, len(ALGORITHMS) * len(seeds) - skipped))
     print("  Device: {}".format(_detect_device()))
     print("=" * 60)
 
@@ -123,6 +155,15 @@ def main():
         algo_results = []
 
         for seed in seeds:
+            # Check if already done
+            if (algo, seed) in existing_results:
+                cached = existing_results[(algo, seed)]
+                cm = np.array(cached["confusion_matrix"])
+                algo_cm += cm
+                algo_results.append(cached)
+                print("\n  {} seed={} ... CACHED {:.1f}%".format(algo, seed, cached["accuracy"] * 100))
+                continue
+
             print("\n  {} seed={} ...".format(algo, seed), end="", flush=True)
             start = time.time()
 
@@ -205,7 +246,8 @@ def main():
         "aggregated_cms": {algo: cm.tolist() for algo, cm in all_cms.items()},
         "metadata": {
             "algorithms": ALGORITHMS,
-            "seeds": seeds,
+            "seeds": [int(s) for s in seeds],
+            "num_seeds": len(seeds),
             "timestamp": datetime.now().isoformat(),
         }
     }

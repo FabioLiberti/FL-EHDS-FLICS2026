@@ -1767,33 +1767,66 @@ To directly probe \textit{why} non-personalized algorithms underperform on Breas
 
 \begin{table}[htbp]
 \centering
-\caption{Breast Cancer confusion matrix analysis: per-class recall and accuracy (\%). Mean over 3 seeds. Benign is the majority class ($\sim$63\% of test samples).}
+\caption{Breast Cancer confusion matrix analysis: per-class recall and accuracy (\%). Mean$\pm$std over 10 seeds. Benign is the majority class ($\sim$62\% of test samples). Collapse column: seeds exhibiting single-class prediction out of 10.}
 \label{tab:confusion_matrix_bc}
 \small
-\begin{tabular}{lcccc}
+\begin{tabular}{lccccc}
 \toprule
-\textbf{Algorithm} & \textbf{Acc (\%)} & \textbf{Benign Recall} & \textbf{Malig.\ Recall} & \textbf{TP} \\
+\textbf{Algorithm} & \textbf{Acc (\%)} & \textbf{B Recall} & \textbf{M Recall} & \textbf{TP} & \textbf{Collapse} \\
 \midrule
-FedAvg & 64.9{\tiny$\pm$2.3} & 1.000 & 0.000 & 0/119 \\
-FedProx & 64.9{\tiny$\pm$2.3} & 1.000 & 0.000 & 0/119 \\
-Ditto & 64.9{\tiny$\pm$2.3} & 1.000 & 0.000 & 0/119 \\
+FedAvg & 57.3{\tiny$\pm$9.5} & 0.791 & 0.215 & 92/427 & 8/10 \\
+FedProx & 57.2{\tiny$\pm$9.6} & 0.790 & 0.215 & 92/427 & 8/10 \\
+Ditto & 57.4{\tiny$\pm$9.4} & 0.793 & 0.215 & 92/427 & 8/10 \\
 \midrule
-HPFL & \textbf{95.9}{\tiny$\pm$3.3} & 0.977 & \textbf{0.918} & 110/119 \\
+HPFL & \textbf{84.8}{\tiny$\pm$13.2} & 0.886 & \textbf{0.787} & 336/427 & 0/10 \\
 \bottomrule
 \end{tabular}
 
 \vspace{1mm}
-\footnotesize{TP column: true positives (Malignant correctly identified) summed over 3 seeds (out of 119 total Malignant samples across seeds). FedAvg, FedProx, and Ditto produce \textbf{numerically identical} predictions (algorithm collapse).}
+\footnotesize{TP: true positives (Malignant correctly identified) summed over 10 seeds (427 total Malignant samples). \textbf{Collapse}: seeds where the model predicts a \textit{single} class for all test samples (7/10 predict only Benign, 1/10 only Malignant for FedAvg/FedProx/Ditto). FedAvg, FedProx, and Ditto produce \textbf{nearly identical} predictions (algorithm collapse).}
 \end{table}
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.95\columnwidth]{figures/confusion_matrix_bc.pdf}
-\caption{Confusion matrices for Breast Cancer classification. FedAvg/FedProx/Ditto predict \textit{only} the majority class (Benign), achieving 0\% sensitivity on Malignant samples. HPFL is the sole algorithm that learns both classes (91.8\% Malignant recall).}
+\caption{Confusion matrices for Breast Cancer classification (aggregated over 10 seeds). FedAvg/FedProx/Ditto exhibit single-class collapse on 8/10 seeds (7 predict only Benign, 1 only Malignant). HPFL learns both classes across all seeds (78.7\% aggregated Malignant recall).}
 \label{fig:confusion_matrix_bc}
 \end{figure}
 
-\textbf{Key finding}: FedAvg, FedProx, and Ditto produce \textbf{pure majority-class predictors}---every test sample is classified as Benign, yielding zero true positives for the Malignant class. Their reported accuracy ($\sim$64.9\%) simply equals the class prior. This is the most extreme manifestation of the algorithm collapse: the federated optimization converges to the trivial solution of predicting the most frequent class, identical across all three algorithms. HPFL's personalized classifier heads escape this collapse, achieving 95.9\% accuracy with 91.8\% Malignant recall---correctly identifying 110 of 119 Malignant samples that every other algorithm misses. \textit{For EHDS deployment on class-imbalanced clinical tasks (e.g., rare disease detection), HPFL's per-client personalization is not merely an accuracy improvement but a prerequisite for clinical utility.}
+\textbf{Key finding}: Across 10 seeds, FedAvg, FedProx, and Ditto exhibit \textbf{single-class prediction collapse} in 8/10 data partitions---7 seeds predict \textit{only} Benign (0\% Malignant recall) and 1 seed predicts \textit{only} Malignant (0\% Benign recall). The direction of collapse depends on the random data partition, but the \textit{mechanism} is consistent: the federated MLP converges to the trivial solution of predicting whichever class dominates the local training distributions. The aggregated accuracy ($\sim$57\%) masks this per-seed degeneracy. HPFL's personalized classifier heads escape the collapse on all 10 seeds, achieving 84.8\% mean accuracy with 78.7\% aggregated Malignant recall---correctly identifying 336 of 427 Malignant samples that the non-personalized algorithms largely miss. \textit{For EHDS deployment on class-imbalanced clinical tasks (e.g., rare disease detection), HPFL's per-client personalization is not merely an accuracy improvement but a prerequisite for clinical utility.}
+
+\subsubsection{Chest X-ray Confusion Matrix}
+\label{sec:confusion_matrix_chest}
+
+To investigate whether the personalization advantage extends to medical imaging, we perform the same confusion matrix analysis on Chest X-ray (ResNet-18, 5 clients, Dirichlet $\alpha{=}0.5$, 20 rounds). Table~\ref{tab:confusion_matrix_chest} and Figure~\ref{fig:confusion_matrix_chest} reveal a \textbf{reversed} pattern compared to Breast Cancer.
+
+\begin{table}[htbp]
+\centering
+\caption{Chest X-ray confusion matrix analysis (FedAvg vs HPFL, aggregated over 3 seeds). N~Recall = NORMAL recall, P~Recall = PNEUMONIA recall.}
+\label{tab:confusion_matrix_chest}
+\small
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Algorithm} & \textbf{Acc (\%)} & \textbf{N Recall} & \textbf{P Recall} & \textbf{TP} \\
+\midrule
+FedAvg & \textbf{87.3} & 0.651 & \textbf{0.955} & 2445/2561 \\
+\midrule
+HPFL & 76.7 & \textbf{0.885} & 0.724 & 1853/2561 \\
+\bottomrule
+\end{tabular}
+
+\vspace{1mm}
+\footnotesize{TP: true positives (PNEUMONIA correctly identified) summed over 3 seeds (2,561 total PNEUMONIA samples). ResNet-18, FedBN, class-weighted loss, mixed precision. Per-seed accuracy: FedAvg 91.6/87.4/82.8\%; HPFL 63.7/85.0/81.3\%.}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.95\columnwidth]{figures/confusion_matrix_chest.pdf}
+\caption{Chest X-ray confusion matrices (aggregated over 3 seeds) and per-client accuracy. FedAvg achieves 87.3\% accuracy with strong PNEUMONIA recall (95.5\%) but weaker NORMAL recall (65.1\%). HPFL shows the inverse: 88.5\% NORMAL recall but only 72.4\% PNEUMONIA recall, with high per-client variance (Client~3: 23.5\% PNEUMONIA recall).}
+\label{fig:confusion_matrix_chest}
+\end{figure}
+
+\textbf{Key finding---modality-dependent personalization}: On Chest X-ray, FedAvg \textit{outperforms} HPFL by +10.6~pp (87.3\% vs 76.7\%)---the \textbf{opposite} of the Breast Cancer result where HPFL leads by +27.5~pp. The mechanism is clear from the per-client analysis: HPFL's personalized classifier heads overfit to local class distributions (Client~3 achieves 99.1\% NORMAL recall but only 23.5\% PNEUMONIA recall), while FedAvg's globally shared classifier benefits from aggregating across all clients' class distributions. This asymmetry is explained by model capacity: the 10K-parameter tabular MLP has insufficient capacity to learn balanced decision boundaries under non-IID partitioning (hence collapse), whereas ResNet-18 ($\sim$11.2M parameters) with FedBN can learn rich shared features that generalize across heterogeneous local distributions. \textit{EHDS data permits should condition algorithm selection on analytics modality: personalized FL (HPFL) for lightweight tabular models, global FL (FedAvg) for deep imaging architectures.}
 
 \subsection{RDP Composition Tightness}
 \label{sec:rdp_tightness}
@@ -1824,8 +1857,8 @@ Communication cost is a key concern for cross-border EHDS deployments. We evalua
 \textbf{Method} & \textbf{Acc (\%)} & \textbf{$\Delta$} & \textbf{BW Saved} & \textbf{Params Sent} \\
 \midrule
 Baseline (100\%) & 92.0{\tiny$\pm$0.3} & --- & 0\% & 2,885/2,885 \\
-Top-5\% & 78.7{\tiny$\pm$8.5} & $-$13.4 & 95\% & 144/2,885 \\
-Top-1\% & 77.3{\tiny$\pm$8.6} & $-$14.7 & 99\% & 29/2,885 \\
+Top-5\% & 78.7{\tiny$\pm$8.3} & $-$13.4 & 95\% & 144/2,885 \\
+Top-1\% & 77.3{\tiny$\pm$8.8} & $-$14.7 & 99\% & 29/2,885 \\
 \bottomrule
 \end{tabular}
 
@@ -1860,6 +1893,32 @@ HPFL & \textbf{92.6}{\tiny$\pm$0.3} & \textbf{92.5}{\tiny$\pm$0.4} & +0.1pp \\
 \end{table}
 
 \textbf{Key finding}: DP at $\varepsilon{=}10$ imposes $<$0.4pp accuracy cost across all three algorithms, confirming the main paper's finding that privacy is essentially free at this noise level. FedAvg with DP marginally \textit{outperforms} its no-DP baseline ($-$0.3pp cost, i.e., DP is better), likely due to regularization effects of Gaussian noise. HPFL maintains its accuracy advantage (92.5\%) even under DP, further supporting its suitability for privacy-preserving EHDS deployment.
+
+\subsection{Combined Scalability and Differential Privacy}
+\label{sec:scalability_dp_cv}
+
+Tables~\ref{tab:dp_scale} (PTB-XL, $K{=}5$) and XVII (Cardiovascular, $K{=}50$ without DP) establish separate findings on DP robustness and scalability. Table~\ref{tab:dp_scale_cv} bridges these by testing the \textbf{combination} of both at deployment scale: $K{=}50$ clients on the Cardiovascular dataset (70K samples) with $\varepsilon{=}10$ central DP.
+
+\begin{table}[htbp]
+\centering
+\caption{Combined scalability and DP on Cardiovascular ($K{=}50$, $\alpha{=}0.5$): accuracy (\%) with and without DP ($\varepsilon{=}10$, $C{=}1.0$). Mean $\pm$ std over 3 seeds. Jain fairness index averaged across seeds.}
+\label{tab:dp_scale_cv}
+\small
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Algorithm} & \textbf{No DP} & \textbf{$\varepsilon{=}10$} & \textbf{$\Delta$} & \textbf{Jain} \\
+\midrule
+FedAvg & 62.0{\tiny$\pm$8.6} & 57.7{\tiny$\pm$5.5} & $-$4.3pp & 0.711 \\
+Ditto & 81.8{\tiny$\pm$1.7} & 82.5{\tiny$\pm$2.4} & +0.6pp & 0.720 \\
+HPFL & \textbf{81.5}{\tiny$\pm$2.4} & \textbf{82.3}{\tiny$\pm$1.4} & +0.9pp & \textbf{0.951} \\
+\bottomrule
+\end{tabular}
+
+\vspace{1mm}
+\footnotesize{Jain column reports the DP-enabled ($\varepsilon{=}10$) fairness. Positive $\Delta$ indicates DP \textit{improves} accuracy (Gaussian noise regularization). FedAvg is unstable at $K{=}50$ even without DP (62.0\%), reflecting convergence difficulty under extreme non-IID partitioning across 50 clients.}
+\end{table}
+
+\textbf{Key finding}: At deployment scale ($K{=}50$, 70K patients), personalized methods (Ditto, HPFL) remain fully DP-robust: both \textit{improve} by +0.6--0.9pp under $\varepsilon{=}10$, likely due to Gaussian noise acting as regularization. HPFL additionally preserves fairness (Jain~0.951 vs.\ 0.720 for Ditto), confirming its suitability for equitable cross-border EHDS deployment. FedAvg, in contrast, shows a $-$4.3pp DP cost compounded by convergence instability ($\sigma{=}8.6$pp without DP), reinforcing the finding that personalization is essential at scale. \textit{This result bridges Tables~XVII and~\ref{tab:dp_scale}: the ``DP is free'' property, established at $K{=}5$, generalizes to the 50-institution consortium scenario.}
 
 \subsection{Extended Tabular Experiment Figures}
 
