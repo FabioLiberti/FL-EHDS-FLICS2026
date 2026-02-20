@@ -9,9 +9,10 @@ Brain Tumor (4-class) and Skin Cancer (binary).
 Key hypothesis: HPFL fails on imaging regardless of dataset/task type.
 If confirmed across 3 datasets, the pattern is robust and publishable.
 
-Experiments:
-  - 2 datasets x 2 algos x 3 seeds = 12 experiments
-  - Estimated time: ~2-3 hours (MPS/CUDA), ~4-5 hours (CPU)
+Modes:
+  --light : 2 datasets x 2 algos x 1 seed, 10 rounds (~2.5h) [RECOMMENDED]
+  default : 2 datasets x 2 algos x 3 seeds, 20 rounds (~6-8h)
+  --quick : 2 datasets x 2 algos x 1 seed, 3 rounds (~12 min, validation only)
 
 Usage:
     cd fl-ehds-framework
@@ -369,6 +370,10 @@ def main():
         description="FL-EHDS — Brain Tumor + Skin Cancer Imaging Experiments")
     parser.add_argument("--quick", action="store_true",
                         help="Quick validation (1 seed, 3 rounds)")
+    parser.add_argument("--light", action="store_true",
+                        help="Light mode (1 seed, 10 rounds, ~2.5h)")
+    parser.add_argument("--extend-sc", action="store_true",
+                        help="Extend Skin Cancer only to 20 rounds (~30 min)")
     parser.add_argument("--fresh", action="store_true",
                         help="Start fresh (delete existing checkpoint)")
     parser.add_argument("--resume", action="store_true",
@@ -382,18 +387,28 @@ def main():
     _log_file = open(OUTPUT_DIR / LOG_FILE, "a")
 
     algorithms = args.algos if args.algos else DEFAULT_ALGORITHMS
-    seeds = [42] if args.quick else SEEDS
 
     if args.quick:
+        seeds = [42]
         config = {**IMAGING_CONFIG, "num_rounds": 3, "local_epochs": 1}
         es_config = {"enabled": False}
+    elif args.extend_sc:
+        seeds = [42]
+        config = {**IMAGING_CONFIG, "num_rounds": 20}
+        es_config = EARLY_STOPPING.copy()
+    elif args.light:
+        seeds = [42]
+        config = {**IMAGING_CONFIG, "num_rounds": 10}
+        es_config = {**EARLY_STOPPING, "min_rounds": 6, "patience": 3}
     else:
+        seeds = SEEDS
         config = IMAGING_CONFIG.copy()
         es_config = EARLY_STOPPING.copy()
 
     # Build experiment list: datasets x algorithms x seeds
+    datasets_to_run = {"Skin_Cancer": IMAGING_DATASETS["Skin_Cancer"]} if getattr(args, 'extend_sc', False) else IMAGING_DATASETS
     experiments = []
-    for ds_name in IMAGING_DATASETS:
+    for ds_name in datasets_to_run:
         for algo in algorithms:
             for seed in seeds:
                 key = "{}_{}_{}" .format(ds_name, algo, seed)

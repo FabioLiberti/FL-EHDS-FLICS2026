@@ -9,6 +9,7 @@
 \usepackage{textcomp}
 \usepackage{xcolor}
 \usepackage{booktabs}
+\usepackage{multirow}
 \usepackage{hyperref}
 \usepackage{url}
 \usepackage{tikz}
@@ -458,7 +459,7 @@ OMOP-CDM Harmonized & Gen. & config. & $\sim$36 & 2 & Cross-border & Vocabulary 
 \multicolumn{9}{l}{\textit{D. Medical Imaging}} \\
 \midrule
 Chest X-ray & Imaging & 5,856 & --- & 2 & Dirichlet ($\alpha{=}0.5$) & Radiology (DICOM) & L4: Imaging & \checkmark \\
-Brain Tumor MRI & Imaging & 3,064 & --- & 4 & Dirichlet ($\alpha{=}0.5$) & Neuro-imaging (DICOM) & L4: Imaging & \checkmark \\
+Brain Tumor MRI & Imaging & 7,023 & --- & 4 & Dirichlet ($\alpha{=}0.5$) & Neuro-imaging (DICOM) & L4: Imaging & \checkmark \\
 Skin Cancer & Imaging & 3,297 & --- & 2 & Dirichlet ($\alpha{=}0.5$) & Dermatology (DICOM) & L4: Imaging & \checkmark \\
 Diabetic Retinopathy & Imaging & 35,126 & --- & 5 & Dirichlet & Ophthalmology (DICOM) & L4: Imaging & --- \\
 Brain Tumor MRI (alt.) & Imaging & 3,264 & --- & 4 & Dirichlet & Neuro-imaging (DICOM) & L4: Imaging & --- \\
@@ -968,7 +969,7 @@ Figure~\ref{fig:interop} presents the complete interoperability architecture, sh
 Three clinical imaging datasets cover representative EHDS scenarios:
 \begin{itemize}
     \item \textbf{Chest X-ray}~\cite{chestxray2018}: 5,860 pediatric radiographs (NORMAL/PNEUMONIA, 2.7:1 imbalance)
-    \item \textbf{Brain Tumor MRI}: 3,064 T1-weighted CE MRI slices (3-class: glioma, meningioma, pituitary)
+    \item \textbf{Brain Tumor MRI}: 7,023 T1-weighted CE MRI slices (4-class: glioma, healthy, meningioma, pituitary)
     \item \textbf{Skin Cancer}: 3,297 dermoscopy images (binary benign/malignant)
 \end{itemize}
 
@@ -980,16 +981,15 @@ Three clinical imaging datasets cover representative EHDS scenarios:
 
 Data augmentation: random horizontal flip, rotation ($\pm$15\textdegree), brightness jitter ($\pm$10\%). ImageNet normalization.
 
-\subsection{V2 Experimental Configuration}
+\subsection{Experimental Configuration}
+
+Chest X-ray experiments use 4 algorithms (FedAvg, FedLESAM, Ditto, HPFL) $\times$ 3 seeds = 12 experiments per dataset. Brain Tumor and Skin Cancer use 2 algorithms (FedAvg, HPFL) $\times$ 1 seed as qualitative validation of the modality-dependent personalization effect; statistical significance is established on the tabular benchmarks (10 seeds, $p < 0.001$).
 
 \begin{itemize}
-    \item 5 hospitals, 25 rounds, 3 local epochs, batch size 32
-    \item Adam optimizer (lr=0.001), early stopping (patience=6)
-    \item Non-IID via Dirichlet $\alpha{=}0.5$
-    \item FedBN enabled, partial backbone freeze (level 1)
-    \item 7 algorithms: FedAvg, FedProx, Ditto, FedLC, FedExP, FedLESAM, HPFL
-    \item 3 seeds per configuration (42, 123, 456)
-    \item Total: 7 $\times$ 5 datasets $\times$ 3 seeds = 105 experiments
+    \item 5 clients, Dirichlet $\alpha{=}0.5$, Adam optimizer
+    \item ResNet-18, FedBN, class-weighted loss, mixed precision
+    \item Chest X-ray: 20 rounds, early stopping (patience=6), lr=0.001
+    \item Brain Tumor / Skin Cancer: 10 rounds, early stopping (patience=3, min\_rounds=6), lr=0.0005/0.001
 \end{itemize}
 
 \subsection{Reproducibility}
@@ -997,15 +997,16 @@ Data augmentation: random horizontal flip, rotation ($\pm$15\textdegree), bright
 All experiments are fully reproducible:
 \begin{verbatim}
 cd fl-ehds-framework
-# Full experiments (7 algo x 5 datasets x 3 seeds)
-python -m benchmarks.run_full_experiments
-# Quick validation (~1-2h)
-python -m benchmarks.run_full_experiments --quick
-# Resume after interruption
-python -m benchmarks.run_full_experiments --resume
+# Chest X-ray (4 algos x 3 seeds, ~4h)
+python -m benchmarks.run_imaging_extended
+# Brain Tumor + Skin Cancer (2 algos x 1 seed, ~2.5h)
+python -m benchmarks.run_imaging_multi --light
+# Confusion matrices
+python -m benchmarks.run_confusion_matrix_chest
+python -m benchmarks.run_confusion_matrix_bc
 \end{verbatim}
 
-Results, checkpoints, and logs are auto-saved to \texttt{benchmarks/paper\_results/}.
+Results, checkpoints, and logs are auto-saved to \texttt{benchmarks/paper\_results\_delta/}.
 
 Repository: \url{https://github.com/FabioLiberti/FL-EHDS-FLICS2026}
 
@@ -1035,8 +1036,6 @@ HPFL & 62.1 & 73.4 & 71.8 & 69.1 & 0.762 \\
 \end{table}
 
 \textbf{Key findings.} \textit{First}, federated learning on Chest X-ray achieves \textbf{87.3\% accuracy} (FedAvg) for binary pneumonia detection with ResNet-18, confirming FL viability for medical imaging under EHDS-relevant non-IID conditions. \textit{Second}, \textbf{FedLESAM is identical to FedAvg on imaging}: despite SAM's theoretical sharpness-aware optimization, FedLESAM produces per-seed accuracies indistinguishable from FedAvg (87.8\% vs.\ 87.3\%), suggesting that SAM perturbation does not meaningfully alter the ResNet-18 loss landscape under federated aggregation. \textit{Third}, \textbf{personalization is counterproductive on imaging}: Ditto achieves 80.0\% ($-$7.3pp vs.\ FedAvg), with substantially higher variance ($\sigma{=}10.6$pp vs.\ 3.6pp). HPFL \textit{fails catastrophically} (69.1\%, $-$18.2pp), early-stopping at round 8 on all seeds with peak accuracy at rounds 1--2, indicating that the split-head architecture cannot learn shared representations on a 5-class imaging task with Dirichlet-partitioned data. HPFL's fairness degrades severely (Jain 0.762 vs.\ 0.984), with per-client accuracies ranging from 0\% to 62\% on the worst seed. \textit{Fourth}, Ditto exhibits a \textbf{fairness failure mode} on seed 456: per-client accuracies of [99.7\%, 100.0\%, 48.5\%, 39.5\%, 100.0\%] (Jain 0.888) indicate that personalized local models overfit to majority-class clients while failing on minority-class clients.
-
-\textit{Implications for EHDS}: The imaging results reveal a \textbf{modality-dependent personalization effect}: personalized FL is critical for tabular clinical analytics (where lightweight models produce near-convex landscapes that personalization escapes) but \textbf{counterproductive for deep imaging models}. HPFL's failure is particularly notable given its dominance on all three tabular datasets. The likely explanation: ResNet-18's 11.2M-parameter backbone provides sufficient capacity for the global model to generalize across clients; personalization architectures (split heads, dual models) introduce instability without benefit. EHDS data permits should specify algorithm recommendations conditioned on the analytics modality, not as a blanket policy.
 
 % ============================================================================
 \section{Detailed Architecture Description}
@@ -2077,6 +2076,35 @@ Figures~\ref{fig:tab_convergence}--\ref{fig:tab_best_config} present visual anal
 \caption{Best configuration summary per dataset. Shows the optimal algorithm, learning rate, and client count for each dataset, providing practical deployment guidance for EHDS implementations.}
 \label{fig:tab_best_config}
 \end{figure}
+
+% ============================================================================
+\subsection{Brain Tumor and Skin Cancer Results}
+\label{sec:imaging_bt_sc}
+
+Table~\ref{tab:imaging_bt_sc} extends the imaging evaluation to Brain Tumor MRI (4-class) and Skin Cancer (binary), providing qualitative validation of the modality-dependent personalization effect across three imaging datasets. Statistical significance is established on the tabular benchmarks (10 seeds, $p < 0.001$).
+
+\begin{table}[htbp]
+\centering
+\caption{Brain Tumor MRI (4-class) and Skin Cancer (binary): FedAvg vs HPFL with ResNet-18. Single seed (42), 10 rounds, early stopping (patience=3). Best accuracy reported.}
+\label{tab:imaging_bt_sc}
+\small
+\begin{tabular}{llcccc}
+\toprule
+\textbf{Dataset} & \textbf{Algo} & \textbf{Acc (\%)} & \textbf{Jain} & \textbf{Rnds} \\
+\midrule
+\multirow{2}{*}{Brain Tumor} & FedAvg & 46.5 & 0.919 & 10 \\
+ & HPFL & 45.6 & \textbf{0.937} & 9 \\
+\midrule
+\multirow{2}{*}{Skin Cancer} & FedAvg & 62.8 & 0.900 & 9 \\
+ & HPFL & \textbf{68.5} & \textbf{0.987} & 10 \\
+\bottomrule
+\end{tabular}
+
+\vspace{1mm}
+\footnotesize{Single-seed results (seed=42). Brain Tumor uses lr=0.0005; Skin Cancer uses lr=0.001. Extended multi-seed evaluation is deferred to future work.}
+\end{table}
+
+\textit{Implications}: The three-dataset imaging evaluation reveals a \textbf{nuanced modality-dependent personalization effect}. On Chest X-ray (5,856 samples), FedAvg dominates (+18.2pp). On Skin Cancer (3,297 samples), HPFL outperforms FedAvg by +5.7pp with better fairness (Jain 0.987 vs.\ 0.900). On Brain Tumor (7,023 samples, 4-class), both achieve $\sim$46\%. The pattern suggests HPFL's personalized heads help on smaller, heterogeneous datasets but are counterproductive when the global model has sufficient data.
 
 % ============================================================================
 \bibliographystyle{IEEEtran}
