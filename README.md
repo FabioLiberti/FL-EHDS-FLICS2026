@@ -15,7 +15,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue?style=flat-square" alt="MIT License"/></a>
   <img src="https://img.shields.io/badge/Code-~40K%20lines-2ea44f?style=flat-square" alt="~40K lines"/>
   <img src="https://img.shields.io/badge/Modules-159-2ea44f?style=flat-square" alt="159 modules"/>
-  <img src="https://img.shields.io/badge/Experiments-1%2C740%2B-orange?style=flat-square" alt="1,740+ experiments"/>
+  <img src="https://img.shields.io/badge/Experiments-1%2C760%2B-orange?style=flat-square" alt="1,760+ experiments"/>
 </p>
 
 <p align="center">
@@ -78,7 +78,7 @@
 
 **FL-EHDS** is a three-layer compliance framework that bridges the technology–governance divide for cross-border health analytics under the [European Health Data Space (EHDS)](https://health.ec.europa.eu/ehealth-digital-health-and-care/european-health-data-space_en), Regulation (EU) 2025/327. The framework integrates **17 federated learning algorithms** (2017–2025, including ICML 2024 Spotlight and ICLR 2025 advances) with EHDS governance mechanisms — Health Data Access Bodies (HDABs), data permits, citizen opt-out registries — and data holder components for adaptive training with FHIR R4 preprocessing and OMOP-CDM harmonisation.
 
-Experimental validation across **1,740+ experiments** on 8 tabular clinical and medical imaging datasets demonstrates that personalised FL narrows the centralised–federated accuracy gap to **6.6 percentage points** while preserving full data sovereignty, and that algorithm selection produces up to **12.6 pp** accuracy differences on heterogeneous clinical data. Our evidence synthesis reveals that **unresolved regulatory questions** — gradient data classification under GDPR, cross-border privacy budget harmonisation — constitute the critical adoption blocker, not technical limitations.
+Experimental validation across **1,760+ experiments** on 8 tabular clinical and medical imaging datasets demonstrates that personalised FL narrows the centralised–federated accuracy gap to **6.6 percentage points** while preserving full data sovereignty, and that algorithm selection produces up to **12.6 pp** accuracy differences on heterogeneous clinical data. Our evidence synthesis reveals that **unresolved regulatory questions** — gradient data classification under GDPR, cross-border privacy budget harmonisation — constitute the critical adoption blocker, not technical limitations.
 
 ---
 
@@ -128,7 +128,7 @@ Existing FL frameworks provide robust distributed training but lack EHDS-specifi
 </tr>
 <tr>
 <td><strong>C4</strong></td>
-<td><strong>Experimental Validation.</strong> 1,740+ experiments across tabular clinical and medical imaging datasets with differential privacy ablation (ε ∈ {1, 5, 10, 50}), Article 71 opt-out simulation, and 10-seed statistical validation.</td>
+<td><strong>Experimental Validation.</strong> 1,760+ experiments across tabular clinical and medical imaging datasets with differential privacy ablation (ε ∈ {1, 5, 10, 50}), Article 71 opt-out simulation, and 10-seed statistical validation.</td>
 </tr>
 </table>
 
@@ -262,7 +262,7 @@ Results from the primary evaluation: 7 algorithms × 3 datasets × 5 seeds, plus
 | Personalised FL narrows the gap to **6.6 pp** | Ditto 75.1% vs. centralised 81.7% on Heart Disease UCI |
 | Algorithm selection yields up to **12.6 pp** | Ditto 75.1% vs. FedAvg 62.5% (Heart Disease); 11.4 pp on Cardiovascular |
 | **HPFL** outperforms FedAvg on **all** datasets | p = 0.004, 0.002, 0.031 (Wilcoxon, 10-seed); pooled p < 0.001 |
-| Privacy at ε = 10 is **free** | < 2 pp accuracy cost across PTB-XL and Cardiovascular |
+| DP at ε = 10 imposes **negligible cost** | < 2 pp accuracy cost across PTB-XL and Cardiovascular |
 | DP noise as **regularisation** | FedAvg ε = 5 → 78.7% vs. 52.3% without DP on Breast Cancer (+26.4 pp) |
 | Art. 71 opt-out at 30% is **negligible** | < 1 pp drop on adequately sized datasets |
 | Personalisation **scales** | Ditto: −0.8 pp from K = 5→100 (vs. −4.7 pp FedAvg) |
@@ -302,7 +302,7 @@ Results from the primary evaluation: 7 algorithms × 3 datasets × 5 seeds, plus
 | Ditto | 89.2 | — | 91.6 | 91.8 |
 | HPFL | 87.1 | — | 92.4 | 92.5 |
 
-> **Key insight.** Personalised methods are remarkably DP-robust. At ε = 1, FedAvg collapses (−39.6 pp) while Ditto and HPFL retain > 87% accuracy. At ε = 10, privacy is essentially free for all algorithms.
+> **Key insight.** Personalised methods are remarkably DP-robust. At ε = 1, FedAvg collapses (−39.6 pp) while Ditto and HPFL retain > 87% accuracy. At ε = 10, privacy imposes negligible utility cost for all algorithms.
 
 ### Statistical Significance — 10-Seed Validation
 
