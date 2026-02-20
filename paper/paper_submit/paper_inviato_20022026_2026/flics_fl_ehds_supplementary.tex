@@ -19,6 +19,10 @@
 
 \begin{document}
 
+% Use S- prefix for all tables and figures to avoid overlap with main paper numbering
+\renewcommand{\thetable}{S-\Roman{table}}
+\renewcommand{\thefigure}{S-\arabic{figure}}
+
 \title{Supplementary Material:\\FL-EHDS: A Privacy-Preserving Federated Learning Framework for the European Health Data Space}
 
 \author{
@@ -366,6 +370,8 @@ This section presents detailed experimental results from the FL-EHDS benchmark s
 
 \subsection{Client Participation Matrix}
 
+Figure~\ref{fig:participation} shows the client participation pattern across training rounds.
+
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.95\columnwidth]{figures/figA3_participation_matrix.pdf}
@@ -374,6 +380,8 @@ This section presents detailed experimental results from the FL-EHDS benchmark s
 \end{figure}
 
 \subsection{Gradient Norm Evolution}
+
+Figure~\ref{fig:gradient_norms} tracks gradient norms per client, confirming convergence stability.
 
 \begin{figure}[htbp]
 \centering
@@ -384,6 +392,8 @@ This section presents detailed experimental results from the FL-EHDS benchmark s
 
 \subsection{Communication Cost Analysis}
 
+Figure~\ref{fig:communication} quantifies the per-round communication overhead.
+
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.95\columnwidth]{figures/figA5_communication_cost.pdf}
@@ -392,6 +402,8 @@ This section presents detailed experimental results from the FL-EHDS benchmark s
 \end{figure}
 
 \subsection{Learning Rate Sensitivity}
+
+Figure~\ref{fig:learning_rate} evaluates sensitivity to the server learning rate.
 
 \begin{figure}[htbp]
 \centering
@@ -402,6 +414,8 @@ This section presents detailed experimental results from the FL-EHDS benchmark s
 
 \subsection{Batch Size Impact}
 
+Figure~\ref{fig:batch_size} examines the trade-off between batch size and convergence.
+
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.95\columnwidth]{figures/figA7_batch_size.pdf}
@@ -410,6 +424,8 @@ This section presents detailed experimental results from the FL-EHDS benchmark s
 \end{figure}
 
 \subsection{Per-Client Accuracy Trajectories}
+
+Figure~\ref{fig:client_accuracy} shows per-client accuracy evolution, illustrating the impact of non-IID data.
 
 \begin{figure}[htbp]
 \centering
@@ -438,7 +454,7 @@ The FL-EHDS framework supports 19 healthcare datasets spanning four modalities. 
 \midrule
 Diabetes 130-US & Tabular & 101,766 & 22 & 2 & Dirichlet ($\alpha{=}0.5$) & EHR, ICD-9, medications & L2: FHIR-mappable & \checkmark \\
 Heart Disease UCI & Tabular & 920 & 13 & 2 & Natural (4 hospitals) & Vitals, ECG, lab results & L2: FHIR-mappable & \checkmark \\
-PTB-XL ECG$^\dagger$ & Tabular & 21,799 & 9 & 5 & Natural (52 EU sites) & SCP-ECG (EN 1064), diagnostics & L2: FHIR-mappable & \checkmark \\
+PTB-XL ECG$^\dagger$ & Tabular & 21,799 & 9 & 5 & Natural (52 sites) & SCP-ECG (EN 1064), diagnostics & L2: FHIR-mappable & \checkmark \\
 Cardiovascular Disease & Tabular & 70,000 & 11 & 2 & Dirichlet ($\alpha{=}0.5$) & Vitals, lab, risk factors & L2: FHIR-mappable & \checkmark \\
 Breast Cancer Wisconsin & Tabular & 569 & 30 & 2 & Dirichlet ($\alpha{=}0.5$) & Pathology (FNA cytology) & L2: FHIR-mappable & \checkmark \\
 Stroke Prediction & Tabular & 5,110 & 10 & 2 & Dirichlet & Cardiovascular risk factors & L2: FHIR-mappable & --- \\
@@ -454,7 +470,7 @@ SMART Bulk FHIR & FHIR & 120 & 12 & 2 & Single export & NDJSON Bulk Data (Art.~4
 \multicolumn{9}{l}{\textit{C. Generated Pipelines (in-memory)}} \\
 \midrule
 FHIR R4 Synthetic & Gen. & config. & 10 & 2 & Hospital profile & Generated FHIR bundles & L1: FHIR-native & qual. \\
-OMOP-CDM Harmonized & Gen. & config. & $\sim$36 & 2 & Cross-border & Vocabulary harmonization & L3: OMOP & qual. \\
+OMOP-CDM Harmonized & Gen. & config. & 36 & 2 & Cross-border & Vocabulary harmonization & L3: OMOP & qual. \\
 \midrule
 \multicolumn{9}{l}{\textit{D. Medical Imaging}} \\
 \midrule
@@ -473,7 +489,7 @@ ISIC Skin Lesions & Imaging & 2,357 & --- & 9 & Dirichlet & Dermatology (DICOM) 
 \textbf{EHDS Levels}: L1 = FHIR-native (Art.~46 compliant); L2 = FHIR-mappable (standard clinical features with FHIR mapping in metadata); L3 = OMOP-CDM harmonized (cross-border vocabulary alignment, Art.~50); L4 = Medical imaging (DICOM, Art.~33 ``medical images''). \\
 $^\dagger$PTB-XL: European-origin dataset (PTB, Berlin, Germany) with SCP-ECG coding (EN 1064). 52 recording sites enable natural hospital-based FL partitioning---the strongest EHDS benchmark in the framework. \\
 \textbf{Eval.}: \checkmark = quantitative experimental evaluation (P1.2); qual. = qualitative pipeline validation; --- = supported but not evaluated in current paper. \\
-\textbf{config.} = configurable sample count.
+\textbf{config.} = sample count depends on generation parameters.
 }
 \end{table*}
 
@@ -521,6 +537,8 @@ Data heterogeneity is controlled via Dirichlet distribution with $\alpha$:
 \end{figure}
 
 \subsection{Convergence Speed}
+
+Figure~\ref{fig:convergence_speed} compares how quickly algorithms reach target accuracy thresholds.
 
 \begin{figure}[htbp]
 \centering
@@ -623,7 +641,7 @@ The Elastic Weight Consolidation (EWC) loss function adds a quadratic penalty:
 \[
 \mathcal{L}_{EWC}(\theta) = \mathcal{L}(\theta) + \frac{\lambda}{2} \sum_i F_i (\theta_i - \theta_i^*)^2
 \]
-where $F_i$ is the Fisher Information for parameter $i$ and $\theta^*$ are optimal parameters for previous tasks.
+where $F_i = \mathbb{E}[\nabla^2 \log p(\mathcal{D}|\theta^*)]_i$ is the $i$-th diagonal entry of the Fisher Information Matrix and $\theta^*$ are optimal parameters for previous tasks.
 
 Additional strategies: Learning without Forgetting (LwF), Experience Replay, drift detection (ADWIN, Page-Hinkley) triggering adaptation.
 
@@ -649,7 +667,7 @@ Benefits: reduced communication costs (hospitals $\to$ regional, not directly EU
 
 \subsection{Personalized Federated Learning}
 
-A single global model may underperform at individual hospitals because clinical populations differ substantially across Member States. Personalized FL maintains both a global model (encoding shared medical knowledge) and hospital-specific local models (adapted to local demographics and clinical practices). Algorithm~S11 shows pFedMe~\cite{fallah2020personalized} as a representative personalized method, using Moreau envelopes to balance personalization with global knowledge: the regularization term $\lambda(\theta_k - \theta)$ pulls the local model toward the global consensus, while local gradient descent adapts to hospital-specific data patterns. Ditto~\cite{li2021ditto} follows a similar dual-model principle but with a simpler formulation: it trains a personalized model regularized toward the global model via $\frac{\lambda}{2}\|\theta_k - \theta\|^2$. In our experiments, Ditto---the best-performing personalized method---achieves 75.1\% accuracy on Heart Disease, a 12.6pp improvement over FedAvg, precisely because it learns hospital-specific decision boundaries.
+A single global model may underperform at individual hospitals because clinical populations differ substantially across Member States. Personalized FL maintains both a global model (encoding shared medical knowledge) and hospital-specific local models (adapted to local demographics and clinical practices). Algorithm~S11 shows pFedMe~\cite{dinh2020pfedme} as a representative personalized method, using Moreau envelopes to balance personalization with global knowledge: the regularization term $\lambda(\theta_k - \theta)$ pulls the local model toward the global consensus, while local gradient descent adapts to hospital-specific data patterns. Ditto~\cite{li2021ditto} follows a similar dual-model principle but with a simpler formulation: it trains a personalized model regularized toward the global model via $\frac{\lambda}{2}\|\theta_k - \theta\|^2$. In our experiments, Ditto---the best-performing personalized method---achieves 75.1\% accuracy on Heart Disease, a 12.6pp improvement over FedAvg, precisely because it learns hospital-specific decision boundaries.
 
 \begin{figure}[htbp]
 \centering
@@ -968,7 +986,7 @@ Figure~\ref{fig:interop} presents the complete interoperability architecture, sh
 
 Three clinical imaging datasets cover representative EHDS scenarios:
 \begin{itemize}
-    \item \textbf{Chest X-ray}~\cite{chestxray2018}: 5,860 pediatric radiographs (NORMAL/PNEUMONIA, 2.7:1 imbalance)
+    \item \textbf{Chest X-ray}~\cite{chestxray2018}: 5,856 pediatric radiographs (NORMAL/PNEUMONIA, 2.7:1 imbalance)
     \item \textbf{Brain Tumor MRI}: 7,023 T1-weighted CE MRI slices (4-class: glioma, healthy, meningioma, pituitary)
     \item \textbf{Skin Cancer}: 3,297 dermoscopy images (binary benign/malignant)
 \end{itemize}
@@ -983,7 +1001,7 @@ Data augmentation: random horizontal flip, rotation ($\pm$15\textdegree), bright
 
 \subsection{Experimental Configuration}
 
-Chest X-ray experiments use 4 algorithms (FedAvg, FedLESAM, Ditto, HPFL) $\times$ 3 seeds = 12 experiments per dataset. Brain Tumor and Skin Cancer use 2 algorithms (FedAvg, HPFL) $\times$ 1 seed as qualitative validation of the modality-dependent personalization effect; statistical significance is established on the tabular benchmarks (10 seeds, $p < 0.001$).
+Chest X-ray experiments use 4 algorithms (FedAvg, FedLESAM, Ditto, HPFL) $\times$ 3 seeds = 12 experiments. Brain Tumor and Skin Cancer use 2 algorithms (FedAvg, HPFL) $\times$ 1 seed as qualitative validation of the modality-dependent personalization effect; statistical significance is established on the tabular benchmarks (10 seeds, $p < 0.001$).
 
 \begin{itemize}
     \item 5 clients, Dirichlet $\alpha{=}0.5$, Adam optimizer
@@ -1158,12 +1176,12 @@ We formalize three adversary classes ordered by increasing capability.
 
 \textbf{A1: Honest-but-curious aggregation server.} The SPE aggregation server $\mathcal{S}$ follows the protocol faithfully but attempts to infer patient-level information from the received model updates $\{\Delta_k\}_{k=1}^{K}$. This is the most realistic adversary for EHDS: the HDAB-operated SPE has institutional incentives to follow the protocol (legal liability, regulatory oversight) but may be compromised or subject to insider threats. Concrete attack vectors include:
 \begin{itemize}
-    \item \textit{Gradient inversion}~\cite{zhu2019deep}: reconstructing training samples from observed gradients. Effectiveness decreases with batch size and model depth; for the tabular MLP ($\sim$10K parameters, batch size 32--64), theoretical reconstruction quality is limited but non-zero.
+    \item \textit{Gradient inversion}~\cite{zhu2019deep}: reconstructing training samples from observed gradients. Effectiveness decreases with batch size and model depth; for the tabular MLP ($\sim$2.9K--10K parameters depending on dataset, batch size 32--64), theoretical reconstruction quality is limited but non-zero.
     \item \textit{Membership inference}: determining whether a specific patient record was used in a client's local training, potentially violating GDPR Article~9 (special category data).
     \item \textit{Property inference}: extracting aggregate properties of a client's local dataset (e.g., disease prevalence at a specific hospital).
 \end{itemize}
 
-\textbf{Defenses for A1:} Central DP (Algorithm~S2) with Gaussian mechanism ($\sigma = C/\varepsilon$, $\delta = 10^{-5}$) bounds per-round information leakage. R\'enyi DP composition (Algorithm~S8) tracks cumulative privacy expenditure across rounds. Secure aggregation (Algorithm~S4) ensures $\mathcal{S}$ observes only $\sum_k \Delta_k + \text{noise}$, never individual $\Delta_k$. Our DP ablation (Table~\ref{tab:dp_tradeoff}) demonstrates that at $\varepsilon = 10$, personalized methods lose $<$2pp accuracy---privacy is essentially ``free'' at this budget.
+\textbf{Defenses for A1:} Central DP (Algorithm~S2) with Gaussian mechanism ($\sigma = C/\varepsilon$, $\delta = 10^{-5}$) bounds per-round information leakage. R\'enyi DP composition (Algorithm~S8) tracks cumulative privacy expenditure across rounds. Secure aggregation (Algorithm~S4) ensures $\mathcal{S}$ observes only $\sum_k \Delta_k + \text{noise}$, never individual $\Delta_k$. Our DP ablation (Table~\ref{tab:dp_tradeoff}) demonstrates that at $\varepsilon = 10$, personalized methods lose $<$2pp accuracy---privacy imposes negligible utility cost at this budget.
 
 \textbf{A2: Malicious clients (Byzantine).} Up to $f < n/3$ compromised institutions may deviate arbitrarily from the protocol. In the EHDS context, this could represent: institutions with corrupted data pipelines, nation-state actors attempting to bias cross-border models, or free-riding participants that send random updates to benefit from the global model without contributing genuine local training. Attack types include:
 \begin{itemize}
@@ -1256,7 +1274,7 @@ This creates a concrete governance deadlock:
     \item A per-client $\varepsilon$ approach (each hospital applies its own budget) introduces asymmetric noise levels, creating fairness concerns: the German hospital's model updates are noisier, potentially biasing the global model away from the German patient population.
 \end{itemize}
 
-FL-EHDS addresses this technically through per-client privacy budget configuration in the governance layer, but the \textit{policy question}---which bound applies---requires regulatory clarification in the March 2027 delegated acts. Article~50(4) of Regulation (EU) 2025/327 mandates that SPEs provide ``a high level of security,'' but does not specify whether privacy parameters should be harmonized across Member States or determined by the most restrictive participant.
+FL-EHDS addresses this technically through per-client privacy budget configuration in the governance layer, but the \textit{policy question}---which bound applies---requires regulatory clarification in the March 2027 delegated acts. Article~50(4) of Regulation (EU) 2025/327 mandates that SPEs provide ``a high level of security,'' but does not specify whether privacy budgets should be harmonized across Member States or determined by the most restrictive participant.
 
 \subsection{Controller/Processor Ambiguity}
 
@@ -1291,6 +1309,74 @@ These governance challenges directly motivated FL-EHDS's architecture:
 \end{itemize}
 
 These examples demonstrate that the ``legal uncertainties as critical blocker'' claim in the main paper is not abstract: it reflects specific, concrete impasses that affect system design decisions at the architectural level.
+
+% ============================================================================
+\section{Extended Results from Main Paper}
+\label{sec:main_extended}
+% ============================================================================
+
+This section contains detailed results referenced inline in the main paper but moved here for space constraints.
+
+\subsection{Heart Disease and Diabetes Algorithm Comparison}
+
+Table~\ref{tab:hd_diabetes} presents the full algorithm comparison on two additional clinical datasets: Heart Disease UCI (4 natural hospitals) and Diabetes 130-US (5 Dirichlet-partitioned clients). These results confirm the personalization advantage observed on PTB-XL, Cardiovascular, and Breast Cancer in the main paper.
+
+\begin{table}[htbp]
+\centering
+\caption{FL Algorithm Comparison on Heart Disease and Diabetes}
+\label{tab:hd_diabetes}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lcccccc}
+\toprule
+& \multicolumn{3}{c}{\textbf{Heart Disease (4 hosp.)}} & \multicolumn{3}{c}{\textbf{Diabetes (5 hosp.)}} \\
+\cmidrule(lr){2-4} \cmidrule(lr){5-7}
+\textbf{Algo.} & \textbf{Acc.} & \textbf{F1} & \textbf{AUC} & \textbf{Acc.} & \textbf{F1} & \textbf{AUC} \\
+\midrule
+FedAvg       & 62.5$\pm$8.0 & .736$\pm$.06 & .834$\pm$.03 & 68.1$\pm$4.2 & .259$\pm$.01 & .643$\pm$.00 \\
+FedProx      & 61.7$\pm$8.0 & .732$\pm$.05 & .834$\pm$.03 & 71.0$\pm$6.3 & .254$\pm$.01 & .638$\pm$.00 \\
+SCAFFOLD     & 66.3$\pm$5.1 & .667$\pm$.02 & .791$\pm$.05 & 11.2$\pm$0.0 & .201$\pm$.00 & .514$\pm$.00 \\
+FedNova      & 56.4$\pm$5.4 & .711$\pm$.04 & .831$\pm$.03 & 13.0$\pm$0.9 & .203$\pm$.00 & .636$\pm$.00 \\
+\textbf{Ditto} & \textbf{75.1$\pm$2.0} & \textbf{.761$\pm$.03} & .826$\pm$.01 & \textbf{71.7$\pm$0.2} & \textbf{.262$\pm$.00} & \textbf{.643$\pm$.00} \\
+\bottomrule
+\end{tabular}%
+}
+
+\vspace{1mm}
+\footnotesize{20 rounds, 3 local epochs. Heart Disease: natural non-IID (4 international hospitals: Cleveland, Hungarian, Swiss, VA Long Beach). Diabetes: Dirichlet $\alpha$=0.5. Mean $\pm$ std over 5 seeds. Ditto achieves 75.1\% vs.\ FedAvg 62.5\% (12.6pp gap) on Heart Disease and 71.7\% on Diabetes. SCAFFOLD and FedNova exhibit known failure modes on Diabetes (11.2\% and 13.0\%).}
+\end{table}
+
+\subsection{Per-Hospital Heterogeneity Analysis}
+
+Figure~\ref{fig:per_hospital} shows per-hospital accuracy variation on Heart Disease, where the four hospitals have naturally different patient populations.
+
+\begin{figure}[htbp]
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    ybar,
+    bar width=0.35cm,
+    width=0.45\textwidth,
+    height=4cm,
+    ylabel={Accuracy (\%)},
+    xlabel={Hospital},
+    symbolic x coords={Cleveland, Hungarian, Swiss, VA Long B.},
+    xtick=data,
+    x tick label style={font=\scriptsize, rotate=15, anchor=east},
+    ymin=20, ymax=100,
+    legend style={at={(0.98,0.98)}, anchor=north east, font=\scriptsize},
+    grid=major,
+    grid style={dashed, gray!30},
+    nodes near coords,
+    every node near coord/.append style={font=\tiny},
+]
+\addplot[fill=blue!60] coordinates {(Cleveland,66.1) (Hungarian,43.1) (Swiss,81.9) (VA Long B.,73.3)};
+\addplot[fill=purple!60] coordinates {(Cleveland,66.7) (Hungarian,43.1) (Swiss,81.9) (VA Long B.,73.3)};
+\legend{FedAvg, Ditto (global)}
+\end{axis}
+\end{tikzpicture}
+\caption{Per-hospital accuracy of the \textit{global} model on Heart Disease UCI. Ditto's 12.6pp overall advantage (Table~\ref{tab:hd_diabetes}) comes from its \textit{personalized local} models, which are separately fine-tuned per hospital; the shared global model shows similar cross-hospital performance to FedAvg. The Hungarian hospital, with the smallest cohort (n=294), shows the largest performance gap---a realistic EHDS scenario where smaller national datasets benefit most from federation.}
+\label{fig:per_hospital}
+\end{figure}
 
 % ============================================================================
 \section{Extended Tabular Experiment Results}
@@ -1437,7 +1523,7 @@ Table~\ref{tab:dp_tradeoff} quantifies accuracy under central differential priva
 
 \begin{table}[t]
 \centering
-\caption{Privacy-utility tradeoff: accuracy (\%) under central DP with varying $\varepsilon$. Gaussian mechanism, $C{=}1.0$, $\delta{=}10^{-5}$. Mean $\pm$ std over 5 seeds. No-DP baselines from Table~7 (main paper). $\Delta$ = drop from No-DP.}
+\caption{Privacy-utility tradeoff: accuracy (\%) under central DP with varying $\varepsilon$. Gaussian mechanism, $C{=}1.0$, $\delta{=}10^{-5}$. Mean $\pm$ std over 5 seeds. No-DP baselines from main paper Table~VII. $\Delta$ = drop from No-DP.}
 \label{tab:dp_tradeoff}
 \footnotesize
 \resizebox{\columnwidth}{!}{%
@@ -1563,7 +1649,7 @@ EHDS Article~71 grants citizens the right to opt out of secondary use of their h
 
 \begin{table}[t]
 \centering
-\caption{Article~71 opt-out impact: accuracy (\%) at different opt-out rates. $\Delta$: maximum drop relative to 0\% baseline. Mean $\pm$ std over 5 seeds.}
+\caption{Article~71 opt-out impact: accuracy (\%) at different opt-out rates. $\Delta$: maximum drop relative to 0\% baseline. Mean $\pm$ std over 5 seeds. Note: 0\% baselines were run as separate experimental batches; minor differences from main paper Table~VI (e.g., HPFL PTB-XL 92.8 vs.\ 92.5) reflect seed set variability.}
 \label{tab:optout}
 \footnotesize
 \begin{tabular}{ll ccccc c}
@@ -1598,7 +1684,7 @@ BC & FedAvg & 52.8{\tiny$\pm$17.6} & 52.8{\tiny$\pm$17.6} & 53.0{\tiny$\pm$17.9}
 
 \begin{table}[t]
 \centering
-\caption{Per-dataset optimized configuration used for baseline comparison (Table~7 in main paper).}
+\caption{Per-dataset optimized configuration used for baseline comparison (main paper Table~VII).}
 \label{tab:dataset_config}
 \small
 \begin{tabular}{lcccccc}
@@ -1640,7 +1726,7 @@ The tabular experiments in the main paper use a compact HealthcareMLP ($\sim$10K
 
 \begin{table}[htbp]
 \centering
-\caption{Deep MLP ($\sim$110K params) vs.\ Shallow MLP ($\sim$10K params). Accuracy (\%), mean $\pm$ std over 5 seeds.}
+\caption{Deep MLP ($\sim$110K params) vs.\ Shallow MLP ($\sim$2.9K--10K params). Accuracy (\%), mean $\pm$ std over 5 seeds.}
 \label{tab:deep_mlp}
 \small
 \begin{tabular}{lcccc}
@@ -1660,7 +1746,7 @@ HPFL & \textbf{92.5}{\tiny$\pm$0.3} & \textbf{92.7}{\tiny$\pm$0.2} & 82.3{\tiny$
 \end{tabular}
 
 \vspace{1mm}
-\footnotesize{Shallow: HealthcareMLP [64, 32], $\sim$10K params. Deep: DeepHealthcareMLP [256, 256, 128, 64], $\sim$110K params. Same per-dataset hyperparameters (Table~\ref{tab:dataset_config}). Breast Cancer omitted: 569 samples insufficient for stable $\sim$110K-parameter training.}
+\footnotesize{Shallow: HealthcareMLP [64, 32], $\sim$2.9K--10K params (varies by input features). Deep: DeepHealthcareMLP [256, 256, 128, 64], $\sim$110K params. Same per-dataset hyperparameters (Table~\ref{tab:dataset_config}). Breast Cancer omitted: 569 samples insufficient for stable $\sim$110K-parameter training.}
 \end{table}
 
 \textbf{Key finding}: Even with a 38$\times$ parameter increase, \textbf{the algorithm collapse persists}. On both PTB-XL and Cardiovascular, FedAvg, FedProx, FedLC, FedExP, and FedLESAM converge to statistically identical accuracies (92.5\% and 71.2\%, respectively). Only Ditto and HPFL differentiate, with modest improvements on Cardiovascular (+2.5pp each vs.\ shallow). This confirms that the near-convexity driving algorithm collapse is a property of \textit{tabular healthcare data} (low-dimensional features, clear class boundaries), not merely of model capacity. For EHDS deployment, this strengthens our main finding: on tabular clinical models, the critical design choice is \textbf{personalization architecture} (Ditto, HPFL) rather than aggregation strategy, regardless of model depth.
@@ -1782,7 +1868,7 @@ HPFL & \textbf{84.8}{\tiny$\pm$13.2} & 0.886 & \textbf{0.787} & 336/427 & 0/10 \
 \end{tabular}
 
 \vspace{1mm}
-\footnotesize{TP: true positives (Malignant correctly identified) summed over 10 seeds (427 total Malignant samples). \textbf{Collapse}: seeds where the model predicts a \textit{single} class for all test samples (7/10 predict only Benign, 1/10 only Malignant for FedAvg/FedProx/Ditto). FedAvg, FedProx, and Ditto produce \textbf{nearly identical} predictions (algorithm collapse).}
+\footnotesize{TP: true positives (Malignant correctly identified) summed over 10 seeds (427 total Malignant samples). \textbf{Collapse}: seeds where the model predicts a \textit{single} class for all test samples (7/10 predict only Benign, 1/10 only Malignant for FedAvg/FedProx/Ditto). FedAvg, FedProx, and Ditto produce \textbf{nearly identical} predictions (algorithm collapse). \textbf{Note}: The 10-seed mean (57.3\%) differs from the 5-seed baseline in main paper Table~VI (52.3\%) because accuracy is bimodal under single-class collapse; the proportion of Benign-only vs.\ Malignant-only collapse seeds varies between seed sets.}
 \end{table}
 
 \begin{figure}[htbp]
@@ -1825,7 +1911,7 @@ HPFL & 76.7 & \textbf{0.885} & 0.724 & 1853/2561 \\
 \label{fig:confusion_matrix_chest}
 \end{figure}
 
-\textbf{Key finding---modality-dependent personalization}: On Chest X-ray, FedAvg \textit{outperforms} HPFL by +10.6~pp (87.3\% vs 76.7\%)---the \textbf{opposite} of the Breast Cancer result where HPFL leads by +27.5~pp. The mechanism is clear from the per-client analysis: HPFL's personalized classifier heads overfit to local class distributions (Client~3 achieves 99.1\% NORMAL recall but only 23.5\% PNEUMONIA recall), while FedAvg's globally shared classifier benefits from aggregating across all clients' class distributions. This asymmetry is explained by model capacity: the 10K-parameter tabular MLP has insufficient capacity to learn balanced decision boundaries under non-IID partitioning (hence collapse), whereas ResNet-18 ($\sim$11.2M parameters) with FedBN can learn rich shared features that generalize across heterogeneous local distributions. \textit{EHDS data permits should condition algorithm selection on analytics modality: personalized FL (HPFL) for lightweight tabular models, global FL (FedAvg) for deep imaging architectures.}
+\textbf{Key finding---modality-dependent personalization}: On Chest X-ray, FedAvg \textit{outperforms} HPFL by +10.6~pp (87.3\% vs 76.7\%)---the \textbf{opposite} of the Breast Cancer result where HPFL leads by +27.5~pp. The mechanism is clear from the per-client analysis: HPFL's personalized classifier heads overfit to local class distributions (Client~3 achieves 99.1\% NORMAL recall but only 23.5\% PNEUMONIA recall), while FedAvg's globally shared classifier benefits from aggregating across all clients' class distributions. This asymmetry is explained by model capacity: the $\leq$10K-parameter tabular MLP has insufficient capacity to learn balanced decision boundaries under non-IID partitioning (hence collapse), whereas ResNet-18 ($\sim$11.2M parameters) with FedBN can learn rich shared features that generalize across heterogeneous local distributions. \textit{EHDS data permits should condition algorithm selection on analytics modality: personalized FL (HPFL) for lightweight tabular models, global FL (FedAvg) for deep imaging architectures.}
 
 \subsection{RDP Composition Tightness}
 \label{sec:rdp_tightness}
@@ -1870,7 +1956,7 @@ Top-1\% & 77.3{\tiny$\pm$8.8} & $-$14.7 & 99\% & 29/2,885 \\
 \subsection{Differential Privacy Robustness at Scale}
 \label{sec:dp_at_scale}
 
-We verify that $\varepsilon{=}10$ DP remains ``free'' ($<$2pp accuracy cost) across algorithms and client counts on PTB-XL (Table~\ref{tab:dp_scale}). Three algorithms (FedAvg, Ditto, HPFL) are tested at $K{=}5$ with and without DP ($\varepsilon{=}10$, $C{=}1.0$, $\delta{=}10^{-5}$).
+We verify that $\varepsilon{=}10$ DP imposes negligible utility cost ($<$2pp accuracy loss) across algorithms and client counts on PTB-XL (Table~\ref{tab:dp_scale}). Three algorithms (FedAvg, Ditto, HPFL) are tested at $K{=}5$ with and without DP ($\varepsilon{=}10$, $C{=}1.0$, $\delta{=}10^{-5}$).
 
 \begin{table}[htbp]
 \centering
@@ -1888,15 +1974,15 @@ HPFL & \textbf{92.6}{\tiny$\pm$0.3} & \textbf{92.5}{\tiny$\pm$0.4} & +0.1pp \\
 \end{tabular}
 
 \vspace{1mm}
-\footnotesize{Negative DP cost indicates DP marginally \textit{improves} accuracy (within noise margin). All DP costs $<$0.4pp, confirming $\varepsilon{=}10$ is effectively free.}
+\footnotesize{Negative DP cost indicates DP marginally \textit{improves} accuracy (within noise margin). All DP costs $<$0.4pp, confirming $\varepsilon{=}10$ imposes negligible utility cost.}
 \end{table}
 
-\textbf{Key finding}: DP at $\varepsilon{=}10$ imposes $<$0.4pp accuracy cost across all three algorithms, confirming the main paper's finding that privacy is essentially free at this noise level. FedAvg with DP marginally \textit{outperforms} its no-DP baseline ($-$0.3pp cost, i.e., DP is better), likely due to regularization effects of Gaussian noise. HPFL maintains its accuracy advantage (92.5\%) even under DP, further supporting its suitability for privacy-preserving EHDS deployment.
+\textbf{Key finding}: DP at $\varepsilon{=}10$ imposes $<$0.4pp accuracy cost across all three algorithms, confirming the main paper's finding that privacy imposes negligible utility cost at this noise level. FedAvg with DP marginally \textit{outperforms} its no-DP baseline ($-$0.3pp cost, i.e., DP is better), likely due to regularization effects of Gaussian noise. HPFL maintains its accuracy advantage (92.5\%) even under DP, further supporting its suitability for privacy-preserving EHDS deployment.
 
 \subsection{Combined Scalability and Differential Privacy}
 \label{sec:scalability_dp_cv}
 
-Tables~\ref{tab:dp_scale} (PTB-XL, $K{=}5$) and XVII (Cardiovascular, $K{=}50$ without DP) establish separate findings on DP robustness and scalability. Table~\ref{tab:dp_scale_cv} bridges these by testing the \textbf{combination} of both at deployment scale: $K{=}50$ clients on the Cardiovascular dataset (70K samples) with $\varepsilon{=}10$ central DP.
+Tables~\ref{tab:dp_scale} (PTB-XL, $K{=}5$) and \ref{tab:cv_scalability} (Cardiovascular, $K{=}50$ without DP) establish separate findings on DP robustness and scalability. Table~\ref{tab:dp_scale_cv} bridges these by testing the \textbf{combination} of both at deployment scale: $K{=}50$ clients on the Cardiovascular dataset (70K samples) with $\varepsilon{=}10$ central DP.
 
 \begin{table}[htbp]
 \centering
@@ -2108,8 +2194,8 @@ Table~\ref{tab:imaging_bt_sc} extends the imaging evaluation to Brain Tumor MRI 
 
 % ============================================================================
 \bibliographystyle{IEEEtran}
-% Bibliography synchronized with main paper (51 entries)
-\begin{thebibliography}{51}
+% Bibliography synchronized with main paper (52 entries)
+\begin{thebibliography}{52}
 
 % === EHDS Regulation and Policy ===
 \bibitem{eu2025ehds}
@@ -2128,7 +2214,7 @@ TEHDAS Joint Action, ``Are EU member states ready for the European Health Data S
 H. Fr\"ohlich \textit{et al.}, ``Reality check: The aspirations of the EHDS amidst challenges in decentralized data analysis,'' \textit{J.~Med.~Internet Res.}, vol.~27, art.~e76491, 2025.
 
 \bibitem{vandrumpt2025pets}
-S. van Drumpt \textit{et al.}, ``Secondary use under the European Health Data Space,'' \textit{Frontiers in Digital Health}, vol.~7, art.~1602101, 2025.
+S. van Drumpt \textit{et al.}, ``Secondary use under the European Health Data Space: Setting the scene and towards a research agenda on privacy-enhancing technologies,'' \textit{Frontiers in Digital Health}, vol.~7, art.~1602101, 2025.
 
 \bibitem{hussein2025interop}
 R. Hussein \textit{et al.}, ``Interoperability framework of the EHDS for secondary use,'' \textit{J.~Med.~Internet Res.}, vol.~27, art.~e69813, 2025.
@@ -2137,16 +2223,16 @@ R. Hussein \textit{et al.}, ``Interoperability framework of the EHDS for seconda
 R. Forster \textit{et al.}, ``User journeys in cross-European secondary use of health data,'' \textit{Eur.~J.~Public Health}, vol.~35, Suppl.~3, pp.~iii18--iii24, 2025.
 
 \bibitem{svingel2025hdab}
-L. Svingel \textit{et al.}, ``Shaping the future EHDS: Recommendations for HDABs,'' \textit{Eur.~J.~Public Health}, vol.~35, Suppl.~3, pp.~iii32--iii38, 2025.
+L. Svingel \textit{et al.}, ``Shaping the future EHDS: Recommendations for implementation of Health Data Access Bodies,'' \textit{Eur.~J.~Public Health}, vol.~35, Suppl.~3, pp.~iii32--iii38, 2025.
 
 \bibitem{christiansen2025pilot}
-C. Christiansen \textit{et al.}, ``Piloting an infrastructure for secondary use of health data,'' \textit{Eur.~J.~Public Health}, vol.~35, Suppl.~3, pp.~iii3--iii4, 2025.
+C. Christiansen \textit{et al.}, ``Piloting an infrastructure for secondary use of health data: Learnings from the HealthData@EU Pilot,'' \textit{Eur.~J.~Public Health}, vol.~35, Suppl.~3, pp.~iii3--iii4, 2025.
 
 \bibitem{shabani2024ehds}
-M. Shabani and P. Borry, ``The European Health Data Space: Challenges and opportunities,'' \textit{Eur.~J.~Human Genetics}, vol.~32, no.~8, pp.~891--897, 2024.
+M. Shabani and P. Borry, ``The European Health Data Space: Challenges and opportunities for health data governance,'' \textit{Eur.~J.~Human Genetics}, vol.~32, no.~8, pp.~891--897, 2024.
 
 \bibitem{ganna2024boost}
-A. Ganna, E. Ingelsson, and D. Posthuma, ``The EHDS can be a boost for research beyond borders,'' \textit{Nature Medicine}, vol.~30, pp.~3053--3056, 2024.
+A. Ganna, E. Ingelsson, and D. Posthuma, ``The European Health Data Space can be a boost for research beyond borders,'' \textit{Nature Medicine}, vol.~30, pp.~3053--3056, 2024.
 
 % === FL Foundations ===
 \bibitem{mcmahan2017communication}
@@ -2162,7 +2248,7 @@ P. Kairouz \textit{et al.}, ``Advances and open problems in federated learning,'
 N. Rieke \textit{et al.}, ``The future of digital health with federated learning,'' \textit{npj Digital Medicine}, vol.~3, art.~119, 2020.
 
 \bibitem{bonawitz2019scale}
-K. Bonawitz \textit{et al.}, ``Towards federated learning at scale,'' in \textit{Proc. MLSys}, pp.~374--388, 2019.
+K. Bonawitz \textit{et al.}, ``Towards federated learning at scale: A system design,'' in \textit{Proc. MLSys}, pp.~374--388, 2019.
 
 \bibitem{chaverodiez2026fair}
 M. Chavero-Diez \textit{et al.}, ``Federated learning frameworks: Quality and interoperability for biomedical research,'' \textit{NAR Genomics Bioinformatics}, vol.~8, no.~1, art.~lqag010, 2026.
@@ -2172,7 +2258,7 @@ M. Chavero-Diez \textit{et al.}, ``Federated learning frameworks: Quality and in
 Z. L. Teo \textit{et al.}, ``Federated machine learning in healthcare: A systematic review,'' \textit{Cell Reports Medicine}, vol.~5, no.~2, art.~101419, 2024.
 
 \bibitem{peng2024systematic}
-L. Peng \textit{et al.}, ``Federated machine learning in healthcare: A systematic review,'' \textit{Comput.~Methods Programs Biomed.}, vol.~247, art.~108066, 2024.
+L. Peng \textit{et al.}, ``Federated machine learning in healthcare: A systematic review on clinical applications and technical architecture,'' \textit{Comput.~Methods Programs Biomed.}, vol.~247, art.~108066, 2024.
 
 % === Privacy and Security ===
 \bibitem{zhu2019deep}
@@ -2198,7 +2284,7 @@ I. Mironov, ``R\'enyi differential privacy,'' in \textit{Proc. IEEE CSF}, pp.~26
 I. Dayan \textit{et al.}, ``Federated learning for predicting clinical outcomes in patients with COVID-19,'' \textit{Nature Medicine}, vol.~27, no.~10, pp.~1735--1743, 2021.
 
 \bibitem{sheller2020federated}
-M. J. Sheller \textit{et al.}, ``Federated learning in medicine,'' \textit{Scientific Reports}, vol.~10, art.~12598, 2020.
+M. J. Sheller \textit{et al.}, ``Federated learning in medicine: Facilitating multi-institutional collaborations without sharing patient data,'' \textit{Scientific Reports}, vol.~10, art.~12598, 2020.
 
 % === FL Algorithms ===
 \bibitem{karimireddy2020scaffold}
@@ -2214,9 +2300,12 @@ S. Reddi \textit{et al.}, ``Adaptive federated optimization,'' in \textit{Proc. 
 D. A. E. Acar, Y. Zhao, R. M. Navarro, M. Mattina, P. N. Whatmough, and V. Saligrama, ``Federated learning based on dynamic regularization,'' in \textit{Proc. ICLR}, 2021.
 
 \bibitem{li2021ditto}
-T. Li \textit{et al.}, ``Ditto: Fair and robust federated learning through personalization,'' in \textit{Proc. ICML}, PMLR 139, pp.~6357--6368, 2021.
+T. Li, S. Hu, A. Beirami, and V. Smith, ``Ditto: Fair and robust federated learning through personalization,'' in \textit{Proc. ICML}, PMLR 139, pp.~6357--6368, 2021.
 
 \bibitem{fallah2020personalized}
+A. Fallah, A. Mokhtari, and A. Ozdaglar, ``Personalized federated learning with theoretical guarantees: A model-agnostic meta-learning approach,'' in \textit{Proc. NeurIPS}, vol.~33, pp.~3557--3568, 2020.
+
+\bibitem{dinh2020pfedme}
 T. Dinh, N. Tran, and J. Nguyen, ``Personalized federated learning with Moreau envelopes,'' in \textit{Proc. NeurIPS}, vol.~33, pp.~21394--21405, 2020.
 
 \bibitem{wei2020federated}
@@ -2241,7 +2330,7 @@ Y. Sun \textit{et al.}, ``FedSpeed: Larger local interval, less communication ro
 D. Jhunjhunwala, S. Wang, and G. Joshi, ``FedExP: Speeding up federated averaging via extrapolation,'' in \textit{Proc. ICLR}, 2023.
 
 \bibitem{qu2024fedlesam}
-Z. Qu \textit{et al.}, ``FedLESAM: Federated learning with locally estimated sharpness-aware minimization,'' in \textit{Proc. ICML}, PMLR 235, 2024.
+Z. Qu \textit{et al.}, ``FedLESAM: Federated learning with locally estimated sharpness-aware minimization,'' in \textit{Proc. ICML}, PMLR 235, 2024. (Spotlight)
 
 \bibitem{chen2025hpfl}
 Y. Chen, X. Cao, and L. Sun, ``HPFL: Hot-pluggable federated learning with shared backbone and personalized classifiers,'' in \textit{Proc. ICLR}, 2025.

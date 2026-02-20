@@ -374,6 +374,8 @@ def main():
                         help="Light mode (1 seed, 10 rounds, ~2.5h)")
     parser.add_argument("--extend-sc", action="store_true",
                         help="Extend Skin Cancer only to 20 rounds (~30 min)")
+    parser.add_argument("--add-seeds-sc", action="store_true",
+                        help="Add seeds 123,456 for Skin Cancer 20 rounds (~20 min)")
     parser.add_argument("--fresh", action="store_true",
                         help="Start fresh (delete existing checkpoint)")
     parser.add_argument("--resume", action="store_true",
@@ -392,6 +394,10 @@ def main():
         seeds = [42]
         config = {**IMAGING_CONFIG, "num_rounds": 3, "local_epochs": 1}
         es_config = {"enabled": False}
+    elif args.add_seeds_sc:
+        seeds = [123, 456]
+        config = {**IMAGING_CONFIG, "num_rounds": 20}
+        es_config = EARLY_STOPPING.copy()
     elif args.extend_sc:
         seeds = [42]
         config = {**IMAGING_CONFIG, "num_rounds": 20}
@@ -406,7 +412,8 @@ def main():
         es_config = EARLY_STOPPING.copy()
 
     # Build experiment list: datasets x algorithms x seeds
-    datasets_to_run = {"Skin_Cancer": IMAGING_DATASETS["Skin_Cancer"]} if getattr(args, 'extend_sc', False) else IMAGING_DATASETS
+    sc_only = args.extend_sc or args.add_seeds_sc
+    datasets_to_run = {"Skin_Cancer": IMAGING_DATASETS["Skin_Cancer"]} if sc_only else IMAGING_DATASETS
     experiments = []
     for ds_name in datasets_to_run:
         for algo in algorithms:
@@ -448,6 +455,17 @@ def main():
             }
         }
 
+    # --extend-sc: remove old Skin_Cancer entries so they re-run with 20 rounds
+    if args.extend_sc and checkpoint_data.get("completed"):
+        removed = []
+        for k in list(checkpoint_data["completed"].keys()):
+            if k.startswith("Skin_Cancer_"):
+                del checkpoint_data["completed"][k]
+                removed.append(k)
+        if removed:
+            save_checkpoint(checkpoint_data)
+            log("EXTEND-SC: removed {} old entries: {}".format(len(removed), removed))
+
     # Graceful shutdown
     _interrupted = [False]
 
@@ -464,15 +482,15 @@ def main():
     signal.signal(signal.SIGINT, _signal_handler)
     signal.signal(signal.SIGTERM, _signal_handler)
 
-    mode = "QUICK" if args.quick else "FULL"
+    mode = "QUICK" if args.quick else "ADD-SEEDS-SC" if args.add_seeds_sc else "EXTEND-SC" if args.extend_sc else "LIGHT" if args.light else "FULL"
     log("\n" + "=" * 66)
     log("  FL-EHDS — Brain Tumor + Skin Cancer ({})".format(mode))
     log("  {} experiments = {} datasets x {} algos x {} seeds".format(
-        total_exps, len(IMAGING_DATASETS), len(algorithms), len(seeds)))
+        total_exps, len(datasets_to_run), len(algorithms), len(seeds)))
     log("=" * 66)
     log("  Device:       {}".format(_detect_device(None)))
     log("  Algorithms:   {}".format(algorithms))
-    log("  Datasets:     {}".format(list(IMAGING_DATASETS.keys())))
+    log("  Datasets:     {}".format(list(datasets_to_run.keys())))
     log("  Seeds:        {}".format(seeds))
     log("  freeze_level: {} (conv1+bn1+layer1 frozen)".format(config["freeze_level"]))
     log("  local_epochs: {}".format(config["local_epochs"]))
