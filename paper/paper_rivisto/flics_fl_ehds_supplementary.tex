@@ -1543,19 +1543,19 @@ HPFL & \textbf{0.004}$^\dagger$ & \textbf{0.002}$^\dagger$ & \textbf{0.031}$^\da
 \toprule
 \textbf{Algorithm} & \textbf{Dataset} & $\boldsymbol{p}$ & $\boldsymbol{r}$ & $\boldsymbol{\overline{\Delta}}$ \textbf{(pp)} \\
 \midrule
-Ditto & Cardiovascular & 0.002 & 1.00 & +12.3 \\
- & Breast Cancer & 0.016 & 1.00 & +22.2 \\
- & Pooled (30 obs.) & $<$0.001 & 0.95 & +11.7 \\
+Ditto & Cardiovascular & 0.002 & 1.00 & +11.9 \\
+ & Breast Cancer & 0.016 & 1.00 & +19.0 \\
+ & Pooled (30 obs.) & $<$0.001 & 0.89 & +10.4 \\
 \midrule
-HPFL & PTB-XL & 0.004 & 1.00 & +1.1 \\
- & Cardiovascular & 0.002 & 1.00 & +12.3 \\
- & Breast Cancer & 0.031 & 0.93 & +19.5 \\
- & Pooled (30 obs.) & $<$0.001 & 0.97 & +10.9 \\
+HPFL & PTB-XL & 0.004 & 0.96 & +0.9 \\
+ & Cardiovascular & 0.002 & 1.00 & +11.8 \\
+ & Breast Cancer & 0.031 & 0.93 & +16.5 \\
+ & Pooled (30 obs.) & $<$0.001 & 0.95 & +9.8 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\textbf{Key findings}: With 10 seeds, the statistical picture sharpens decisively. \textit{First}, \textbf{HPFL significantly outperforms FedAvg on all three datasets} ($p = 0.004$, $0.002$, $0.031$; all $< 0.05$), with improvements of +1.1pp on PTB-XL, +12.3pp on Cardiovascular, and +19.5pp on Breast Cancer---the only algorithm achieving significance across all datasets. All effect sizes are large ($r \geq 0.93$; Table~\ref{tab:effect_sizes}). \textit{Second}, \textbf{Ditto significantly outperforms FedAvg on Cardiovascular and Breast Cancer} ($p = 0.002$, $0.016$), with large effect sizes ($r = 1.00$, $1.00$; $\overline{\Delta} = +12.3$pp, $+22.2$pp), though not on PTB-XL ($p = 0.08$, $\Delta = +0.5$pp) where FedAvg already achieves 91.5\%. \textit{Third}, \textbf{five algorithms collapse to FedAvg-equivalent performance}: FedLESAM produces identical results on all datasets; FedExP and FedProx are identical on 2/3 datasets. This confirms that only methods maintaining separate local models (Ditto, HPFL) differentiate on the near-convex tabular MLP landscape. \textit{Fourth}, the \textbf{pooled analysis} across all 30 paired observations yields $p < 0.001$ for both Ditto ($r = 0.95$) and HPFL ($r = 0.97$), providing strong evidence that personalized FL methods are superior for EHDS tabular analytics.
+\textbf{Key findings}: With 10 seeds, the statistical picture sharpens decisively. \textit{First}, \textbf{HPFL significantly outperforms FedAvg on all three datasets} ($p = 0.004$, $0.002$, $0.031$; all $< 0.05$), with improvements of +0.9pp on PTB-XL, +11.8pp on Cardiovascular, and +16.5pp on Breast Cancer---the only algorithm achieving significance across all datasets. All effect sizes are large ($r \geq 0.93$; Table~\ref{tab:effect_sizes}). \textit{Second}, \textbf{Ditto significantly outperforms FedAvg on Cardiovascular and Breast Cancer} ($p = 0.002$, $0.016$), with large effect sizes ($r = 1.00$, $1.00$; $\overline{\Delta} = +11.9$pp, $+19.0$pp), though not on PTB-XL ($p = 0.49$, $\Delta = +0.2$pp) where FedAvg already achieves 91.7\%. \textit{Third}, \textbf{five algorithms collapse to FedAvg-equivalent performance}: FedLESAM produces identical results on all datasets; FedExP and FedProx are identical on 2/3 datasets. This confirms that only methods maintaining separate local models (Ditto, HPFL) differentiate on the near-convex tabular MLP landscape. \textit{Fourth}, the \textbf{pooled analysis} across all 30 paired observations yields $p < 0.001$ for both Ditto ($r = 0.89$) and HPFL ($r = 0.95$), providing strong evidence that personalized FL methods are superior for EHDS tabular analytics.
 
 \subsection{Article 71 Opt-Out Impact}
 \label{sec:optout}
