@@ -1,0 +1,1149 @@
+{
+  "results": [
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "FedAvg",
+      "dp_label": "No-DP",
+      "dp_epsilon": 0,
+      "dp_enabled": false,
+      "seed": 42,
+      "accuracy": 0.6814159292035398,
+      "confusion_matrix": [
+        [
+          77,
+          0
+        ],
+        [
+          36,
+          0
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 1.0,
+        "Malignant": 0.0
+      },
+      "dei": 0.0,
+      "min_recall": 0.0,
+      "cv": 1.0,
+      "runtime_seconds": 0.6
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "FedAvg",
+      "dp_label": "No-DP",
+      "dp_epsilon": 0,
+      "dp_enabled": false,
+      "seed": 123,
+      "accuracy": 0.6283185840707964,
+      "confusion_matrix": [
+        [
+          71,
+          0
+        ],
+        [
+          42,
+          0
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 1.0,
+        "Malignant": 0.0
+      },
+      "dei": 0.0,
+      "min_recall": 0.0,
+      "cv": 1.0,
+      "runtime_seconds": 0.5
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "FedAvg",
+      "dp_label": "No-DP",
+      "dp_epsilon": 0,
+      "dp_enabled": false,
+      "seed": 456,
+      "accuracy": 0.6371681415929203,
+      "confusion_matrix": [
+        [
+          72,
+          0
+        ],
+        [
+          41,
+          0
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 1.0,
+        "Malignant": 0.0
+      },
+      "dei": 0.0,
+      "min_recall": 0.0,
+      "cv": 1.0,
+      "runtime_seconds": 0.5
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "FedAvg",
+      "dp_label": "No-DP",
+      "dp_epsilon": 0,
+      "dp_enabled": false,
+      "seed": 789,
+      "accuracy": 0.39285714285714285,
+      "confusion_matrix": [
+        [
+          0,
+          68
+        ],
+        [
+          0,
+          44
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.0,
+        "Malignant": 1.0
+      },
+      "dei": 0.0,
+      "min_recall": 0.0,
+      "cv": 1.0,
+      "runtime_seconds": 0.5
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "FedAvg",
+      "dp_label": "No-DP",
+      "dp_epsilon": 0,
+      "dp_enabled": false,
+      "seed": 999,
+      "accuracy": 0.46017699115044247,
+      "confusion_matrix": [
+        [
+          9,
+          61
+        ],
+        [
+          0,
+          43
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.12857142857142856,
+        "Malignant": 1.0
+      },
+      "dei": 0.029294755877034354,
+      "min_recall": 0.12857142857142856,
+      "cv": 0.7721518987341772,
+      "runtime_seconds": 0.5
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "FedAvg",
+      "dp_label": "eps=1",
+      "dp_epsilon": 1.0,
+      "dp_enabled": true,
+      "seed": 42,
+      "accuracy": 0.6814159292035398,
+      "confusion_matrix": [
+        [
+          77,
+          0
+        ],
+        [
+          36,
+          0
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 1.0,
+        "Malignant": 0.0
+      },
+      "dei": 0.0,
+      "min_recall": 0.0,
+      "cv": 1.0,
+      "runtime_seconds": 0.6
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "FedAvg",
+      "dp_label": "eps=1",
+      "dp_epsilon": 1.0,
+      "dp_enabled": true,
+      "seed": 123,
+      "accuracy": 0.6371681415929203,
+      "confusion_matrix": [
+        [
+          71,
+          0
+        ],
+        [
+          41,
+          1
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 1.0,
+        "Malignant": 0.023809523809523808
+      },
+      "dei": 0.0011074197120708742,
+      "min_recall": 0.023809523809523808,
+      "cv": 0.9534883720930233,
+      "runtime_seconds": 0.6
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "FedAvg",
+      "dp_label": "eps=1",
+      "dp_epsilon": 1.0,
+      "dp_enabled": true,
+      "seed": 456,
+      "accuracy": 0.6283185840707964,
+      "confusion_matrix": [
+        [
+          70,
+          2
+        ],
+        [
+          40,
+          1
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.9722222222222222,
+        "Malignant": 0.024390243902439025
+      },
+      "dei": 0.0011938120740826723,
+      "min_recall": 0.024390243902439025,
+      "cv": 0.9510537049626104,
+      "runtime_seconds": 0.6
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "FedAvg",
+      "dp_label": "eps=1",
+      "dp_epsilon": 1.0,
+      "dp_enabled": true,
+      "seed": 789,
+      "accuracy": 0.6160714285714286,
+      "confusion_matrix": [
+        [
+          68,
+          0
+        ],
+        [
+          43,
+          1
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 1.0,
+        "Malignant": 0.022727272727272728
+      },
+      "dei": 0.001010101010101009,
+      "min_recall": 0.022727272727272728,
+      "cv": 0.9555555555555556,
+      "runtime_seconds": 0.6
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "FedAvg",
+      "dp_label": "eps=1",
+      "dp_epsilon": 1.0,
+      "dp_enabled": true,
+      "seed": 999,
+      "accuracy": 0.4336283185840708,
+      "confusion_matrix": [
+        [
+          6,
+          64
+        ],
+        [
+          0,
+          43
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.08571428571428572,
+        "Malignant": 1.0
+      },
+      "dei": 0.01353383458646616,
+      "min_recall": 0.08571428571428572,
+      "cv": 0.8421052631578948,
+      "runtime_seconds": 0.7
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "FedAvg",
+      "dp_label": "eps=5",
+      "dp_epsilon": 5.0,
+      "dp_enabled": true,
+      "seed": 42,
+      "accuracy": 0.6814159292035398,
+      "confusion_matrix": [
+        [
+          77,
+          0
+        ],
+        [
+          36,
+          0
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 1.0,
+        "Malignant": 0.0
+      },
+      "dei": 0.0,
+      "min_recall": 0.0,
+      "cv": 1.0,
+      "runtime_seconds": 0.6
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "FedAvg",
+      "dp_label": "eps=5",
+      "dp_epsilon": 5.0,
+      "dp_enabled": true,
+      "seed": 123,
+      "accuracy": 0.6371681415929203,
+      "confusion_matrix": [
+        [
+          71,
+          0
+        ],
+        [
+          41,
+          1
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 1.0,
+        "Malignant": 0.023809523809523808
+      },
+      "dei": 0.0011074197120708742,
+      "min_recall": 0.023809523809523808,
+      "cv": 0.9534883720930233,
+      "runtime_seconds": 0.6
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "FedAvg",
+      "dp_label": "eps=5",
+      "dp_epsilon": 5.0,
+      "dp_enabled": true,
+      "seed": 456,
+      "accuracy": 0.6283185840707964,
+      "confusion_matrix": [
+        [
+          71,
+          1
+        ],
+        [
+          41,
+          0
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.9861111111111112,
+        "Malignant": 0.0
+      },
+      "dei": 0.0,
+      "min_recall": 0.0,
+      "cv": 1.0,
+      "runtime_seconds": 0.6
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "FedAvg",
+      "dp_label": "eps=5",
+      "dp_epsilon": 5.0,
+      "dp_enabled": true,
+      "seed": 789,
+      "accuracy": 0.6071428571428571,
+      "confusion_matrix": [
+        [
+          68,
+          0
+        ],
+        [
+          44,
+          0
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 1.0,
+        "Malignant": 0.0
+      },
+      "dei": 0.0,
+      "min_recall": 0.0,
+      "cv": 1.0,
+      "runtime_seconds": 0.6
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "FedAvg",
+      "dp_label": "eps=5",
+      "dp_epsilon": 5.0,
+      "dp_enabled": true,
+      "seed": 999,
+      "accuracy": 0.4336283185840708,
+      "confusion_matrix": [
+        [
+          6,
+          64
+        ],
+        [
+          0,
+          43
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.08571428571428572,
+        "Malignant": 1.0
+      },
+      "dei": 0.01353383458646616,
+      "min_recall": 0.08571428571428572,
+      "cv": 0.8421052631578948,
+      "runtime_seconds": 0.6
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "FedAvg",
+      "dp_label": "eps=10",
+      "dp_epsilon": 10.0,
+      "dp_enabled": true,
+      "seed": 42,
+      "accuracy": 0.6814159292035398,
+      "confusion_matrix": [
+        [
+          77,
+          0
+        ],
+        [
+          36,
+          0
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 1.0,
+        "Malignant": 0.0
+      },
+      "dei": 0.0,
+      "min_recall": 0.0,
+      "cv": 1.0,
+      "runtime_seconds": 0.6
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "FedAvg",
+      "dp_label": "eps=10",
+      "dp_epsilon": 10.0,
+      "dp_enabled": true,
+      "seed": 123,
+      "accuracy": 0.6283185840707964,
+      "confusion_matrix": [
+        [
+          71,
+          0
+        ],
+        [
+          42,
+          0
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 1.0,
+        "Malignant": 0.0
+      },
+      "dei": 0.0,
+      "min_recall": 0.0,
+      "cv": 1.0,
+      "runtime_seconds": 0.6
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "FedAvg",
+      "dp_label": "eps=10",
+      "dp_epsilon": 10.0,
+      "dp_enabled": true,
+      "seed": 456,
+      "accuracy": 0.6371681415929203,
+      "confusion_matrix": [
+        [
+          72,
+          0
+        ],
+        [
+          41,
+          0
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 1.0,
+        "Malignant": 0.0
+      },
+      "dei": 0.0,
+      "min_recall": 0.0,
+      "cv": 1.0,
+      "runtime_seconds": 0.6
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "FedAvg",
+      "dp_label": "eps=10",
+      "dp_epsilon": 10.0,
+      "dp_enabled": true,
+      "seed": 789,
+      "accuracy": 0.6071428571428571,
+      "confusion_matrix": [
+        [
+          68,
+          0
+        ],
+        [
+          44,
+          0
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 1.0,
+        "Malignant": 0.0
+      },
+      "dei": 0.0,
+      "min_recall": 0.0,
+      "cv": 1.0,
+      "runtime_seconds": 0.6
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "FedAvg",
+      "dp_label": "eps=10",
+      "dp_epsilon": 10.0,
+      "dp_enabled": true,
+      "seed": 999,
+      "accuracy": 0.5221238938053098,
+      "confusion_matrix": [
+        [
+          16,
+          54
+        ],
+        [
+          0,
+          43
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.22857142857142856,
+        "Malignant": 1.0
+      },
+      "dei": 0.08504983388704318,
+      "min_recall": 0.22857142857142856,
+      "cv": 0.627906976744186,
+      "runtime_seconds": 0.6
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "HPFL",
+      "dp_label": "No-DP",
+      "dp_epsilon": 0,
+      "dp_enabled": false,
+      "seed": 42,
+      "accuracy": 0.911504424778761,
+      "confusion_matrix": [
+        [
+          75,
+          2
+        ],
+        [
+          8,
+          28
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.974025974025974,
+        "Malignant": 0.7777777777777778
+      },
+      "dei": 0.6906461651107451,
+      "min_recall": 0.7777777777777778,
+      "cv": 0.11202635914332783,
+      "runtime_seconds": 0.5
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "HPFL",
+      "dp_label": "No-DP",
+      "dp_epsilon": 0,
+      "dp_enabled": false,
+      "seed": 123,
+      "accuracy": 0.9823008849557522,
+      "confusion_matrix": [
+        [
+          70,
+          1
+        ],
+        [
+          1,
+          41
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.9859154929577465,
+        "Malignant": 0.9761904761904762
+      },
+      "dei": 0.9713520684294911,
+      "min_recall": 0.9761904761904762,
+      "cv": 0.004956417706375001,
+      "runtime_seconds": 0.5
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "HPFL",
+      "dp_label": "No-DP",
+      "dp_epsilon": 0,
+      "dp_enabled": false,
+      "seed": 456,
+      "accuracy": 0.9823008849557522,
+      "confusion_matrix": [
+        [
+          70,
+          2
+        ],
+        [
+          0,
+          41
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.9722222222222222,
+        "Malignant": 1.0
+      },
+      "dei": 0.9585289514866979,
+      "min_recall": 0.9722222222222222,
+      "cv": 0.014084507042253527,
+      "runtime_seconds": 0.5
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "HPFL",
+      "dp_label": "No-DP",
+      "dp_epsilon": 0,
+      "dp_enabled": false,
+      "seed": 789,
+      "accuracy": 0.9107142857142857,
+      "confusion_matrix": [
+        [
+          63,
+          5
+        ],
+        [
+          5,
+          39
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.9264705882352942,
+        "Malignant": 0.8863636363636364
+      },
+      "dei": 0.866753821399839,
+      "min_recall": 0.8863636363636364,
+      "cv": 0.02212389380530976,
+      "runtime_seconds": 0.5
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "HPFL",
+      "dp_label": "No-DP",
+      "dp_epsilon": 0,
+      "dp_enabled": false,
+      "seed": 999,
+      "accuracy": 0.6194690265486725,
+      "confusion_matrix": [
+        [
+          29,
+          41
+        ],
+        [
+          2,
+          41
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.4142857142857143,
+        "Malignant": 0.9534883720930233
+      },
+      "dei": 0.2509663763489365,
+      "min_recall": 0.4142857142857143,
+      "cv": 0.39421909157153273,
+      "runtime_seconds": 0.5
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "HPFL",
+      "dp_label": "eps=1",
+      "dp_epsilon": 1.0,
+      "dp_enabled": true,
+      "seed": 42,
+      "accuracy": 0.9203539823008849,
+      "confusion_matrix": [
+        [
+          75,
+          2
+        ],
+        [
+          7,
+          29
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.974025974025974,
+        "Malignant": 0.8055555555555556
+      },
+      "dei": 0.7292947721692908,
+      "min_recall": 0.8055555555555556,
+      "cv": 0.09466855868639772,
+      "runtime_seconds": 0.6
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "HPFL",
+      "dp_label": "eps=1",
+      "dp_epsilon": 1.0,
+      "dp_enabled": true,
+      "seed": 123,
+      "accuracy": 0.9823008849557522,
+      "confusion_matrix": [
+        [
+          70,
+          1
+        ],
+        [
+          1,
+          41
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.9859154929577465,
+        "Malignant": 0.9761904761904762
+      },
+      "dei": 0.9713520684294911,
+      "min_recall": 0.9761904761904762,
+      "cv": 0.004956417706375001,
+      "runtime_seconds": 0.6
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "HPFL",
+      "dp_label": "eps=1",
+      "dp_epsilon": 1.0,
+      "dp_enabled": true,
+      "seed": 456,
+      "accuracy": 0.9734513274336283,
+      "confusion_matrix": [
+        [
+          69,
+          3
+        ],
+        [
+          0,
+          41
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.9583333333333334,
+        "Malignant": 1.0
+      },
+      "dei": 0.9379432624113475,
+      "min_recall": 0.9583333333333334,
+      "cv": 0.02127659574468083,
+      "runtime_seconds": 0.6
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "HPFL",
+      "dp_label": "eps=1",
+      "dp_epsilon": 1.0,
+      "dp_enabled": true,
+      "seed": 789,
+      "accuracy": 0.8660714285714286,
+      "confusion_matrix": [
+        [
+          63,
+          5
+        ],
+        [
+          10,
+          34
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.9264705882352942,
+        "Malignant": 0.7727272727272727
+      },
+      "dei": 0.7028109577283456,
+      "min_recall": 0.7727272727272727,
+      "cv": 0.09047993705743512,
+      "runtime_seconds": 0.6
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "HPFL",
+      "dp_label": "eps=1",
+      "dp_epsilon": 1.0,
+      "dp_enabled": true,
+      "seed": 999,
+      "accuracy": 0.7610619469026548,
+      "confusion_matrix": [
+        [
+          67,
+          3
+        ],
+        [
+          24,
+          19
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.9571428571428572,
+        "Malignant": 0.4418604651162791
+      },
+      "dei": 0.27911394851800103,
+      "min_recall": 0.4418604651162791,
+      "cv": 0.3683210638803135,
+      "runtime_seconds": 0.6
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "HPFL",
+      "dp_label": "eps=5",
+      "dp_epsilon": 5.0,
+      "dp_enabled": true,
+      "seed": 42,
+      "accuracy": 0.911504424778761,
+      "confusion_matrix": [
+        [
+          75,
+          2
+        ],
+        [
+          8,
+          28
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.974025974025974,
+        "Malignant": 0.7777777777777778
+      },
+      "dei": 0.6906461651107451,
+      "min_recall": 0.7777777777777778,
+      "cv": 0.11202635914332783,
+      "runtime_seconds": 0.6
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "HPFL",
+      "dp_label": "eps=5",
+      "dp_epsilon": 5.0,
+      "dp_enabled": true,
+      "seed": 123,
+      "accuracy": 0.9823008849557522,
+      "confusion_matrix": [
+        [
+          70,
+          1
+        ],
+        [
+          1,
+          41
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.9859154929577465,
+        "Malignant": 0.9761904761904762
+      },
+      "dei": 0.9713520684294911,
+      "min_recall": 0.9761904761904762,
+      "cv": 0.004956417706375001,
+      "runtime_seconds": 0.6
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "HPFL",
+      "dp_label": "eps=5",
+      "dp_epsilon": 5.0,
+      "dp_enabled": true,
+      "seed": 456,
+      "accuracy": 0.9734513274336283,
+      "confusion_matrix": [
+        [
+          69,
+          3
+        ],
+        [
+          0,
+          41
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.9583333333333334,
+        "Malignant": 1.0
+      },
+      "dei": 0.9379432624113475,
+      "min_recall": 0.9583333333333334,
+      "cv": 0.02127659574468083,
+      "runtime_seconds": 0.6
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "HPFL",
+      "dp_label": "eps=5",
+      "dp_epsilon": 5.0,
+      "dp_enabled": true,
+      "seed": 789,
+      "accuracy": 0.9017857142857143,
+      "confusion_matrix": [
+        [
+          63,
+          5
+        ],
+        [
+          6,
+          38
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.9264705882352942,
+        "Malignant": 0.8636363636363636
+      },
+      "dei": 0.8333220177880372,
+      "min_recall": 0.8636363636363636,
+      "cv": 0.035100821508588516,
+      "runtime_seconds": 0.6
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "HPFL",
+      "dp_label": "eps=5",
+      "dp_epsilon": 5.0,
+      "dp_enabled": true,
+      "seed": 999,
+      "accuracy": 0.7699115044247787,
+      "confusion_matrix": [
+        [
+          67,
+          3
+        ],
+        [
+          23,
+          20
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.9571428571428572,
+        "Malignant": 0.46511627906976744
+      },
+      "dei": 0.30421060065296635,
+      "min_recall": 0.46511627906976744,
+      "cv": 0.34594720859612244,
+      "runtime_seconds": 0.6
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "HPFL",
+      "dp_label": "eps=10",
+      "dp_epsilon": 10.0,
+      "dp_enabled": true,
+      "seed": 42,
+      "accuracy": 0.8938053097345132,
+      "confusion_matrix": [
+        [
+          75,
+          2
+        ],
+        [
+          10,
+          26
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.974025974025974,
+        "Malignant": 0.7222222222222222
+      },
+      "dei": 0.6150101611607354,
+      "min_recall": 0.7222222222222222,
+      "cv": 0.1484474691620587,
+      "runtime_seconds": 0.6
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "HPFL",
+      "dp_label": "eps=10",
+      "dp_epsilon": 10.0,
+      "dp_enabled": true,
+      "seed": 123,
+      "accuracy": 0.9823008849557522,
+      "confusion_matrix": [
+        [
+          70,
+          1
+        ],
+        [
+          1,
+          41
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.9859154929577465,
+        "Malignant": 0.9761904761904762
+      },
+      "dei": 0.9713520684294911,
+      "min_recall": 0.9761904761904762,
+      "cv": 0.004956417706375001,
+      "runtime_seconds": 0.6
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "HPFL",
+      "dp_label": "eps=10",
+      "dp_epsilon": 10.0,
+      "dp_enabled": true,
+      "seed": 456,
+      "accuracy": 0.9734513274336283,
+      "confusion_matrix": [
+        [
+          69,
+          3
+        ],
+        [
+          0,
+          41
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.9583333333333334,
+        "Malignant": 1.0
+      },
+      "dei": 0.9379432624113475,
+      "min_recall": 0.9583333333333334,
+      "cv": 0.02127659574468083,
+      "runtime_seconds": 0.6
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "HPFL",
+      "dp_label": "eps=10",
+      "dp_epsilon": 10.0,
+      "dp_enabled": true,
+      "seed": 789,
+      "accuracy": 0.9107142857142857,
+      "confusion_matrix": [
+        [
+          63,
+          5
+        ],
+        [
+          5,
+          39
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.9264705882352942,
+        "Malignant": 0.8863636363636364
+      },
+      "dei": 0.866753821399839,
+      "min_recall": 0.8863636363636364,
+      "cv": 0.02212389380530976,
+      "runtime_seconds": 0.6
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "HPFL",
+      "dp_label": "eps=10",
+      "dp_epsilon": 10.0,
+      "dp_enabled": true,
+      "seed": 999,
+      "accuracy": 0.7876106194690266,
+      "confusion_matrix": [
+        [
+          66,
+          4
+        ],
+        [
+          20,
+          23
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.9428571428571428,
+        "Malignant": 0.5348837209302325
+      },
+      "dei": 0.38721348502593267,
+      "min_recall": 0.5348837209302325,
+      "cv": 0.27607913669064754,
+      "runtime_seconds": 0.6
+    }
+  ],
+  "completed": [
+    "Breast_Cancer_FedAvg_No-DP_s42",
+    "Breast_Cancer_FedAvg_No-DP_s123",
+    "Breast_Cancer_FedAvg_No-DP_s456",
+    "Breast_Cancer_FedAvg_No-DP_s789",
+    "Breast_Cancer_FedAvg_No-DP_s999",
+    "Breast_Cancer_FedAvg_eps=1_s42",
+    "Breast_Cancer_FedAvg_eps=1_s123",
+    "Breast_Cancer_FedAvg_eps=1_s456",
+    "Breast_Cancer_FedAvg_eps=1_s789",
+    "Breast_Cancer_FedAvg_eps=1_s999",
+    "Breast_Cancer_FedAvg_eps=5_s42",
+    "Breast_Cancer_FedAvg_eps=5_s123",
+    "Breast_Cancer_FedAvg_eps=5_s456",
+    "Breast_Cancer_FedAvg_eps=5_s789",
+    "Breast_Cancer_FedAvg_eps=5_s999",
+    "Breast_Cancer_FedAvg_eps=10_s42",
+    "Breast_Cancer_FedAvg_eps=10_s123",
+    "Breast_Cancer_FedAvg_eps=10_s456",
+    "Breast_Cancer_FedAvg_eps=10_s789",
+    "Breast_Cancer_FedAvg_eps=10_s999",
+    "Breast_Cancer_HPFL_No-DP_s42",
+    "Breast_Cancer_HPFL_No-DP_s123",
+    "Breast_Cancer_HPFL_No-DP_s456",
+    "Breast_Cancer_HPFL_No-DP_s789",
+    "Breast_Cancer_HPFL_No-DP_s999",
+    "Breast_Cancer_HPFL_eps=1_s42",
+    "Breast_Cancer_HPFL_eps=1_s123",
+    "Breast_Cancer_HPFL_eps=1_s456",
+    "Breast_Cancer_HPFL_eps=1_s789",
+    "Breast_Cancer_HPFL_eps=1_s999",
+    "Breast_Cancer_HPFL_eps=5_s42",
+    "Breast_Cancer_HPFL_eps=5_s123",
+    "Breast_Cancer_HPFL_eps=5_s456",
+    "Breast_Cancer_HPFL_eps=5_s789",
+    "Breast_Cancer_HPFL_eps=5_s999",
+    "Breast_Cancer_HPFL_eps=10_s42",
+    "Breast_Cancer_HPFL_eps=10_s123",
+    "Breast_Cancer_HPFL_eps=10_s456",
+    "Breast_Cancer_HPFL_eps=10_s789",
+    "Breast_Cancer_HPFL_eps=10_s999"
+  ],
+  "metadata": {
+    "datasets": [
+      "Breast_Cancer"
+    ],
+    "algorithms": [
+      "FedAvg",
+      "HPFL"
+    ],
+    "dp_levels": [
+      "No-DP",
+      "eps=1",
+      "eps=5",
+      "eps=10"
+    ],
+    "seeds": [
+      42,
+      123,
+      456,
+      789,
+      999
+    ],
+    "timestamp": "2026-02-22T22:17:42.952997"
+  }
+}

@@ -674,9 +674,12 @@ class FederatedTrainer:
         self._last_byzantine_result = result
 
         # Apply aggregated gradient to global model
+        # HPFL: skip classifier params (keep local per client)
         robust_update = aggregation_result_to_tensors(result, self.device)
         for name, param in self.global_model.named_parameters():
             if name in robust_update:
+                if self.algorithm == "HPFL" and name in self._hpfl_classifier_names:
+                    continue
                 param.data += robust_update[name]
 
     def _aggregate(self, client_results: List[ClientResult],
