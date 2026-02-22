@@ -1,0 +1,17 @@
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Experiment outputs (large/generated files)
+experiment_results/
+
+# IDE
+.vscode/
+.idea/
+
+# Environment
+.env
