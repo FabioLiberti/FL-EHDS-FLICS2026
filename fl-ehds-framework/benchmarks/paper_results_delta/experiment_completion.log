@@ -1,0 +1,16 @@
+[00:20:08] 
+==================================================================
+[00:20:08]   FL-EHDS Imaging Completion — 8 missing experiments
+[00:20:08]   Brain Tumor: FedAvg (s123,s456) + Ditto (s42,s123,s456)
+[00:20:08]   Skin Cancer: Ditto (s42,s123,s456)
+[00:20:08] ==================================================================
+[00:20:08]   Device:       mps
+[00:20:08]   freeze_level: 2 (conv1+bn1+layer1 frozen)
+[00:20:08]   local_epochs: 2
+[00:20:08]   num_rounds:   20 (patience=4)
+[00:20:08]   Output:       /Users/fxlybs/_DEV/FL-EHDS-FLICS2026/fl-ehds-framework/benchmarks/paper_results_delta/checkpoint_completion.json
+[00:20:08] ==================================================================
+
+[00:20:08] 
+--- [1/8] Brain_Tumor | FedAvg | seed=123 ---
+[00:25:17] [1/8] Brain_Tumor | FedAvg | s123 | R1/20 | Acc:24.1% | Best:24.1%(r1)

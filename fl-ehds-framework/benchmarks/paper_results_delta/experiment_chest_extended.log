@@ -1,0 +1,12 @@
+[00:19:16] 
+============================================================
+[00:19:16]   FL-EHDS Chest X-Ray Extended (FULL)
+[00:19:16]   6 experiments = 2 algos x 3 seeds
+[00:19:16]   Algorithms: ['HPFL', 'FedLESAM']
+[00:19:16]   Device: mps
+[00:19:16]   Output: /Users/fxlybs/_DEV/FL-EHDS-FLICS2026/fl-ehds-framework/benchmarks/paper_results_delta/checkpoint_chest_extended.json
+[00:19:16] ============================================================
+[00:19:16] 
+--- [1/6] chest_xray | HPFL | seed=42 ---
+[00:22:31] [1/6] chest_xray | HPFL | s42 | R1/20 | Acc:26.1% | Best:26.1%(r1)
+[00:25:06] [1/6] chest_xray | HPFL | s42 | R2/20 | Acc:59.5% | Best:59.5%(r2)

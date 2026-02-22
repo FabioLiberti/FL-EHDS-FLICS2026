@@ -77,7 +77,7 @@ DATASETS = {
         "loader": "ptbxl",
         "num_clients": 5,
         "config": dict(
-            input_dim=187, num_classes=5,
+            input_dim=9, num_classes=5,
             learning_rate=0.01, batch_size=32, num_rounds=20,
             local_epochs=3, mu=0.1,
         ),

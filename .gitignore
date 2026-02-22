@@ -9,6 +9,16 @@ __pycache__/
 # Experiment outputs (large/generated files)
 experiment_results/
 
+# Large datasets (download separately)
+fl-ehds-framework/data/ptb_xl/
+fl-ehds-framework/data/chest_xray/
+fl-ehds-framework/data/Brain_Tumor/
+fl-ehds-framework/data/Skin Cancer/
+fl-ehds-framework/data/breast_cancer_wisconsin/
+
+# Dataset archives
+*.zip
+
 # IDE
 .vscode/
 .idea/
