@@ -312,6 +312,7 @@ def run_single_imaging(
     config: Dict, es_config: Dict,
     exp_idx: int, total_exps: int,
     checkpoint_data: Dict = None, exp_key: str = None,
+    trainer_ckpt_path: str = None,
 ) -> Dict[str, Any]:
     start = time.time()
     num_rounds = config["num_rounds"]
@@ -356,10 +357,32 @@ def run_single_imaging(
     history = []
     best_acc = 0.0
     best_round = 0
+    start_round = 0
+
+    # Resume mid-experiment if trainer checkpoint exists
+    in_prog = checkpoint_data.get("in_progress") if checkpoint_data else None
+    if (in_prog and in_prog.get("key") == exp_key
+            and trainer_ckpt_path and Path(trainer_ckpt_path).exists()):
+        try:
+            start_round = trainer.load_checkpoint(trainer_ckpt_path)
+            history = in_prog.get("history", [])
+            best_acc = in_prog.get("best_acc", 0.0)
+            best_round = in_prog.get("best_round", 0)
+            # Restore early stopping state
+            if es and history:
+                for h in history:
+                    es.check(h["round"], {"accuracy": h["accuracy"]})
+            log(f"  RESUMED from round {start_round} (best={best_acc:.1%})")
+        except Exception as e:
+            log(f"  WARNING: could not resume trainer ({e}), restarting from R1")
+            start_round = 0
+            history = []
+            best_acc = 0.0
+            best_round = 0
 
     noise_scale = DP_CLIP_NORM / dp_eps if dp_enabled else 0.0
 
-    for r in range(num_rounds):
+    for r in range(start_round, num_rounds):
         rr = trainer.train_round(r)
         metrics = {
             "round": r + 1,
@@ -379,8 +402,13 @@ def run_single_imaging(
         log(f"[{exp_idx}/{total_exps}] {ds_name} | {algorithm} | {dp_label} | s{seed} | "
             f"R{r+1}/{num_rounds} | Acc:{rr.global_acc:.1%} | Best:{best_acc:.1%}(r{best_round})")
 
-        # Save progress after EVERY round
+        # Save progress after EVERY round: trainer state + checkpoint
         if checkpoint_data is not None and exp_key:
+            if trainer_ckpt_path:
+                try:
+                    trainer.save_checkpoint(trainer_ckpt_path)
+                except Exception:
+                    pass
             checkpoint_data["in_progress"] = {
                 "key": exp_key,
                 "dataset": ds_name,
@@ -424,9 +452,14 @@ def run_single_imaging(
         "best_round": best_round,
     }
 
-    # Clear in_progress when experiment completes
+    # Clear in_progress and trainer checkpoint when experiment completes
     if checkpoint_data is not None:
         checkpoint_data.pop("in_progress", None)
+    if trainer_ckpt_path:
+        try:
+            Path(trainer_ckpt_path).unlink(missing_ok=True)
+        except OSError:
+            pass
 
     _cleanup_gpu()
     return result
@@ -529,6 +562,9 @@ def main():
     log(f"  Output: {OUTPUT_DIR / CHECKPOINT_FILE}")
     log(f"{'='*70}")
 
+    # Trainer checkpoint path (for mid-experiment resume)
+    trainer_ckpt_path = str(OUTPUT_DIR / ".trainer_state_dp.pt")
+
     global_start = time.time()
     completed_count = len(checkpoint_data.get("completed", {}))
 
@@ -557,6 +593,7 @@ def main():
                 total_exps=total_exps,
                 checkpoint_data=checkpoint_data,
                 exp_key=key,
+                trainer_ckpt_path=trainer_ckpt_path,
             )
 
             checkpoint_data["completed"][key] = result
