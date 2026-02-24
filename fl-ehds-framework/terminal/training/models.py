@@ -361,7 +361,4 @@ def load_image_dataset(
         dist_train = dict(zip(unique_train.tolist(), counts_train.tolist()))
         print(f"  Client {client_id}: {len(y_tr)} train / {len(y_te)} test, train dist: {dist_train}")
 
-    del client_all_data
-    gc.collect()
-
     return client_train_data, client_test_data, class_names, num_classes
