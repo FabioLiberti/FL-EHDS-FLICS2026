@@ -255,40 +255,46 @@ def load_image_dataset(
     print(f"Loading dataset from: {data_dir}")
     print(f"Found {num_classes} classes: {list(class_names.values())}")
 
-    # Load all images
-    all_images = []
-    all_labels = []
+    import gc
+
+    # --- Phase 1: Count images (no RAM used) ---
     img_extensions = {"*.jpg", "*.jpeg", "*.png", "*.JPG", "*.JPEG", "*.PNG"}
+    image_manifest = []  # List of (path, class_id) — lightweight
 
     for class_dir in image_dirs:
         class_id = class_name_to_id[class_dir.name]
-        image_files = []
         for ext in img_extensions:
-            image_files.extend(class_dir.glob(ext))
+            for img_path in class_dir.glob(ext):
+                image_manifest.append((img_path, class_id))
 
-        for img_path in image_files:
-            try:
-                img = Image.open(img_path).convert("RGB")
-                img = img.resize((img_size, img_size))
-                img_array = np.array(img, dtype=np.float32) / 255.0
-                # Normalize with ImageNet statistics
-                mean = np.array([0.485, 0.456, 0.406], dtype=np.float32)
-                std = np.array([0.229, 0.224, 0.225], dtype=np.float32)
-                img_array = (img_array - mean) / std
-                # Convert to (C, H, W) format
-                img_array = img_array.transpose(2, 0, 1)
-                all_images.append(img_array)
-                all_labels.append(class_id)
-            except Exception as e:
-                print(f"    Warning: Could not load {img_path}: {e}")
+    total_images = len(image_manifest)
+    print(f"  Found {total_images} images to load")
 
-    X = np.array(all_images)
-    del all_images  # Free list of individual arrays (~50% peak RAM saved)
-    y = np.array(all_labels, dtype=np.int64)
-    del all_labels
+    # --- Phase 2: Load directly into pre-allocated array (single copy in RAM) ---
+    mean = np.array([0.485, 0.456, 0.406], dtype=np.float32)
+    std = np.array([0.229, 0.224, 0.225], dtype=np.float32)
 
-    import gc
-    gc.collect()
+    X = np.empty((total_images, 3, img_size, img_size), dtype=np.float32)
+    y = np.empty(total_images, dtype=np.int64)
+    idx = 0
+
+    for img_path, class_id in image_manifest:
+        try:
+            img = Image.open(img_path).convert("RGB")
+            img = img.resize((img_size, img_size))
+            img_array = np.array(img, dtype=np.float32) / 255.0
+            img_array = (img_array - mean) / std
+            X[idx] = img_array.transpose(2, 0, 1)
+            y[idx] = class_id
+            idx += 1
+        except Exception as e:
+            print(f"    Warning: Could not load {img_path}: {e}")
+
+    del image_manifest
+    # Trim if some images failed to load
+    if idx < total_images:
+        X = X[:idx]
+        y = y[:idx]
 
     # Print class counts
     for cid, cname in class_names.items():
@@ -296,22 +302,26 @@ def load_image_dataset(
         print(f"  Class {cid} ({cname}): {count} images")
     print(f"Total: {len(y)} images loaded")
 
-    # Shuffle data (in-place to avoid copy)
-    indices = np.random.permutation(len(y))
-    X = X[indices]
-    y = y[indices]
-    del indices
-    gc.collect()
-
-    # Partition data for FL
-    client_all_data = {}
+    # --- Phase 3: Partition directly into clients (no global shuffle needed) ---
+    # For non-IID: Dirichlet selects by class, so global shuffle is unnecessary.
+    # For IID: use shuffled indices instead of reordering the whole array.
+    client_train_data = {}
+    client_test_data = {}
 
     if is_iid:
+        perm = np.random.permutation(len(y))
         samples_per_client = len(y) // num_clients
         for i in range(num_clients):
             start = i * samples_per_client
             end = start + samples_per_client if i < num_clients - 1 else len(y)
-            client_all_data[i] = (X[start:end].copy(), y[start:end].copy())
+            client_idx = perm[start:end]
+            X_c, y_c = X[client_idx], y[client_idx]
+            n = len(y_c)
+            n_test = max(1, int(n * test_split))
+            n_train = n - n_test
+            p = np.random.permutation(n)
+            client_train_data[i] = (X_c[p[:n_train]], y_c[p[:n_train]])
+            client_test_data[i] = (X_c[p[n_train:]], y_c[p[n_train:]])
     else:
         label_indices = {c: np.where(y == c)[0] for c in range(num_classes)}
         proportions = np.random.dirichlet([alpha] * num_clients, num_classes)
@@ -322,7 +332,6 @@ def load_image_dataset(
             n_class = len(class_idx)
             splits = (proportions[class_id] * n_class).astype(int)
             splits[-1] = n_class - splits[:-1].sum()
-
             current = 0
             for client_id, count in enumerate(splits):
                 client_indices[client_id].extend(
@@ -332,32 +341,25 @@ def load_image_dataset(
 
         for client_id, idx_list in client_indices.items():
             np.random.shuffle(idx_list)
-            client_all_data[client_id] = (X[idx_list], y[idx_list])
+            X_c, y_c = X[idx_list], y[idx_list]
+            n = len(y_c)
+            n_test = max(1, int(n * test_split))
+            n_train = n - n_test
+            p = np.random.permutation(n)
+            client_train_data[client_id] = (X_c[p[:n_train]], y_c[p[:n_train]])
+            client_test_data[client_id] = (X_c[p[n_train:]], y_c[p[n_train:]])
 
-    # Free the big monolithic array — data is now in client_all_data
+    # Free the big array — data is now split across clients
     del X, y
     gc.collect()
 
-    # Split each client's data into train/test
-    client_train_data = {}
-    client_test_data = {}
-
     print("\nClient data distribution (train / test):")
-    for client_id, (X_c, y_c) in client_all_data.items():
-        n = len(y_c)
-        n_test = max(1, int(n * test_split))
-        n_train = n - n_test
-
-        perm = np.random.permutation(n)
-        train_idx = perm[:n_train]
-        test_idx = perm[n_train:]
-
-        client_train_data[client_id] = (X_c[train_idx], y_c[train_idx])
-        client_test_data[client_id] = (X_c[test_idx], y_c[test_idx])
-
-        unique_train, counts_train = np.unique(y_c[train_idx], return_counts=True)
+    for client_id in sorted(client_train_data.keys()):
+        X_tr, y_tr = client_train_data[client_id]
+        X_te, y_te = client_test_data[client_id]
+        unique_train, counts_train = np.unique(y_tr, return_counts=True)
         dist_train = dict(zip(unique_train.tolist(), counts_train.tolist()))
-        print(f"  Client {client_id}: {n_train} train / {n_test} test, train dist: {dist_train}")
+        print(f"  Client {client_id}: {len(y_tr)} train / {len(y_te)} test, train dist: {dist_train}")
 
     del client_all_data
     gc.collect()
