@@ -1,0 +1,205 @@
+================================================================================
+BONFERRONI & MULTIPLE COMPARISON CORRECTION ANALYSIS
+FL-EHDS-FLICS Framework - Statistical Robustness Report
+================================================================================
+
+Total pairwise tests (vs FedAvg): 140
+  Datasets:   5 (Brain_Tumor, Diabetes, Heart_Disease, Skin_Cancer, chest_xray)
+  Algorithms: 8 (Ditto, FedDecorr, FedExP, FedLC, FedNova, FedProx, FedSAM, SCAFFOLD)
+  Metrics:    5 (accuracy, auc, f1, precision, recall)
+  Total:      5 x 8 x 5 = 140 tests
+
+--------------------------------------------------------------------------------
+CORRECTION METHOD COMPARISON
+--------------------------------------------------------------------------------
+Method                         Significant (original)    Significant (corrected)  
+--------------------------------------------------------------------------------
+Bonferroni                      20/140 ( 14.3%)            0/140 (  0.0%)
+Holm-Bonferroni                 20/140 ( 14.3%)            0/140 (  0.0%)
+Benjamini-Hochberg (FDR)        20/140 ( 14.3%)            1/140 (  0.7%)
+
+Bonferroni adjusted alpha: 0.05 / 140 = 0.000357
+
+--------------------------------------------------------------------------------
+DETAILED RESULTS BY DATASET (using Holm-Bonferroni, recommended)
+--------------------------------------------------------------------------------
+
+  Dataset: Brain_Tumor
+  Algorithm       Metric        Mean Diff   p (orig)   p (Holm)  Cohen d   Sig?
+  ---------------------------------------------------------------------------
+  FedDecorr       accuracy        -0.0763     0.1081      1.0000   -2.354L 
+  FedDecorr       f1              -0.1352     0.1275      1.0000   -2.139L 
+  FedDecorr       precision       -0.1013     0.1776      1.0000   -1.576L 
+  FedDecorr       recall          -0.0792     0.1234      1.0000   -2.411L 
+  FedDecorr       auc             -0.0026     0.7629      1.0000   -0.080  
+  FedExP          accuracy        -0.0862     0.1382      1.0000   -2.477L 
+  FedExP          f1              -0.1438     0.1964      1.0000   -2.033L 
+  FedExP          precision       -0.1649     0.0076*     0.9806   -1.682L 
+  FedExP          recall          -0.0871     0.1674      1.0000   -2.337L 
+  FedExP          auc             -0.0207     0.0616      1.0000   -0.570M 
+  FedLC           accuracy        -0.0893     0.1001      1.0000   -2.342L 
+  FedLC           f1              -0.1389     0.1487      1.0000   -1.888L 
+  FedLC           precision       -0.1813     0.2336      1.0000   -1.940L 
+  FedLC           recall          -0.0924     0.1153      1.0000   -2.161L 
+  FedLC           auc             -0.0059     0.6232      1.0000   -0.129  
+  FedSAM          accuracy        -0.0385     0.1763      1.0000   -1.151L 
+  FedSAM          f1              -0.0550     0.1809      1.0000   -0.654M 
+  FedSAM          precision       -0.0616     0.2826      1.0000   -0.817L 
+  FedSAM          recall          -0.0412     0.1775      1.0000   -1.144L 
+  FedSAM          auc             -0.0155     0.4540      1.0000   -0.537M 
+
+  Dataset: Diabetes
+  Algorithm       Metric        Mean Diff   p (orig)   p (Holm)  Cohen d   Sig?
+  ---------------------------------------------------------------------------
+  Ditto           accuracy        +0.0368     0.3228      1.0000   +1.020L 
+  Ditto           f1              +0.0033     0.2148      1.0000   +0.642M 
+  Ditto           precision       +0.0089     0.3024      1.0000   +0.945L 
+  Ditto           recall          -0.0485     0.3344      1.0000   -0.988L 
+  Ditto           auc             -0.0001     0.9371      1.0000   -0.029  
+  FedDecorr       accuracy        +0.0035     0.1912      1.0000   +0.068  
+  FedDecorr       f1              +0.0013     0.0513      1.0000   +0.219S 
+  FedDecorr       precision       +0.0016     0.0825      1.0000   +0.122  
+  FedDecorr       recall          -0.0020     0.5309      1.0000   -0.029  
+  FedDecorr       auc             +0.0000     0.7164      1.0000   +0.004  
+  FedExP          accuracy        +0.0022     0.5058      1.0000   +0.044  
+  FedExP          f1              +0.0005     0.5854      1.0000   +0.097  
+  FedExP          precision       +0.0006     0.5279      1.0000   +0.050  
+  FedExP          recall          -0.0016     0.5324      1.0000   -0.024  
+  FedExP          auc             +0.0002     0.0508      1.0000   +0.059  
+  FedLC           accuracy        -0.0173     0.0541      1.0000   -0.317S 
+  FedLC           f1              -0.0017     0.0845      1.0000   -0.293S 
+  FedLC           precision       -0.0040     0.0074*     0.9589   -0.313S 
+  FedLC           recall          +0.0225     0.0765      1.0000   +0.303S 
+  FedLC           auc             +0.0001     0.0742      1.0000   +0.019  
+  FedNova         accuracy        -0.5504     0.0025*     0.3418  -14.917L 
+  FedNova         f1              -0.0553     0.0021*     0.2911  -12.340L 
+  FedNova         precision       -0.0628     0.0125*     1.0000   -6.816L 
+  FedNova         recall          +0.4958     0.0059*     0.7792  +10.202L 
+  FedNova         auc             -0.0072     0.0225*     1.0000   -1.517L 
+  FedProx         accuracy        +0.0292     0.1941      1.0000   +0.448S 
+  FedProx         f1              -0.0049     0.2521      1.0000   -0.827L 
+  FedProx         precision       +0.0068     0.2373      1.0000   +0.404S 
+  FedProx         recall          -0.0558     0.1869      1.0000   -0.584M 
+  FedProx         auc             -0.0047     0.0203*     1.0000   -1.081L 
+  FedSAM          accuracy        +0.0848     0.0844      1.0000   +2.336L 
+  FedSAM          f1              -0.0034     0.0313*     1.0000   -0.589M 
+  FedSAM          precision       +0.0218     0.0457*     1.0000   +2.105L 
+  FedSAM          recall          -0.1378     0.0686      1.0000   -2.840L 
+  FedSAM          auc             -0.0042     0.0029*     0.3944   -1.106L 
+  SCAFFOLD        accuracy        -0.5688     0.0026*     0.3572  -15.809L 
+  SCAFFOLD        f1              -0.0575     0.0029*     0.3944  -13.307L 
+  SCAFFOLD        precision       -0.0643     0.0124*     1.0000   -7.003L 
+  SCAFFOLD        recall          +0.5027     0.0061*     0.8109  +10.369L 
+  SCAFFOLD        auc             -0.1291     0.0010*     0.1403  -31.783L 
+
+  Dataset: Heart_Disease
+  Algorithm       Metric        Mean Diff   p (orig)   p (Holm)  Cohen d   Sig?
+  ---------------------------------------------------------------------------
+  Ditto           accuracy        +0.1264     0.0976      1.0000   +1.762L 
+  Ditto           f1              +0.0254     0.2987      1.0000   +0.474S 
+  Ditto           precision       +0.1895     0.0038*     0.5135   +2.398L 
+  Ditto           recall          -0.2275     0.0067*     0.8813  -12.903L 
+  Ditto           auc             -0.0086     0.7633      1.0000   -0.306S 
+  FedDecorr       accuracy        +0.0000        nan         nan   +0.000  
+  FedDecorr       f1              +0.0000        nan         nan   +0.000  
+  FedDecorr       precision       +0.0000        nan         nan   +0.000  
+  FedDecorr       recall          +0.0000        nan         nan   +0.000  
+  FedDecorr       auc             +0.0000        nan         nan   +0.000  
+  FedExP          accuracy        +0.0000        nan         nan   +0.000  
+  FedExP          f1              +0.0000        nan         nan   +0.000  
+  FedExP          precision       +0.0000        nan         nan   +0.000  
+  FedExP          recall          +0.0000        nan         nan   +0.000  
+  FedExP          auc             +0.0000        nan         nan   +0.000  
+  FedLC           accuracy        +0.0110     0.3206      1.0000   +0.111  
+  FedLC           f1              +0.0037     0.5112      1.0000   +0.054  
+  FedLC           precision       +0.0089     0.3082      1.0000   +0.101  
+  FedLC           recall          -0.0102     0.0027*     0.1753   -0.450S 
+  FedLC           auc             -0.0009     0.4130      1.0000   -0.026  
+  FedNova         accuracy        -0.0604     0.1839      1.0000   -0.720M 
+  FedNova         f1              -0.0243     0.2897      1.0000   -0.418S 
+  FedNova         precision       -0.0428     0.1878      1.0000   -0.587M 
+  FedNova         recall          +0.0304     0.0904      1.0000   +1.832L 
+  FedNova         auc             -0.0034     0.4055      1.0000   -0.087  
+  FedProx         accuracy        -0.0073     0.0572      1.0000   -0.075  
+  FedProx         f1              -0.0038     0.0671      1.0000   -0.057  
+  FedProx         precision       -0.0051     0.0805      1.0000   -0.059  
+  FedProx         recall          +0.0000        nan         nan   +0.000  
+  FedProx         auc             -0.0002     0.4624      1.0000   -0.006  
+  FedSAM          accuracy        +0.0037     0.7892      1.0000   +0.034  
+  FedSAM          f1              +0.0012     0.8757      1.0000   +0.016  
+  FedSAM          precision       +0.0051     0.6629      1.0000   +0.054  
+  FedSAM          recall          -0.0069     0.1866      1.0000   -0.343S 
+  FedSAM          auc             -0.0019     0.2840      1.0000   -0.055  
+  SCAFFOLD        accuracy        +0.0385     0.2057      1.0000   +0.467S 
+  SCAFFOLD        f1              -0.0686     0.1569      1.0000   -1.342L 
+  SCAFFOLD        precision       +0.1680     0.0970      1.0000   +1.174L 
+  SCAFFOLD        recall          -0.3350     0.0497*     1.0000   -3.221L 
+  SCAFFOLD        auc             -0.0435     0.1302      1.0000   -0.823L 
+
+  Dataset: Skin_Cancer
+  Algorithm       Metric        Mean Diff   p (orig)   p (Holm)  Cohen d   Sig?
+  ---------------------------------------------------------------------------
+  FedDecorr       accuracy        +0.1349     0.1850      1.0000   +1.464L 
+  FedDecorr       f1              +0.2397     0.1905      1.0000   +1.601L 
+  FedDecorr       precision       +0.3281     0.1835      1.0000   +1.683L 
+  FedDecorr       recall          +0.1418     0.2042      1.0000   +1.517L 
+  FedDecorr       auc             +0.0161     0.7574      1.0000   +0.114  
+  FedExP          accuracy        +0.0380     0.3666      1.0000   +0.455S 
+  FedExP          f1              +0.1029     0.3820      1.0000   +0.815L 
+  FedExP          precision       +0.3235     0.1840      1.0000   +1.690L 
+  FedExP          recall          +0.0654     0.3939      1.0000   +0.880L 
+  FedExP          auc             -0.0283     0.3625      1.0000   -0.179  
+  FedLC           accuracy        +0.0608     0.2047      1.0000   +1.149L 
+  FedLC           f1              +0.1524     0.1861      1.0000   +1.636L 
+  FedLC           precision       +0.3008     0.1835      1.0000   +1.686L 
+  FedLC           recall          +0.0840     0.2063      1.0000   +1.507L 
+  FedLC           auc             -0.0107     0.7983      1.0000   -0.071  
+  FedSAM          accuracy        +0.0649     0.4226      1.0000   +0.549M 
+  FedSAM          f1              +0.1305     0.4226      1.0000   +0.755M 
+  FedSAM          precision       +0.1659     0.4226      1.0000   +0.762M 
+  FedSAM          recall          +0.0880     0.4226      1.0000   +0.816L 
+  FedSAM          auc             +0.0379     0.6770      1.0000   +0.289S 
+
+  Dataset: chest_xray
+  Algorithm       Metric        Mean Diff   p (orig)   p (Holm)  Cohen d   Sig?
+  ---------------------------------------------------------------------------
+  FedDecorr       accuracy        -0.0433     0.3179      1.0000   -0.488S 
+  FedDecorr       f1              -0.1412     0.3901      1.0000   -0.570M 
+  FedDecorr       precision       -0.1563     0.3850      1.0000   -0.570M 
+  FedDecorr       recall          -0.1309     0.4046      1.0000   -0.606M 
+  FedDecorr       auc             +0.0336     0.6573      1.0000   +0.273S 
+  FedExP          accuracy        -0.0060     0.5799      1.0000   -0.068  
+  FedExP          f1              -0.0166     0.1915      1.0000   -0.068  
+  FedExP          precision       -0.0065     0.6665      1.0000   -0.024  
+  FedExP          recall          -0.0326     0.4351      1.0000   -0.156  
+  FedExP          auc             -0.0144     0.2346      1.0000   -0.091  
+  FedLC           accuracy        -0.0508     0.2461      1.0000   -0.612M 
+  FedLC           f1              -0.1516     0.3503      1.0000   -0.634M 
+  FedLC           precision       -0.1648     0.3553      1.0000   -0.617M 
+  FedLC           recall          -0.1445     0.3487      1.0000   -0.706M 
+  FedLC           auc             -0.0221     0.4846      1.0000   -0.155  
+  FedSAM          accuracy        +0.0151     0.5606      1.0000   +0.155  
+  FedSAM          f1              +0.0175     0.5078      1.0000   +0.068  
+  FedSAM          precision       +0.0126     0.6365      1.0000   +0.045  
+  FedSAM          recall          +0.0188     0.2619      1.0000   +0.082  
+  FedSAM          auc             +0.0375     0.1725      1.0000   +0.246S 
+
+--------------------------------------------------------------------------------
+FINDINGS THAT SURVIVE HOLM-BONFERRONI CORRECTION (p_adj < 0.05)
+--------------------------------------------------------------------------------
+  (None — this is expected with small sample sizes like n=3 seeds)
+  -> Recommend increasing seeds to 5-10 for stronger statistical power
+
+--------------------------------------------------------------------------------
+RECOMMENDATION FOR PAPER
+--------------------------------------------------------------------------------
+  Total independent comparisons: 140
+  Recommended correction: Holm-Bonferroni (less conservative than Bonferroni)
+  Alternative: Benjamini-Hochberg FDR (if reviewer accepts FDR control)
+
+  Suggested paper text:
+  "All pairwise comparisons against FedAvg baseline were subjected to
+   Holm-Bonferroni correction for 140 simultaneous tests
+   (7-8 algorithms × 5 datasets × 5 metrics). Effect sizes are reported
+   as Cohen's d. Results with |d| ≥ 0.8 (large effect) are considered
+   practically significant regardless of p-value adjustment."
