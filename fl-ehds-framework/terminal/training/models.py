@@ -283,7 +283,12 @@ def load_image_dataset(
                 print(f"    Warning: Could not load {img_path}: {e}")
 
     X = np.array(all_images)
+    del all_images  # Free list of individual arrays (~50% peak RAM saved)
     y = np.array(all_labels, dtype=np.int64)
+    del all_labels
+
+    import gc
+    gc.collect()
 
     # Print class counts
     for cid, cname in class_names.items():
@@ -291,10 +296,12 @@ def load_image_dataset(
         print(f"  Class {cid} ({cname}): {count} images")
     print(f"Total: {len(y)} images loaded")
 
-    # Shuffle data
+    # Shuffle data (in-place to avoid copy)
     indices = np.random.permutation(len(y))
     X = X[indices]
     y = y[indices]
+    del indices
+    gc.collect()
 
     # Partition data for FL
     client_all_data = {}
@@ -304,7 +311,7 @@ def load_image_dataset(
         for i in range(num_clients):
             start = i * samples_per_client
             end = start + samples_per_client if i < num_clients - 1 else len(y)
-            client_all_data[i] = (X[start:end], y[start:end])
+            client_all_data[i] = (X[start:end].copy(), y[start:end].copy())
     else:
         label_indices = {c: np.where(y == c)[0] for c in range(num_classes)}
         proportions = np.random.dirichlet([alpha] * num_clients, num_classes)
@@ -327,6 +334,10 @@ def load_image_dataset(
             np.random.shuffle(idx_list)
             client_all_data[client_id] = (X[idx_list], y[idx_list])
 
+    # Free the big monolithic array — data is now in client_all_data
+    del X, y
+    gc.collect()
+
     # Split each client's data into train/test
     client_train_data = {}
     client_test_data = {}
@@ -347,5 +358,8 @@ def load_image_dataset(
         unique_train, counts_train = np.unique(y_c[train_idx], return_counts=True)
         dist_train = dict(zip(unique_train.tolist(), counts_train.tolist()))
         print(f"  Client {client_id}: {n_train} train / {n_test} test, train dist: {dist_train}")
+
+    del client_all_data
+    gc.collect()
 
     return client_train_data, client_test_data, class_names, num_classes
