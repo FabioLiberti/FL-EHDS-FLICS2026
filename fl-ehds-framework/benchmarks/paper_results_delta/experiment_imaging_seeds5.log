@@ -1,0 +1,420 @@
+[16:32:07] 
+==================================================================
+[16:32:07]   FL-EHDS Imaging — 5-Seed Extension (FULL)
+[16:32:07]   24 experiments = 4 algos x 3 datasets x 2 new seeds
+[16:32:07]   New seeds: [789, 999]
+[16:32:07]   Algorithms: FedAvg, Ditto, HPFL, FedLESAM
+[16:32:07]   Datasets: chest_xray, Brain_Tumor, Skin_Cancer
+[16:32:07]   Device: mps
+[16:32:07]   Output: /Users/fxlybs/_DEV/FL-EHDS-FLICS2026/fl-ehds-framework/benchmarks/paper_results_delta/checkpoint_imaging_seeds5.json
+[16:32:07] ==================================================================
+[16:32:07] 
+--- [1/24] chest_xray | FedAvg | seed=789 ---
+[16:34:53] [1/24] chest_xray | FedAvg | s789 | R1/20 | Acc:74.3% | Best:74.3%(r1)
+[16:34:53]   [SAVED] checkpoint: 0 experiments
+[16:36:18] [1/24] chest_xray | FedAvg | s789 | R2/20 | Acc:74.3% | Best:74.3%(r1)
+[16:36:18]   [SAVED] checkpoint: 0 experiments
+[16:37:46] [1/24] chest_xray | FedAvg | s789 | R3/20 | Acc:74.3% | Best:74.3%(r1)
+[16:37:46]   [SAVED] checkpoint: 0 experiments
+[16:39:16] [1/24] chest_xray | FedAvg | s789 | R4/20 | Acc:81.5% | Best:81.5%(r4)
+[16:39:16]   [SAVED] checkpoint: 0 experiments
+[16:40:51] [1/24] chest_xray | FedAvg | s789 | R5/20 | Acc:66.9% | Best:81.5%(r4)
+[16:40:51]   [SAVED] checkpoint: 0 experiments
+[16:42:27] [1/24] chest_xray | FedAvg | s789 | R6/20 | Acc:74.2% | Best:81.5%(r4)
+[16:42:27]   [SAVED] checkpoint: 0 experiments
+[16:44:03] [1/24] chest_xray | FedAvg | s789 | R7/20 | Acc:80.8% | Best:81.5%(r4)
+[16:44:03]   [SAVED] checkpoint: 0 experiments
+[16:45:38] [1/24] chest_xray | FedAvg | s789 | R8/20 | Acc:73.1% | Best:81.5%(r4)
+[16:45:38]   [SAVED] checkpoint: 0 experiments
+[16:45:38]   -> Early stop at R8 (best=81.5% at r4)
+[16:45:44]   [SAVED] checkpoint: 1 experiments
+[16:45:44] --- Done: chest_xray | FedAvg | s789 | Best=81.5% ES@R8 | 816s | [1/24] ---
+[16:45:44]   ETA: ~5:12:57
+[16:45:44] 
+--- [2/24] chest_xray | FedAvg | seed=999 ---
+[16:48:54] [2/24] chest_xray | FedAvg | s999 | R1/20 | Acc:72.6% | Best:72.6%(r1)
+[16:48:54]   [SAVED] checkpoint: 1 experiments
+[16:50:39] [2/24] chest_xray | FedAvg | s999 | R2/20 | Acc:72.5% | Best:72.6%(r1)
+[16:50:39]   [SAVED] checkpoint: 1 experiments
+[16:52:37] [2/24] chest_xray | FedAvg | s999 | R3/20 | Acc:83.1% | Best:83.1%(r3)
+[16:52:37]   [SAVED] checkpoint: 1 experiments
+[16:54:31] [2/24] chest_xray | FedAvg | s999 | R4/20 | Acc:78.0% | Best:83.1%(r3)
+[16:54:31]   [SAVED] checkpoint: 1 experiments
+[16:56:25] [2/24] chest_xray | FedAvg | s999 | R5/20 | Acc:74.2% | Best:83.1%(r3)
+[16:56:25]   [SAVED] checkpoint: 1 experiments
+[16:58:12] [2/24] chest_xray | FedAvg | s999 | R6/20 | Acc:79.5% | Best:83.1%(r3)
+[16:58:12]   [SAVED] checkpoint: 1 experiments
+[17:00:04] [2/24] chest_xray | FedAvg | s999 | R7/20 | Acc:59.2% | Best:83.1%(r3)
+[17:00:04]   [SAVED] checkpoint: 1 experiments
+[17:01:53] [2/24] chest_xray | FedAvg | s999 | R8/20 | Acc:77.2% | Best:83.1%(r3)
+[17:01:53]   [SAVED] checkpoint: 1 experiments
+[17:01:53]   -> Early stop at R8 (best=83.1% at r3)
+[17:02:00]   [SAVED] checkpoint: 2 experiments
+[17:02:00] --- Done: chest_xray | FedAvg | s999 | Best=83.1% ES@R8 | 975s | [2/24] ---
+[17:02:00]   ETA: ~5:28:43
+[17:02:00] 
+--- [3/24] chest_xray | Ditto | seed=789 ---
+[17:06:12] [3/24] chest_xray | Ditto | s789 | R1/20 | Acc:78.7% | Best:78.7%(r1)
+[17:06:12]   [SAVED] checkpoint: 2 experiments
+[17:09:02] [3/24] chest_xray | Ditto | s789 | R2/20 | Acc:78.7% | Best:78.7%(r1)
+[17:09:02]   [SAVED] checkpoint: 2 experiments
+[17:11:48] [3/24] chest_xray | Ditto | s789 | R3/20 | Acc:86.2% | Best:86.2%(r3)
+[17:11:48]   [SAVED] checkpoint: 2 experiments
+[17:14:35] [3/24] chest_xray | Ditto | s789 | R4/20 | Acc:88.2% | Best:88.2%(r4)
+[17:14:35]   [SAVED] checkpoint: 2 experiments
+[17:17:19] [3/24] chest_xray | Ditto | s789 | R5/20 | Acc:89.8% | Best:89.8%(r5)
+[17:17:19]   [SAVED] checkpoint: 2 experiments
+[17:20:05] [3/24] chest_xray | Ditto | s789 | R6/20 | Acc:86.9% | Best:89.8%(r5)
+[17:20:05]   [SAVED] checkpoint: 2 experiments
+[17:22:51] [3/24] chest_xray | Ditto | s789 | R7/20 | Acc:80.9% | Best:89.8%(r5)
+[17:22:51]   [SAVED] checkpoint: 2 experiments
+[17:25:41] [3/24] chest_xray | Ditto | s789 | R8/20 | Acc:79.7% | Best:89.8%(r5)
+[17:25:41]   [SAVED] checkpoint: 2 experiments
+[17:28:34] [3/24] chest_xray | Ditto | s789 | R9/20 | Acc:77.7% | Best:89.8%(r5)
+[17:28:34]   [SAVED] checkpoint: 2 experiments
+[17:28:34]   -> Early stop at R9 (best=89.8% at r5)
+[17:28:40]   [SAVED] checkpoint: 3 experiments
+[17:28:40] --- Done: chest_xray | Ditto | s789 | Best=89.8% ES@R9 | 1599s | [3/24] ---
+[17:28:40]   ETA: ~6:35:50
+[17:28:40] 
+--- [4/24] chest_xray | Ditto | seed=999 ---
+[17:33:14] [4/24] chest_xray | Ditto | s999 | R1/20 | Acc:85.1% | Best:85.1%(r1)
+[17:33:14]   [SAVED] checkpoint: 3 experiments
+[17:36:14] [4/24] chest_xray | Ditto | s999 | R2/20 | Acc:85.1% | Best:85.1%(r1)
+[17:36:14]   [SAVED] checkpoint: 3 experiments
+[17:39:14] [4/24] chest_xray | Ditto | s999 | R3/20 | Acc:85.1% | Best:85.1%(r1)
+[17:39:14]   [SAVED] checkpoint: 3 experiments
+[17:42:15] [4/24] chest_xray | Ditto | s999 | R4/20 | Acc:68.9% | Best:85.1%(r1)
+[17:42:15]   [SAVED] checkpoint: 3 experiments
+[17:45:23] [4/24] chest_xray | Ditto | s999 | R5/20 | Acc:70.2% | Best:85.1%(r1)
+[17:45:23]   [SAVED] checkpoint: 3 experiments
+[17:48:36] [4/24] chest_xray | Ditto | s999 | R6/20 | Acc:87.1% | Best:87.1%(r6)
+[17:48:36]   [SAVED] checkpoint: 3 experiments
+[17:52:58] [4/24] chest_xray | Ditto | s999 | R7/20 | Acc:83.3% | Best:87.1%(r6)
+[17:52:58]   [SAVED] checkpoint: 3 experiments
+[17:56:50] [4/24] chest_xray | Ditto | s999 | R8/20 | Acc:74.3% | Best:87.1%(r6)
+[17:56:50]   [SAVED] checkpoint: 3 experiments
+[17:59:56] [4/24] chest_xray | Ditto | s999 | R9/20 | Acc:85.9% | Best:87.1%(r6)
+[17:59:56]   [SAVED] checkpoint: 3 experiments
+[18:02:59] [4/24] chest_xray | Ditto | s999 | R10/20 | Acc:79.4% | Best:87.1%(r6)
+[18:02:59]   [SAVED] checkpoint: 3 experiments
+[18:02:59]   -> Early stop at R10 (best=87.1% at r6)
+[18:03:18]   [SAVED] checkpoint: 4 experiments
+[18:03:18] --- Done: chest_xray | Ditto | s999 | Best=87.1% ES@R10 | 2076s | [4/24] ---
+[18:03:18]   ETA: ~7:35:54
+[18:03:18] 
+--- [5/24] chest_xray | HPFL | seed=789 ---
+[18:07:04] [5/24] chest_xray | HPFL | s789 | R1/20 | Acc:74.3% | Best:74.3%(r1)
+[18:07:04]   [SAVED] checkpoint: 4 experiments
+[18:08:58] [5/24] chest_xray | HPFL | s789 | R2/20 | Acc:48.0% | Best:74.3%(r1)
+[18:08:58]   [SAVED] checkpoint: 4 experiments
+[18:10:50] [5/24] chest_xray | HPFL | s789 | R3/20 | Acc:69.1% | Best:74.3%(r1)
+[18:10:50]   [SAVED] checkpoint: 4 experiments
+[18:12:43] [5/24] chest_xray | HPFL | s789 | R4/20 | Acc:26.2% | Best:74.3%(r1)
+[18:12:43]   [SAVED] checkpoint: 4 experiments
+[18:14:38] [5/24] chest_xray | HPFL | s789 | R5/20 | Acc:25.7% | Best:74.3%(r1)
+[18:14:38]   [SAVED] checkpoint: 4 experiments
+[18:16:31] [5/24] chest_xray | HPFL | s789 | R6/20 | Acc:25.7% | Best:74.3%(r1)
+[18:16:31]   [SAVED] checkpoint: 4 experiments
+[18:18:27] [5/24] chest_xray | HPFL | s789 | R7/20 | Acc:25.7% | Best:74.3%(r1)
+[18:18:27]   [SAVED] checkpoint: 4 experiments
+[18:20:27] [5/24] chest_xray | HPFL | s789 | R8/20 | Acc:25.7% | Best:74.3%(r1)
+[18:20:27]   [SAVED] checkpoint: 4 experiments
+[18:20:27]   -> Early stop at R8 (best=74.3% at r1)
+[18:20:38]   [SAVED] checkpoint: 5 experiments
+[18:20:38] --- Done: chest_xray | HPFL | s789 | Best=74.3% ES@R8 | 1038s | [5/24] ---
+[18:20:38]   ETA: ~6:52:20
+[18:20:38] 
+--- [6/24] chest_xray | HPFL | seed=999 ---
+[18:24:23] [6/24] chest_xray | HPFL | s999 | R1/20 | Acc:72.6% | Best:72.6%(r1)
+[18:24:23]   [SAVED] checkpoint: 5 experiments
+[18:26:14] [6/24] chest_xray | HPFL | s999 | R2/20 | Acc:72.6% | Best:72.6%(r1)
+[18:26:14]   [SAVED] checkpoint: 5 experiments
+[18:29:38] [6/24] chest_xray | HPFL | s999 | R3/20 | Acc:72.6% | Best:72.6%(r1)
+[18:29:39]   [SAVED] checkpoint: 5 experiments
+[18:31:41] [6/24] chest_xray | HPFL | s999 | R4/20 | Acc:72.6% | Best:72.6%(r1)
+[18:31:41]   [SAVED] checkpoint: 5 experiments
+[18:33:53] [6/24] chest_xray | HPFL | s999 | R5/20 | Acc:72.6% | Best:72.6%(r1)
+[18:33:53]   [SAVED] checkpoint: 5 experiments
+[18:35:55] [6/24] chest_xray | HPFL | s999 | R6/20 | Acc:72.6% | Best:72.6%(r1)
+[18:35:55]   [SAVED] checkpoint: 5 experiments
+[18:37:54] [6/24] chest_xray | HPFL | s999 | R7/20 | Acc:72.6% | Best:72.6%(r1)
+[18:37:54]   [SAVED] checkpoint: 5 experiments
+[18:39:53] [6/24] chest_xray | HPFL | s999 | R8/20 | Acc:72.6% | Best:72.6%(r1)
+[18:39:53]   [SAVED] checkpoint: 5 experiments
+[18:39:53]   -> Early stop at R8 (best=72.6% at r1)
+[18:40:14]   [SAVED] checkpoint: 6 experiments
+[18:40:14] --- Done: chest_xray | HPFL | s999 | Best=72.6% ES@R8 | 1174s | [6/24] ---
+[18:40:14]   ETA: ~6:24:20
+[18:40:14] 
+--- [7/24] chest_xray | FedLESAM | seed=789 ---
+[18:43:51] [7/24] chest_xray | FedLESAM | s789 | R1/20 | Acc:74.3% | Best:74.3%(r1)
+[18:43:52]   [SAVED] checkpoint: 6 experiments
+[18:45:41] [7/24] chest_xray | FedLESAM | s789 | R2/20 | Acc:74.3% | Best:74.3%(r1)
+[18:45:41]   [SAVED] checkpoint: 6 experiments
+[18:47:32] [7/24] chest_xray | FedLESAM | s789 | R3/20 | Acc:74.3% | Best:74.3%(r1)
+[18:47:32]   [SAVED] checkpoint: 6 experiments
+[18:49:24] [7/24] chest_xray | FedLESAM | s789 | R4/20 | Acc:81.5% | Best:81.5%(r4)
+[18:49:24]   [SAVED] checkpoint: 6 experiments
+[18:51:14] [7/24] chest_xray | FedLESAM | s789 | R5/20 | Acc:66.9% | Best:81.5%(r4)
+[18:51:14]   [SAVED] checkpoint: 6 experiments
+[18:53:07] [7/24] chest_xray | FedLESAM | s789 | R6/20 | Acc:74.2% | Best:81.5%(r4)
+[18:53:07]   [SAVED] checkpoint: 6 experiments
+[18:55:00] [7/24] chest_xray | FedLESAM | s789 | R7/20 | Acc:80.8% | Best:81.5%(r4)
+[18:55:00]   [SAVED] checkpoint: 6 experiments
+[18:56:50] [7/24] chest_xray | FedLESAM | s789 | R8/20 | Acc:73.1% | Best:81.5%(r4)
+[18:56:50]   [SAVED] checkpoint: 6 experiments
+[18:56:50]   -> Early stop at R8 (best=81.5% at r4)
+[18:57:00]   [SAVED] checkpoint: 7 experiments
+[18:57:00] --- Done: chest_xray | FedLESAM | s789 | Best=81.5% ES@R8 | 1004s | [7/24] ---
+[18:57:00]   ETA: ~5:51:51
+[18:57:00] 
+--- [8/24] chest_xray | FedLESAM | seed=999 ---
+[19:00:36] [8/24] chest_xray | FedLESAM | s999 | R1/20 | Acc:72.6% | Best:72.6%(r1)
+[19:00:36]   [SAVED] checkpoint: 7 experiments
+[19:02:29] [8/24] chest_xray | FedLESAM | s999 | R2/20 | Acc:72.5% | Best:72.6%(r1)
+[19:02:29]   [SAVED] checkpoint: 7 experiments
+[19:04:19] [8/24] chest_xray | FedLESAM | s999 | R3/20 | Acc:83.1% | Best:83.1%(r3)
+[19:04:19]   [SAVED] checkpoint: 7 experiments
+[19:06:11] [8/24] chest_xray | FedLESAM | s999 | R4/20 | Acc:78.0% | Best:83.1%(r3)
+[19:06:11]   [SAVED] checkpoint: 7 experiments
+[19:08:02] [8/24] chest_xray | FedLESAM | s999 | R5/20 | Acc:74.2% | Best:83.1%(r3)
+[19:08:02]   [SAVED] checkpoint: 7 experiments
+[19:10:00] [8/24] chest_xray | FedLESAM | s999 | R6/20 | Acc:79.5% | Best:83.1%(r3)
+[19:10:00]   [SAVED] checkpoint: 7 experiments
+[19:11:54] [8/24] chest_xray | FedLESAM | s999 | R7/20 | Acc:59.2% | Best:83.1%(r3)
+[19:11:54]   [SAVED] checkpoint: 7 experiments
+[19:13:49] [8/24] chest_xray | FedLESAM | s999 | R8/20 | Acc:77.2% | Best:83.1%(r3)
+[19:13:49]   [SAVED] checkpoint: 7 experiments
+[19:13:49]   -> Early stop at R8 (best=83.1% at r3)
+[19:13:58]   [SAVED] checkpoint: 8 experiments
+[19:13:58] --- Done: chest_xray | FedLESAM | s999 | Best=83.1% ES@R8 | 1017s | [8/24] ---
+[19:13:58]   ETA: ~5:23:42
+[19:13:58] 
+--- [9/24] Brain_Tumor | FedAvg | seed=789 ---
+[19:17:16] [9/24] Brain_Tumor | FedAvg | s789 | R1/20 | Acc:25.1% | Best:25.1%(r1)
+[19:17:16]   [SAVED] checkpoint: 8 experiments
+[19:19:29] [9/24] Brain_Tumor | FedAvg | s789 | R2/20 | Acc:36.1% | Best:36.1%(r2)
+[19:19:29]   [SAVED] checkpoint: 8 experiments
+[19:21:39] [9/24] Brain_Tumor | FedAvg | s789 | R3/20 | Acc:43.5% | Best:43.5%(r3)
+[19:21:39]   [SAVED] checkpoint: 8 experiments
+[19:23:48] [9/24] Brain_Tumor | FedAvg | s789 | R4/20 | Acc:41.9% | Best:43.5%(r3)
+[19:23:48]   [SAVED] checkpoint: 8 experiments
+[19:25:59] [9/24] Brain_Tumor | FedAvg | s789 | R5/20 | Acc:49.0% | Best:49.0%(r5)
+[19:25:59]   [SAVED] checkpoint: 8 experiments
+[19:28:12] [9/24] Brain_Tumor | FedAvg | s789 | R6/20 | Acc:49.4% | Best:49.4%(r6)
+[19:28:12]   [SAVED] checkpoint: 8 experiments
+[19:30:30] [9/24] Brain_Tumor | FedAvg | s789 | R7/20 | Acc:47.1% | Best:49.4%(r6)
+[19:30:30]   [SAVED] checkpoint: 8 experiments
+[19:32:42] [9/24] Brain_Tumor | FedAvg | s789 | R8/20 | Acc:46.0% | Best:49.4%(r6)
+[19:32:42]   [SAVED] checkpoint: 8 experiments
+[19:34:52] [9/24] Brain_Tumor | FedAvg | s789 | R9/20 | Acc:64.7% | Best:64.7%(r9)
+[19:34:53]   [SAVED] checkpoint: 8 experiments
+[19:37:02] [9/24] Brain_Tumor | FedAvg | s789 | R10/20 | Acc:63.4% | Best:64.7%(r9)
+[19:37:03]   [SAVED] checkpoint: 8 experiments
+[19:39:17] [9/24] Brain_Tumor | FedAvg | s789 | R11/20 | Acc:64.5% | Best:64.7%(r9)
+[19:39:17]   [SAVED] checkpoint: 8 experiments
+[19:42:08] [9/24] Brain_Tumor | FedAvg | s789 | R12/20 | Acc:60.2% | Best:64.7%(r9)
+[19:42:08]   [SAVED] checkpoint: 8 experiments
+[19:44:41] [9/24] Brain_Tumor | FedAvg | s789 | R13/20 | Acc:65.4% | Best:65.4%(r13)
+[19:44:41]   [SAVED] checkpoint: 8 experiments
+[19:47:02] [9/24] Brain_Tumor | FedAvg | s789 | R14/20 | Acc:62.7% | Best:65.4%(r13)
+[19:47:02]   [SAVED] checkpoint: 8 experiments
+[19:49:40] [9/24] Brain_Tumor | FedAvg | s789 | R15/20 | Acc:64.8% | Best:65.4%(r13)
+[19:49:40]   [SAVED] checkpoint: 8 experiments
+[19:52:09] [9/24] Brain_Tumor | FedAvg | s789 | R16/20 | Acc:63.7% | Best:65.4%(r13)
+[19:52:09]   [SAVED] checkpoint: 8 experiments
+[19:54:50] [9/24] Brain_Tumor | FedAvg | s789 | R17/20 | Acc:63.8% | Best:65.4%(r13)
+[19:54:50]   [SAVED] checkpoint: 8 experiments
+[19:54:50]   -> Early stop at R17 (best=65.4% at r13)
+[19:55:05]   [SAVED] checkpoint: 9 experiments
+[19:55:05] --- Done: Brain_Tumor | FedAvg | s789 | Best=65.4% ES@R17 | 2465s | [9/24] ---
+[19:55:05]   ETA: ~5:38:16
+[19:55:05] 
+--- [10/24] Brain_Tumor | FedAvg | seed=999 ---
+[20:00:22] [10/24] Brain_Tumor | FedAvg | s999 | R1/20 | Acc:29.0% | Best:29.0%(r1)
+[20:00:22]   [SAVED] checkpoint: 9 experiments
+[20:02:40] [10/24] Brain_Tumor | FedAvg | s999 | R2/20 | Acc:29.6% | Best:29.6%(r2)
+[20:02:40]   [SAVED] checkpoint: 9 experiments
+[20:04:55] [10/24] Brain_Tumor | FedAvg | s999 | R3/20 | Acc:29.0% | Best:29.6%(r2)
+[20:04:55]   [SAVED] checkpoint: 9 experiments
+[20:07:15] [10/24] Brain_Tumor | FedAvg | s999 | R4/20 | Acc:29.0% | Best:29.6%(r2)
+[20:07:15]   [SAVED] checkpoint: 9 experiments
+[20:09:31] [10/24] Brain_Tumor | FedAvg | s999 | R5/20 | Acc:42.3% | Best:42.3%(r5)
+[20:09:31]   [SAVED] checkpoint: 9 experiments
+[20:11:53] [10/24] Brain_Tumor | FedAvg | s999 | R6/20 | Acc:45.7% | Best:45.7%(r6)
+[20:11:53]   [SAVED] checkpoint: 9 experiments
+[20:14:07] [10/24] Brain_Tumor | FedAvg | s999 | R7/20 | Acc:39.3% | Best:45.7%(r6)
+[20:14:07]   [SAVED] checkpoint: 9 experiments
+[20:16:23] [10/24] Brain_Tumor | FedAvg | s999 | R8/20 | Acc:37.8% | Best:45.7%(r6)
+[20:16:23]   [SAVED] checkpoint: 9 experiments
+[20:19:11] [10/24] Brain_Tumor | FedAvg | s999 | R9/20 | Acc:48.5% | Best:48.5%(r9)
+[20:19:11]   [SAVED] checkpoint: 9 experiments
+[20:21:51] [10/24] Brain_Tumor | FedAvg | s999 | R10/20 | Acc:48.8% | Best:48.8%(r10)
+[20:21:51]   [SAVED] checkpoint: 9 experiments
+[20:24:11] [10/24] Brain_Tumor | FedAvg | s999 | R11/20 | Acc:49.4% | Best:49.4%(r11)
+[20:24:11]   [SAVED] checkpoint: 9 experiments
+[20:26:55] [10/24] Brain_Tumor | FedAvg | s999 | R12/20 | Acc:48.0% | Best:49.4%(r11)
+[20:26:55]   [SAVED] checkpoint: 9 experiments
+[20:29:52] [10/24] Brain_Tumor | FedAvg | s999 | R13/20 | Acc:42.7% | Best:49.4%(r11)
+[20:29:52]   [SAVED] checkpoint: 9 experiments
+[20:32:19] [10/24] Brain_Tumor | FedAvg | s999 | R14/20 | Acc:51.4% | Best:51.4%(r14)
+[20:32:19]   [SAVED] checkpoint: 9 experiments
+[20:34:51] [10/24] Brain_Tumor | FedAvg | s999 | R15/20 | Acc:54.7% | Best:54.7%(r15)
+[20:34:51]   [SAVED] checkpoint: 9 experiments
+[20:37:34] [10/24] Brain_Tumor | FedAvg | s999 | R16/20 | Acc:57.2% | Best:57.2%(r16)
+[20:37:34]   [SAVED] checkpoint: 9 experiments
+[20:39:56] [10/24] Brain_Tumor | FedAvg | s999 | R17/20 | Acc:50.5% | Best:57.2%(r16)
+[20:39:56]   [SAVED] checkpoint: 9 experiments
+[20:42:14] [10/24] Brain_Tumor | FedAvg | s999 | R18/20 | Acc:51.0% | Best:57.2%(r16)
+[20:42:14]   [SAVED] checkpoint: 9 experiments
+[20:44:27] [10/24] Brain_Tumor | FedAvg | s999 | R19/20 | Acc:51.9% | Best:57.2%(r16)
+[20:44:27]   [SAVED] checkpoint: 9 experiments
+[20:46:46] [10/24] Brain_Tumor | FedAvg | s999 | R20/20 | Acc:57.2% | Best:57.2%(r20)
+[20:46:46]   [SAVED] checkpoint: 9 experiments
+[20:46:46]   -> Early stop at R20 (best=57.2% at r20)
+[20:47:03]   [SAVED] checkpoint: 10 experiments
+[20:47:03] --- Done: Brain_Tumor | FedAvg | s999 | Best=57.2% ES@R20 | 3116s | [10/24] ---
+[20:47:03]   ETA: ~5:56:53
+[20:47:03] 
+--- [11/24] Brain_Tumor | Ditto | seed=789 ---
+[20:51:59] [11/24] Brain_Tumor | Ditto | s789 | R1/20 | Acc:57.9% | Best:57.9%(r1)
+[20:51:59]   [SAVED] checkpoint: 10 experiments
+[20:55:47] [11/24] Brain_Tumor | Ditto | s789 | R2/20 | Acc:52.5% | Best:57.9%(r1)
+[20:55:47]   [SAVED] checkpoint: 10 experiments
+[20:59:48] [11/24] Brain_Tumor | Ditto | s789 | R3/20 | Acc:54.2% | Best:57.9%(r1)
+[20:59:48]   [SAVED] checkpoint: 10 experiments
+[21:04:01] [11/24] Brain_Tumor | Ditto | s789 | R4/20 | Acc:57.9% | Best:57.9%(r1)
+[21:04:01]   [SAVED] checkpoint: 10 experiments
+[21:08:02] [11/24] Brain_Tumor | Ditto | s789 | R5/20 | Acc:50.8% | Best:57.9%(r1)
+[21:08:02]   [SAVED] checkpoint: 10 experiments
+[21:11:49] [11/24] Brain_Tumor | Ditto | s789 | R6/20 | Acc:49.2% | Best:57.9%(r1)
+[21:11:49]   [SAVED] checkpoint: 10 experiments
+[21:16:00] [11/24] Brain_Tumor | Ditto | s789 | R7/20 | Acc:73.6% | Best:73.6%(r7)
+[21:16:00]   [SAVED] checkpoint: 10 experiments
+[21:20:25] [11/24] Brain_Tumor | Ditto | s789 | R8/20 | Acc:67.9% | Best:73.6%(r7)
+[21:20:25]   [SAVED] checkpoint: 10 experiments
+[21:24:30] [11/24] Brain_Tumor | Ditto | s789 | R9/20 | Acc:70.6% | Best:73.6%(r7)
+[21:24:30]   [SAVED] checkpoint: 10 experiments
+[21:28:51] [11/24] Brain_Tumor | Ditto | s789 | R10/20 | Acc:65.5% | Best:73.6%(r7)
+[21:28:51]   [SAVED] checkpoint: 10 experiments
+[21:33:14] [11/24] Brain_Tumor | Ditto | s789 | R11/20 | Acc:64.9% | Best:73.6%(r7)
+[21:33:14]   [SAVED] checkpoint: 10 experiments
+[21:33:14]   -> Early stop at R11 (best=73.6% at r7)
+[21:33:32]   [SAVED] checkpoint: 11 experiments
+[21:33:32] --- Done: Brain_Tumor | Ditto | s789 | Best=73.6% ES@R11 | 2786s | [11/24] ---
+[21:33:32]   ETA: ~5:56:12
+[21:33:32] 
+--- [12/24] Brain_Tumor | Ditto | seed=999 ---
+[21:38:10] [12/24] Brain_Tumor | Ditto | s999 | R1/20 | Acc:59.4% | Best:59.4%(r1)
+[21:38:10]   [SAVED] checkpoint: 11 experiments
+[21:41:40] [12/24] Brain_Tumor | Ditto | s999 | R2/20 | Acc:47.3% | Best:59.4%(r1)
+[21:41:40]   [SAVED] checkpoint: 11 experiments
+[21:45:15] [12/24] Brain_Tumor | Ditto | s999 | R3/20 | Acc:29.5% | Best:59.4%(r1)
+[21:45:15]   [SAVED] checkpoint: 11 experiments
+[21:48:56] [12/24] Brain_Tumor | Ditto | s999 | R4/20 | Acc:29.2% | Best:59.4%(r1)
+[21:48:56]   [SAVED] checkpoint: 11 experiments
+[21:52:53] [12/24] Brain_Tumor | Ditto | s999 | R5/20 | Acc:41.7% | Best:59.4%(r1)
+[21:52:53]   [SAVED] checkpoint: 11 experiments
+[21:56:41] [12/24] Brain_Tumor | Ditto | s999 | R6/20 | Acc:62.9% | Best:62.9%(r6)
+[21:56:41]   [SAVED] checkpoint: 11 experiments
+[22:00:52] [12/24] Brain_Tumor | Ditto | s999 | R7/20 | Acc:62.3% | Best:62.9%(r6)
+[22:00:52]   [SAVED] checkpoint: 11 experiments
+[22:04:31] [12/24] Brain_Tumor | Ditto | s999 | R8/20 | Acc:59.4% | Best:62.9%(r6)
+[22:04:31]   [SAVED] checkpoint: 11 experiments
+[22:08:01] [12/24] Brain_Tumor | Ditto | s999 | R9/20 | Acc:64.4% | Best:64.4%(r9)
+[22:08:01]   [SAVED] checkpoint: 11 experiments
+[22:11:50] [12/24] Brain_Tumor | Ditto | s999 | R10/20 | Acc:60.1% | Best:64.4%(r9)
+[22:11:51]   [SAVED] checkpoint: 11 experiments
+[22:15:22] [12/24] Brain_Tumor | Ditto | s999 | R11/20 | Acc:66.9% | Best:66.9%(r11)
+[22:15:22]   [SAVED] checkpoint: 11 experiments
+[22:18:50] [12/24] Brain_Tumor | Ditto | s999 | R12/20 | Acc:63.0% | Best:66.9%(r11)
+[22:18:50]   [SAVED] checkpoint: 11 experiments
+[22:22:26] [12/24] Brain_Tumor | Ditto | s999 | R13/20 | Acc:67.6% | Best:67.6%(r13)
+[22:22:26]   [SAVED] checkpoint: 11 experiments
+[22:26:10] [12/24] Brain_Tumor | Ditto | s999 | R14/20 | Acc:62.2% | Best:67.6%(r13)
+[22:26:10]   [SAVED] checkpoint: 11 experiments
+[22:30:11] [12/24] Brain_Tumor | Ditto | s999 | R15/20 | Acc:69.1% | Best:69.1%(r15)
+[22:30:11]   [SAVED] checkpoint: 11 experiments
+[22:39:16] [12/24] Brain_Tumor | Ditto | s999 | R16/20 | Acc:58.6% | Best:69.1%(r15)
+[22:39:16]   [SAVED] checkpoint: 11 experiments
+[22:46:21] [12/24] Brain_Tumor | Ditto | s999 | R17/20 | Acc:55.6% | Best:69.1%(r15)
+[22:46:21]   [SAVED] checkpoint: 11 experiments
+[22:53:21] [12/24] Brain_Tumor | Ditto | s999 | R18/20 | Acc:59.2% | Best:69.1%(r15)
+[22:53:21]   [SAVED] checkpoint: 11 experiments
+[23:02:14] [12/24] Brain_Tumor | Ditto | s999 | R19/20 | Acc:58.3% | Best:69.1%(r15)
+[23:02:14]   [SAVED] checkpoint: 11 experiments
+[23:02:14]   -> Early stop at R19 (best=69.1% at r15)
+[23:04:32]   [SAVED] checkpoint: 12 experiments
+[23:04:32] --- Done: Brain_Tumor | Ditto | s999 | Best=69.1% ES@R19 | 5457s | [12/24] ---
+[23:04:32]   ETA: ~6:32:24
+[23:04:32] 
+--- [13/24] Brain_Tumor | HPFL | seed=789 ---
+[23:12:48] [13/24] Brain_Tumor | HPFL | s789 | R1/20 | Acc:25.2% | Best:25.2%(r1)
+[23:12:49]   [SAVED] checkpoint: 12 experiments
+[23:23:47] [13/24] Brain_Tumor | HPFL | s789 | R2/20 | Acc:28.2% | Best:28.2%(r2)
+[23:23:47]   [SAVED] checkpoint: 12 experiments
+[23:32:54] [13/24] Brain_Tumor | HPFL | s789 | R3/20 | Acc:30.5% | Best:30.5%(r3)
+[23:32:54]   [SAVED] checkpoint: 12 experiments
+[23:36:51] [13/24] Brain_Tumor | HPFL | s789 | R4/20 | Acc:33.0% | Best:33.0%(r4)
+[23:36:51]   [SAVED] checkpoint: 12 experiments
+[23:39:36] [13/24] Brain_Tumor | HPFL | s789 | R5/20 | Acc:29.4% | Best:33.0%(r4)
+[23:39:36]   [SAVED] checkpoint: 12 experiments
+[23:45:38] [13/24] Brain_Tumor | HPFL | s789 | R6/20 | Acc:41.1% | Best:41.1%(r6)
+[23:45:38]   [SAVED] checkpoint: 12 experiments
+[23:54:41] [13/24] Brain_Tumor | HPFL | s789 | R7/20 | Acc:41.8% | Best:41.8%(r7)
+[23:54:41]   [SAVED] checkpoint: 12 experiments
+[00:02:06] [13/24] Brain_Tumor | HPFL | s789 | R8/20 | Acc:37.8% | Best:41.8%(r7)
+[00:02:06]   [SAVED] checkpoint: 12 experiments
+[00:05:49] [13/24] Brain_Tumor | HPFL | s789 | R9/20 | Acc:55.0% | Best:55.0%(r9)
+[00:05:49]   [SAVED] checkpoint: 12 experiments
+[00:09:24] [13/24] Brain_Tumor | HPFL | s789 | R10/20 | Acc:62.2% | Best:62.2%(r10)
+[00:09:24]   [SAVED] checkpoint: 12 experiments
+[00:14:31] [13/24] Brain_Tumor | HPFL | s789 | R11/20 | Acc:61.1% | Best:62.2%(r10)
+[00:14:31]   [SAVED] checkpoint: 12 experiments
+[00:22:58] [13/24] Brain_Tumor | HPFL | s789 | R12/20 | Acc:60.1% | Best:62.2%(r10)
+[00:22:58]   [SAVED] checkpoint: 12 experiments
+[00:32:34] [13/24] Brain_Tumor | HPFL | s789 | R13/20 | Acc:62.2% | Best:62.2%(r10)
+[00:32:34]   [SAVED] checkpoint: 12 experiments
+[00:41:28] [13/24] Brain_Tumor | HPFL | s789 | R14/20 | Acc:62.4% | Best:62.4%(r14)
+[00:41:28]   [SAVED] checkpoint: 12 experiments
+[00:41:28]   -> Early stop at R14 (best=62.4% at r14)
+[00:42:24]   [SAVED] checkpoint: 13 experiments
+[00:42:24] --- Done: Brain_Tumor | HPFL | s789 | Best=62.4% ES@R14 | 5869s | [13/24] ---
+[00:42:24]   ETA: ~6:54:51
+[00:42:24] 
+--- [14/24] Brain_Tumor | HPFL | seed=999 ---
+[00:52:25] [14/24] Brain_Tumor | HPFL | s999 | R1/20 | Acc:29.0% | Best:29.0%(r1)
+[00:52:25]   [SAVED] checkpoint: 13 experiments
+[01:00:59] [14/24] Brain_Tumor | HPFL | s999 | R2/20 | Acc:29.0% | Best:29.0%(r1)
+[01:00:59]   [SAVED] checkpoint: 13 experiments
+[01:09:01] [14/24] Brain_Tumor | HPFL | s999 | R3/20 | Acc:29.0% | Best:29.0%(r1)
+[01:09:01]   [SAVED] checkpoint: 13 experiments
+[01:17:33] [14/24] Brain_Tumor | HPFL | s999 | R4/20 | Acc:29.0% | Best:29.0%(r1)
+[01:17:33]   [SAVED] checkpoint: 13 experiments
+[01:20:45] [14/24] Brain_Tumor | HPFL | s999 | R5/20 | Acc:30.6% | Best:30.6%(r5)
+[01:20:45]   [SAVED] checkpoint: 13 experiments
+[01:23:33] [14/24] Brain_Tumor | HPFL | s999 | R6/20 | Acc:45.5% | Best:45.5%(r6)
+[01:23:34]   [SAVED] checkpoint: 13 experiments
+[01:26:18] [14/24] Brain_Tumor | HPFL | s999 | R7/20 | Acc:38.8% | Best:45.5%(r6)
+[01:26:18]   [SAVED] checkpoint: 13 experiments
+[01:34:33] [14/24] Brain_Tumor | HPFL | s999 | R8/20 | Acc:33.1% | Best:45.5%(r6)
+[01:34:34]   [SAVED] checkpoint: 13 experiments
+[01:43:40] [14/24] Brain_Tumor | HPFL | s999 | R9/20 | Acc:45.3% | Best:45.5%(r6)
+[01:43:41]   [SAVED] checkpoint: 13 experiments
+[08:59:44] [14/24] Brain_Tumor | HPFL | s999 | R10/20 | Acc:45.5% | Best:45.5%(r6)
+[08:59:44]   [SAVED] checkpoint: 13 experiments
+[08:59:44]   -> Early stop at R10 (best=45.5% at r6)
+[09:00:00]   [SAVED] checkpoint: 14 experiments
+[09:00:00] --- Done: Brain_Tumor | HPFL | s999 | Best=45.5% ES@R10 | 29853s | [14/24] ---
+[09:00:00]   ETA: ~11:45:38
+[09:00:00] 
+--- [15/24] Brain_Tumor | FedLESAM | seed=789 ---
+[09:10:57] [15/24] Brain_Tumor | FedLESAM | s789 | R1/20 | Acc:25.1% | Best:25.1%(r1)
+[09:10:57]   [SAVED] checkpoint: 14 experiments
+[09:30:08] [15/24] Brain_Tumor | FedLESAM | s789 | R2/20 | Acc:36.1% | Best:36.1%(r2)
+[09:30:09]   [SAVED] checkpoint: 14 experiments
+[09:42:47] [15/24] Brain_Tumor | FedLESAM | s789 | R3/20 | Acc:43.5% | Best:43.5%(r3)
+[09:42:47]   [SAVED] checkpoint: 14 experiments
+[10:00:32] [15/24] Brain_Tumor | FedLESAM | s789 | R4/20 | Acc:41.9% | Best:43.5%(r3)
+[10:00:32]   [SAVED] checkpoint: 14 experiments

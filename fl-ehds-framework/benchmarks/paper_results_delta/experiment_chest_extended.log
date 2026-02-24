@@ -10,3 +10,104 @@
 --- [1/6] chest_xray | HPFL | seed=42 ---
 [00:22:31] [1/6] chest_xray | HPFL | s42 | R1/20 | Acc:26.1% | Best:26.1%(r1)
 [00:25:06] [1/6] chest_xray | HPFL | s42 | R2/20 | Acc:59.5% | Best:59.5%(r2)
+[00:27:51] [1/6] chest_xray | HPFL | s42 | R3/20 | Acc:62.9% | Best:62.9%(r3)
+[00:31:35] [1/6] chest_xray | HPFL | s42 | R4/20 | Acc:71.3% | Best:71.3%(r4)
+[00:35:38] [1/6] chest_xray | HPFL | s42 | R5/20 | Acc:67.8% | Best:71.3%(r4)
+[00:38:52] [1/6] chest_xray | HPFL | s42 | R6/20 | Acc:79.6% | Best:79.6%(r6)
+[00:43:17] [1/6] chest_xray | HPFL | s42 | R7/20 | Acc:66.6% | Best:79.6%(r6)
+[00:49:15] [1/6] chest_xray | HPFL | s42 | R8/20 | Acc:62.4% | Best:79.6%(r6)
+[00:55:18] [1/6] chest_xray | HPFL | s42 | R9/20 | Acc:67.5% | Best:79.6%(r6)
+[01:00:10] [1/6] chest_xray | HPFL | s42 | R10/20 | Acc:64.5% | Best:79.6%(r6)
+[01:00:10]   -> Early stop at R10 (best=79.6% at r6)
+[01:00:33] --- Done: HPFL | s42 | Best=79.6% ES@R10 | 2474s | [1/6] ---
+[01:00:33] 
+--- [2/6] chest_xray | HPFL | seed=123 ---
+[01:43:32] [2/6] chest_xray | HPFL | s123 | R1/20 | Acc:73.4% | Best:73.4%(r1)
+[01:49:41] [2/6] chest_xray | HPFL | s123 | R2/20 | Acc:73.4% | Best:73.4%(r1)
+[01:54:49] [2/6] chest_xray | HPFL | s123 | R3/20 | Acc:73.4% | Best:73.4%(r1)
+[02:03:59] [2/6] chest_xray | HPFL | s123 | R4/20 | Acc:73.4% | Best:73.4%(r1)
+[02:11:21] [2/6] chest_xray | HPFL | s123 | R5/20 | Acc:73.4% | Best:73.4%(r1)
+[02:16:39] [2/6] chest_xray | HPFL | s123 | R6/20 | Acc:73.4% | Best:73.4%(r1)
+[02:19:49] [2/6] chest_xray | HPFL | s123 | R7/20 | Acc:73.4% | Best:73.4%(r1)
+[02:25:42] [2/6] chest_xray | HPFL | s123 | R8/20 | Acc:73.4% | Best:73.4%(r1)
+[02:25:42]   -> Early stop at R8 (best=73.4% at r1)
+[02:28:26] --- Done: HPFL | s123 | Best=73.4% ES@R8 | 5269s | [2/6] ---
+[02:28:26] 
+--- [3/6] chest_xray | HPFL | seed=456 ---
+[02:35:38] [3/6] chest_xray | HPFL | s456 | R1/20 | Acc:71.8% | Best:71.8%(r1)
+[02:40:34] [3/6] chest_xray | HPFL | s456 | R2/20 | Acc:71.8% | Best:71.8%(r1)
+[02:45:21] [3/6] chest_xray | HPFL | s456 | R3/20 | Acc:71.8% | Best:71.8%(r1)
+[02:50:14] [3/6] chest_xray | HPFL | s456 | R4/20 | Acc:71.8% | Best:71.8%(r1)
+[02:52:39] [3/6] chest_xray | HPFL | s456 | R5/20 | Acc:71.8% | Best:71.8%(r1)
+[02:57:03] [3/6] chest_xray | HPFL | s456 | R6/20 | Acc:71.8% | Best:71.8%(r1)
+[02:59:26] [3/6] chest_xray | HPFL | s456 | R7/20 | Acc:71.8% | Best:71.8%(r1)
+[03:06:18] [3/6] chest_xray | HPFL | s456 | R8/20 | Acc:71.8% | Best:71.8%(r1)
+[03:06:18]   -> Early stop at R8 (best=71.8% at r1)
+[03:06:45] --- Done: HPFL | s456 | Best=71.8% ES@R8 | 2295s | [3/6] ---
+[03:06:45] 
+--- [4/6] chest_xray | FedLESAM | seed=42 ---
+[06:20:39] [4/6] chest_xray | FedLESAM | s42 | R1/20 | Acc:26.1% | Best:26.1%(r1)
+[06:24:01] [4/6] chest_xray | FedLESAM | s42 | R2/20 | Acc:45.4% | Best:45.4%(r2)
+[06:27:24] [4/6] chest_xray | FedLESAM | s42 | R3/20 | Acc:74.0% | Best:74.0%(r3)
+[06:30:41] [4/6] chest_xray | FedLESAM | s42 | R4/20 | Acc:81.1% | Best:81.1%(r4)
+[06:38:43] [4/6] chest_xray | FedLESAM | s42 | R5/20 | Acc:75.4% | Best:81.1%(r4)
+[06:42:13] [4/6] chest_xray | FedLESAM | s42 | R6/20 | Acc:81.0% | Best:81.1%(r4)
+[06:48:53] [4/6] chest_xray | FedLESAM | s42 | R7/20 | Acc:83.0% | Best:83.0%(r7)
+[06:52:18] [4/6] chest_xray | FedLESAM | s42 | R8/20 | Acc:86.1% | Best:86.1%(r8)
+[07:01:26] [4/6] chest_xray | FedLESAM | s42 | R9/20 | Acc:86.6% | Best:86.6%(r9)
+[07:05:15] [4/6] chest_xray | FedLESAM | s42 | R10/20 | Acc:85.9% | Best:86.6%(r9)
+[07:08:46] [4/6] chest_xray | FedLESAM | s42 | R11/20 | Acc:87.7% | Best:87.7%(r11)
+[07:24:43] [4/6] chest_xray | FedLESAM | s42 | R12/20 | Acc:89.3% | Best:89.3%(r12)
+[07:42:04] [4/6] chest_xray | FedLESAM | s42 | R13/20 | Acc:89.5% | Best:89.5%(r13)
+[07:50:05] [4/6] chest_xray | FedLESAM | s42 | R14/20 | Acc:88.8% | Best:89.5%(r13)
+[07:54:25] [4/6] chest_xray | FedLESAM | s42 | R15/20 | Acc:89.6% | Best:89.6%(r15)
+[08:02:50] [4/6] chest_xray | FedLESAM | s42 | R16/20 | Acc:89.7% | Best:89.7%(r16)
+[08:07:16] [4/6] chest_xray | FedLESAM | s42 | R17/20 | Acc:89.7% | Best:89.7%(r16)
+[08:59:23] [4/6] chest_xray | FedLESAM | s42 | R18/20 | Acc:89.6% | Best:89.7%(r16)
+[09:01:41] [4/6] chest_xray | FedLESAM | s42 | R19/20 | Acc:89.8% | Best:89.8%(r19)
+[09:03:46] [4/6] chest_xray | FedLESAM | s42 | R20/20 | Acc:89.6% | Best:89.8%(r19)
+[09:03:46]   -> Early stop at R20 (best=89.8% at r19)
+[09:04:00] --- Done: FedLESAM | s42 | Best=89.8% ES@R20 | 21433s | [4/6] ---
+[09:04:00] 
+--- [5/6] chest_xray | FedLESAM | seed=123 ---
+[09:08:29] [5/6] chest_xray | FedLESAM | s123 | R1/20 | Acc:73.4% | Best:73.4%(r1)
+[09:10:30] [5/6] chest_xray | FedLESAM | s123 | R2/20 | Acc:69.1% | Best:73.4%(r1)
+[09:13:21] [5/6] chest_xray | FedLESAM | s123 | R3/20 | Acc:72.0% | Best:73.4%(r1)
+[09:15:34] [5/6] chest_xray | FedLESAM | s123 | R4/20 | Acc:63.8% | Best:73.4%(r1)
+[09:17:38] [5/6] chest_xray | FedLESAM | s123 | R5/20 | Acc:78.3% | Best:78.3%(r5)
+[09:19:44] [5/6] chest_xray | FedLESAM | s123 | R6/20 | Acc:73.4% | Best:78.3%(r5)
+[09:21:59] [5/6] chest_xray | FedLESAM | s123 | R7/20 | Acc:83.9% | Best:83.9%(r7)
+[09:24:19] [5/6] chest_xray | FedLESAM | s123 | R8/20 | Acc:85.7% | Best:85.7%(r8)
+[09:26:36] [5/6] chest_xray | FedLESAM | s123 | R9/20 | Acc:80.4% | Best:85.7%(r8)
+[09:28:50] [5/6] chest_xray | FedLESAM | s123 | R10/20 | Acc:85.1% | Best:85.7%(r8)
+[09:30:58] [5/6] chest_xray | FedLESAM | s123 | R11/20 | Acc:84.4% | Best:85.7%(r8)
+[09:33:01] [5/6] chest_xray | FedLESAM | s123 | R12/20 | Acc:87.1% | Best:87.1%(r12)
+[09:35:28] [5/6] chest_xray | FedLESAM | s123 | R13/20 | Acc:80.8% | Best:87.1%(r12)
+[09:37:33] [5/6] chest_xray | FedLESAM | s123 | R14/20 | Acc:90.9% | Best:90.9%(r14)
+[09:39:52] [5/6] chest_xray | FedLESAM | s123 | R15/20 | Acc:88.9% | Best:90.9%(r14)
+[09:42:04] [5/6] chest_xray | FedLESAM | s123 | R16/20 | Acc:90.4% | Best:90.9%(r14)
+[09:44:20] [5/6] chest_xray | FedLESAM | s123 | R17/20 | Acc:89.6% | Best:90.9%(r14)
+[09:46:30] [5/6] chest_xray | FedLESAM | s123 | R18/20 | Acc:88.0% | Best:90.9%(r14)
+[09:46:30]   -> Early stop at R18 (best=90.9% at r14)
+[09:46:47] --- Done: FedLESAM | s123 | Best=90.9% ES@R18 | 2566s | [5/6] ---
+[09:46:47] 
+--- [6/6] chest_xray | FedLESAM | seed=456 ---
+[09:50:42] [6/6] chest_xray | FedLESAM | s456 | R1/20 | Acc:71.8% | Best:71.8%(r1)
+[09:52:40] [6/6] chest_xray | FedLESAM | s456 | R2/20 | Acc:71.8% | Best:71.8%(r1)
+[09:55:01] [6/6] chest_xray | FedLESAM | s456 | R3/20 | Acc:71.8% | Best:71.8%(r1)
+[09:57:04] [6/6] chest_xray | FedLESAM | s456 | R4/20 | Acc:71.8% | Best:71.8%(r1)
+[09:59:06] [6/6] chest_xray | FedLESAM | s456 | R5/20 | Acc:71.8% | Best:71.8%(r1)
+[10:01:27] [6/6] chest_xray | FedLESAM | s456 | R6/20 | Acc:71.8% | Best:71.8%(r1)
+[10:03:33] [6/6] chest_xray | FedLESAM | s456 | R7/20 | Acc:71.8% | Best:71.8%(r1)
+[10:05:37] [6/6] chest_xray | FedLESAM | s456 | R8/20 | Acc:71.8% | Best:71.8%(r1)
+[10:05:37]   -> Early stop at R8 (best=71.8% at r1)
+[10:05:44] --- Done: FedLESAM | s456 | Best=71.8% ES@R8 | 1136s | [6/6] ---
+[10:05:44] 
+============================================================
+[10:05:44]   COMPLETED: 6/6
+[10:05:44]   Total time: 9:46:28
+[10:05:44] ============================================================
+[10:05:44] 
+  Chest X-Ray Extended Results:
+[10:05:44]         HPFL: 75.0 +/- 3.4%
+[10:05:44]     FedLESAM: 84.2 +/- 8.8%
