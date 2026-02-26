@@ -36,3 +36,12 @@ fl-ehds-framework/data/breast_cancer_wisconsin/
 
 # Temporary deploy scripts
 fl-ehds-framework/benchmarks/aws_*.sh
+
+# Temporary/old scripts
+fl-ehds-framework/benchmarks/run_imaging_seeds5_local_backup.py
+
+# Screenshots
+fl-ehds-framework/_img/
+
+# DP checkpoint (committed after completion)
+fl-ehds-framework/benchmarks/paper_results_delta/checkpoint_imaging_dp.json
