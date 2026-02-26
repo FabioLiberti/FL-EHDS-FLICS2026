@@ -110,8 +110,8 @@ class ImageFederatedTrainer:
 
         # Auto-detect device (CUDA > MPS > CPU)
         self.device = _detect_device(device)
-        # AMP: enable only for CUDA/MPS, not CPU
-        self.use_amp = use_amp and self.device.type in ('cuda', 'mps')
+        # AMP: enable only for CUDA (fp16 is 4x slower on MPS due to lack of tensor cores)
+        self.use_amp = use_amp and self.device.type == 'cuda'
         self.amp_dtype = torch.float16
 
         # Auto-adjust img_size and LR for ResNet

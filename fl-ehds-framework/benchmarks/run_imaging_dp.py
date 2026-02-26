@@ -461,6 +461,8 @@ def run_single_imaging(
         except OSError:
             pass
 
+    # Aggressive memory cleanup: free trainer data before next experiment
+    del trainer
     _cleanup_gpu()
     return result
 
@@ -615,6 +617,15 @@ def main():
                 remaining = (total_exps - completed_count) * avg
                 eta = str(timedelta(seconds=int(remaining)))
                 log(f"  ETA: ~{eta}")
+
+            # Force aggressive memory cleanup between experiments (prevents MPS memory leak)
+            import gc
+            gc.collect()
+            if hasattr(torch, "mps") and hasattr(torch.mps, "empty_cache"):
+                try:
+                    torch.mps.empty_cache()
+                except Exception:
+                    pass
 
         except Exception as e:
             log(f"ERROR in {key}: {e}")
