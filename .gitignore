@@ -25,3 +25,14 @@ fl-ehds-framework/data/breast_cancer_wisconsin/
 
 # Environment
 .env
+
+# Temporary/generated files
+*.tar.gz
+*.synctex.gz
+*.bak
+*.log
+*.pt
+*_BACKUP_*.json
+
+# Temporary deploy scripts
+fl-ehds-framework/benchmarks/aws_*.sh
