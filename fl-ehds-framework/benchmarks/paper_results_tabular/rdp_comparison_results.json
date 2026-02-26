@@ -1,0 +1,17 @@
+{
+  "parameters": {
+    "sigma": 1.1,
+    "delta": 1e-05,
+    "target_epsilon": 10.0,
+    "sampling_rate": 1.0
+  },
+  "per_round_epsilon": 4.4043684205503535,
+  "at_T30": {
+    "naive": 132.1310526165106,
+    "advanced": 10796.366602498296,
+    "rdp": 36.306313894722294,
+    "ratio_naive_rdp": 3.639340887087906,
+    "ratio_advanced_rdp": 297.3688442678209
+  },
+  "timestamp": "2026-02-26T17:51:17.450913"
+}
