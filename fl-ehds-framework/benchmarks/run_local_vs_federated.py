@@ -17,6 +17,7 @@ Output:
 
 import json
 import os
+import signal
 import sys
 import time
 from datetime import datetime
@@ -520,11 +521,46 @@ def main():
     print(f"  Seeds:         {seeds}")
     print(f"  Output:        {output_dir}")
 
-    # Run experiments
+    # Checkpoint support: save after each seed
+    checkpoint_path = output_dir / "checkpoint_local_vs_fed.json"
+
     all_runs = []
+    completed_seeds = []
+
+    # Resume from checkpoint if exists
+    if checkpoint_path.exists():
+        try:
+            with open(checkpoint_path) as f:
+                ckpt = json.load(f)
+            all_runs = ckpt.get("runs", [])
+            completed_seeds = ckpt.get("completed_seeds", [])
+            print(f"  Resumed: {len(completed_seeds)}/{len(seeds)} seeds done")
+        except Exception:
+            pass
+
+    # SIGINT handler: save partial results
+    def _signal_handler(signum, frame):
+        print(f"\n  SIGINT — saving {len(all_runs)} completed seeds...")
+        _save_checkpoint()
+        sys.exit(0)
+
+    def _save_checkpoint():
+        tmp = checkpoint_path.with_suffix('.tmp')
+        with open(tmp, 'w') as f:
+            json.dump({"runs": all_runs, "completed_seeds": completed_seeds}, f, indent=2, default=str)
+        tmp.replace(checkpoint_path)
+
+    signal.signal(signal.SIGINT, _signal_handler)
+    signal.signal(signal.SIGTERM, _signal_handler)
+
+    # Run experiments
     t_start = time.time()
 
     for seed in seeds:
+        if seed in completed_seeds:
+            print(f"\n  Seed {seed}: already done, skipping")
+            continue
+
         result = run_experiment(
             data_dir=data_dir,
             num_clients=num_clients,
@@ -538,6 +574,9 @@ def main():
             img_size=img_size,
         )
         all_runs.append(result)
+        completed_seeds.append(seed)
+        _save_checkpoint()
+        print(f"  Seed {seed}: done — checkpoint saved ({len(completed_seeds)}/{len(seeds)})")
 
     total_time = time.time() - t_start
     print(f"\nTotal experiment time: {total_time:.0f}s")

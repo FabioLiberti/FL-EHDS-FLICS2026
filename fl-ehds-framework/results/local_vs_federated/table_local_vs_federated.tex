@@ -1,0 +1,24 @@
+\begin{table}[htbp]
+\centering
+\caption{Local-Only vs.\ Federated Learning: Per-Hospital Performance on Chest X-ray}
+\label{tab:local_vs_fed}
+\small
+\begin{tabular}{lrcccccc}
+\toprule
+ & & \multicolumn{2}{c}{\textbf{Local-Only}} & \multicolumn{2}{c}{\textbf{Federated}} & \multicolumn{2}{c}{\textbf{Gain}} \\
+\cmidrule(lr){3-4} \cmidrule(lr){5-6} \cmidrule(lr){7-8}
+\textbf{Hospital} & \textbf{Samples} & \textbf{Acc.} & \textbf{F1} & \textbf{Acc.} & \textbf{F1} & \textbf{$\Delta$Acc} & \textbf{$\Delta$F1} \\
+\midrule
+H1 & 148 & 94.8\% & 0.63 & 24.3\% & 0.24 & +-70.4pp & +-0.39 \\
+H2 & 3353 & 90.4\% & 0.89 & 60.2\% & 0.47 & +-30.3pp & +-0.42 \\
+H3 & 106 & 88.1\% & 0.76 & 55.8\% & 0.43 & +-32.2pp & +-0.32 \\
+H4 & 228 & 96.4\% & 0.80 & 68.9\% & 0.48 & +-27.5pp & +-0.31 \\
+H5 & 852 & 89.0\% & 0.75 & 51.1\% & 0.38 & +-38.0pp & +-0.37 \\
+\midrule
+\textbf{Average} & & \textbf{91.7\%} & & \textbf{52.1\%} & & \textbf{+-39.7pp} & \\
+\bottomrule
+\end{tabular}
+
+\vspace{1mm}
+\footnotesize{Non-IID (Dirichlet $\alpha$=0.5), 5 hospitals. Local: 30 epochs standalone. Federated: FedAvg, 15 rounds $\times$ 3 epochs. Mean over 3 seeds.}
+\end{table}

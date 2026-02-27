@@ -34,6 +34,7 @@ import os
 import json
 import time
 import gc
+import signal
 from datetime import datetime
 from pathlib import Path
 from copy import deepcopy
@@ -41,14 +42,13 @@ from copy import deepcopy
 import numpy as np
 
 # Setup paths
-FRAMEWORK_DIR = Path("/Users/fxlybs/_DEV/FL-EHDS-FLICS2026/fl-ehds-framework")
+FRAMEWORK_DIR = Path(__file__).parent.parent
 sys.path.insert(0, str(FRAMEWORK_DIR))
 
 import torch
 from terminal.fl_trainer import FederatedTrainer, _detect_device
 from data.breast_cancer_loader import load_breast_cancer_data
-
-OUTPUT_DIR = Path("/tmp/fl_ehds_results")
+OUTPUT_DIR = FRAMEWORK_DIR / "benchmarks" / "paper_results_tabular"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 CHECKPOINT_PATH = OUTPUT_DIR / "byzantine_dp_v2_results.json"
 
@@ -560,6 +560,16 @@ def main():
         checkpoint = load_checkpoint()
     completed_keys = set(checkpoint.get("completed", []))
     skip = sum(1 for c in combos if c in completed_keys)
+
+    # SIGINT handler: save checkpoint before exit
+    def _signal_handler(signum, frame):
+        done = len(checkpoint.get("completed", []))
+        print(f"\n  SIGINT — saving checkpoint ({done}/{total} done)...")
+        save_checkpoint(checkpoint)
+        print(f"  Checkpoint saved. Resume with: python benchmarks/run_byzantine_dp.py")
+        sys.exit(0)
+    signal.signal(signal.SIGINT, _signal_handler)
+    signal.signal(signal.SIGTERM, _signal_handler)
 
     print("=" * 70)
     print("  FL-EHDS Experiment A v2 — Byzantine + DP (FedAvg vs HPFL)")

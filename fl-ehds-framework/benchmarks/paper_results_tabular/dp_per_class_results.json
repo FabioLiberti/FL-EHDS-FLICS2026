@@ -1,0 +1,3470 @@
+{
+  "results": [
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "FedAvg",
+      "dp_label": "No-DP",
+      "dp_epsilon": 0,
+      "dp_enabled": false,
+      "seed": 42,
+      "accuracy": 0.6814159292035398,
+      "confusion_matrix": [
+        [
+          77,
+          0
+        ],
+        [
+          36,
+          0
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 1.0,
+        "Malignant": 0.0
+      },
+      "dei": 0.0,
+      "min_recall": 0.0,
+      "cv": 1.0,
+      "runtime_seconds": 0.3
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "FedAvg",
+      "dp_label": "No-DP",
+      "dp_epsilon": 0,
+      "dp_enabled": false,
+      "seed": 123,
+      "accuracy": 0.6283185840707964,
+      "confusion_matrix": [
+        [
+          71,
+          0
+        ],
+        [
+          42,
+          0
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 1.0,
+        "Malignant": 0.0
+      },
+      "dei": 0.0,
+      "min_recall": 0.0,
+      "cv": 1.0,
+      "runtime_seconds": 0.3
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "FedAvg",
+      "dp_label": "No-DP",
+      "dp_epsilon": 0,
+      "dp_enabled": false,
+      "seed": 456,
+      "accuracy": 0.6371681415929203,
+      "confusion_matrix": [
+        [
+          72,
+          0
+        ],
+        [
+          41,
+          0
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 1.0,
+        "Malignant": 0.0
+      },
+      "dei": 0.0,
+      "min_recall": 0.0,
+      "cv": 1.0,
+      "runtime_seconds": 0.3
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "FedAvg",
+      "dp_label": "No-DP",
+      "dp_epsilon": 0,
+      "dp_enabled": false,
+      "seed": 789,
+      "accuracy": 0.39285714285714285,
+      "confusion_matrix": [
+        [
+          0,
+          68
+        ],
+        [
+          0,
+          44
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.0,
+        "Malignant": 1.0
+      },
+      "dei": 0.0,
+      "min_recall": 0.0,
+      "cv": 1.0,
+      "runtime_seconds": 0.3
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "FedAvg",
+      "dp_label": "No-DP",
+      "dp_epsilon": 0,
+      "dp_enabled": false,
+      "seed": 999,
+      "accuracy": 0.46017699115044247,
+      "confusion_matrix": [
+        [
+          9,
+          61
+        ],
+        [
+          0,
+          43
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.12857142857142856,
+        "Malignant": 1.0
+      },
+      "dei": 0.029294755877034354,
+      "min_recall": 0.12857142857142856,
+      "cv": 0.7721518987341772,
+      "runtime_seconds": 0.3
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "FedAvg",
+      "dp_label": "eps=1",
+      "dp_epsilon": 1.0,
+      "dp_enabled": true,
+      "seed": 42,
+      "accuracy": 0.6814159292035398,
+      "confusion_matrix": [
+        [
+          77,
+          0
+        ],
+        [
+          36,
+          0
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 1.0,
+        "Malignant": 0.0
+      },
+      "dei": 0.0,
+      "min_recall": 0.0,
+      "cv": 1.0,
+      "runtime_seconds": 0.4
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "FedAvg",
+      "dp_label": "eps=1",
+      "dp_epsilon": 1.0,
+      "dp_enabled": true,
+      "seed": 123,
+      "accuracy": 0.6371681415929203,
+      "confusion_matrix": [
+        [
+          71,
+          0
+        ],
+        [
+          41,
+          1
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 1.0,
+        "Malignant": 0.023809523809523808
+      },
+      "dei": 0.0011074197120708742,
+      "min_recall": 0.023809523809523808,
+      "cv": 0.9534883720930233,
+      "runtime_seconds": 0.4
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "FedAvg",
+      "dp_label": "eps=1",
+      "dp_epsilon": 1.0,
+      "dp_enabled": true,
+      "seed": 456,
+      "accuracy": 0.6283185840707964,
+      "confusion_matrix": [
+        [
+          70,
+          2
+        ],
+        [
+          40,
+          1
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.9722222222222222,
+        "Malignant": 0.024390243902439025
+      },
+      "dei": 0.0011938120740826723,
+      "min_recall": 0.024390243902439025,
+      "cv": 0.9510537049626104,
+      "runtime_seconds": 0.4
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "FedAvg",
+      "dp_label": "eps=1",
+      "dp_epsilon": 1.0,
+      "dp_enabled": true,
+      "seed": 789,
+      "accuracy": 0.6160714285714286,
+      "confusion_matrix": [
+        [
+          68,
+          0
+        ],
+        [
+          43,
+          1
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 1.0,
+        "Malignant": 0.022727272727272728
+      },
+      "dei": 0.001010101010101009,
+      "min_recall": 0.022727272727272728,
+      "cv": 0.9555555555555556,
+      "runtime_seconds": 0.4
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "FedAvg",
+      "dp_label": "eps=1",
+      "dp_epsilon": 1.0,
+      "dp_enabled": true,
+      "seed": 999,
+      "accuracy": 0.4336283185840708,
+      "confusion_matrix": [
+        [
+          6,
+          64
+        ],
+        [
+          0,
+          43
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.08571428571428572,
+        "Malignant": 1.0
+      },
+      "dei": 0.01353383458646616,
+      "min_recall": 0.08571428571428572,
+      "cv": 0.8421052631578948,
+      "runtime_seconds": 0.4
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "FedAvg",
+      "dp_label": "eps=5",
+      "dp_epsilon": 5.0,
+      "dp_enabled": true,
+      "seed": 42,
+      "accuracy": 0.6814159292035398,
+      "confusion_matrix": [
+        [
+          77,
+          0
+        ],
+        [
+          36,
+          0
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 1.0,
+        "Malignant": 0.0
+      },
+      "dei": 0.0,
+      "min_recall": 0.0,
+      "cv": 1.0,
+      "runtime_seconds": 0.4
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "FedAvg",
+      "dp_label": "eps=5",
+      "dp_epsilon": 5.0,
+      "dp_enabled": true,
+      "seed": 123,
+      "accuracy": 0.6371681415929203,
+      "confusion_matrix": [
+        [
+          71,
+          0
+        ],
+        [
+          41,
+          1
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 1.0,
+        "Malignant": 0.023809523809523808
+      },
+      "dei": 0.0011074197120708742,
+      "min_recall": 0.023809523809523808,
+      "cv": 0.9534883720930233,
+      "runtime_seconds": 0.3
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "FedAvg",
+      "dp_label": "eps=5",
+      "dp_epsilon": 5.0,
+      "dp_enabled": true,
+      "seed": 456,
+      "accuracy": 0.6283185840707964,
+      "confusion_matrix": [
+        [
+          71,
+          1
+        ],
+        [
+          41,
+          0
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.9861111111111112,
+        "Malignant": 0.0
+      },
+      "dei": 0.0,
+      "min_recall": 0.0,
+      "cv": 1.0,
+      "runtime_seconds": 0.4
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "FedAvg",
+      "dp_label": "eps=5",
+      "dp_epsilon": 5.0,
+      "dp_enabled": true,
+      "seed": 789,
+      "accuracy": 0.6071428571428571,
+      "confusion_matrix": [
+        [
+          68,
+          0
+        ],
+        [
+          44,
+          0
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 1.0,
+        "Malignant": 0.0
+      },
+      "dei": 0.0,
+      "min_recall": 0.0,
+      "cv": 1.0,
+      "runtime_seconds": 0.4
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "FedAvg",
+      "dp_label": "eps=5",
+      "dp_epsilon": 5.0,
+      "dp_enabled": true,
+      "seed": 999,
+      "accuracy": 0.4336283185840708,
+      "confusion_matrix": [
+        [
+          6,
+          64
+        ],
+        [
+          0,
+          43
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.08571428571428572,
+        "Malignant": 1.0
+      },
+      "dei": 0.01353383458646616,
+      "min_recall": 0.08571428571428572,
+      "cv": 0.8421052631578948,
+      "runtime_seconds": 0.3
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "FedAvg",
+      "dp_label": "eps=10",
+      "dp_epsilon": 10.0,
+      "dp_enabled": true,
+      "seed": 42,
+      "accuracy": 0.6814159292035398,
+      "confusion_matrix": [
+        [
+          77,
+          0
+        ],
+        [
+          36,
+          0
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 1.0,
+        "Malignant": 0.0
+      },
+      "dei": 0.0,
+      "min_recall": 0.0,
+      "cv": 1.0,
+      "runtime_seconds": 0.4
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "FedAvg",
+      "dp_label": "eps=10",
+      "dp_epsilon": 10.0,
+      "dp_enabled": true,
+      "seed": 123,
+      "accuracy": 0.6283185840707964,
+      "confusion_matrix": [
+        [
+          71,
+          0
+        ],
+        [
+          42,
+          0
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 1.0,
+        "Malignant": 0.0
+      },
+      "dei": 0.0,
+      "min_recall": 0.0,
+      "cv": 1.0,
+      "runtime_seconds": 0.3
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "FedAvg",
+      "dp_label": "eps=10",
+      "dp_epsilon": 10.0,
+      "dp_enabled": true,
+      "seed": 456,
+      "accuracy": 0.6371681415929203,
+      "confusion_matrix": [
+        [
+          72,
+          0
+        ],
+        [
+          41,
+          0
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 1.0,
+        "Malignant": 0.0
+      },
+      "dei": 0.0,
+      "min_recall": 0.0,
+      "cv": 1.0,
+      "runtime_seconds": 0.4
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "FedAvg",
+      "dp_label": "eps=10",
+      "dp_epsilon": 10.0,
+      "dp_enabled": true,
+      "seed": 789,
+      "accuracy": 0.6071428571428571,
+      "confusion_matrix": [
+        [
+          68,
+          0
+        ],
+        [
+          44,
+          0
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 1.0,
+        "Malignant": 0.0
+      },
+      "dei": 0.0,
+      "min_recall": 0.0,
+      "cv": 1.0,
+      "runtime_seconds": 0.4
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "FedAvg",
+      "dp_label": "eps=10",
+      "dp_epsilon": 10.0,
+      "dp_enabled": true,
+      "seed": 999,
+      "accuracy": 0.5221238938053098,
+      "confusion_matrix": [
+        [
+          16,
+          54
+        ],
+        [
+          0,
+          43
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.22857142857142856,
+        "Malignant": 1.0
+      },
+      "dei": 0.08504983388704318,
+      "min_recall": 0.22857142857142856,
+      "cv": 0.627906976744186,
+      "runtime_seconds": 0.3
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "HPFL",
+      "dp_label": "No-DP",
+      "dp_epsilon": 0,
+      "dp_enabled": false,
+      "seed": 42,
+      "accuracy": 0.911504424778761,
+      "confusion_matrix": [
+        [
+          75,
+          2
+        ],
+        [
+          8,
+          28
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.974025974025974,
+        "Malignant": 0.7777777777777778
+      },
+      "dei": 0.6906461651107451,
+      "min_recall": 0.7777777777777778,
+      "cv": 0.11202635914332783,
+      "runtime_seconds": 0.3
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "HPFL",
+      "dp_label": "No-DP",
+      "dp_epsilon": 0,
+      "dp_enabled": false,
+      "seed": 123,
+      "accuracy": 0.9823008849557522,
+      "confusion_matrix": [
+        [
+          70,
+          1
+        ],
+        [
+          1,
+          41
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.9859154929577465,
+        "Malignant": 0.9761904761904762
+      },
+      "dei": 0.9713520684294911,
+      "min_recall": 0.9761904761904762,
+      "cv": 0.004956417706375001,
+      "runtime_seconds": 0.3
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "HPFL",
+      "dp_label": "No-DP",
+      "dp_epsilon": 0,
+      "dp_enabled": false,
+      "seed": 456,
+      "accuracy": 0.9823008849557522,
+      "confusion_matrix": [
+        [
+          70,
+          2
+        ],
+        [
+          0,
+          41
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.9722222222222222,
+        "Malignant": 1.0
+      },
+      "dei": 0.9585289514866979,
+      "min_recall": 0.9722222222222222,
+      "cv": 0.014084507042253527,
+      "runtime_seconds": 0.3
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "HPFL",
+      "dp_label": "No-DP",
+      "dp_epsilon": 0,
+      "dp_enabled": false,
+      "seed": 789,
+      "accuracy": 0.9107142857142857,
+      "confusion_matrix": [
+        [
+          63,
+          5
+        ],
+        [
+          5,
+          39
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.9264705882352942,
+        "Malignant": 0.8863636363636364
+      },
+      "dei": 0.866753821399839,
+      "min_recall": 0.8863636363636364,
+      "cv": 0.02212389380530976,
+      "runtime_seconds": 0.3
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "HPFL",
+      "dp_label": "No-DP",
+      "dp_epsilon": 0,
+      "dp_enabled": false,
+      "seed": 999,
+      "accuracy": 0.6194690265486725,
+      "confusion_matrix": [
+        [
+          29,
+          41
+        ],
+        [
+          2,
+          41
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.4142857142857143,
+        "Malignant": 0.9534883720930233
+      },
+      "dei": 0.2509663763489365,
+      "min_recall": 0.4142857142857143,
+      "cv": 0.39421909157153273,
+      "runtime_seconds": 0.3
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "HPFL",
+      "dp_label": "eps=1",
+      "dp_epsilon": 1.0,
+      "dp_enabled": true,
+      "seed": 42,
+      "accuracy": 0.9203539823008849,
+      "confusion_matrix": [
+        [
+          75,
+          2
+        ],
+        [
+          7,
+          29
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.974025974025974,
+        "Malignant": 0.8055555555555556
+      },
+      "dei": 0.7292947721692908,
+      "min_recall": 0.8055555555555556,
+      "cv": 0.09466855868639772,
+      "runtime_seconds": 0.4
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "HPFL",
+      "dp_label": "eps=1",
+      "dp_epsilon": 1.0,
+      "dp_enabled": true,
+      "seed": 123,
+      "accuracy": 0.9823008849557522,
+      "confusion_matrix": [
+        [
+          70,
+          1
+        ],
+        [
+          1,
+          41
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.9859154929577465,
+        "Malignant": 0.9761904761904762
+      },
+      "dei": 0.9713520684294911,
+      "min_recall": 0.9761904761904762,
+      "cv": 0.004956417706375001,
+      "runtime_seconds": 0.3
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "HPFL",
+      "dp_label": "eps=1",
+      "dp_epsilon": 1.0,
+      "dp_enabled": true,
+      "seed": 456,
+      "accuracy": 0.9734513274336283,
+      "confusion_matrix": [
+        [
+          69,
+          3
+        ],
+        [
+          0,
+          41
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.9583333333333334,
+        "Malignant": 1.0
+      },
+      "dei": 0.9379432624113475,
+      "min_recall": 0.9583333333333334,
+      "cv": 0.02127659574468083,
+      "runtime_seconds": 0.4
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "HPFL",
+      "dp_label": "eps=1",
+      "dp_epsilon": 1.0,
+      "dp_enabled": true,
+      "seed": 789,
+      "accuracy": 0.8660714285714286,
+      "confusion_matrix": [
+        [
+          63,
+          5
+        ],
+        [
+          10,
+          34
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.9264705882352942,
+        "Malignant": 0.7727272727272727
+      },
+      "dei": 0.7028109577283456,
+      "min_recall": 0.7727272727272727,
+      "cv": 0.09047993705743512,
+      "runtime_seconds": 0.4
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "HPFL",
+      "dp_label": "eps=1",
+      "dp_epsilon": 1.0,
+      "dp_enabled": true,
+      "seed": 999,
+      "accuracy": 0.7610619469026548,
+      "confusion_matrix": [
+        [
+          67,
+          3
+        ],
+        [
+          24,
+          19
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.9571428571428572,
+        "Malignant": 0.4418604651162791
+      },
+      "dei": 0.27911394851800103,
+      "min_recall": 0.4418604651162791,
+      "cv": 0.3683210638803135,
+      "runtime_seconds": 0.4
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "HPFL",
+      "dp_label": "eps=5",
+      "dp_epsilon": 5.0,
+      "dp_enabled": true,
+      "seed": 42,
+      "accuracy": 0.911504424778761,
+      "confusion_matrix": [
+        [
+          75,
+          2
+        ],
+        [
+          8,
+          28
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.974025974025974,
+        "Malignant": 0.7777777777777778
+      },
+      "dei": 0.6906461651107451,
+      "min_recall": 0.7777777777777778,
+      "cv": 0.11202635914332783,
+      "runtime_seconds": 0.4
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "HPFL",
+      "dp_label": "eps=5",
+      "dp_epsilon": 5.0,
+      "dp_enabled": true,
+      "seed": 123,
+      "accuracy": 0.9823008849557522,
+      "confusion_matrix": [
+        [
+          70,
+          1
+        ],
+        [
+          1,
+          41
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.9859154929577465,
+        "Malignant": 0.9761904761904762
+      },
+      "dei": 0.9713520684294911,
+      "min_recall": 0.9761904761904762,
+      "cv": 0.004956417706375001,
+      "runtime_seconds": 0.4
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "HPFL",
+      "dp_label": "eps=5",
+      "dp_epsilon": 5.0,
+      "dp_enabled": true,
+      "seed": 456,
+      "accuracy": 0.9734513274336283,
+      "confusion_matrix": [
+        [
+          69,
+          3
+        ],
+        [
+          0,
+          41
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.9583333333333334,
+        "Malignant": 1.0
+      },
+      "dei": 0.9379432624113475,
+      "min_recall": 0.9583333333333334,
+      "cv": 0.02127659574468083,
+      "runtime_seconds": 0.4
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "HPFL",
+      "dp_label": "eps=5",
+      "dp_epsilon": 5.0,
+      "dp_enabled": true,
+      "seed": 789,
+      "accuracy": 0.9017857142857143,
+      "confusion_matrix": [
+        [
+          63,
+          5
+        ],
+        [
+          6,
+          38
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.9264705882352942,
+        "Malignant": 0.8636363636363636
+      },
+      "dei": 0.8333220177880372,
+      "min_recall": 0.8636363636363636,
+      "cv": 0.035100821508588516,
+      "runtime_seconds": 0.4
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "HPFL",
+      "dp_label": "eps=5",
+      "dp_epsilon": 5.0,
+      "dp_enabled": true,
+      "seed": 999,
+      "accuracy": 0.7699115044247787,
+      "confusion_matrix": [
+        [
+          67,
+          3
+        ],
+        [
+          23,
+          20
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.9571428571428572,
+        "Malignant": 0.46511627906976744
+      },
+      "dei": 0.30421060065296635,
+      "min_recall": 0.46511627906976744,
+      "cv": 0.34594720859612244,
+      "runtime_seconds": 0.3
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "HPFL",
+      "dp_label": "eps=10",
+      "dp_epsilon": 10.0,
+      "dp_enabled": true,
+      "seed": 42,
+      "accuracy": 0.8938053097345132,
+      "confusion_matrix": [
+        [
+          75,
+          2
+        ],
+        [
+          10,
+          26
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.974025974025974,
+        "Malignant": 0.7222222222222222
+      },
+      "dei": 0.6150101611607354,
+      "min_recall": 0.7222222222222222,
+      "cv": 0.1484474691620587,
+      "runtime_seconds": 0.4
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "HPFL",
+      "dp_label": "eps=10",
+      "dp_epsilon": 10.0,
+      "dp_enabled": true,
+      "seed": 123,
+      "accuracy": 0.9823008849557522,
+      "confusion_matrix": [
+        [
+          70,
+          1
+        ],
+        [
+          1,
+          41
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.9859154929577465,
+        "Malignant": 0.9761904761904762
+      },
+      "dei": 0.9713520684294911,
+      "min_recall": 0.9761904761904762,
+      "cv": 0.004956417706375001,
+      "runtime_seconds": 0.4
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "HPFL",
+      "dp_label": "eps=10",
+      "dp_epsilon": 10.0,
+      "dp_enabled": true,
+      "seed": 456,
+      "accuracy": 0.9734513274336283,
+      "confusion_matrix": [
+        [
+          69,
+          3
+        ],
+        [
+          0,
+          41
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.9583333333333334,
+        "Malignant": 1.0
+      },
+      "dei": 0.9379432624113475,
+      "min_recall": 0.9583333333333334,
+      "cv": 0.02127659574468083,
+      "runtime_seconds": 0.4
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "HPFL",
+      "dp_label": "eps=10",
+      "dp_epsilon": 10.0,
+      "dp_enabled": true,
+      "seed": 789,
+      "accuracy": 0.9107142857142857,
+      "confusion_matrix": [
+        [
+          63,
+          5
+        ],
+        [
+          5,
+          39
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.9264705882352942,
+        "Malignant": 0.8863636363636364
+      },
+      "dei": 0.866753821399839,
+      "min_recall": 0.8863636363636364,
+      "cv": 0.02212389380530976,
+      "runtime_seconds": 0.4
+    },
+    {
+      "dataset": "Breast_Cancer",
+      "algorithm": "HPFL",
+      "dp_label": "eps=10",
+      "dp_epsilon": 10.0,
+      "dp_enabled": true,
+      "seed": 999,
+      "accuracy": 0.7876106194690266,
+      "confusion_matrix": [
+        [
+          66,
+          4
+        ],
+        [
+          20,
+          23
+        ]
+      ],
+      "per_class_recall": {
+        "Benign": 0.9428571428571428,
+        "Malignant": 0.5348837209302325
+      },
+      "dei": 0.38721348502593267,
+      "min_recall": 0.5348837209302325,
+      "cv": 0.27607913669064754,
+      "runtime_seconds": 0.4
+    },
+    {
+      "dataset": "PTB_XL",
+      "algorithm": "FedAvg",
+      "dp_label": "No-DP",
+      "dp_epsilon": 0,
+      "dp_enabled": false,
+      "seed": 42,
+      "accuracy": 0.923689138576779,
+      "confusion_matrix": [
+        [
+          1816,
+          0,
+          0,
+          33,
+          0
+        ],
+        [
+          0,
+          774,
+          0,
+          46,
+          29
+        ],
+        [
+          0,
+          111,
+          776,
+          0,
+          0
+        ],
+        [
+          0,
+          85,
+          14,
+          462,
+          0
+        ],
+        [
+          0,
+          1,
+          7,
+          0,
+          118
+        ]
+      ],
+      "per_class_recall": {
+        "NORM": 0.9821525148729042,
+        "MI": 0.911660777385159,
+        "STTC": 0.874859075535513,
+        "CD": 0.8235294117647058,
+        "HYP": 0.9365079365079365
+      },
+      "dei": 0.7745104200022436,
+      "min_recall": 0.8235294117647058,
+      "cv": 0.059523061425847124,
+      "runtime_seconds": 7.4
+    },
+    {
+      "dataset": "PTB_XL",
+      "algorithm": "FedAvg",
+      "dp_label": "No-DP",
+      "dp_epsilon": 0,
+      "dp_enabled": false,
+      "seed": 123,
+      "accuracy": 0.9192415730337079,
+      "confusion_matrix": [
+        [
+          1818,
+          0,
+          1,
+          32,
+          1
+        ],
+        [
+          0,
+          652,
+          7,
+          152,
+          26
+        ],
+        [
+          0,
+          90,
+          765,
+          0,
+          0
+        ],
+        [
+          0,
+          15,
+          14,
+          549,
+          0
+        ],
+        [
+          0,
+          2,
+          5,
+          0,
+          143
+        ]
+      ],
+      "per_class_recall": {
+        "NORM": 0.9816414686825053,
+        "MI": 0.7789725209080047,
+        "STTC": 0.8947368421052632,
+        "CD": 0.9498269896193772,
+        "HYP": 0.9533333333333334
+      },
+      "dei": 0.7173797188910176,
+      "min_recall": 0.7789725209080047,
+      "cv": 0.07906928725186849,
+      "runtime_seconds": 7.4
+    },
+    {
+      "dataset": "PTB_XL",
+      "algorithm": "FedAvg",
+      "dp_label": "No-DP",
+      "dp_epsilon": 0,
+      "dp_enabled": false,
+      "seed": 456,
+      "accuracy": 0.920880149812734,
+      "confusion_matrix": [
+        [
+          1813,
+          0,
+          0,
+          34,
+          0
+        ],
+        [
+          0,
+          644,
+          0,
+          160,
+          27
+        ],
+        [
+          0,
+          89,
+          749,
+          0,
+          0
+        ],
+        [
+          0,
+          8,
+          14,
+          599,
+          0
+        ],
+        [
+          0,
+          1,
+          3,
+          2,
+          129
+        ]
+      ],
+      "per_class_recall": {
+        "NORM": 0.981591770438549,
+        "MI": 0.7749699157641395,
+        "STTC": 0.8937947494033412,
+        "CD": 0.964573268921095,
+        "HYP": 0.9555555555555556
+      },
+      "dei": 0.7108607382975393,
+      "min_recall": 0.7749699157641395,
+      "cv": 0.08272473055084603,
+      "runtime_seconds": 7.4
+    },
+    {
+      "dataset": "PTB_XL",
+      "algorithm": "FedAvg",
+      "dp_label": "No-DP",
+      "dp_epsilon": 0,
+      "dp_enabled": false,
+      "seed": 789,
+      "accuracy": 0.924625468164794,
+      "confusion_matrix": [
+        [
+          1864,
+          0,
+          0,
+          27,
+          0
+        ],
+        [
+          0,
+          718,
+          0,
+          140,
+          23
+        ],
+        [
+          0,
+          95,
+          683,
+          0,
+          0
+        ],
+        [
+          0,
+          17,
+          14,
+          548,
+          0
+        ],
+        [
+          0,
+          1,
+          5,
+          0,
+          137
+        ]
+      ],
+      "per_class_recall": {
+        "NORM": 0.9857218402961396,
+        "MI": 0.8149829738933031,
+        "STTC": 0.877892030848329,
+        "CD": 0.9464594127806563,
+        "HYP": 0.958041958041958
+      },
+      "dei": 0.7598703195161648,
+      "min_recall": 0.8149829738933031,
+      "cv": 0.0676243015407505,
+      "runtime_seconds": 7.4
+    },
+    {
+      "dataset": "PTB_XL",
+      "algorithm": "FedAvg",
+      "dp_label": "No-DP",
+      "dp_epsilon": 0,
+      "dp_enabled": false,
+      "seed": 999,
+      "accuracy": 0.9171348314606742,
+      "confusion_matrix": [
+        [
+          1792,
+          0,
+          0,
+          37,
+          0
+        ],
+        [
+          0,
+          727,
+          0,
+          57,
+          35
+        ],
+        [
+          0,
+          109,
+          744,
+          0,
+          0
+        ],
+        [
+          0,
+          95,
+          14,
+          518,
+          0
+        ],
+        [
+          0,
+          2,
+          5,
+          0,
+          137
+        ]
+      ],
+      "per_class_recall": {
+        "NORM": 0.9797703663203936,
+        "MI": 0.8876678876678876,
+        "STTC": 0.8722157092614302,
+        "CD": 0.8261562998405104,
+        "HYP": 0.9513888888888888
+      },
+      "dei": 0.775534871716486,
+      "min_recall": 0.8261562998405104,
+      "cv": 0.061273427478307586,
+      "runtime_seconds": 7.4
+    },
+    {
+      "dataset": "PTB_XL",
+      "algorithm": "FedAvg",
+      "dp_label": "eps=1",
+      "dp_epsilon": 1.0,
+      "dp_enabled": true,
+      "seed": 42,
+      "accuracy": 0.6633895131086143,
+      "confusion_matrix": [
+        [
+          1833,
+          0,
+          1,
+          14,
+          1
+        ],
+        [
+          502,
+          30,
+          260,
+          57,
+          0
+        ],
+        [
+          105,
+          110,
+          664,
+          7,
+          1
+        ],
+        [
+          215,
+          6,
+          17,
+          307,
+          16
+        ],
+        [
+          78,
+          45,
+          3,
+          0,
+          0
+        ]
+      ],
+      "per_class_recall": {
+        "NORM": 0.9913466738777718,
+        "MI": 0.0353356890459364,
+        "STTC": 0.7485907553551296,
+        "CD": 0.5472370766488414,
+        "HYP": 0.0
+      },
+      "dei": 0.0,
+      "min_recall": 0.0,
+      "cv": 1.0,
+      "runtime_seconds": 8.9
+    },
+    {
+      "dataset": "PTB_XL",
+      "algorithm": "FedAvg",
+      "dp_label": "eps=1",
+      "dp_epsilon": 1.0,
+      "dp_enabled": true,
+      "seed": 123,
+      "accuracy": 0.7855805243445693,
+      "confusion_matrix": [
+        [
+          1777,
+          0,
+          48,
+          7,
+          20
+        ],
+        [
+          12,
+          649,
+          174,
+          0,
+          2
+        ],
+        [
+          3,
+          0,
+          850,
+          0,
+          2
+        ],
+        [
+          21,
+          466,
+          33,
+          29,
+          29
+        ],
+        [
+          61,
+          13,
+          25,
+          0,
+          51
+        ]
+      ],
+      "per_class_recall": {
+        "NORM": 0.9595032397408207,
+        "MI": 0.7753882915173238,
+        "STTC": 0.9941520467836257,
+        "CD": 0.050173010380622836,
+        "HYP": 0.34
+      },
+      "dei": 0.020460617795905904,
+      "min_recall": 0.050173010380622836,
+      "cv": 0.5921987211712547,
+      "runtime_seconds": 8.8
+    },
+    {
+      "dataset": "PTB_XL",
+      "algorithm": "FedAvg",
+      "dp_label": "eps=1",
+      "dp_epsilon": 1.0,
+      "dp_enabled": true,
+      "seed": 456,
+      "accuracy": 0.7125468164794008,
+      "confusion_matrix": [
+        [
+          1823,
+          1,
+          0,
+          23,
+          0
+        ],
+        [
+          0,
+          829,
+          2,
+          0,
+          0
+        ],
+        [
+          17,
+          257,
+          101,
+          324,
+          139
+        ],
+        [
+          25,
+          301,
+          3,
+          290,
+          2
+        ],
+        [
+          1,
+          66,
+          0,
+          67,
+          1
+        ]
+      ],
+      "per_class_recall": {
+        "NORM": 0.9870059556036817,
+        "MI": 0.9975932611311673,
+        "STTC": 0.12052505966587113,
+        "CD": 0.4669887278582931,
+        "HYP": 0.007407407407407408
+      },
+      "dei": 0.001413872207911515,
+      "min_recall": 0.007407407407407408,
+      "cv": 0.8091272519319455,
+      "runtime_seconds": 8.8
+    },
+    {
+      "dataset": "PTB_XL",
+      "algorithm": "FedAvg",
+      "dp_label": "eps=1",
+      "dp_epsilon": 1.0,
+      "dp_enabled": true,
+      "seed": 789,
+      "accuracy": 0.7776217228464419,
+      "confusion_matrix": [
+        [
+          1721,
+          2,
+          0,
+          0,
+          168
+        ],
+        [
+          0,
+          564,
+          0,
+          157,
+          160
+        ],
+        [
+          0,
+          78,
+          624,
+          73,
+          3
+        ],
+        [
+          50,
+          31,
+          136,
+          354,
+          8
+        ],
+        [
+          5,
+          3,
+          73,
+          3,
+          59
+        ]
+      ],
+      "per_class_recall": {
+        "NORM": 0.9101004759386568,
+        "MI": 0.6401816118047673,
+        "STTC": 0.8020565552699229,
+        "CD": 0.6113989637305699,
+        "HYP": 0.4125874125874126
+      },
+      "dei": 0.3083466659437086,
+      "min_recall": 0.4125874125874126,
+      "cv": 0.2526513011872827,
+      "runtime_seconds": 8.8
+    },
+    {
+      "dataset": "PTB_XL",
+      "algorithm": "FedAvg",
+      "dp_label": "eps=1",
+      "dp_epsilon": 1.0,
+      "dp_enabled": true,
+      "seed": 999,
+      "accuracy": 0.7389981273408239,
+      "confusion_matrix": [
+        [
+          1788,
+          0,
+          1,
+          32,
+          8
+        ],
+        [
+          0,
+          272,
+          272,
+          0,
+          275
+        ],
+        [
+          0,
+          16,
+          813,
+          0,
+          24
+        ],
+        [
+          211,
+          34,
+          15,
+          192,
+          175
+        ],
+        [
+          19,
+          10,
+          23,
+          0,
+          92
+        ]
+      ],
+      "per_class_recall": {
+        "NORM": 0.9775833788955713,
+        "MI": 0.3321123321123321,
+        "STTC": 0.9531066822977726,
+        "CD": 0.3062200956937799,
+        "HYP": 0.6388888888888888
+      },
+      "dei": 0.1681868780838098,
+      "min_recall": 0.3062200956937799,
+      "cv": 0.4507647262575586,
+      "runtime_seconds": 8.8
+    },
+    {
+      "dataset": "PTB_XL",
+      "algorithm": "FedAvg",
+      "dp_label": "eps=5",
+      "dp_epsilon": 5.0,
+      "dp_enabled": true,
+      "seed": 42,
+      "accuracy": 0.9166666666666666,
+      "confusion_matrix": [
+        [
+          1848,
+          0,
+          0,
+          0,
+          1
+        ],
+        [
+          0,
+          823,
+          0,
+          26,
+          0
+        ],
+        [
+          0,
+          111,
+          753,
+          23,
+          0
+        ],
+        [
+          53,
+          110,
+          12,
+          386,
+          0
+        ],
+        [
+          0,
+          13,
+          7,
+          0,
+          106
+        ]
+      ],
+      "per_class_recall": {
+        "NORM": 0.9994591671173607,
+        "MI": 0.9693757361601885,
+        "STTC": 0.8489289740698985,
+        "CD": 0.6880570409982175,
+        "HYP": 0.8412698412698413
+      },
+      "dei": 0.6006396943064046,
+      "min_recall": 0.6880570409982175,
+      "cv": 0.12704956345623591,
+      "runtime_seconds": 8.8
+    },
+    {
+      "dataset": "PTB_XL",
+      "algorithm": "FedAvg",
+      "dp_label": "eps=5",
+      "dp_epsilon": 5.0,
+      "dp_enabled": true,
+      "seed": 123,
+      "accuracy": 0.8623595505617978,
+      "confusion_matrix": [
+        [
+          1814,
+          2,
+          22,
+          11,
+          3
+        ],
+        [
+          0,
+          694,
+          119,
+          0,
+          24
+        ],
+        [
+          0,
+          10,
+          845,
+          0,
+          0
+        ],
+        [
+          0,
+          139,
+          238,
+          197,
+          4
+        ],
+        [
+          0,
+          10,
+          6,
+          0,
+          134
+        ]
+      ],
+      "per_class_recall": {
+        "NORM": 0.9794816414686826,
+        "MI": 0.8291517323775388,
+        "STTC": 0.9883040935672515,
+        "CD": 0.3408304498269896,
+        "HYP": 0.8933333333333333
+      },
+      "dei": 0.23939200151713488,
+      "min_recall": 0.3408304498269896,
+      "cv": 0.2976214371730764,
+      "runtime_seconds": 8.8
+    },
+    {
+      "dataset": "PTB_XL",
+      "algorithm": "FedAvg",
+      "dp_label": "eps=5",
+      "dp_epsilon": 5.0,
+      "dp_enabled": true,
+      "seed": 456,
+      "accuracy": 0.841058052434457,
+      "confusion_matrix": [
+        [
+          1812,
+          3,
+          0,
+          32,
+          0
+        ],
+        [
+          0,
+          828,
+          3,
+          0,
+          0
+        ],
+        [
+          0,
+          125,
+          712,
+          1,
+          0
+        ],
+        [
+          0,
+          467,
+          10,
+          141,
+          3
+        ],
+        [
+          0,
+          31,
+          3,
+          1,
+          100
+        ]
+      ],
+      "per_class_recall": {
+        "NORM": 0.9810503519220357,
+        "MI": 0.9963898916967509,
+        "STTC": 0.8496420047732697,
+        "CD": 0.22705314009661837,
+        "HYP": 0.7407407407407407
+      },
+      "dei": 0.1427377140657459,
+      "min_recall": 0.22705314009661837,
+      "cv": 0.3713466635827786,
+      "runtime_seconds": 8.8
+    },
+    {
+      "dataset": "PTB_XL",
+      "algorithm": "FedAvg",
+      "dp_label": "eps=5",
+      "dp_epsilon": 5.0,
+      "dp_enabled": true,
+      "seed": 789,
+      "accuracy": 0.9267322097378277,
+      "confusion_matrix": [
+        [
+          1887,
+          0,
+          0,
+          0,
+          4
+        ],
+        [
+          0,
+          847,
+          25,
+          0,
+          9
+        ],
+        [
+          0,
+          80,
+          697,
+          0,
+          1
+        ],
+        [
+          46,
+          118,
+          14,
+          399,
+          2
+        ],
+        [
+          0,
+          8,
+          6,
+          0,
+          129
+        ]
+      ],
+      "per_class_recall": {
+        "NORM": 0.9978847170809095,
+        "MI": 0.9614074914869466,
+        "STTC": 0.8958868894601543,
+        "CD": 0.689119170984456,
+        "HYP": 0.9020979020979021
+      },
+      "dei": 0.6061850002694472,
+      "min_recall": 0.689119170984456,
+      "cv": 0.12034808231576456,
+      "runtime_seconds": 8.8
+    },
+    {
+      "dataset": "PTB_XL",
+      "algorithm": "FedAvg",
+      "dp_label": "eps=5",
+      "dp_epsilon": 5.0,
+      "dp_enabled": true,
+      "seed": 999,
+      "accuracy": 0.9068352059925093,
+      "confusion_matrix": [
+        [
+          1791,
+          0,
+          0,
+          37,
+          1
+        ],
+        [
+          13,
+          776,
+          1,
+          1,
+          28
+        ],
+        [
+          0,
+          129,
+          723,
+          0,
+          1
+        ],
+        [
+          24,
+          132,
+          14,
+          457,
+          0
+        ],
+        [
+          1,
+          11,
+          5,
+          0,
+          127
+        ]
+      ],
+      "per_class_recall": {
+        "NORM": 0.9792236194641881,
+        "MI": 0.9474969474969475,
+        "STTC": 0.8475967174677609,
+        "CD": 0.7288676236044657,
+        "HYP": 0.8819444444444444
+      },
+      "dei": 0.6561773096730229,
+      "min_recall": 0.7288676236044657,
+      "cv": 0.09973047447486799,
+      "runtime_seconds": 8.8
+    },
+    {
+      "dataset": "PTB_XL",
+      "algorithm": "FedAvg",
+      "dp_label": "eps=10",
+      "dp_epsilon": 10.0,
+      "dp_enabled": true,
+      "seed": 42,
+      "accuracy": 0.9239232209737828,
+      "confusion_matrix": [
+        [
+          1816,
+          0,
+          0,
+          32,
+          1
+        ],
+        [
+          0,
+          816,
+          4,
+          4,
+          25
+        ],
+        [
+          0,
+          110,
+          775,
+          2,
+          0
+        ],
+        [
+          0,
+          122,
+          13,
+          426,
+          0
+        ],
+        [
+          0,
+          5,
+          7,
+          0,
+          114
+        ]
+      ],
+      "per_class_recall": {
+        "NORM": 0.9821525148729042,
+        "MI": 0.9611307420494699,
+        "STTC": 0.8737316798196166,
+        "CD": 0.7593582887700535,
+        "HYP": 0.9047619047619048
+      },
+      "dei": 0.6927426084621323,
+      "min_recall": 0.7593582887700535,
+      "cv": 0.08772628322240325,
+      "runtime_seconds": 9.0
+    },
+    {
+      "dataset": "PTB_XL",
+      "algorithm": "FedAvg",
+      "dp_label": "eps=10",
+      "dp_epsilon": 10.0,
+      "dp_enabled": true,
+      "seed": 123,
+      "accuracy": 0.923689138576779,
+      "confusion_matrix": [
+        [
+          1816,
+          0,
+          1,
+          32,
+          3
+        ],
+        [
+          0,
+          788,
+          24,
+          12,
+          13
+        ],
+        [
+          0,
+          80,
+          775,
+          0,
+          0
+        ],
+        [
+          0,
+          129,
+          16,
+          433,
+          0
+        ],
+        [
+          0,
+          11,
+          5,
+          0,
+          134
+        ]
+      ],
+      "per_class_recall": {
+        "NORM": 0.980561555075594,
+        "MI": 0.9414575866188769,
+        "STTC": 0.9064327485380117,
+        "CD": 0.7491349480968859,
+        "HYP": 0.8933333333333333
+      },
+      "dei": 0.68328916420616,
+      "min_recall": 0.7491349480968859,
+      "cv": 0.08789575771094568,
+      "runtime_seconds": 8.8
+    },
+    {
+      "dataset": "PTB_XL",
+      "algorithm": "FedAvg",
+      "dp_label": "eps=10",
+      "dp_epsilon": 10.0,
+      "dp_enabled": true,
+      "seed": 456,
+      "accuracy": 0.9269662921348315,
+      "confusion_matrix": [
+        [
+          1827,
+          2,
+          0,
+          17,
+          1
+        ],
+        [
+          0,
+          814,
+          15,
+          0,
+          2
+        ],
+        [
+          0,
+          86,
+          752,
+          0,
+          0
+        ],
+        [
+          34,
+          123,
+          14,
+          450,
+          0
+        ],
+        [
+          0,
+          14,
+          3,
+          1,
+          117
+        ]
+      ],
+      "per_class_recall": {
+        "NORM": 0.9891716296697347,
+        "MI": 0.9795427196149218,
+        "STTC": 0.8973747016706444,
+        "CD": 0.7246376811594203,
+        "HYP": 0.8666666666666667
+      },
+      "dei": 0.6468539168629838,
+      "min_recall": 0.7246376811594203,
+      "cv": 0.10734159472908246,
+      "runtime_seconds": 8.8
+    },
+    {
+      "dataset": "PTB_XL",
+      "algorithm": "FedAvg",
+      "dp_label": "eps=10",
+      "dp_epsilon": 10.0,
+      "dp_enabled": true,
+      "seed": 789,
+      "accuracy": 0.9339887640449438,
+      "confusion_matrix": [
+        [
+          1861,
+          0,
+          0,
+          27,
+          3
+        ],
+        [
+          0,
+          859,
+          10,
+          0,
+          12
+        ],
+        [
+          0,
+          84,
+          694,
+          0,
+          0
+        ],
+        [
+          2,
+          118,
+          14,
+          445,
+          0
+        ],
+        [
+          0,
+          7,
+          5,
+          0,
+          131
+        ]
+      ],
+      "per_class_recall": {
+        "NORM": 0.9841353781068218,
+        "MI": 0.9750283768444948,
+        "STTC": 0.8920308483290489,
+        "CD": 0.768566493955095,
+        "HYP": 0.916083916083916
+      },
+      "dei": 0.7028890688347907,
+      "min_recall": 0.768566493955095,
+      "cv": 0.08545444751608128,
+      "runtime_seconds": 8.8
+    },
+    {
+      "dataset": "PTB_XL",
+      "algorithm": "FedAvg",
+      "dp_label": "eps=10",
+      "dp_epsilon": 10.0,
+      "dp_enabled": true,
+      "seed": 999,
+      "accuracy": 0.9166666666666666,
+      "confusion_matrix": [
+        [
+          1791,
+          0,
+          0,
+          37,
+          1
+        ],
+        [
+          0,
+          727,
+          4,
+          64,
+          24
+        ],
+        [
+          0,
+          104,
+          749,
+          0,
+          0
+        ],
+        [
+          0,
+          95,
+          14,
+          518,
+          0
+        ],
+        [
+          0,
+          7,
+          5,
+          1,
+          131
+        ]
+      ],
+      "per_class_recall": {
+        "NORM": 0.9792236194641881,
+        "MI": 0.8876678876678876,
+        "STTC": 0.8780773739742087,
+        "CD": 0.8261562998405104,
+        "HYP": 0.9097222222222222
+      },
+      "dei": 0.7802785618522989,
+      "min_recall": 0.8261562998405104,
+      "cv": 0.05553154771932155,
+      "runtime_seconds": 8.8
+    },
+    {
+      "dataset": "PTB_XL",
+      "algorithm": "HPFL",
+      "dp_label": "No-DP",
+      "dp_epsilon": 0,
+      "dp_enabled": false,
+      "seed": 42,
+      "accuracy": 0.9248595505617978,
+      "confusion_matrix": [
+        [
+          1815,
+          0,
+          0,
+          33,
+          1
+        ],
+        [
+          0,
+          725,
+          18,
+          77,
+          29
+        ],
+        [
+          0,
+          83,
+          804,
+          0,
+          0
+        ],
+        [
+          0,
+          58,
+          14,
+          489,
+          0
+        ],
+        [
+          0,
+          1,
+          7,
+          0,
+          118
+        ]
+      ],
+      "per_class_recall": {
+        "NORM": 0.981611681990265,
+        "MI": 0.8539458186101295,
+        "STTC": 0.9064261555806088,
+        "CD": 0.8716577540106952,
+        "HYP": 0.9365079365079365
+      },
+      "dei": 0.8110347066536974,
+      "min_recall": 0.8539458186101295,
+      "cv": 0.050250391794497765,
+      "runtime_seconds": 7.4
+    },
+    {
+      "dataset": "PTB_XL",
+      "algorithm": "HPFL",
+      "dp_label": "No-DP",
+      "dp_epsilon": 0,
+      "dp_enabled": false,
+      "seed": 123,
+      "accuracy": 0.9229868913857678,
+      "confusion_matrix": [
+        [
+          1817,
+          0,
+          0,
+          33,
+          2
+        ],
+        [
+          0,
+          653,
+          21,
+          137,
+          26
+        ],
+        [
+          0,
+          67,
+          788,
+          0,
+          0
+        ],
+        [
+          0,
+          22,
+          14,
+          542,
+          0
+        ],
+        [
+          0,
+          2,
+          5,
+          0,
+          143
+        ]
+      ],
+      "per_class_recall": {
+        "NORM": 0.9811015118790497,
+        "MI": 0.7801672640382318,
+        "STTC": 0.9216374269005848,
+        "CD": 0.9377162629757786,
+        "HYP": 0.9533333333333334
+      },
+      "dei": 0.7203730422754275,
+      "min_recall": 0.7801672640382318,
+      "cv": 0.07664282330086859,
+      "runtime_seconds": 7.3
+    },
+    {
+      "dataset": "PTB_XL",
+      "algorithm": "HPFL",
+      "dp_label": "No-DP",
+      "dp_epsilon": 0,
+      "dp_enabled": false,
+      "seed": 456,
+      "accuracy": 0.9253277153558053,
+      "confusion_matrix": [
+        [
+          1812,
+          0,
+          0,
+          35,
+          0
+        ],
+        [
+          0,
+          670,
+          27,
+          107,
+          27
+        ],
+        [
+          0,
+          63,
+          775,
+          0,
+          0
+        ],
+        [
+          0,
+          40,
+          14,
+          567,
+          0
+        ],
+        [
+          0,
+          1,
+          4,
+          1,
+          129
+        ]
+      ],
+      "per_class_recall": {
+        "NORM": 0.9810503519220357,
+        "MI": 0.8062575210589651,
+        "STTC": 0.9248210023866349,
+        "CD": 0.9130434782608695,
+        "HYP": 0.9555555555555556
+      },
+      "dei": 0.7535628677483146,
+      "min_recall": 0.8062575210589651,
+      "cv": 0.06535709985246356,
+      "runtime_seconds": 7.3
+    },
+    {
+      "dataset": "PTB_XL",
+      "algorithm": "HPFL",
+      "dp_label": "No-DP",
+      "dp_epsilon": 0,
+      "dp_enabled": false,
+      "seed": 789,
+      "accuracy": 0.9276685393258427,
+      "confusion_matrix": [
+        [
+          1863,
+          0,
+          0,
+          27,
+          1
+        ],
+        [
+          0,
+          738,
+          30,
+          90,
+          23
+        ],
+        [
+          0,
+          72,
+          706,
+          0,
+          0
+        ],
+        [
+          0,
+          45,
+          14,
+          520,
+          0
+        ],
+        [
+          0,
+          2,
+          5,
+          0,
+          136
+        ]
+      ],
+      "per_class_recall": {
+        "NORM": 0.985193019566367,
+        "MI": 0.8376844494892168,
+        "STTC": 0.9074550128534704,
+        "CD": 0.8981001727115717,
+        "HYP": 0.951048951048951
+      },
+      "dei": 0.7918759250066498,
+      "min_recall": 0.8376844494892168,
+      "cv": 0.05468470199070663,
+      "runtime_seconds": 7.3
+    },
+    {
+      "dataset": "PTB_XL",
+      "algorithm": "HPFL",
+      "dp_label": "No-DP",
+      "dp_epsilon": 0,
+      "dp_enabled": false,
+      "seed": 999,
+      "accuracy": 0.9199438202247191,
+      "confusion_matrix": [
+        [
+          1792,
+          0,
+          0,
+          37,
+          0
+        ],
+        [
+          0,
+          688,
+          16,
+          80,
+          35
+        ],
+        [
+          0,
+          93,
+          760,
+          0,
+          0
+        ],
+        [
+          0,
+          60,
+          14,
+          553,
+          0
+        ],
+        [
+          0,
+          2,
+          5,
+          0,
+          137
+        ]
+      ],
+      "per_class_recall": {
+        "NORM": 0.9797703663203936,
+        "MI": 0.8400488400488401,
+        "STTC": 0.8909730363423212,
+        "CD": 0.8819776714513556,
+        "HYP": 0.9513888888888888
+      },
+      "dei": 0.7936216805658745,
+      "min_recall": 0.8400488400488401,
+      "cv": 0.055267214558937294,
+      "runtime_seconds": 7.3
+    },
+    {
+      "dataset": "PTB_XL",
+      "algorithm": "HPFL",
+      "dp_label": "eps=1",
+      "dp_epsilon": 1.0,
+      "dp_enabled": true,
+      "seed": 42,
+      "accuracy": 0.6582397003745318,
+      "confusion_matrix": [
+        [
+          923,
+          419,
+          463,
+          44,
+          0
+        ],
+        [
+          0,
+          657,
+          110,
+          73,
+          9
+        ],
+        [
+          0,
+          24,
+          857,
+          2,
+          4
+        ],
+        [
+          6,
+          53,
+          156,
+          333,
+          13
+        ],
+        [
+          0,
+          11,
+          73,
+          0,
+          42
+        ]
+      ],
+      "per_class_recall": {
+        "NORM": 0.4991887506760411,
+        "MI": 0.773851590106007,
+        "STTC": 0.9661781285231116,
+        "CD": 0.5935828877005348,
+        "HYP": 0.3333333333333333
+      },
+      "dei": 0.21797851737022347,
+      "min_recall": 0.3333333333333333,
+      "cv": 0.3460644478893296,
+      "runtime_seconds": 8.8
+    },
+    {
+      "dataset": "PTB_XL",
+      "algorithm": "HPFL",
+      "dp_label": "eps=1",
+      "dp_epsilon": 1.0,
+      "dp_enabled": true,
+      "seed": 123,
+      "accuracy": 0.8314606741573034,
+      "confusion_matrix": [
+        [
+          1833,
+          1,
+          1,
+          16,
+          1
+        ],
+        [
+          0,
+          638,
+          77,
+          57,
+          65
+        ],
+        [
+          0,
+          5,
+          664,
+          14,
+          172
+        ],
+        [
+          14,
+          147,
+          15,
+          269,
+          133
+        ],
+        [
+          0,
+          0,
+          2,
+          0,
+          148
+        ]
+      ],
+      "per_class_recall": {
+        "NORM": 0.9897408207343412,
+        "MI": 0.7622461170848268,
+        "STTC": 0.776608187134503,
+        "CD": 0.46539792387543255,
+        "HYP": 0.9866666666666667
+      },
+      "dei": 0.35304340685132257,
+      "min_recall": 0.46539792387543255,
+      "cv": 0.2414160254272698,
+      "runtime_seconds": 8.8
+    },
+    {
+      "dataset": "PTB_XL",
+      "algorithm": "HPFL",
+      "dp_label": "eps=1",
+      "dp_epsilon": 1.0,
+      "dp_enabled": true,
+      "seed": 456,
+      "accuracy": 0.827247191011236,
+      "confusion_matrix": [
+        [
+          1824,
+          0,
+          0,
+          21,
+          2
+        ],
+        [
+          0,
+          679,
+          6,
+          110,
+          36
+        ],
+        [
+          3,
+          119,
+          563,
+          149,
+          4
+        ],
+        [
+          29,
+          63,
+          4,
+          460,
+          65
+        ],
+        [
+          0,
+          42,
+          0,
+          85,
+          8
+        ]
+      ],
+      "per_class_recall": {
+        "NORM": 0.9875473741201949,
+        "MI": 0.8170878459687124,
+        "STTC": 0.6718377088305489,
+        "CD": 0.7407407407407407,
+        "HYP": 0.05925925925925926
+      },
+      "dei": 0.030679426010259102,
+      "min_recall": 0.05925925925925926,
+      "cv": 0.48228468607687774,
+      "runtime_seconds": 8.8
+    },
+    {
+      "dataset": "PTB_XL",
+      "algorithm": "HPFL",
+      "dp_label": "eps=1",
+      "dp_epsilon": 1.0,
+      "dp_enabled": true,
+      "seed": 789,
+      "accuracy": 0.8773408239700374,
+      "confusion_matrix": [
+        [
+          1861,
+          1,
+          0,
+          28,
+          1
+        ],
+        [
+          0,
+          750,
+          53,
+          74,
+          4
+        ],
+        [
+          0,
+          156,
+          605,
+          10,
+          7
+        ],
+        [
+          0,
+          109,
+          9,
+          438,
+          23
+        ],
+        [
+          0,
+          24,
+          5,
+          20,
+          94
+        ]
+      ],
+      "per_class_recall": {
+        "NORM": 0.9841353781068218,
+        "MI": 0.8513053348467651,
+        "STTC": 0.7776349614395887,
+        "CD": 0.7564766839378239,
+        "HYP": 0.6573426573426573
+      },
+      "dei": 0.5685773029132857,
+      "min_recall": 0.6573426573426573,
+      "cv": 0.13503665620638453,
+      "runtime_seconds": 8.8
+    },
+    {
+      "dataset": "PTB_XL",
+      "algorithm": "HPFL",
+      "dp_label": "eps=1",
+      "dp_epsilon": 1.0,
+      "dp_enabled": true,
+      "seed": 999,
+      "accuracy": 0.6690074906367042,
+      "confusion_matrix": [
+        [
+          1301,
+          112,
+          1,
+          415,
+          0
+        ],
+        [
+          0,
+          767,
+          1,
+          51,
+          0
+        ],
+        [
+          0,
+          572,
+          271,
+          4,
+          6
+        ],
+        [
+          5,
+          196,
+          3,
+          422,
+          1
+        ],
+        [
+          0,
+          23,
+          0,
+          24,
+          97
+        ]
+      ],
+      "per_class_recall": {
+        "NORM": 0.7113176599234554,
+        "MI": 0.9365079365079365,
+        "STTC": 0.31770222743259086,
+        "CD": 0.6730462519936204,
+        "HYP": 0.6736111111111112
+      },
+      "dei": 0.2226057611906898,
+      "min_recall": 0.31770222743259086,
+      "cv": 0.29932577750679557,
+      "runtime_seconds": 8.8
+    },
+    {
+      "dataset": "PTB_XL",
+      "algorithm": "HPFL",
+      "dp_label": "eps=5",
+      "dp_epsilon": 5.0,
+      "dp_enabled": true,
+      "seed": 42,
+      "accuracy": 0.9199438202247191,
+      "confusion_matrix": [
+        [
+          1815,
+          1,
+          0,
+          33,
+          0
+        ],
+        [
+          0,
+          811,
+          10,
+          7,
+          21
+        ],
+        [
+          0,
+          106,
+          781,
+          0,
+          0
+        ],
+        [
+          0,
+          122,
+          14,
+          412,
+          13
+        ],
+        [
+          0,
+          8,
+          7,
+          0,
+          111
+        ]
+      ],
+      "per_class_recall": {
+        "NORM": 0.981611681990265,
+        "MI": 0.9552414605418139,
+        "STTC": 0.8804960541149943,
+        "CD": 0.7344028520499108,
+        "HYP": 0.8809523809523809
+      },
+      "dei": 0.6631689186565438,
+      "min_recall": 0.7344028520499108,
+      "cv": 0.0969957199846575,
+      "runtime_seconds": 8.9
+    },
+    {
+      "dataset": "PTB_XL",
+      "algorithm": "HPFL",
+      "dp_label": "eps=5",
+      "dp_epsilon": 5.0,
+      "dp_enabled": true,
+      "seed": 123,
+      "accuracy": 0.9143258426966292,
+      "confusion_matrix": [
+        [
+          1815,
+          0,
+          0,
+          33,
+          4
+        ],
+        [
+          0,
+          728,
+          52,
+          36,
+          21
+        ],
+        [
+          0,
+          56,
+          772,
+          27,
+          0
+        ],
+        [
+          0,
+          114,
+          10,
+          454,
+          0
+        ],
+        [
+          0,
+          8,
+          5,
+          0,
+          137
+        ]
+      ],
+      "per_class_recall": {
+        "NORM": 0.9800215982721382,
+        "MI": 0.8697729988052568,
+        "STTC": 0.9029239766081871,
+        "CD": 0.7854671280276817,
+        "HYP": 0.9133333333333333
+      },
+      "dei": 0.7294585258546331,
+      "min_recall": 0.7854671280276817,
+      "cv": 0.07130610585026899,
+      "runtime_seconds": 8.8
+    },
+    {
+      "dataset": "PTB_XL",
+      "algorithm": "HPFL",
+      "dp_label": "eps=5",
+      "dp_epsilon": 5.0,
+      "dp_enabled": true,
+      "seed": 456,
+      "accuracy": 0.927434456928839,
+      "confusion_matrix": [
+        [
+          1830,
+          1,
+          0,
+          14,
+          2
+        ],
+        [
+          0,
+          783,
+          7,
+          41,
+          0
+        ],
+        [
+          0,
+          81,
+          756,
+          1,
+          0
+        ],
+        [
+          45,
+          75,
+          16,
+          485,
+          0
+        ],
+        [
+          0,
+          23,
+          3,
+          1,
+          108
+        ]
+      ],
+      "per_class_recall": {
+        "NORM": 0.9907958852192745,
+        "MI": 0.9422382671480144,
+        "STTC": 0.9021479713603818,
+        "CD": 0.7809983896940419,
+        "HYP": 0.8
+      },
+      "dei": 0.7093920926592178,
+      "min_recall": 0.7809983896940419,
+      "cv": 0.09168558857448612,
+      "runtime_seconds": 8.8
+    },
+    {
+      "dataset": "PTB_XL",
+      "algorithm": "HPFL",
+      "dp_label": "eps=5",
+      "dp_epsilon": 5.0,
+      "dp_enabled": true,
+      "seed": 789,
+      "accuracy": 0.9300093632958801,
+      "confusion_matrix": [
+        [
+          1861,
+          1,
+          0,
+          28,
+          1
+        ],
+        [
+          0,
+          794,
+          20,
+          67,
+          0
+        ],
+        [
+          0,
+          78,
+          700,
+          0,
+          0
+        ],
+        [
+          3,
+          65,
+          14,
+          495,
+          2
+        ],
+        [
+          0,
+          15,
+          5,
+          0,
+          123
+        ]
+      ],
+      "per_class_recall": {
+        "NORM": 0.9841353781068218,
+        "MI": 0.9012485811577753,
+        "STTC": 0.8997429305912596,
+        "CD": 0.8549222797927462,
+        "HYP": 0.8601398601398601
+      },
+      "dei": 0.8109785058897612,
+      "min_recall": 0.8549222797927462,
+      "cv": 0.05140089917137037,
+      "runtime_seconds": 8.8
+    },
+    {
+      "dataset": "PTB_XL",
+      "algorithm": "HPFL",
+      "dp_label": "eps=5",
+      "dp_epsilon": 5.0,
+      "dp_enabled": true,
+      "seed": 999,
+      "accuracy": 0.9068352059925093,
+      "confusion_matrix": [
+        [
+          1791,
+          0,
+          0,
+          37,
+          1
+        ],
+        [
+          0,
+          732,
+          0,
+          87,
+          0
+        ],
+        [
+          0,
+          146,
+          664,
+          26,
+          17
+        ],
+        [
+          0,
+          56,
+          9,
+          562,
+          0
+        ],
+        [
+          0,
+          14,
+          5,
+          0,
+          125
+        ]
+      ],
+      "per_class_recall": {
+        "NORM": 0.9792236194641881,
+        "MI": 0.8937728937728938,
+        "STTC": 0.7784290738569754,
+        "CD": 0.8963317384370016,
+        "HYP": 0.8680555555555556
+      },
+      "dei": 0.721701457684783,
+      "min_recall": 0.7784290738569754,
+      "cv": 0.07287448282361463,
+      "runtime_seconds": 8.8
+    },
+    {
+      "dataset": "PTB_XL",
+      "algorithm": "HPFL",
+      "dp_label": "eps=10",
+      "dp_epsilon": 10.0,
+      "dp_enabled": true,
+      "seed": 42,
+      "accuracy": 0.9192415730337079,
+      "confusion_matrix": [
+        [
+          1816,
+          0,
+          0,
+          32,
+          1
+        ],
+        [
+          0,
+          694,
+          11,
+          115,
+          29
+        ],
+        [
+          0,
+          103,
+          781,
+          0,
+          3
+        ],
+        [
+          0,
+          27,
+          16,
+          518,
+          0
+        ],
+        [
+          0,
+          1,
+          7,
+          0,
+          118
+        ]
+      ],
+      "per_class_recall": {
+        "NORM": 0.9821525148729042,
+        "MI": 0.817432273262662,
+        "STTC": 0.8804960541149943,
+        "CD": 0.9233511586452763,
+        "HYP": 0.9365079365079365
+      },
+      "dei": 0.7672978918675692,
+      "min_recall": 0.817432273262662,
+      "cv": 0.06133154150494765,
+      "runtime_seconds": 8.8
+    },
+    {
+      "dataset": "PTB_XL",
+      "algorithm": "HPFL",
+      "dp_label": "eps=10",
+      "dp_epsilon": 10.0,
+      "dp_enabled": true,
+      "seed": 123,
+      "accuracy": 0.9201779026217228,
+      "confusion_matrix": [
+        [
+          1816,
+          0,
+          0,
+          32,
+          4
+        ],
+        [
+          0,
+          649,
+          72,
+          95,
+          21
+        ],
+        [
+          0,
+          40,
+          815,
+          0,
+          0
+        ],
+        [
+          2,
+          52,
+          15,
+          509,
+          0
+        ],
+        [
+          0,
+          3,
+          5,
+          0,
+          142
+        ]
+      ],
+      "per_class_recall": {
+        "NORM": 0.980561555075594,
+        "MI": 0.7753882915173238,
+        "STTC": 0.9532163742690059,
+        "CD": 0.8806228373702422,
+        "HYP": 0.9466666666666667
+      },
+      "dei": 0.7124269656393046,
+      "min_recall": 0.7753882915173238,
+      "cv": 0.08119973768860103,
+      "runtime_seconds": 8.8
+    },
+    {
+      "dataset": "PTB_XL",
+      "algorithm": "HPFL",
+      "dp_label": "eps=10",
+      "dp_epsilon": 10.0,
+      "dp_enabled": true,
+      "seed": 456,
+      "accuracy": 0.9243913857677902,
+      "confusion_matrix": [
+        [
+          1826,
+          0,
+          0,
+          18,
+          3
+        ],
+        [
+          0,
+          749,
+          47,
+          28,
+          7
+        ],
+        [
+          0,
+          59,
+          779,
+          0,
+          0
+        ],
+        [
+          28,
+          99,
+          18,
+          476,
+          0
+        ],
+        [
+          0,
+          11,
+          3,
+          2,
+          119
+        ]
+      ],
+      "per_class_recall": {
+        "NORM": 0.9886302111532215,
+        "MI": 0.901323706377858,
+        "STTC": 0.9295942720763724,
+        "CD": 0.7665056360708534,
+        "HYP": 0.8814814814814815
+      },
+      "dei": 0.7038338189319219,
+      "min_recall": 0.7665056360708534,
+      "cv": 0.08176302193965651,
+      "runtime_seconds": 8.8
+    },
+    {
+      "dataset": "PTB_XL",
+      "algorithm": "HPFL",
+      "dp_label": "eps=10",
+      "dp_epsilon": 10.0,
+      "dp_enabled": true,
+      "seed": 789,
+      "accuracy": 0.9283707865168539,
+      "confusion_matrix": [
+        [
+          1861,
+          1,
+          0,
+          27,
+          2
+        ],
+        [
+          0,
+          738,
+          39,
+          89,
+          15
+        ],
+        [
+          0,
+          63,
+          715,
+          0,
+          0
+        ],
+        [
+          0,
+          44,
+          14,
+          521,
+          0
+        ],
+        [
+          0,
+          7,
+          5,
+          0,
+          131
+        ]
+      ],
+      "per_class_recall": {
+        "NORM": 0.9841353781068218,
+        "MI": 0.8376844494892168,
+        "STTC": 0.9190231362467867,
+        "CD": 0.8998272884283247,
+        "HYP": 0.916083916083916
+      },
+      "dei": 0.7946925683968828,
+      "min_recall": 0.8376844494892168,
+      "cv": 0.05132228623624145,
+      "runtime_seconds": 8.8
+    },
+    {
+      "dataset": "PTB_XL",
+      "algorithm": "HPFL",
+      "dp_label": "eps=10",
+      "dp_epsilon": 10.0,
+      "dp_enabled": true,
+      "seed": 999,
+      "accuracy": 0.9232209737827716,
+      "confusion_matrix": [
+        [
+          1791,
+          1,
+          0,
+          37,
+          0
+        ],
+        [
+          0,
+          732,
+          0,
+          82,
+          5
+        ],
+        [
+          0,
+          109,
+          733,
+          11,
+          0
+        ],
+        [
+          0,
+          53,
+          12,
+          562,
+          0
+        ],
+        [
+          0,
+          13,
+          5,
+          0,
+          126
+        ]
+      ],
+      "per_class_recall": {
+        "NORM": 0.9792236194641881,
+        "MI": 0.8937728937728938,
+        "STTC": 0.8593200468933178,
+        "CD": 0.8963317384370016,
+        "HYP": 0.875
+      },
+      "dei": 0.8197404478056164,
+      "min_recall": 0.8593200468933178,
+      "cv": 0.0460592060324819,
+      "runtime_seconds": 8.8
+    }
+  ],
+  "completed": [
+    "Breast_Cancer_FedAvg_No-DP_s42",
+    "Breast_Cancer_FedAvg_No-DP_s123",
+    "Breast_Cancer_FedAvg_No-DP_s456",
+    "Breast_Cancer_FedAvg_No-DP_s789",
+    "Breast_Cancer_FedAvg_No-DP_s999",
+    "Breast_Cancer_FedAvg_eps=1_s42",
+    "Breast_Cancer_FedAvg_eps=1_s123",
+    "Breast_Cancer_FedAvg_eps=1_s456",
+    "Breast_Cancer_FedAvg_eps=1_s789",
+    "Breast_Cancer_FedAvg_eps=1_s999",
+    "Breast_Cancer_FedAvg_eps=5_s42",
+    "Breast_Cancer_FedAvg_eps=5_s123",
+    "Breast_Cancer_FedAvg_eps=5_s456",
+    "Breast_Cancer_FedAvg_eps=5_s789",
+    "Breast_Cancer_FedAvg_eps=5_s999",
+    "Breast_Cancer_FedAvg_eps=10_s42",
+    "Breast_Cancer_FedAvg_eps=10_s123",
+    "Breast_Cancer_FedAvg_eps=10_s456",
+    "Breast_Cancer_FedAvg_eps=10_s789",
+    "Breast_Cancer_FedAvg_eps=10_s999",
+    "Breast_Cancer_HPFL_No-DP_s42",
+    "Breast_Cancer_HPFL_No-DP_s123",
+    "Breast_Cancer_HPFL_No-DP_s456",
+    "Breast_Cancer_HPFL_No-DP_s789",
+    "Breast_Cancer_HPFL_No-DP_s999",
+    "Breast_Cancer_HPFL_eps=1_s42",
+    "Breast_Cancer_HPFL_eps=1_s123",
+    "Breast_Cancer_HPFL_eps=1_s456",
+    "Breast_Cancer_HPFL_eps=1_s789",
+    "Breast_Cancer_HPFL_eps=1_s999",
+    "Breast_Cancer_HPFL_eps=5_s42",
+    "Breast_Cancer_HPFL_eps=5_s123",
+    "Breast_Cancer_HPFL_eps=5_s456",
+    "Breast_Cancer_HPFL_eps=5_s789",
+    "Breast_Cancer_HPFL_eps=5_s999",
+    "Breast_Cancer_HPFL_eps=10_s42",
+    "Breast_Cancer_HPFL_eps=10_s123",
+    "Breast_Cancer_HPFL_eps=10_s456",
+    "Breast_Cancer_HPFL_eps=10_s789",
+    "Breast_Cancer_HPFL_eps=10_s999",
+    "PTB_XL_FedAvg_No-DP_s42",
+    "PTB_XL_FedAvg_No-DP_s123",
+    "PTB_XL_FedAvg_No-DP_s456",
+    "PTB_XL_FedAvg_No-DP_s789",
+    "PTB_XL_FedAvg_No-DP_s999",
+    "PTB_XL_FedAvg_eps=1_s42",
+    "PTB_XL_FedAvg_eps=1_s123",
+    "PTB_XL_FedAvg_eps=1_s456",
+    "PTB_XL_FedAvg_eps=1_s789",
+    "PTB_XL_FedAvg_eps=1_s999",
+    "PTB_XL_FedAvg_eps=5_s42",
+    "PTB_XL_FedAvg_eps=5_s123",
+    "PTB_XL_FedAvg_eps=5_s456",
+    "PTB_XL_FedAvg_eps=5_s789",
+    "PTB_XL_FedAvg_eps=5_s999",
+    "PTB_XL_FedAvg_eps=10_s42",
+    "PTB_XL_FedAvg_eps=10_s123",
+    "PTB_XL_FedAvg_eps=10_s456",
+    "PTB_XL_FedAvg_eps=10_s789",
+    "PTB_XL_FedAvg_eps=10_s999",
+    "PTB_XL_HPFL_No-DP_s42",
+    "PTB_XL_HPFL_No-DP_s123",
+    "PTB_XL_HPFL_No-DP_s456",
+    "PTB_XL_HPFL_No-DP_s789",
+    "PTB_XL_HPFL_No-DP_s999",
+    "PTB_XL_HPFL_eps=1_s42",
+    "PTB_XL_HPFL_eps=1_s123",
+    "PTB_XL_HPFL_eps=1_s456",
+    "PTB_XL_HPFL_eps=1_s789",
+    "PTB_XL_HPFL_eps=1_s999",
+    "PTB_XL_HPFL_eps=5_s42",
+    "PTB_XL_HPFL_eps=5_s123",
+    "PTB_XL_HPFL_eps=5_s456",
+    "PTB_XL_HPFL_eps=5_s789",
+    "PTB_XL_HPFL_eps=5_s999",
+    "PTB_XL_HPFL_eps=10_s42",
+    "PTB_XL_HPFL_eps=10_s123",
+    "PTB_XL_HPFL_eps=10_s456",
+    "PTB_XL_HPFL_eps=10_s789",
+    "PTB_XL_HPFL_eps=10_s999"
+  ],
+  "metadata": {
+    "datasets": [
+      "Breast_Cancer",
+      "PTB_XL"
+    ],
+    "algorithms": [
+      "FedAvg",
+      "HPFL"
+    ],
+    "dp_levels": [
+      "No-DP",
+      "eps=1",
+      "eps=5",
+      "eps=10"
+    ],
+    "seeds": [
+      42,
+      123,
+      456,
+      789,
+      999
+    ],
+    "timestamp": "2026-02-26T20:11:52.776995"
+  }
+}
