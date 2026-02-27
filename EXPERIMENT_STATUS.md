@@ -79,7 +79,7 @@
 | v12.1 | 2026-02-25 | MacBook Air M3 | 685 tabular (baseline+seeds10+dp+optout+deep_mlp) | ~6h |
 | v12.2 | 2026-02-25 | MacBook Air M3 | 139 supplementary (RDP+scalability+scalability_dp) | 33 min |
 | v12.3 | 2026-02-26 | MacBook Air M3 | 296 priority2 (byzantine+dp_per_class+scal_dp_cv+local_vs_fed) | 10h 12m |
-| v12.4 | 2026-02-27 | MacBook Air M3 | 24 imaging seeds5 (789, 999) | 2h 39m |
+| v12.5 | 2026-02-27 | MacBook Air M3 | 24 imaging seeds5 (789, 999) | 2h 39m |
 | -- | 2026-02-27 | RunPod | 54 imaging scalability (K=10,20) | In corso |
 | -- | 2026-02-27 | Colab | ~154 imaging opt-out (GDPR Art.71) | In corso |
 
