@@ -7,142 +7,145 @@
 # ======================================================================
 
 REPO_DIR="$(git rev-parse --show-toplevel)"
-FRAMEWORK="${REPO_DIR}/fl-ehds-framework/benchmarks"
 STATUS_FILE="${REPO_DIR}/EXPERIMENT_STATUS.md"
 
 # Se il file di status non esiste, skip
 [[ -f "$STATUS_FILE" ]] || exit 0
 
-# ======================================================================
-# Lettura checkpoint
-# ======================================================================
+# Aggiorna timestamp e status leggendo i checkpoint
+python3 << 'PYEOF'
+import json, re, os, subprocess
+from datetime import datetime
+from pathlib import Path
 
-read_checkpoint() {
-    local file="$1"
-    if [[ -f "$file" ]]; then
-        python3 -c "
-import json
-try:
-    with open('$file') as f:
-        d = json.load(f)
-    if 'completed' in d and isinstance(d['completed'], dict):
-        print(len(d['completed']))
-    else:
-        print(0)
-except:
-    print(0)
-" 2>/dev/null || echo "0"
-    else
-        echo "0"
-    fi
-}
+repo = subprocess.check_output(["git", "rev-parse", "--show-toplevel"], text=True).strip()
+fw = Path(repo) / "fl-ehds-framework" / "benchmarks"
+status_file = Path(repo) / "EXPERIMENT_STATUS.md"
 
-read_block_status() {
-    local sf="${FRAMEWORK}/paper_results_tabular/cascade_remaining_status.txt"
-    local block="$1"
-    if [[ -f "$sf" ]]; then
-        grep "^${block}=" "$sf" 2>/dev/null | cut -d= -f2 || echo "UNKNOWN"
-    else
-        echo "UNKNOWN"
-    fi
-}
+# --- Read checkpoints ---
 
-# ======================================================================
-# Aggiorna status
-# ======================================================================
+def read_ckpt(path):
+    try:
+        with open(path) as f:
+            d = json.load(f)
+        if "completed" in d and isinstance(d["completed"], dict):
+            return len(d["completed"])
+    except:
+        pass
+    return 0
 
-EPOCHS_DONE=$(read_checkpoint "${FRAMEWORK}/paper_results_tabular/checkpoint_epochs_sweep.json")
-TOPK_DONE=$(read_checkpoint "${FRAMEWORK}/paper_results_tabular/checkpoint_topk_ptbxl.json")
-CM_CHEST_DONE=$(read_checkpoint "${FRAMEWORK}/paper_results_delta/checkpoint_confusion_chest.json")
+def read_block(block):
+    sf = fw / "paper_results_tabular" / "cascade_remaining_status.txt"
+    if sf.exists():
+        for line in sf.read_text().splitlines():
+            if line.startswith(f"{block}="):
+                return line.split("=", 1)[1].strip()
+    return "UNKNOWN"
 
-B1=$(read_block_status "BLOCK1")
-B2=$(read_block_status "BLOCK2")
-B3=$(read_block_status "BLOCK3")
+epochs_done = read_ckpt(fw / "paper_results_tabular" / "checkpoint_epochs_sweep.json")
+topk_done = read_ckpt(fw / "paper_results_tabular" / "checkpoint_topk_ptbxl.json")
+cm_done = read_ckpt(fw / "paper_results_delta" / "checkpoint_confusion_chest.json")
 
-TIMESTAMP=$(date '+%Y-%m-%dT%H:%M:%S CET')
-MACHINE=$(hostname -s)
+b1 = read_block("BLOCK1")
+b2 = read_block("BLOCK2")
+b3 = read_block("BLOCK3")
 
-# Determina status stringhe
-status_str() {
-    local bs="$1" done="$2" total="$3"
-    if [[ "$bs" == "DONE" ]]; then echo "DONE"
-    elif [[ "$done" -gt 0 ]]; then echo "IN PROGRESS ($done/$total)"
-    else echo "PENDING"
-    fi
-}
+def exp_status(block_st, done, total):
+    if block_st == "DONE":
+        return "DONE"
+    elif done > 0:
+        return f"IN PROGRESS ({done}/{total})"
+    return "PENDING"
 
-ES=$(status_str "$B1" "$EPOCHS_DONE" 140)
-TS=$(status_str "$B2" "$TOPK_DONE" 9)
-CS=$(status_str "$B3" "$CM_CHEST_DONE" 6)
+es = exp_status(b1, epochs_done, 140)
+ts = exp_status(b2, topk_done, 9)
+cs = exp_status(b3, cm_done, 6)
 
-if [[ "$B1" == "DONE" && "$B2" == "DONE" && "$B3" == "DONE" ]]; then
-    MS="Libero (cascade completata)"
-elif [[ "$EPOCHS_DONE" -gt 0 || "$TOPK_DONE" -gt 0 || "$CM_CHEST_DONE" -gt 0 ]]; then
-    MS="In corso: cascade (${EPOCHS_DONE}+${TOPK_DONE}+${CM_CHEST_DONE}/155)"
-else
-    # Non modificare lo stato macchina se non ci sono checkpoint cascade
-    MS=""
-fi
+# Machine status
+if b1 == "DONE" and b2 == "DONE" and b3 == "DONE":
+    ms = "Libero (cascade completata)"
+elif epochs_done > 0 or topk_done > 0 or cm_done > 0:
+    ms = f"In corso: cascade ({epochs_done}+{topk_done}+{cm_done}/155)"
+else:
+    ms = None  # Don't change
 
-# Aggiorna il file con python (robusto per regex multilinea)
-python3 << PYEOF
-import re
+# --- Read file, update line-by-line ---
 
-with open("$STATUS_FILE") as f:
-    content = f.read()
+hostname = os.uname().nodename.split(".")[0]
+timestamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%S CET")
 
-original = content
+lines = status_file.read_text().splitlines()
+new_lines = []
+changed = False
 
-# Timestamp
-content = re.sub(
-    r'\*\*Last update:\*\*.*',
-    '**Last update:** ${TIMESTAMP} (${MACHINE})',
-    content
-)
+for line in lines:
+    original = line
 
-# Machine status Air M3 (solo se abbiamo info cascade)
-ms = "${MS}"
-if ms:
-    content = re.sub(
-        r'(\| MacBook Air M3 \|[^|]*\|)[^|]*\|',
-        r'\1 ' + ms + ' |',
-        content
-    )
+    # Update timestamp
+    if line.startswith("**Last update:**"):
+        line = f"**Last update:** {timestamp} ({hostname})"
 
-# Epochs Sweep row
-content = re.sub(
-    r'(\| Epochs Sweep \|[^|]*\|[^|]*\|[^|]*\|)[^|]*\|',
-    r'\1 ${ES} |',
-    content
-)
+    # Update MacBook Air M3 machine status (only in Machines table)
+    # Match: | MacBook Air M3 | ... | ... |
+    elif ms and line.startswith("| MacBook Air M3 |"):
+        parts = line.split("|")
+        if len(parts) >= 5:
+            parts[3] = f" {ms} "
+            line = "|".join(parts)
 
-# Top-K PTB-XL row
-content = re.sub(
-    r'(\| Top-K PTB-XL \|[^|]*\|[^|]*\|[^|]*\|)[^|]*\|',
-    r'\1 ${TS} |',
-    content
-)
+    # Update experiment rows — match by exact experiment name at start of row
+    # Only updates the LAST column (Status) of 5-column inventory rows
+    elif line.startswith("| Epochs Sweep |"):
+        parts = line.split("|")
+        if len(parts) >= 7:  # 5 data columns + 2 boundary
+            parts[5] = f" {es} "
+            # Also fix N.exp column if it was corrupted
+            parts[4] = " 140 "
+            line = "|".join(parts)
 
-# Confusion Matrix Chest row
-content = re.sub(
-    r'(\| Confusion Matrix Chest \|[^|]*\|[^|]*\|[^|]*\|)[^|]*\|',
-    r'\1 ${CS} |',
-    content
-)
+    elif line.startswith("| Top-K PTB-XL |"):
+        parts = line.split("|")
+        if len(parts) >= 7:
+            parts[5] = f" {ts} "
+            parts[4] = " 9 "
+            line = "|".join(parts)
 
-# Remaining gaps
-def update_gap(content, name, status):
-    pattern = r'(\|[^|]*\| ' + re.escape(name) + r'[^|]*\|[^|]*\|[^|]*\|)[^|]*\|'
-    return re.sub(pattern, r'\1 ' + status + ' |', content)
+    elif line.startswith("| Confusion Matrix Chest |"):
+        parts = line.split("|")
+        if len(parts) >= 7:
+            parts[5] = f" {cs} "
+            parts[4] = " 6 "
+            line = "|".join(parts)
 
-content = update_gap(content, "Epochs Sweep", "${ES}")
-content = update_gap(content, "Top-K PTB-XL", "${TS}")
-content = update_gap(content, "Confusion Matrix Chest", "${CS}")
+    # Update Remaining Gaps rows (match by priority + experiment name prefix)
+    elif "Epochs Sweep" in line and line.startswith("| HIGH") or \
+         "Epochs Sweep" in line and line.startswith("|"):
+        if "Epochs Sweep" in line and ("HIGH" in line or "algorithm collapse" in line):
+            parts = line.split("|")
+            if len(parts) >= 7:
+                parts[5] = f" {es} "
+                line = "|".join(parts)
 
-# Scrivi solo se cambiato (evita loop)
-if content != original:
-    with open("$STATUS_FILE", "w") as f:
-        f.write(content)
+    elif "Top-K PTB-XL" in line and ("HIGH" in line or "comm. efficiency" in line):
+        parts = line.split("|")
+        if len(parts) >= 7:
+            parts[5] = f" {ts} "
+            line = "|".join(parts)
+
+    elif "Confusion Matrix Chest" in line and ("MED" in line or "imaging" in line) and \
+         not line.startswith("| Confusion Matrix Chest |"):
+        parts = line.split("|")
+        if len(parts) >= 7:
+            parts[5] = f" {cs} "
+            line = "|".join(parts)
+
+    if line != original:
+        changed = True
+
+    new_lines.append(line)
+
+if changed:
+    status_file.write_text("\n".join(new_lines) + "\n")
     print("  [pre-commit] EXPERIMENT_STATUS.md aggiornato")
 PYEOF
 

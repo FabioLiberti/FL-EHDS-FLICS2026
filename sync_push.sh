@@ -3,11 +3,10 @@
 # FL-EHDS Sync Push
 # ======================================================================
 # Legge i checkpoint, aggiorna EXPERIMENT_STATUS.md, commit & push.
-# Usare al posto di "git add/commit/push" per sincronizzare lo stato.
 #
 # Usage:
 #   bash sync_push.sh "v12.6 descrizione commit"
-#   bash sync_push.sh                              # solo sync status (no altri file)
+#   bash sync_push.sh                              # solo sync status
 # ======================================================================
 
 set -euo pipefail
@@ -20,162 +19,111 @@ STATUS_FILE="EXPERIMENT_STATUS.md"
 COMMIT_MSG="${1:-}"
 
 # ======================================================================
-# Lettura checkpoint
+# Lettura checkpoint e aggiornamento status
 # ======================================================================
 
-read_checkpoint() {
-    local file="$1"
-    if [[ -f "$file" ]]; then
-        python3 -c "
-import json
-with open('$file') as f:
-    d = json.load(f)
-if 'completed' in d and isinstance(d['completed'], dict):
-    print(len(d['completed']))
+python3 << 'PYEOF'
+import json, os, subprocess
+from datetime import datetime
+from pathlib import Path
+
+repo = subprocess.check_output(["git", "rev-parse", "--show-toplevel"], text=True).strip()
+fw = Path(repo) / "fl-ehds-framework" / "benchmarks"
+status_file = Path(repo) / "EXPERIMENT_STATUS.md"
+
+def read_ckpt(path):
+    try:
+        with open(path) as f:
+            d = json.load(f)
+        if "completed" in d and isinstance(d["completed"], dict):
+            return len(d["completed"])
+    except:
+        pass
+    return 0
+
+def read_block(block):
+    sf = fw / "paper_results_tabular" / "cascade_remaining_status.txt"
+    if sf.exists():
+        for line in sf.read_text().splitlines():
+            if line.startswith(f"{block}="):
+                return line.split("=", 1)[1].strip()
+    return "UNKNOWN"
+
+epochs_done = read_ckpt(fw / "paper_results_tabular" / "checkpoint_epochs_sweep.json")
+topk_done = read_ckpt(fw / "paper_results_tabular" / "checkpoint_topk_ptbxl.json")
+cm_done = read_ckpt(fw / "paper_results_delta" / "checkpoint_confusion_chest.json")
+
+b1, b2, b3 = read_block("BLOCK1"), read_block("BLOCK2"), read_block("BLOCK3")
+
+def exp_status(bs, done, total):
+    if bs == "DONE": return "DONE"
+    elif done > 0: return f"IN PROGRESS ({done}/{total})"
+    return "PENDING"
+
+es, ts, cs = exp_status(b1, epochs_done, 140), exp_status(b2, topk_done, 9), exp_status(b3, cm_done, 6)
+
+if b1 == "DONE" and b2 == "DONE" and b3 == "DONE":
+    ms = "Libero (cascade completata)"
+elif epochs_done > 0 or topk_done > 0 or cm_done > 0:
+    ms = f"In corso: cascade ({epochs_done}+{topk_done}+{cm_done}/155)"
 else:
-    print(0)
-" 2>/dev/null || echo "0"
-    else
-        echo "0"
-    fi
-}
+    ms = None
 
-read_block_status() {
-    local status_file="${FRAMEWORK}/paper_results_tabular/cascade_remaining_status.txt"
-    local block="$1"
-    if [[ -f "$status_file" ]]; then
-        grep "^${block}=" "$status_file" 2>/dev/null | cut -d= -f2 || echo "UNKNOWN"
-    else
-        echo "UNKNOWN"
-    fi
-}
+hostname = os.uname().nodename.split(".")[0]
+timestamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%S CET")
 
-# ======================================================================
-# Aggiorna EXPERIMENT_STATUS.md
-# ======================================================================
+lines = status_file.read_text().splitlines()
+new_lines = []
 
-echo ""
-echo "  Reading checkpoints..."
+for line in lines:
+    if line.startswith("**Last update:**"):
+        line = f"**Last update:** {timestamp} ({hostname})"
+    elif ms and line.startswith("| MacBook Air M3 |"):
+        parts = line.split("|")
+        if len(parts) >= 5:
+            parts[3] = f" {ms} "
+            line = "|".join(parts)
+    elif line.startswith("| Epochs Sweep |"):
+        parts = line.split("|")
+        if len(parts) >= 7:
+            parts[4], parts[5] = " 140 ", f" {es} "
+            line = "|".join(parts)
+    elif line.startswith("| Top-K PTB-XL |"):
+        parts = line.split("|")
+        if len(parts) >= 7:
+            parts[4], parts[5] = " 9 ", f" {ts} "
+            line = "|".join(parts)
+    elif line.startswith("| Confusion Matrix Chest |"):
+        parts = line.split("|")
+        if len(parts) >= 7:
+            parts[4], parts[5] = " 6 ", f" {cs} "
+            line = "|".join(parts)
+    new_lines.append(line)
 
-EPOCHS_DONE=$(read_checkpoint "${FRAMEWORK}/paper_results_tabular/checkpoint_epochs_sweep.json")
-TOPK_DONE=$(read_checkpoint "${FRAMEWORK}/paper_results_tabular/checkpoint_topk_ptbxl.json")
-CM_CHEST_DONE=$(read_checkpoint "${FRAMEWORK}/paper_results_delta/checkpoint_confusion_chest.json")
+status_file.write_text("\n".join(new_lines) + "\n")
 
-B1=$(read_block_status "BLOCK1")
-B2=$(read_block_status "BLOCK2")
-B3=$(read_block_status "BLOCK3")
-
-TIMESTAMP=$(date '+%Y-%m-%dT%H:%M:%S CET')
-MACHINE=$(hostname -s)
-
-# Status per esperimento
-status_str() {
-    local block_status="$1" done="$2" total="$3"
-    if [[ "$block_status" == "DONE" ]]; then echo "DONE"
-    elif [[ "$done" -gt 0 ]]; then echo "IN PROGRESS ($done/$total)"
-    else echo "PENDING"
-    fi
-}
-
-ES=$(status_str "$B1" "$EPOCHS_DONE" 140)
-TS=$(status_str "$B2" "$TOPK_DONE" 9)
-CS=$(status_str "$B3" "$CM_CHEST_DONE" 6)
-
-# Machine status
-if [[ "$B1" == "DONE" && "$B2" == "DONE" && "$B3" == "DONE" ]]; then
-    MS="Libero (cascade completata)"
-else
-    MS="In corso: cascade (${EPOCHS_DONE}+${TOPK_DONE}+${CM_CHEST_DONE}/155)"
-fi
-
-python3 << PYEOF
-import re
-
-with open("$STATUS_FILE") as f:
-    content = f.read()
-
-# Timestamp
-content = re.sub(
-    r'\*\*Last update:\*\*.*',
-    '**Last update:** ${TIMESTAMP} (${MACHINE})',
-    content
-)
-
-# Machine status Air M3
-content = re.sub(
-    r'(\| MacBook Air M3 \|[^|]*\|)[^|]*\|',
-    r'\1 ${MS} |',
-    content
-)
-
-# Epochs Sweep row
-content = re.sub(
-    r'(\| Epochs Sweep \|[^|]*\|[^|]*\|[^|]*\|)[^|]*\|',
-    r'\1 ${ES} |',
-    content
-)
-
-# Top-K PTB-XL row
-content = re.sub(
-    r'(\| Top-K PTB-XL \|[^|]*\|[^|]*\|[^|]*\|)[^|]*\|',
-    r'\1 ${TS} |',
-    content
-)
-
-# Confusion Matrix Chest row
-content = re.sub(
-    r'(\| Confusion Matrix Chest \|[^|]*\|[^|]*\|[^|]*\|)[^|]*\|',
-    r'\1 ${CS} |',
-    content
-)
-
-# Remaining gaps
-def update_gap(content, name, status):
-    pattern = r'(\|[^|]*\| ' + re.escape(name) + r'[^|]*\|[^|]*\|[^|]*\|)[^|]*\|'
-    return re.sub(pattern, r'\1 ' + status + ' |', content)
-
-content = update_gap(content, "Epochs Sweep", "${ES}")
-content = update_gap(content, "Top-K PTB-XL", "${TS}")
-content = update_gap(content, "Confusion Matrix Chest", "${CS}")
-
-with open("$STATUS_FILE", "w") as f:
-    f.write(content)
-PYEOF
-
-# ======================================================================
 # Dashboard
-# ======================================================================
-
-echo ""
-echo "  ╔═══════════════════════════════════════════════════╗"
-echo "  ║  FL-EHDS Sync Push                               ║"
-echo "  ╠═══════════════════════════════════════════════════╣"
-printf "  ║  %-16s  %8s  %-18s  ║\n" "Experiment" "Progress" "Status"
-echo "  ║  ────────────────  ────────  ──────────────────  ║"
-printf "  ║  %-16s  %3s/%-4s  %-18s  ║\n" "Epochs Sweep" "$EPOCHS_DONE" "140" "$B1"
-printf "  ║  %-16s  %3s/%-4s  %-18s  ║\n" "Top-K PTB-XL" "$TOPK_DONE" "9" "$B2"
-printf "  ║  %-16s  %3s/%-4s  %-18s  ║\n" "CM Chest" "$CM_CHEST_DONE" "6" "$B3"
-echo "  ╚═══════════════════════════════════════════════════╝"
+print()
+print(f"  Epochs Sweep:  {epochs_done}/140  ({b1})")
+print(f"  Top-K PTB-XL:  {topk_done}/9    ({b2})")
+print(f"  CM Chest:      {cm_done}/6    ({b3})")
+print()
+PYEOF
 
 # ======================================================================
 # Git commit & push
 # ======================================================================
 
-# Stage status file (sempre)
 git add "$STATUS_FILE"
 
-# Se c'e un messaggio di commit, stage anche tutti gli altri file modificati
 if [[ -n "$COMMIT_MSG" ]]; then
     git add -A
-    echo ""
     echo "  Commit: $COMMIT_MSG"
     git commit -m "$COMMIT_MSG"
 else
-    # Solo status file
     if ! git diff --cached --quiet 2>/dev/null; then
-        git commit -m "auto-sync: experiment progress (epochs=$EPOCHS_DONE/140 topk=$TOPK_DONE/9 cm_chest=$CM_CHEST_DONE/6)"
+        git commit -m "auto-sync: experiment progress update"
     else
-        echo ""
         echo "  Nessun cambiamento da committare."
         exit 0
     fi
@@ -183,5 +131,4 @@ fi
 
 echo "  Pushing..."
 git push origin main
-echo ""
 echo "  Sync completato."
