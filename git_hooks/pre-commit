@@ -1,0 +1,154 @@
+#!/bin/bash
+# ======================================================================
+# FL-EHDS pre-commit hook
+# ======================================================================
+# Legge i checkpoint e aggiorna EXPERIMENT_STATUS.md prima di ogni commit.
+# Funziona sia da VS Code GUI che da terminale.
+# ======================================================================
+
+REPO_DIR="$(git rev-parse --show-toplevel)"
+FRAMEWORK="${REPO_DIR}/fl-ehds-framework/benchmarks"
+STATUS_FILE="${REPO_DIR}/EXPERIMENT_STATUS.md"
+
+# Se il file di status non esiste, skip
+[[ -f "$STATUS_FILE" ]] || exit 0
+
+# ======================================================================
+# Lettura checkpoint
+# ======================================================================
+
+read_checkpoint() {
+    local file="$1"
+    if [[ -f "$file" ]]; then
+        python3 -c "
+import json
+try:
+    with open('$file') as f:
+        d = json.load(f)
+    if 'completed' in d and isinstance(d['completed'], dict):
+        print(len(d['completed']))
+    else:
+        print(0)
+except:
+    print(0)
+" 2>/dev/null || echo "0"
+    else
+        echo "0"
+    fi
+}
+
+read_block_status() {
+    local sf="${FRAMEWORK}/paper_results_tabular/cascade_remaining_status.txt"
+    local block="$1"
+    if [[ -f "$sf" ]]; then
+        grep "^${block}=" "$sf" 2>/dev/null | cut -d= -f2 || echo "UNKNOWN"
+    else
+        echo "UNKNOWN"
+    fi
+}
+
+# ======================================================================
+# Aggiorna status
+# ======================================================================
+
+EPOCHS_DONE=$(read_checkpoint "${FRAMEWORK}/paper_results_tabular/checkpoint_epochs_sweep.json")
+TOPK_DONE=$(read_checkpoint "${FRAMEWORK}/paper_results_tabular/checkpoint_topk_ptbxl.json")
+CM_CHEST_DONE=$(read_checkpoint "${FRAMEWORK}/paper_results_delta/checkpoint_confusion_chest.json")
+
+B1=$(read_block_status "BLOCK1")
+B2=$(read_block_status "BLOCK2")
+B3=$(read_block_status "BLOCK3")
+
+TIMESTAMP=$(date '+%Y-%m-%dT%H:%M:%S CET')
+MACHINE=$(hostname -s)
+
+# Determina status stringhe
+status_str() {
+    local bs="$1" done="$2" total="$3"
+    if [[ "$bs" == "DONE" ]]; then echo "DONE"
+    elif [[ "$done" -gt 0 ]]; then echo "IN PROGRESS ($done/$total)"
+    else echo "PENDING"
+    fi
+}
+
+ES=$(status_str "$B1" "$EPOCHS_DONE" 140)
+TS=$(status_str "$B2" "$TOPK_DONE" 9)
+CS=$(status_str "$B3" "$CM_CHEST_DONE" 6)
+
+if [[ "$B1" == "DONE" && "$B2" == "DONE" && "$B3" == "DONE" ]]; then
+    MS="Libero (cascade completata)"
+elif [[ "$EPOCHS_DONE" -gt 0 || "$TOPK_DONE" -gt 0 || "$CM_CHEST_DONE" -gt 0 ]]; then
+    MS="In corso: cascade (${EPOCHS_DONE}+${TOPK_DONE}+${CM_CHEST_DONE}/155)"
+else
+    # Non modificare lo stato macchina se non ci sono checkpoint cascade
+    MS=""
+fi
+
+# Aggiorna il file con python (robusto per regex multilinea)
+python3 << PYEOF
+import re
+
+with open("$STATUS_FILE") as f:
+    content = f.read()
+
+original = content
+
+# Timestamp
+content = re.sub(
+    r'\*\*Last update:\*\*.*',
+    '**Last update:** ${TIMESTAMP} (${MACHINE})',
+    content
+)
+
+# Machine status Air M3 (solo se abbiamo info cascade)
+ms = "${MS}"
+if ms:
+    content = re.sub(
+        r'(\| MacBook Air M3 \|[^|]*\|)[^|]*\|',
+        r'\1 ' + ms + ' |',
+        content
+    )
+
+# Epochs Sweep row
+content = re.sub(
+    r'(\| Epochs Sweep \|[^|]*\|[^|]*\|[^|]*\|)[^|]*\|',
+    r'\1 ${ES} |',
+    content
+)
+
+# Top-K PTB-XL row
+content = re.sub(
+    r'(\| Top-K PTB-XL \|[^|]*\|[^|]*\|[^|]*\|)[^|]*\|',
+    r'\1 ${TS} |',
+    content
+)
+
+# Confusion Matrix Chest row
+content = re.sub(
+    r'(\| Confusion Matrix Chest \|[^|]*\|[^|]*\|[^|]*\|)[^|]*\|',
+    r'\1 ${CS} |',
+    content
+)
+
+# Remaining gaps
+def update_gap(content, name, status):
+    pattern = r'(\|[^|]*\| ' + re.escape(name) + r'[^|]*\|[^|]*\|[^|]*\|)[^|]*\|'
+    return re.sub(pattern, r'\1 ' + status + ' |', content)
+
+content = update_gap(content, "Epochs Sweep", "${ES}")
+content = update_gap(content, "Top-K PTB-XL", "${TS}")
+content = update_gap(content, "Confusion Matrix Chest", "${CS}")
+
+# Scrivi solo se cambiato (evita loop)
+if content != original:
+    with open("$STATUS_FILE", "w") as f:
+        f.write(content)
+    print("  [pre-commit] EXPERIMENT_STATUS.md aggiornato")
+PYEOF
+
+# Stage il file aggiornato (se modificato)
+if ! git diff --quiet "$STATUS_FILE" 2>/dev/null; then
+    git add "$STATUS_FILE"
+fi
+
+exit 0

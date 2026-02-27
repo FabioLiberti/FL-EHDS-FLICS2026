@@ -24,6 +24,9 @@ import os
 import json
 import time
 import gc
+import signal
+import shutil
+import tempfile
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Tuple
@@ -225,91 +228,85 @@ def run_experiment(algorithm, seed, config, quick=False):
     return y_true, y_pred, per_client, best_acc, best_round
 
 
+def _save_checkpoint_atomic(data, path):
+    """Atomic checkpoint save with backup."""
+    path = Path(path)
+    bak = path.with_suffix(".json.bak")
+    fd, tmp = tempfile.mkstemp(dir=str(path.parent), prefix=".cm_chest_", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w") as f:
+            json.dump(data, f, indent=2, default=str)
+            f.flush()
+            os.fsync(f.fileno())
+        if path.exists():
+            shutil.copy2(str(path), str(bak))
+        os.replace(tmp, str(path))
+    except Exception:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        raise
+
+
+def _load_checkpoint(path):
+    """Load checkpoint if exists."""
+    path = Path(path)
+    bak = path.with_suffix(".json.bak")
+    for p in [path, bak]:
+        if p.exists():
+            try:
+                with open(p) as f:
+                    return json.load(f)
+            except (json.JSONDecodeError, IOError):
+                continue
+    return None
+
+
 def main():
     import argparse
     parser = argparse.ArgumentParser(description="Confusion Matrix for Chest X-Ray (FedAvg vs HPFL)")
     parser.add_argument("--quick", action="store_true", help="Quick validation (1 seed, 3 rounds)")
+    parser.add_argument("--fresh", action="store_true", help="Start fresh (delete old checkpoint)")
     args = parser.parse_args()
 
     seeds = [42] if args.quick else SEEDS
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    ckpt_path = OUTPUT_DIR / "checkpoint_confusion_chest.json"
+
+    # Handle fresh start
+    if args.fresh and ckpt_path.exists():
+        ckpt_path.unlink()
+        print("  Deleted old checkpoint (--fresh)")
+
+    # Load existing checkpoint for resume
+    existing = _load_checkpoint(ckpt_path)
+    completed_keys = set()
+    if existing and "completed" in existing:
+        completed_keys = set(existing["completed"].keys())
+        print("  RESUMED: {} experiments already completed".format(len(completed_keys)))
+    elif existing and "results" in existing:
+        # Old format: convert to understand completed
+        for algo, runs in existing.get("results", {}).items():
+            for run in runs:
+                completed_keys.add("{}_s{}".format(algo, run["seed"]))
+
+    total_exps = len(ALGORITHMS) * len(seeds)
 
     print("=" * 60)
     print("  FL-EHDS Confusion Matrix — Chest X-Ray")
     print("  {} algos x {} seeds = {} experiments".format(
-        len(ALGORITHMS), len(seeds), len(ALGORITHMS) * len(seeds)))
+        len(ALGORITHMS), len(seeds), total_exps))
     print("  Device: {}".format(_detect_device()))
     print("  Mode: {}".format("QUICK" if args.quick else "FULL"))
     print("=" * 60)
 
-    results = {}
-    all_cms = {}          # algo -> aggregated CM (across seeds)
-    per_client_cms = {}   # algo -> {cid: aggregated CM}
-
-    for algo in ALGORITHMS:
-        algo_cm = np.zeros((2, 2), dtype=int)
-        algo_per_client = {cid: np.zeros((2, 2), dtype=int) for cid in range(IMAGING_CONFIG["num_clients"])}
-        algo_results = []
-
-        for seed in seeds:
-            print("\n  {} seed={} ...".format(algo, seed), flush=True)
-            start = time.time()
-
-            y_true, y_pred, per_client, best_acc, best_round = run_experiment(
-                algo, seed, IMAGING_CONFIG, quick=args.quick
-            )
-
-            cm = compute_confusion_matrix(y_true, y_pred, 2)
-            algo_cm += cm
-            elapsed = time.time() - start
-
-            # Per-client CMs
-            client_cms = {}
-            for cid, (cl, cp) in per_client.items():
-                ccm = compute_confusion_matrix(cl, cp, 2)
-                algo_per_client[cid] += ccm
-                client_cms[cid] = ccm.tolist()
-
-            recall_normal = cm[0, 0] / cm[0].sum() if cm[0].sum() > 0 else 0
-            recall_pneumonia = cm[1, 1] / cm[1].sum() if cm[1].sum() > 0 else 0
-            acc = (cm[0, 0] + cm[1, 1]) / cm.sum()
-
-            algo_results.append({
-                "seed": seed,
-                "accuracy": float(acc),
-                "best_accuracy": float(best_acc),
-                "best_round": best_round,
-                "confusion_matrix": cm.tolist(),
-                "recall_normal": float(recall_normal),
-                "recall_pneumonia": float(recall_pneumonia),
-                "per_client_cms": client_cms,
-                "runtime_seconds": round(elapsed, 1),
-            })
-
-            print("  -> Acc:{:.1%} | NORMAL:{}/{} | PNEUMONIA:{}/{} | {:.0f}s".format(
-                acc,
-                cm[0, 0], cm[0].sum(),
-                cm[1, 1], cm[1].sum(),
-                elapsed), flush=True)
-
-        results[algo] = algo_results
-        all_cms[algo] = algo_cm
-        per_client_cms[algo] = {str(cid): cm.tolist() for cid, cm in algo_per_client.items()}
-
-        # Print aggregated
-        print("\n  {} aggregated CM (over {} seeds):".format(algo, len(seeds)))
-        print("                 Predicted")
-        print("                 NORMAL  PNEUMONIA")
-        print("  True NORMAL    {:>5d}     {:>5d}".format(algo_cm[0, 0], algo_cm[0, 1]))
-        print("  True PNEUMONIA {:>5d}     {:>5d}".format(algo_cm[1, 0], algo_cm[1, 1]))
-        agg_acc = (algo_cm[0, 0] + algo_cm[1, 1]) / algo_cm.sum()
-        print("  Aggregated accuracy: {:.1f}%".format(agg_acc * 100))
-
-    # Save checkpoint
+    # Checkpoint data structure
     checkpoint = {
-        "results": results,
-        "aggregated_cms": {algo: cm.tolist() for algo, cm in all_cms.items()},
-        "per_client_cms": per_client_cms,
+        "completed": existing.get("completed", {}) if existing else {},
+        "results": existing.get("results", {}) if existing else {},
+        "aggregated_cms": {},
+        "per_client_cms": {},
         "metadata": {
             "algorithms": ALGORITHMS,
             "seeds": seeds,
@@ -319,8 +316,105 @@ def main():
             "timestamp": datetime.now().isoformat(),
         }
     }
-    with open(OUTPUT_DIR / "checkpoint_confusion_chest.json", "w") as f:
-        json.dump(checkpoint, f, indent=2, default=str)
+
+    # SIGINT handler
+    _interrupted = [False]
+    def _signal_handler(signum, frame):
+        if _interrupted[0]:
+            sys.exit(1)
+        _interrupted[0] = True
+        done = len(checkpoint.get("completed", {}))
+        _save_checkpoint_atomic(checkpoint, ckpt_path)
+        print("\n  SIGINT — checkpoint salvato: {}/{} completati".format(done, total_exps))
+        print("  Per riprendere: python -m benchmarks.run_confusion_matrix_chest")
+        sys.exit(0)
+    signal.signal(signal.SIGINT, _signal_handler)
+    signal.signal(signal.SIGTERM, _signal_handler)
+
+    results = checkpoint["results"]
+    done_count = len(checkpoint.get("completed", {}))
+
+    for algo in ALGORITHMS:
+        if algo not in results:
+            results[algo] = []
+
+        for seed in seeds:
+            key = "{}_s{}".format(algo, seed)
+            if key in checkpoint.get("completed", {}):
+                continue
+
+            print("\n  [{}/{}] {} seed={} ...".format(done_count + 1, total_exps, algo, seed), flush=True)
+            start = time.time()
+
+            y_true, y_pred, per_client, best_acc, best_round = run_experiment(
+                algo, seed, IMAGING_CONFIG, quick=args.quick
+            )
+
+            cm = compute_confusion_matrix(y_true, y_pred, 2)
+            elapsed = time.time() - start
+
+            # Per-client CMs
+            client_cms = {}
+            for cid, (cl, cp) in per_client.items():
+                ccm = compute_confusion_matrix(cl, cp, 2)
+                client_cms[cid] = ccm.tolist()
+
+            recall_normal = cm[0, 0] / cm[0].sum() if cm[0].sum() > 0 else 0
+            recall_pneumonia = cm[1, 1] / cm[1].sum() if cm[1].sum() > 0 else 0
+            acc = (cm[0, 0] + cm[1, 1]) / cm.sum()
+
+            run_result = {
+                "seed": seed,
+                "accuracy": float(acc),
+                "best_accuracy": float(best_acc),
+                "best_round": best_round,
+                "confusion_matrix": cm.tolist(),
+                "recall_normal": float(recall_normal),
+                "recall_pneumonia": float(recall_pneumonia),
+                "per_client_cms": client_cms,
+                "runtime_seconds": round(elapsed, 1),
+            }
+
+            results[algo].append(run_result)
+            checkpoint["completed"][key] = run_result
+            done_count += 1
+
+            # Save after EVERY experiment (imaging is slow)
+            _save_checkpoint_atomic(checkpoint, ckpt_path)
+
+            print("  -> Acc:{:.1%} | NORMAL:{}/{} | PNEUMONIA:{}/{} | {:.0f}s".format(
+                acc,
+                cm[0, 0], cm[0].sum(),
+                cm[1, 1], cm[1].sum(),
+                elapsed), flush=True)
+
+    # Build aggregated CMs for summary/figure
+    all_cms = {}
+    per_client_cms_agg = {}
+    for algo in ALGORITHMS:
+        algo_cm = np.zeros((2, 2), dtype=int)
+        algo_per_client = {cid: np.zeros((2, 2), dtype=int) for cid in range(IMAGING_CONFIG["num_clients"])}
+        for run in results.get(algo, []):
+            algo_cm += np.array(run["confusion_matrix"])
+            for cid_s, ccm in run.get("per_client_cms", {}).items():
+                cid = int(cid_s)
+                algo_per_client[cid] += np.array(ccm)
+        all_cms[algo] = algo_cm
+        per_client_cms_agg[algo] = {str(cid): cm.tolist() for cid, cm in algo_per_client.items()}
+
+        # Print aggregated
+        print("\n  {} aggregated CM (over {} seeds):".format(algo, len(seeds)))
+        print("                 Predicted")
+        print("                 NORMAL  PNEUMONIA")
+        print("  True NORMAL    {:>5d}     {:>5d}".format(algo_cm[0, 0], algo_cm[0, 1]))
+        print("  True PNEUMONIA {:>5d}     {:>5d}".format(algo_cm[1, 0], algo_cm[1, 1]))
+        agg_acc = (algo_cm[0, 0] + algo_cm[1, 1]) / algo_cm.sum() if algo_cm.sum() > 0 else 0
+        print("  Aggregated accuracy: {:.1f}%".format(agg_acc * 100))
+
+    # Final save with aggregated data
+    checkpoint["aggregated_cms"] = {algo: cm.tolist() for algo, cm in all_cms.items()}
+    checkpoint["per_client_cms"] = per_client_cms_agg
+    _save_checkpoint_atomic(checkpoint, ckpt_path)
 
     # ================================================================
     # Generate figure: 2x1 aggregate + per-client breakdown
@@ -379,11 +473,11 @@ def main():
         hpfl_accs = []
         for cid in range(num_clients):
             # FedAvg
-            fa_cm = np.array(per_client_cms["FedAvg"][str(cid)]) if "FedAvg" in per_client_cms else np.zeros((2,2))
+            fa_cm = np.array(per_client_cms_agg["FedAvg"][str(cid)]) if "FedAvg" in per_client_cms_agg else np.zeros((2,2))
             fa_acc = (fa_cm[0, 0] + fa_cm[1, 1]) / fa_cm.sum() * 100 if fa_cm.sum() > 0 else 0
             fedavg_accs.append(fa_acc)
             # HPFL
-            hp_cm = np.array(per_client_cms["HPFL"][str(cid)]) if "HPFL" in per_client_cms else np.zeros((2,2))
+            hp_cm = np.array(per_client_cms_agg["HPFL"][str(cid)]) if "HPFL" in per_client_cms_agg else np.zeros((2,2))
             hp_acc = (hp_cm[0, 0] + hp_cm[1, 1]) / hp_cm.sum() * 100 if hp_cm.sum() > 0 else 0
             hpfl_accs.append(hp_acc)
 

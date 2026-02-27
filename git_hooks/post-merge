@@ -1,0 +1,47 @@
+#!/bin/bash
+# ======================================================================
+# FL-EHDS post-merge hook
+# ======================================================================
+# Dopo ogni git pull, mostra la dashboard con lo stato degli esperimenti.
+# Funziona sia da VS Code GUI che da terminale.
+# ======================================================================
+
+REPO_DIR="$(git rev-parse --show-toplevel)"
+STATUS_FILE="${REPO_DIR}/EXPERIMENT_STATUS.md"
+
+[[ -f "$STATUS_FILE" ]] || exit 0
+
+LAST_UPDATE=$(grep "^\*\*Last update:\*\*" "$STATUS_FILE" | sed 's/\*\*Last update:\*\* //' | sed 's/\*\*//')
+
+echo ""
+echo "  ╔═══════════════════════════════════════════════════╗"
+echo "  ║  FL-EHDS Experiment Status (post-pull)            ║"
+echo "  ╠═══════════════════════════════════════════════════╣"
+echo "  ║  Ultimo sync: $LAST_UPDATE"
+echo "  ║"
+
+# Macchine
+echo "  ║  Macchine:"
+grep "^|" "$STATUS_FILE" | grep -E "MacBook|RunPod|Colab" | while IFS='|' read -r _ name _ status _; do
+    name=$(echo "$name" | xargs)
+    status=$(echo "$status" | xargs)
+    printf "  ║    %-20s  %s\n" "$name" "$status"
+done
+
+echo "  ║"
+
+# Esperimenti attivi
+echo "  ║  Esperimenti attivi:"
+grep "^|" "$STATUS_FILE" | grep -iE "IN PROGRESS|PENDING" | grep -v "Priority" | grep -v "Experiment" | grep -v "^|---" | head -8 | while IFS='|' read -r _ col1 _ _ col4 col5 _; do
+    col1=$(echo "$col1" | xargs)
+    status=$(echo "${col5:-$col4}" | xargs)
+    if [[ -n "$col1" && "$col1" != "---" ]]; then
+        printf "  ║    %-32s  %s\n" "$col1" "$status"
+    fi
+done
+
+echo "  ║"
+echo "  ╚═══════════════════════════════════════════════════╝"
+echo ""
+
+exit 0

@@ -373,6 +373,7 @@ def main():
         print("\n  Checkpoint salvato.")
         sys.exit(0)
     signal.signal(signal.SIGINT, _signal_handler)
+    signal.signal(signal.SIGTERM, _signal_handler)
 
     mode = "QUICK" if args.quick else "FULL"
     log("\n" + "=" * 60)
