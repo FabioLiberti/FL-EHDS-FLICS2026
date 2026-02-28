@@ -340,8 +340,12 @@ class ImageFederatedTrainer:
         total_correct = 0
         total_samples = 0
         steps = 0
+        epoch_metrics_list = []
 
         for epoch in range(self.local_epochs):
+            epoch_loss = 0.0
+            epoch_correct = 0
+            epoch_samples = 0
             epoch_pbar = tqdm(
                 dataloader,
                 desc=f"    Epoch {epoch+1}/{self.local_epochs}",
@@ -543,11 +547,23 @@ class ImageFederatedTrainer:
 
                 optimizer.step()
 
-                total_loss += loss.item() * len(batch_y)
-                preds = outputs.argmax(dim=1)
-                total_correct += (preds == batch_y).sum().item()
+                batch_loss = loss.item() * len(batch_y)
+                batch_correct = (outputs.argmax(dim=1) == batch_y).sum().item()
+                total_loss += batch_loss
+                total_correct += batch_correct
                 total_samples += len(batch_y)
+                epoch_loss += batch_loss
+                epoch_correct += batch_correct
+                epoch_samples += len(batch_y)
                 steps += 1
+
+            if epoch_samples > 0:
+                epoch_metrics_list.append({
+                    "epoch": epoch + 1,
+                    "loss": round(epoch_loss / epoch_samples, 6),
+                    "acc": round(epoch_correct / epoch_samples, 6),
+                    "samples": epoch_samples,
+                })
 
         self.client_steps[client_id] = steps
 
@@ -609,7 +625,8 @@ class ImageFederatedTrainer:
             num_samples=total_samples,
             train_loss=total_loss / total_samples,
             train_acc=total_correct / total_samples,
-            epochs_completed=self.local_epochs
+            epochs_completed=self.local_epochs,
+            epoch_metrics=epoch_metrics_list,
         )
 
     def _train_personalized_ditto(self, client_id: int, dataloader: DataLoader, criterion):

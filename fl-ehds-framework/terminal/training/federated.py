@@ -27,6 +27,7 @@ class ClientResult:
     train_acc: float
     epochs_completed: int
     quality_score: Optional[float] = None
+    epoch_metrics: Optional[List[Dict[str, float]]] = None
 
 
 @dataclass
