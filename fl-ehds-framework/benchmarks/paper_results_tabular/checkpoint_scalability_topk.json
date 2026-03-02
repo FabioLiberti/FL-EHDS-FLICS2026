@@ -1,0 +1,1135 @@
+{
+  "metadata": {
+    "experiment": "Client Scalability + DP x Top-K",
+    "started": "2026-03-02T09:45:58.836090",
+    "last_save": "2026-03-02T09:54:09.089173"
+  },
+  "results": {
+    "A_FedAvg_K3_No-DP_s42": {
+      "block": "A_scalability",
+      "dataset": "Cardiovascular",
+      "algorithm": "FedAvg",
+      "num_clients": 3,
+      "dp_level": "No-DP",
+      "dp_epsilon": 0,
+      "seed": 42,
+      "final_accuracy": 0.7397,
+      "best_accuracy": 0.7397,
+      "per_client_accuracy": {
+        "0": 0.7438919845692242,
+        "1": 0.7383197599657094,
+        "2": 0.7368195456493785
+      },
+      "jain_index": 1.0,
+      "dei": 0.6709,
+      "per_class_metrics": {
+        "Healthy": {
+          "precision": 0.7272,
+          "recall": 0.7744,
+          "f1": 0.7501,
+          "support": 7061
+        },
+        "Disease": {
+          "precision": 0.7541,
+          "recall": 0.7043,
+          "f1": 0.7284,
+          "support": 6937
+        },
+        "macro_avg": {
+          "precision": 0.7407,
+          "recall": 0.7393,
+          "f1": 0.7392
+        }
+      },
+      "confusion_matrix": [
+        [
+          5468,
+          1593
+        ],
+        [
+          2051,
+          4886
+        ]
+      ],
+      "time_seconds": 19.7
+    },
+    "A_FedAvg_K3_No-DP_s123": {
+      "block": "A_scalability",
+      "dataset": "Cardiovascular",
+      "algorithm": "FedAvg",
+      "num_clients": 3,
+      "dp_level": "No-DP",
+      "dp_epsilon": 0,
+      "seed": 123,
+      "final_accuracy": 0.7289,
+      "best_accuracy": 0.7289,
+      "per_client_accuracy": {
+        "0": 0.7314616373767681,
+        "1": 0.7284612087441062,
+        "2": 0.726746678096871
+      },
+      "jain_index": 1.0,
+      "dei": 0.6889,
+      "per_class_metrics": {
+        "Healthy": {
+          "precision": 0.7197,
+          "recall": 0.7492,
+          "f1": 0.7342,
+          "support": 6995
+        },
+        "Disease": {
+          "precision": 0.7388,
+          "recall": 0.7086,
+          "f1": 0.7234,
+          "support": 7003
+        },
+        "macro_avg": {
+          "precision": 0.7292,
+          "recall": 0.7289,
+          "f1": 0.7288
+        }
+      },
+      "confusion_matrix": [
+        [
+          5241,
+          1754
+        ],
+        [
+          2041,
+          4962
+        ]
+      ],
+      "time_seconds": 19.9
+    },
+    "A_FedAvg_K3_No-DP_s456": {
+      "block": "A_scalability",
+      "dataset": "Cardiovascular",
+      "algorithm": "FedAvg",
+      "num_clients": 3,
+      "dp_level": "No-DP",
+      "dp_epsilon": 0,
+      "seed": 456,
+      "final_accuracy": 0.7261,
+      "best_accuracy": 0.7289,
+      "per_client_accuracy": {
+        "0": 0.7338191170167166,
+        "1": 0.721603086155165,
+        "2": 0.7228889841405916
+      },
+      "jain_index": 0.9999,
+      "dei": 0.6314,
+      "per_class_metrics": {
+        "Healthy": {
+          "precision": 0.701,
+          "recall": 0.7761,
+          "f1": 0.7366,
+          "support": 6909
+        },
+        "Disease": {
+          "precision": 0.7563,
+          "recall": 0.6774,
+          "f1": 0.7147,
+          "support": 7089
+        },
+        "macro_avg": {
+          "precision": 0.7287,
+          "recall": 0.7268,
+          "f1": 0.7257
+        }
+      },
+      "confusion_matrix": [
+        [
+          5362,
+          1547
+        ],
+        [
+          2287,
+          4802
+        ]
+      ],
+      "time_seconds": 19.9
+    },
+    "A_FedAvg_K3_DP-eps1_s42": {
+      "block": "A_scalability",
+      "dataset": "Cardiovascular",
+      "algorithm": "FedAvg",
+      "num_clients": 3,
+      "dp_level": "DP-eps1",
+      "dp_epsilon": 1.0,
+      "seed": 42,
+      "final_accuracy": 0.5487,
+      "best_accuracy": 0.5513,
+      "per_client_accuracy": {
+        "0": 0.5492927561080154,
+        "1": 0.5559365623660523,
+        "2": 0.5409344192027432
+      },
+      "jain_index": 0.9999,
+      "dei": 0.478,
+      "per_class_metrics": {
+        "Healthy": {
+          "precision": 0.5573,
+          "recall": 0.5123,
+          "f1": 0.5338,
+          "support": 7061
+        },
+        "Disease": {
+          "precision": 0.5413,
+          "recall": 0.5858,
+          "f1": 0.5627,
+          "support": 6937
+        },
+        "macro_avg": {
+          "precision": 0.5493,
+          "recall": 0.5491,
+          "f1": 0.5483
+        }
+      },
+      "confusion_matrix": [
+        [
+          3617,
+          3444
+        ],
+        [
+          2873,
+          4064
+        ]
+      ],
+      "time_seconds": 22.6
+    },
+    "A_FedAvg_K3_DP-eps1_s123": {
+      "block": "A_scalability",
+      "dataset": "Cardiovascular",
+      "algorithm": "FedAvg",
+      "num_clients": 3,
+      "dp_level": "DP-eps1",
+      "dp_epsilon": 1.0,
+      "seed": 123,
+      "final_accuracy": 0.523,
+      "best_accuracy": 0.5678,
+      "per_client_accuracy": {
+        "0": 0.5357908272610373,
+        "1": 0.5184312044577797,
+        "2": 0.5147878268324046
+      },
+      "jain_index": 0.9997,
+      "dei": 0.0293,
+      "per_class_metrics": {
+        "Healthy": {
+          "precision": 0.5126,
+          "recall": 0.9225,
+          "f1": 0.659,
+          "support": 6995
+        },
+        "Disease": {
+          "precision": 0.6156,
+          "recall": 0.1239,
+          "f1": 0.2063,
+          "support": 7003
+        },
+        "macro_avg": {
+          "precision": 0.5641,
+          "recall": 0.5232,
+          "f1": 0.4327
+        }
+      },
+      "confusion_matrix": [
+        [
+          6453,
+          542
+        ],
+        [
+          6135,
+          868
+        ]
+      ],
+      "time_seconds": 23.0
+    },
+    "A_FedAvg_K3_DP-eps1_s456": {
+      "block": "A_scalability",
+      "dataset": "Cardiovascular",
+      "algorithm": "FedAvg",
+      "num_clients": 3,
+      "dp_level": "DP-eps1",
+      "dp_epsilon": 1.0,
+      "seed": 456,
+      "final_accuracy": 0.4909,
+      "best_accuracy": 0.5929,
+      "per_client_accuracy": {
+        "0": 0.49035576510930134,
+        "1": 0.4944277753964852,
+        "2": 0.48778396913844835
+      },
+      "jain_index": 1.0,
+      "dei": 0.0115,
+      "per_class_metrics": {
+        "Healthy": {
+          "precision": 0.4128,
+          "recall": 0.0747,
+          "f1": 0.1265,
+          "support": 6909
+        },
+        "Disease": {
+          "precision": 0.4985,
+          "recall": 0.8965,
+          "f1": 0.6407,
+          "support": 7089
+        },
+        "macro_avg": {
+          "precision": 0.4556,
+          "recall": 0.4856,
+          "f1": 0.3836
+        }
+      },
+      "confusion_matrix": [
+        [
+          516,
+          6393
+        ],
+        [
+          734,
+          6355
+        ]
+      ],
+      "time_seconds": 22.9
+    },
+    "A_FedAvg_K3_DP-eps10_s42": {
+      "block": "A_scalability",
+      "dataset": "Cardiovascular",
+      "algorithm": "FedAvg",
+      "num_clients": 3,
+      "dp_level": "DP-eps10",
+      "dp_epsilon": 10.0,
+      "seed": 42,
+      "final_accuracy": 0.6689,
+      "best_accuracy": 0.7179,
+      "per_client_accuracy": {
+        "0": 0.6708101157308187,
+        "1": 0.6665237891127304,
+        "2": 0.6693099014144878
+      },
+      "jain_index": 1.0,
+      "dei": 0.4781,
+      "per_class_metrics": {
+        "Healthy": {
+          "precision": 0.7179,
+          "recall": 0.5659,
+          "f1": 0.6329,
+          "support": 7061
+        },
+        "Disease": {
+          "precision": 0.6365,
+          "recall": 0.7737,
+          "f1": 0.6984,
+          "support": 6937
+        },
+        "macro_avg": {
+          "precision": 0.6772,
+          "recall": 0.6698,
+          "f1": 0.6657
+        }
+      },
+      "confusion_matrix": [
+        [
+          3996,
+          3065
+        ],
+        [
+          1570,
+          5367
+        ]
+      ],
+      "time_seconds": 22.9
+    },
+    "A_FedAvg_K3_DP-eps10_s123": {
+      "block": "A_scalability",
+      "dataset": "Cardiovascular",
+      "algorithm": "FedAvg",
+      "num_clients": 3,
+      "dp_level": "DP-eps10",
+      "dp_epsilon": 10.0,
+      "seed": 123,
+      "final_accuracy": 0.6867,
+      "best_accuracy": 0.7119,
+      "per_client_accuracy": {
+        "0": 0.6960994427775397,
+        "1": 0.67766823831976,
+        "2": 0.6862408915559366
+      },
+      "jain_index": 0.9999,
+      "dei": 0.4989,
+      "per_class_metrics": {
+        "Healthy": {
+          "precision": 0.7338,
+          "recall": 0.5853,
+          "f1": 0.6512,
+          "support": 6995
+        },
+        "Disease": {
+          "precision": 0.6554,
+          "recall": 0.7879,
+          "f1": 0.7156,
+          "support": 7003
+        },
+        "macro_avg": {
+          "precision": 0.6946,
+          "recall": 0.6866,
+          "f1": 0.6834
+        }
+      },
+      "confusion_matrix": [
+        [
+          4094,
+          2901
+        ],
+        [
+          1485,
+          5518
+        ]
+      ],
+      "time_seconds": 22.8
+    },
+    "A_FedAvg_K3_DP-eps10_s456": {
+      "block": "A_scalability",
+      "dataset": "Cardiovascular",
+      "algorithm": "FedAvg",
+      "num_clients": 3,
+      "dp_level": "DP-eps10",
+      "dp_epsilon": 10.0,
+      "seed": 456,
+      "final_accuracy": 0.6165,
+      "best_accuracy": 0.7057,
+      "per_client_accuracy": {
+        "0": 0.6090870124303472,
+        "1": 0.6193741963137591,
+        "2": 0.6210887269609944
+      },
+      "jain_index": 0.9999,
+      "dei": 0.1453,
+      "per_class_metrics": {
+        "Healthy": {
+          "precision": 0.7985,
+          "recall": 0.2983,
+          "f1": 0.4344,
+          "support": 6909
+        },
+        "Disease": {
+          "precision": 0.5754,
+          "recall": 0.9266,
+          "f1": 0.7099,
+          "support": 7089
+        },
+        "macro_avg": {
+          "precision": 0.6869,
+          "recall": 0.6124,
+          "f1": 0.5721
+        }
+      },
+      "confusion_matrix": [
+        [
+          2061,
+          4848
+        ],
+        [
+          520,
+          6569
+        ]
+      ],
+      "time_seconds": 23.4
+    },
+    "A_FedAvg_K5_No-DP_s42": {
+      "block": "A_scalability",
+      "dataset": "Cardiovascular",
+      "algorithm": "FedAvg",
+      "num_clients": 5,
+      "dp_level": "No-DP",
+      "dp_epsilon": 0,
+      "seed": 42,
+      "final_accuracy": 0.727,
+      "best_accuracy": 0.7273,
+      "per_client_accuracy": {
+        "0": 0.7328571428571429,
+        "1": 0.7275,
+        "2": 0.72,
+        "3": 0.7235714285714285,
+        "4": 0.7310714285714286
+      },
+      "jain_index": 1.0,
+      "dei": 0.6747,
+      "per_class_metrics": {
+        "Healthy": {
+          "precision": 0.7142,
+          "recall": 0.7538,
+          "f1": 0.7335,
+          "support": 6977
+        },
+        "Disease": {
+          "precision": 0.7411,
+          "recall": 0.7004,
+          "f1": 0.7202,
+          "support": 7023
+        },
+        "macro_avg": {
+          "precision": 0.7276,
+          "recall": 0.7271,
+          "f1": 0.7268
+        }
+      },
+      "confusion_matrix": [
+        [
+          5259,
+          1718
+        ],
+        [
+          2104,
+          4919
+        ]
+      ],
+      "time_seconds": 20.1
+    },
+    "A_FedAvg_K5_No-DP_s123": {
+      "block": "A_scalability",
+      "dataset": "Cardiovascular",
+      "algorithm": "FedAvg",
+      "num_clients": 5,
+      "dp_level": "No-DP",
+      "dp_epsilon": 0,
+      "seed": 123,
+      "final_accuracy": 0.7255,
+      "best_accuracy": 0.7259,
+      "per_client_accuracy": {
+        "0": 0.7264285714285714,
+        "1": 0.7296428571428571,
+        "2": 0.7346428571428572,
+        "3": 0.7153571428571428,
+        "4": 0.7214285714285714
+      },
+      "jain_index": 0.9999,
+      "dei": 0.6476,
+      "per_class_metrics": {
+        "Healthy": {
+          "precision": 0.7139,
+          "recall": 0.7648,
+          "f1": 0.7385,
+          "support": 7095
+        },
+        "Disease": {
+          "precision": 0.7392,
+          "recall": 0.6852,
+          "f1": 0.7112,
+          "support": 6905
+        },
+        "macro_avg": {
+          "precision": 0.7266,
+          "recall": 0.725,
+          "f1": 0.7248
+        }
+      },
+      "confusion_matrix": [
+        [
+          5426,
+          1669
+        ],
+        [
+          2174,
+          4731
+        ]
+      ],
+      "time_seconds": 19.9
+    },
+    "A_FedAvg_K5_No-DP_s456": {
+      "block": "A_scalability",
+      "dataset": "Cardiovascular",
+      "algorithm": "FedAvg",
+      "num_clients": 5,
+      "dp_level": "No-DP",
+      "dp_epsilon": 0,
+      "seed": 456,
+      "final_accuracy": 0.7293,
+      "best_accuracy": 0.7293,
+      "per_client_accuracy": {
+        "0": 0.7310714285714286,
+        "1": 0.7389285714285714,
+        "2": 0.7317857142857143,
+        "3": 0.7242857142857143,
+        "4": 0.7203571428571428
+      },
+      "jain_index": 0.9999,
+      "dei": 0.6966,
+      "per_class_metrics": {
+        "Healthy": {
+          "precision": 0.7238,
+          "recall": 0.7457,
+          "f1": 0.7346,
+          "support": 7034
+        },
+        "Disease": {
+          "precision": 0.7351,
+          "recall": 0.7127,
+          "f1": 0.7238,
+          "support": 6966
+        },
+        "macro_avg": {
+          "precision": 0.7294,
+          "recall": 0.7292,
+          "f1": 0.7292
+        }
+      },
+      "confusion_matrix": [
+        [
+          5245,
+          1789
+        ],
+        [
+          2001,
+          4965
+        ]
+      ],
+      "time_seconds": 19.7
+    },
+    "A_FedAvg_K5_DP-eps1_s42": {
+      "block": "A_scalability",
+      "dataset": "Cardiovascular",
+      "algorithm": "FedAvg",
+      "num_clients": 5,
+      "dp_level": "DP-eps1",
+      "dp_epsilon": 1.0,
+      "seed": 42,
+      "final_accuracy": 0.4989,
+      "best_accuracy": 0.6174,
+      "per_client_accuracy": {
+        "0": 0.5028571428571429,
+        "1": 0.4882142857142857,
+        "2": 0.5046428571428572,
+        "3": 0.48678571428571427,
+        "4": 0.5121428571428571
+      },
+      "jain_index": 0.9996,
+      "dei": 0.1652,
+      "per_class_metrics": {
+        "Healthy": {
+          "precision": 0.4953,
+          "recall": 0.2869,
+          "f1": 0.3634,
+          "support": 6977
+        },
+        "Disease": {
+          "precision": 0.5004,
+          "recall": 0.7095,
+          "f1": 0.5869,
+          "support": 7023
+        },
+        "macro_avg": {
+          "precision": 0.4979,
+          "recall": 0.4982,
+          "f1": 0.4751
+        }
+      },
+      "confusion_matrix": [
+        [
+          2002,
+          4975
+        ],
+        [
+          2040,
+          4983
+        ]
+      ],
+      "time_seconds": 23.5
+    },
+    "A_FedAvg_K5_DP-eps1_s123": {
+      "block": "A_scalability",
+      "dataset": "Cardiovascular",
+      "algorithm": "FedAvg",
+      "num_clients": 5,
+      "dp_level": "DP-eps1",
+      "dp_epsilon": 1.0,
+      "seed": 123,
+      "final_accuracy": 0.4874,
+      "best_accuracy": 0.6344,
+      "per_client_accuracy": {
+        "0": 0.4903571428571429,
+        "1": 0.49357142857142855,
+        "2": 0.4835714285714286,
+        "3": 0.47928571428571426,
+        "4": 0.49
+      },
+      "jain_index": 0.9999,
+      "dei": 0.0329,
+      "per_class_metrics": {
+        "Healthy": {
+          "precision": 0.4783,
+          "recall": 0.1273,
+          "f1": 0.201,
+          "support": 7095
+        },
+        "Disease": {
+          "precision": 0.4888,
+          "recall": 0.8573,
+          "f1": 0.6226,
+          "support": 6905
+        },
+        "macro_avg": {
+          "precision": 0.4836,
+          "recall": 0.4923,
+          "f1": 0.4118
+        }
+      },
+      "confusion_matrix": [
+        [
+          903,
+          6192
+        ],
+        [
+          985,
+          5920
+        ]
+      ],
+      "time_seconds": 23.4
+    },
+    "A_FedAvg_K5_DP-eps1_s456": {
+      "block": "A_scalability",
+      "dataset": "Cardiovascular",
+      "algorithm": "FedAvg",
+      "num_clients": 5,
+      "dp_level": "DP-eps1",
+      "dp_epsilon": 1.0,
+      "seed": 456,
+      "final_accuracy": 0.4977,
+      "best_accuracy": 0.5617,
+      "per_client_accuracy": {
+        "0": 0.49857142857142855,
+        "1": 0.4953571428571429,
+        "2": 0.49214285714285716,
+        "3": 0.4925,
+        "4": 0.51
+      },
+      "jain_index": 0.9998,
+      "dei": 0.0002,
+      "per_class_metrics": {
+        "Healthy": {
+          "precision": 0.5068,
+          "recall": 0.0107,
+          "f1": 0.0209,
+          "support": 7034
+        },
+        "Disease": {
+          "precision": 0.4976,
+          "recall": 0.9895,
+          "f1": 0.6622,
+          "support": 6966
+        },
+        "macro_avg": {
+          "precision": 0.5022,
+          "recall": 0.5001,
+          "f1": 0.3416
+        }
+      },
+      "confusion_matrix": [
+        [
+          75,
+          6959
+        ],
+        [
+          73,
+          6893
+        ]
+      ],
+      "time_seconds": 22.9
+    },
+    "A_FedAvg_K5_DP-eps10_s42": {
+      "block": "A_scalability",
+      "dataset": "Cardiovascular",
+      "algorithm": "FedAvg",
+      "num_clients": 5,
+      "dp_level": "DP-eps10",
+      "dp_epsilon": 10.0,
+      "seed": 42,
+      "final_accuracy": 0.6941,
+      "best_accuracy": 0.7035,
+      "per_client_accuracy": {
+        "0": 0.6964285714285714,
+        "1": 0.6942857142857143,
+        "2": 0.6957142857142857,
+        "3": 0.6907142857142857,
+        "4": 0.6935714285714286
+      },
+      "jain_index": 1.0,
+      "dei": 0.446,
+      "per_class_metrics": {
+        "Healthy": {
+          "precision": 0.651,
+          "recall": 0.8326,
+          "f1": 0.7307,
+          "support": 6977
+        },
+        "Disease": {
+          "precision": 0.7699,
+          "recall": 0.5566,
+          "f1": 0.6461,
+          "support": 7023
+        },
+        "macro_avg": {
+          "precision": 0.7105,
+          "recall": 0.6946,
+          "f1": 0.6884
+        }
+      },
+      "confusion_matrix": [
+        [
+          5809,
+          1168
+        ],
+        [
+          3114,
+          3909
+        ]
+      ],
+      "time_seconds": 23.2
+    },
+    "A_FedAvg_K5_DP-eps10_s123": {
+      "block": "A_scalability",
+      "dataset": "Cardiovascular",
+      "algorithm": "FedAvg",
+      "num_clients": 5,
+      "dp_level": "DP-eps10",
+      "dp_epsilon": 10.0,
+      "seed": 123,
+      "final_accuracy": 0.5563,
+      "best_accuracy": 0.6918,
+      "per_client_accuracy": {
+        "0": 0.5675,
+        "1": 0.5596428571428571,
+        "2": 0.5546428571428571,
+        "3": 0.5467857142857143,
+        "4": 0.5528571428571428
+      },
+      "jain_index": 0.9998,
+      "dei": 0.0495,
+      "per_class_metrics": {
+        "Healthy": {
+          "precision": 0.7977,
+          "recall": 0.1667,
+          "f1": 0.2758,
+          "support": 7095
+        },
+        "Disease": {
+          "precision": 0.5277,
+          "recall": 0.9566,
+          "f1": 0.6802,
+          "support": 6905
+        },
+        "macro_avg": {
+          "precision": 0.6627,
+          "recall": 0.5616,
+          "f1": 0.478
+        }
+      },
+      "confusion_matrix": [
+        [
+          1183,
+          5912
+        ],
+        [
+          300,
+          6605
+        ]
+      ],
+      "time_seconds": 23.1
+    },
+    "A_FedAvg_K5_DP-eps10_s456": {
+      "block": "A_scalability",
+      "dataset": "Cardiovascular",
+      "algorithm": "FedAvg",
+      "num_clients": 5,
+      "dp_level": "DP-eps10",
+      "dp_epsilon": 10.0,
+      "seed": 456,
+      "final_accuracy": 0.6916,
+      "best_accuracy": 0.6999,
+      "per_client_accuracy": {
+        "0": 0.7010714285714286,
+        "1": 0.6935714285714286,
+        "2": 0.6853571428571429,
+        "3": 0.6771428571428572,
+        "4": 0.7007142857142857
+      },
+      "jain_index": 0.9998,
+      "dei": 0.4945,
+      "per_class_metrics": {
+        "Healthy": {
+          "precision": 0.7463,
+          "recall": 0.585,
+          "f1": 0.6559,
+          "support": 7034
+        },
+        "Disease": {
+          "precision": 0.656,
+          "recall": 0.7992,
+          "f1": 0.7206,
+          "support": 6966
+        },
+        "macro_avg": {
+          "precision": 0.7011,
+          "recall": 0.6921,
+          "f1": 0.6883
+        }
+      },
+      "confusion_matrix": [
+        [
+          4115,
+          2919
+        ],
+        [
+          1399,
+          5567
+        ]
+      ],
+      "time_seconds": 24.7
+    },
+    "A_FedAvg_K10_No-DP_s42": {
+      "block": "A_scalability",
+      "dataset": "Cardiovascular",
+      "algorithm": "FedAvg",
+      "num_clients": 10,
+      "dp_level": "No-DP",
+      "dp_epsilon": 0,
+      "seed": 42,
+      "final_accuracy": 0.7251,
+      "best_accuracy": 0.7251,
+      "per_client_accuracy": {
+        "0": 0.7392857142857143,
+        "1": 0.7235714285714285,
+        "2": 0.7364285714285714,
+        "3": 0.7071428571428572,
+        "4": 0.7271428571428571,
+        "5": 0.7285714285714285,
+        "6": 0.7214285714285714,
+        "7": 0.7264285714285714,
+        "8": 0.7114285714285714,
+        "9": 0.73
+      },
+      "jain_index": 0.9998,
+      "dei": 0.6784,
+      "per_class_metrics": {
+        "Healthy": {
+          "precision": 0.7152,
+          "recall": 0.7489,
+          "f1": 0.7316,
+          "support": 7004
+        },
+        "Disease": {
+          "precision": 0.7361,
+          "recall": 0.7014,
+          "f1": 0.7183,
+          "support": 6996
+        },
+        "macro_avg": {
+          "precision": 0.7256,
+          "recall": 0.7251,
+          "f1": 0.7249
+        }
+      },
+      "confusion_matrix": [
+        [
+          5245,
+          1759
+        ],
+        [
+          2089,
+          4907
+        ]
+      ],
+      "time_seconds": 21.4
+    },
+    "A_FedAvg_K10_No-DP_s123": {
+      "block": "A_scalability",
+      "dataset": "Cardiovascular",
+      "algorithm": "FedAvg",
+      "num_clients": 10,
+      "dp_level": "No-DP",
+      "dp_epsilon": 0,
+      "seed": 123,
+      "final_accuracy": 0.7129,
+      "best_accuracy": 0.7129,
+      "per_client_accuracy": {
+        "0": 0.7064285714285714,
+        "1": 0.7342857142857143,
+        "2": 0.7178571428571429,
+        "3": 0.7135714285714285,
+        "4": 0.7064285714285714,
+        "5": 0.7328571428571429,
+        "6": 0.7114285714285714,
+        "7": 0.6957142857142857,
+        "8": 0.7128571428571429,
+        "9": 0.6978571428571428
+      },
+      "jain_index": 0.9997,
+      "dei": 0.59,
+      "per_class_metrics": {
+        "Healthy": {
+          "precision": 0.6852,
+          "recall": 0.7782,
+          "f1": 0.7288,
+          "support": 6938
+        },
+        "Disease": {
+          "precision": 0.7486,
+          "recall": 0.6488,
+          "f1": 0.6951,
+          "support": 7062
+        },
+        "macro_avg": {
+          "precision": 0.7169,
+          "recall": 0.7135,
+          "f1": 0.712
+        }
+      },
+      "confusion_matrix": [
+        [
+          5399,
+          1539
+        ],
+        [
+          2480,
+          4582
+        ]
+      ],
+      "time_seconds": 20.4
+    },
+    "A_FedAvg_K10_No-DP_s456": {
+      "block": "A_scalability",
+      "dataset": "Cardiovascular",
+      "algorithm": "FedAvg",
+      "num_clients": 10,
+      "dp_level": "No-DP",
+      "dp_epsilon": 0,
+      "seed": 456,
+      "final_accuracy": 0.7228,
+      "best_accuracy": 0.7228,
+      "per_client_accuracy": {
+        "0": 0.7242857142857143,
+        "1": 0.715,
+        "2": 0.73,
+        "3": 0.7321428571428571,
+        "4": 0.7292857142857143,
+        "5": 0.7207142857142858,
+        "6": 0.7271428571428571,
+        "7": 0.7064285714285714,
+        "8": 0.7171428571428572,
+        "9": 0.7257142857142858
+      },
+      "jain_index": 0.9999,
+      "dei": 0.6633,
+      "per_class_metrics": {
+        "Healthy": {
+          "precision": 0.7146,
+          "recall": 0.7526,
+          "f1": 0.7331,
+          "support": 7083
+        },
+        "Disease": {
+          "precision": 0.7321,
+          "recall": 0.6922,
+          "f1": 0.7116,
+          "support": 6917
+        },
+        "macro_avg": {
+          "precision": 0.7233,
+          "recall": 0.7224,
+          "f1": 0.7224
+        }
+      },
+      "confusion_matrix": [
+        [
+          5331,
+          1752
+        ],
+        [
+          2129,
+          4788
+        ]
+      ],
+      "time_seconds": 21.1
+    },
+    "A_FedAvg_K10_DP-eps1_s42": {
+      "block": "A_scalability",
+      "dataset": "Cardiovascular",
+      "algorithm": "FedAvg",
+      "num_clients": 10,
+      "dp_level": "DP-eps1",
+      "dp_epsilon": 1.0,
+      "seed": 42,
+      "final_accuracy": 0.4901,
+      "best_accuracy": 0.6356,
+      "per_client_accuracy": {
+        "0": 0.4878571428571429,
+        "1": 0.48928571428571427,
+        "2": 0.48214285714285715,
+        "3": 0.49642857142857144,
+        "4": 0.4878571428571429,
+        "5": 0.4857142857142857,
+        "6": 0.4957142857142857,
+        "7": 0.4785714285714286,
+        "8": 0.48714285714285716,
+        "9": 0.51
+      },
+      "jain_index": 0.9997,
+      "dei": 0.4008,
+      "per_class_metrics": {
+        "Healthy": {
+          "precision": 0.4894,
+          "recall": 0.4432,
+          "f1": 0.4651,
+          "support": 7004
+        },
+        "Disease": {
+          "precision": 0.4907,
+          "recall": 0.537,
+          "f1": 0.5128,
+          "support": 6996
+        },
+        "macro_avg": {
+          "precision": 0.49,
+          "recall": 0.4901,
+          "f1": 0.4889
+        }
+      },
+      "confusion_matrix": [
+        [
+          3104,
+          3900
+        ],
+        [
+          3239,
+          3757
+        ]
+      ],
+      "time_seconds": 27.1
+    }
+  },
+  "completed": [
+    "A_FedAvg_K3_No-DP_s42",
+    "A_FedAvg_K3_No-DP_s123",
+    "A_FedAvg_K3_No-DP_s456",
+    "A_FedAvg_K3_DP-eps1_s42",
+    "A_FedAvg_K3_DP-eps1_s123",
+    "A_FedAvg_K3_DP-eps1_s456",
+    "A_FedAvg_K3_DP-eps10_s42",
+    "A_FedAvg_K3_DP-eps10_s123",
+    "A_FedAvg_K3_DP-eps10_s456",
+    "A_FedAvg_K5_No-DP_s42",
+    "A_FedAvg_K5_No-DP_s123",
+    "A_FedAvg_K5_No-DP_s456",
+    "A_FedAvg_K5_DP-eps1_s42",
+    "A_FedAvg_K5_DP-eps1_s123",
+    "A_FedAvg_K5_DP-eps1_s456",
+    "A_FedAvg_K5_DP-eps10_s42",
+    "A_FedAvg_K5_DP-eps10_s123",
+    "A_FedAvg_K5_DP-eps10_s456",
+    "A_FedAvg_K10_No-DP_s42",
+    "A_FedAvg_K10_No-DP_s123",
+    "A_FedAvg_K10_No-DP_s456",
+    "A_FedAvg_K10_DP-eps1_s42"
+  ]
+}

@@ -32,6 +32,15 @@ fl-ehds-framework/data/breast_cancer_wisconsin/
 *.bak
 *.log
 *.pt
+
+# LaTeX build artifacts
+*.aux
+*.out
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+*.blg
+*.bbl
 *_BACKUP_*.json
 
 # Temporary deploy scripts

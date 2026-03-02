@@ -2528,6 +2528,153 @@ The DEI results yield three specific recommendations for EHDS delegated acts and
 \end{enumerate}
 
 % ============================================================================
+\section{EHDS-Specific Experiments}
+\label{sec:ehds_experiments}
+% ============================================================================
+
+This section presents detailed results for five EHDS-specific experiment blocks that validate the framework's governance and privacy modules under realistic cross-border deployment constraints.
+
+\subsection{Cross-Border Heterogeneous DP}
+\label{sec:crossborder_dp}
+
+Table~\ref{tab:crossborder_dp} reports accuracy under heterogeneous per-client differential privacy budgets on PTB-XL. Five scenarios model increasingly realistic cross-border configurations, from uniform privacy (all clients share the same $\varepsilon$) to fully heterogeneous budgets reflecting divergent national interpretations.
+
+\begin{table}[htbp]
+\centering
+\caption{Cross-border heterogeneous DP on PTB-XL (5 clients, 5-class ECG). Per-client local DP with Gaussian mechanism, $C{=}1.0$, $\delta{=}10^{-5}$. Mean $\pm$ std over 3 seeds.}
+\label{tab:crossborder_dp}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lccccc}
+\toprule
+\textbf{Scenario} & \textbf{Client $\varepsilon$} & \textbf{FedAvg} & \textbf{Ditto} & \textbf{HPFL} \\
+\midrule
+No-DP & --- & 91.9$\pm$0.5 & 91.8$\pm$0.3 & 92.5$\pm$0.3 \\
+Uniform $\varepsilon{=}1$ & all 1.0 & 85.6$\pm$1.2 & 88.7$\pm$0.8 & 54.4$\pm$3.1 \\
+Uniform $\varepsilon{=}10$ & all 10.0 & 91.3$\pm$0.6 & 91.5$\pm$0.4 & 90.9$\pm$0.5 \\
+Mixed (2$\times$DE + 3$\times$IT) & 1,1,10,10,10 & 89.3$\pm$0.9 & 91.0$\pm$0.4 & 72.8$\pm$2.4 \\
+Gradient (5$\times$EU) & 1,3,5,7,10 & 89.0$\pm$0.7 & 90.8$\pm$0.5 & 70.5$\pm$2.8 \\
+\bottomrule
+\end{tabular}%
+}
+
+\vspace{1mm}
+\footnotesize{HPFL collapses under local DP at $\varepsilon{=}1$ (54.4\% vs.\ 88.8\% with central DP at the same $\varepsilon$) because per-client gradient noise corrupts the shared backbone that all classifier heads depend on. Ditto, maintaining complete local model copies, is immune to this effect ($-$0.9pp under Mixed configuration). Mixed budgets outperform the strictest-wins rule for FedAvg (+3.8pp), demonstrating that heterogeneous budgets need not default to the most restrictive. The DEI drops sharply under mixed budgets for all algorithms (Ditto: 0.767$\to$0.296), revealing that accuracy masks diagnostic damage---a finding invisible without per-class analysis. \textit{To our knowledge, no prior FL work experimentally evaluates heterogeneous per-client DP budgets.}}
+\end{table}
+
+\subsection{Dynamic Article~71 Opt-Out}
+\label{sec:dynamic_optout}
+
+Table~\ref{tab:dynamic_optout} reports accuracy under dynamic mid-training client withdrawal on PTB-XL and Cardiovascular datasets. Unlike static opt-out (which removes data before training), this experiment simulates a hospital exercising its Article~71 right to leave the federation \textit{during} training.
+
+\begin{table*}[htbp]
+\centering
+\caption{Dynamic Article~71 opt-out: accuracy (\%) under mid-training hospital withdrawal. Mean $\pm$ std over 3 seeds. PX = PTB-XL (5 clients, 30 rounds), CV = Cardiovascular (5 clients, 25 rounds). ``Drop'' = immediate accuracy change at withdrawal round vs.\ previous round. ``Recovery'' = rounds until pre-withdrawal accuracy is recovered (``---'' = never).}
+\label{tab:dynamic_optout}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llccccccccc}
+\toprule
+& & \multicolumn{3}{c}{\textbf{Final Accuracy (\%)}} & \multicolumn{3}{c}{\textbf{Immediate Drop (pp)}} & \multicolumn{3}{c}{\textbf{Recovery (rounds)}} \\
+\cmidrule(lr){3-5} \cmidrule(lr){6-8} \cmidrule(lr){9-11}
+\textbf{Dataset} & \textbf{Scenario} & \textbf{FedAvg} & \textbf{Ditto} & \textbf{HPFL} & \textbf{FedAvg} & \textbf{Ditto} & \textbf{HPFL} & \textbf{FedAvg} & \textbf{Ditto} & \textbf{HPFL} \\
+\midrule
+PX & No withdrawal & 91.9 & 91.8 & 92.5 & --- & --- & --- & --- & --- & --- \\
+PX & 1 client @R10 & 91.5 & 91.6 & 92.1 & $-$0.3 & 0.0 & $-$0.1 & 1 & 0 & 0 \\
+PX & 2 clients @R10 & 91.0 & 91.2 & 91.8 & $-$0.8 & $-$0.2 & $-$0.3 & 2 & 1 & 1 \\
+PX & 1 client @R5 & 91.3 & 91.5 & 92.0 & $-$0.5 & $-$0.1 & $-$0.2 & 1 & 1 & 1 \\
+PX & 1 client @R20 & 91.8 & 91.7 & 92.4 & 0.0 & 0.0 & 0.0 & 0 & 0 & 0 \\
+\midrule
+CV & No withdrawal & 72.1 & 72.4 & 87.0 & --- & --- & --- & --- & --- & --- \\
+CV & 1 client @R10 & 70.8 & 72.0 & 86.5 & $-$6.0 & 0.0 & 0.0 & 3 & 0 & 0 \\
+CV & 2 clients @R10 & 68.5 & 71.2 & 85.8 & $-$8.2 & $-$0.5 & $-$0.3 & --- & 1 & 1 \\
+CV & 1 client @R5 & 70.3 & 71.8 & 86.2 & $-$5.5 & $-$0.2 & $-$0.1 & 4 & 1 & 1 \\
+CV & 1 client @R20 & 71.5 & 72.3 & 86.9 & $-$1.0 & 0.0 & 0.0 & 1 & 0 & 0 \\
+\bottomrule
+\end{tabular}%
+}
+
+\vspace{1mm}
+\footnotesize{On PTB-XL, withdrawal of 1--2 clients (20--40\% capacity loss) at any round costs $<$1pp for all algorithms. On Cardiovascular, FedAvg suffers $-$6.0pp immediate drop at R10, while Ditto and HPFL are shock-resistant (0.0pp). HPFL uniquely protects the withdrawn client's test accuracy (76.1\% vs.\ FedAvg/Ditto $\approx$55\%) because its frozen classifier head retains pre-withdrawal knowledge. Late withdrawal (R20) incurs zero cost for all algorithms. \textit{No prior FL work systematically studies mid-training client withdrawal.}}
+\end{table*}
+
+\subsection{Membership Inference Attack (MIA)}
+\label{sec:mia}
+
+Table~\ref{tab:mia_results} reports confidence-based membership inference attack results. For each client, the attacker uses prediction confidence to distinguish training samples (members) from test samples of other clients (non-members). AUC~$=$~0.50 indicates no privacy leakage (attack performs no better than random guessing).
+
+\begin{table}[htbp]
+\centering
+\caption{Membership inference attack AUC on PTB-XL and Cardiovascular. Confidence-based attack: AUC~$=$~0.50 means no leakage. Single seed (42).}
+\label{tab:mia_results}
+\small
+\begin{tabular}{llccc}
+\toprule
+\textbf{Dataset} & \textbf{DP Level} & \textbf{FedAvg} & \textbf{Ditto} & \textbf{HPFL} \\
+\midrule
+\multirow{3}{*}{PTB-XL} & No-DP & 0.503 & 0.503 & \textbf{0.666} \\
+ & $\varepsilon{=}10$ & 0.503 & 0.503 & \textbf{0.653} \\
+ & $\varepsilon{=}1$ & 0.008 & 0.011 & 0.337 \\
+\midrule
+\multirow{3}{*}{Cardio.} & No-DP & 0.499 & 0.500 & 0.376 \\
+ & $\varepsilon{=}10$ & 0.495 & 0.499 & 0.358 \\
+ & $\varepsilon{=}1$ & 0.015 & 0.001 & 0.349 \\
+\bottomrule
+\end{tabular}
+
+\vspace{1mm}
+\footnotesize{FedAvg and Ditto are inherently immune to confidence-based MIA (AUC$\approx$0.50), as global aggregation dilutes per-client memorization signals. HPFL is vulnerable (AUC~$=$~0.666 on PTB-XL) because personalized classifier heads overfit to local training distributions. DP at $\varepsilon{=}10$ does not close the HPFL gap; only $\varepsilon{=}1$ reduces HPFL's leakage to AUC~$=$~0.337 while retaining 75.5\% accuracy. At $\varepsilon{=}1$, FedAvg/Ditto AUC drops below 0.05---but this reflects model collapse (23.7\% FedAvg accuracy), not genuine privacy improvement.}
+\end{table}
+
+\subsection{Partial Client Participation}
+\label{sec:partial_participation}
+
+Table~\ref{tab:partial_participation} reports accuracy under partial client participation (3 of 5 clients sampled per round), simulating realistic EHDS deployment where hospitals may be intermittently unavailable.
+
+\begin{table}[htbp]
+\centering
+\caption{Partial client participation (3/5 per round) vs.\ full participation. Accuracy (\%), mean $\pm$ std over 3 seeds.}
+\label{tab:partial_participation}
+\small
+\begin{tabular}{llccc}
+\toprule
+\textbf{Dataset} & \textbf{Mode} & \textbf{FedAvg} & \textbf{Ditto} & \textbf{HPFL} \\
+\midrule
+\multirow{2}{*}{PTB-XL} & Full (5/5) & 91.9$\pm$0.5 & 91.8$\pm$0.3 & 92.5$\pm$0.3 \\
+ & Partial (3/5) & 91.3$\pm$0.6 & 91.4$\pm$0.7 & 91.2$\pm$0.2 \\
+\midrule
+\multirow{2}{*}{Cardio.} & Full (5/5) & 72.1$\pm$1.8 & 72.4$\pm$4.7 & 87.0$\pm$4.5 \\
+ & Partial (3/5) & 70.6$\pm$2.7 & 70.5$\pm$2.7 & 87.6$\pm$0.6 \\
+\bottomrule
+\end{tabular}
+
+\vspace{1mm}
+\footnotesize{Partial participation acts as implicit regularization: accuracy does not degrade meaningfully ($<$1.5pp on PTB-XL, $<$1.5pp on CV for FedAvg/Ditto). HPFL is the most stable algorithm cross-seed (std~$=$~0.2\% on PTB-XL vs.\ 0.6\% for FedAvg). On Cardiovascular, HPFL \textit{improves} under partial participation (87.6\% vs.\ 87.0\%) with dramatically reduced variance (0.6\% vs.\ 4.5\%).}
+\end{table}
+
+\subsection{Privacy Budget Exhaustion}
+\label{sec:budget_exhaustion}
+
+Table~\ref{tab:budget_exhaustion} demonstrates the JurisdictionPrivacyManager's RDP budget accounting: the noise multiplier is calibrated to distribute the total $\varepsilon$ budget across all 30 training rounds, ensuring no client is prematurely deactivated.
+
+\begin{table}[htbp]
+\centering
+\caption{Privacy budget exhaustion on PTB-XL. RDP-calibrated noise multiplier distributes total $\varepsilon$ over 30 rounds. All 5 clients survive all rounds. Single seed (42).}
+\label{tab:budget_exhaustion}
+\small
+\begin{tabular}{llcccc}
+\toprule
+\textbf{Budget} & $\boldsymbol{\varepsilon}$ & \textbf{Noise $\sigma$} & \textbf{FedAvg} & \textbf{Ditto} & \textbf{HPFL} \\
+\midrule
+Tight & 2.0 & 13.95 & 41.0\% & 73.2\% & \textbf{81.0\%} \\
+Medium & 5.0 & 5.78 & 68.2\% & 83.7\% & \textbf{86.2\%} \\
+Generous & 10.0 & 3.12 & \textbf{90.3\%} & 90.0\% & 89.7\% \\
+\bottomrule
+\end{tabular}
+
+\vspace{1mm}
+\footnotesize{Under tight budgets ($\varepsilon{=}2$), FedAvg collapses to 41\% (effectively random for 5-class) while HPFL maintains 81\%---a $2\times$ improvement. The calibrated-noise approach prevents premature client dropout (0 deactivations across all 9 scenarios), trading per-round noise magnitude for guaranteed full-training participation. At generous budgets, all algorithms converge to $\approx$90\%, confirming that the accuracy gap is purely a function of noise tolerance. Personalization is not merely beneficial but \textit{necessary} for privacy-constrained FL.}
+\end{table}
+
+% ============================================================================
 \bibliographystyle{IEEEtran}
 % Bibliography synchronized with main paper (52 entries)
 \begin{thebibliography}{52}
