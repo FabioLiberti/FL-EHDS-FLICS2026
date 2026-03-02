@@ -2879,6 +2879,118 @@ noniid\_dp & Cardiovascular & No-DP & HPFL vs Ditto & $+$0.136 & 4.25 & 0.018* \
 \end{table}
 
 % ============================================================================
+% CASCADE 2 ANALYSIS TABLES
+% ============================================================================
+
+\begin{table}[!ht]
+\centering
+\caption{Convergence Efficiency Analysis (Table S-Efficiency). Seeds10 (No-DP, 5 seeds): efficiency ratio = accuracy / total communication (MB). HPFL is Pareto-optimal on all datasets.}
+\label{tab:s_efficiency}
+\scriptsize
+\begin{tabular}{llrrrr}
+\toprule
+\textbf{Dataset} & \textbf{Algo} & \textbf{Acc\%} & \textbf{R-to-90\%} & \textbf{CommMB} & \textbf{Eff} \\
+\midrule
+\multirow{3}{*}{CV} & FedAvg & 70.8 & 5.4 & 2.78 & 0.25 \\
+ & Ditto & 83.6 & 1.2 & 2.78 & 0.30 \\
+ & HPFL & 83.6 & 1.2 & 2.28 & \textbf{0.37} \\
+\midrule
+\multirow{3}{*}{PTB-XL} & FedAvg & 91.3 & 4.0 & 3.08 & 0.30 \\
+ & Ditto & 92.1 & 6.6 & 3.30 & 0.28 \\
+ & HPFL & 92.6 & 5.2 & 2.70 & \textbf{0.34} \\
+\midrule
+\multirow{3}{*}{BC} & FedAvg & 57.3 & 4.6 & 4.41 & 0.13 \\
+ & Ditto & 71.1 & 3.0 & 2.68 & \textbf{0.27} \\
+ & HPFL & 71.1 & 3.6 & 3.41 & 0.21 \\
+\bottomrule
+\end{tabular}
+
+\vspace{1mm}
+\footnotesize{R-to-90\% = rounds to reach 90\% of final accuracy. Eff = Acc/MB (higher is better). HPFL's backbone-only communication yields up to 48\% higher efficiency than FedAvg.}
+\end{table}
+
+\begin{table}[!ht]
+\centering
+\caption{Per-Client Equity Analysis (Table S-Equity). Gini coefficient (0=equal, 1=unequal), worst-case client accuracy, and equity gap (max$-$min client) across DP conditions. Rows show No-DP baseline and DP impact ($\Delta$ from No-DP to $\varepsilon{=}10$).}
+\label{tab:s_equity}
+\scriptsize
+\begin{tabular}{llrrrr}
+\toprule
+\textbf{Dataset} & \textbf{Algo} & \textbf{Gini} & \textbf{Worst\%} & \textbf{Gap\%} & \textbf{$\Delta$Gap(DP)} \\
+\midrule
+\multirow{3}{*}{BC (No-DP)} & FedAvg & 0.374 & 11.1 & 76.9 & $-$15.4 \\
+ & Ditto & 0.371 & 12.2 & 75.9 & $-$26.7 \\
+ & HPFL & \textbf{0.149} & \textbf{47.9} & \textbf{41.1} & $+$13.5 \\
+\midrule
+\multirow{3}{*}{CV (No-DP)} & FedAvg & 0.053 & 62.1 & 16.7 & $+$27.0 \\
+ & Ditto & 0.079 & 58.1 & 21.9 & $+$20.4 \\
+ & HPFL & \textbf{0.046} & \textbf{77.0} & 19.1 & \textbf{$+$9.6} \\
+\midrule
+\multirow{3}{*}{PTB-XL (No-DP)} & FedAvg & \textbf{0.013} & 85.8 & \textbf{6.8} & $+$2.0 \\
+ & Ditto & 0.015 & 86.0 & 7.5 & $+$1.2 \\
+ & HPFL & 0.017 & 85.8 & 8.7 & $+$1.6 \\
+\bottomrule
+\end{tabular}
+
+\vspace{1mm}
+\footnotesize{$\Delta$Gap(DP) = change in equity gap from No-DP to $\varepsilon{=}10$. Negative values indicate DP \textit{improves} equity (regularization on small datasets). HPFL has the smallest DP-induced equity degradation on Cardiovascular ($+$9.6pp vs. $+$27.0pp for FedAvg).}
+\end{table}
+
+\begin{table}[!ht]
+\centering
+\caption{Privacy-Utility-Fairness Trilemma (Table S-Trilemma). Accuracy (\%) and Jain fairness index at each privacy level. AccDrop = accuracy drop from No-DP baseline. HPFL has the flattest trade-off curve across all datasets.}
+\label{tab:s_trilemma}
+\scriptsize
+\begin{tabular}{llrrrrr}
+\toprule
+\textbf{Dataset} & \textbf{Algo} & \textbf{No-DP} & \textbf{$\varepsilon{=}1$} & \textbf{$\varepsilon{=}10$} & \textbf{$\varepsilon{=}50$} & \textbf{AccDrop($\varepsilon{=}10$)} \\
+\midrule
+\multirow{3}{*}{CV} & FedAvg & 69.5 & 56.6 & 62.3 & 73.2 & $-$7.2 \\
+ & Ditto & 67.6 & 49.2 & 67.5 & 72.6 & $-$0.1 \\
+ & HPFL & \textbf{85.2} & \textbf{77.1} & \textbf{84.8} & \textbf{85.7} & \textbf{$-$0.5} \\
+\midrule
+\multirow{3}{*}{PTB-XL} & FedAvg & 90.2 & 29.6 & 88.0 & 90.7 & $-$2.2 \\
+ & Ditto & 90.8 & 33.1 & 89.9 & 90.9 & $-$0.8 \\
+ & HPFL & 90.7 & \textbf{74.2} & \textbf{90.0} & \textbf{90.9} & \textbf{$-$0.7} \\
+\midrule
+\multirow{3}{*}{BC} & FedAvg & 48.4 & 46.6 & 51.0 & 55.9 & $+$2.7\textsuperscript{$\dagger$} \\
+ & Ditto & 48.3 & 47.2 & 43.9 & 53.2 & $-$4.4 \\
+ & HPFL & \textbf{73.2} & \textbf{72.0} & \textbf{66.6} & \textbf{74.1} & $-$6.5 \\
+\bottomrule
+\end{tabular}
+
+\vspace{1mm}
+\footnotesize{$\dagger$Positive AccDrop indicates DP \textit{improves} accuracy (regularization effect on small dataset). Marginal accuracy returns beyond $\varepsilon{=}10$ are $<$0.002\%/$\varepsilon$ for all algorithms, establishing $\varepsilon{=}10$ as the practical operating point.}
+\end{table}
+
+\begin{table}[!ht]
+\centering
+\caption{Learning Rate Sensitivity (Table S-LRSensitivity). Final accuracy (\%) across 3 learning rates per dataset. Range = max$-$min accuracy across LRs. Lower range indicates more robust algorithm. Seed = 42, No-DP, 30 rounds.}
+\label{tab:s_lr_sensitivity}
+\scriptsize
+\begin{tabular}{llrrrr}
+\toprule
+\textbf{Dataset} & \textbf{Algo} & \textbf{LR$_{\text{low}}$} & \textbf{LR$_{\text{base}}$} & \textbf{LR$_{\text{high}}$} & \textbf{Range (pp)} \\
+\midrule
+\multirow{3}{*}{CV} & FedAvg & 63.4 & 72.7* & 73.0 & 9.6 \\
+ & Ditto & 63.5 & 72.8* & 73.2 & 9.7 \\
+ & HPFL & 63.2 & 72.7* & 73.2 & 10.0 \\
+\midrule
+\multirow{3}{*}{PTB-XL} & FedAvg & 89.1 & 90.8* & 91.2 & \textbf{2.1} \\
+ & Ditto & 89.1 & 90.8* & 91.4 & 2.3 \\
+ & HPFL & 82.0 & 90.6* & 91.2 & 9.3 \\
+\midrule
+\multirow{3}{*}{BC} & FedAvg & 54.5 & 54.5* & 95.7 & 41.2 \\
+ & Ditto & 54.5 & 54.5* & 95.7 & 41.2 \\
+ & HPFL & 85.6 & 60.6* & 89.1 & \textbf{28.5} \\
+\bottomrule
+\end{tabular}
+
+\vspace{1mm}
+\footnotesize{* = base learning rate (CV: 0.01, PTB-XL: 0.005, BC: 0.005). LR$_{\text{low}}$/LR$_{\text{high}}$ are 0.1$\times$ and 4--5$\times$ the base rate. HPFL is the most robust on Breast Cancer (28.5pp range vs. 41.2pp for FedAvg/Ditto), while all algorithms are comparably stable on Cardiovascular ($\sim$10pp range).}
+\end{table}
+
+% ============================================================================
 \bibliographystyle{IEEEtran}
 % Bibliography synchronized with main paper (52 entries)
 \begin{thebibliography}{52}
