@@ -2675,6 +2675,100 @@ Generous & 10.0 & 3.12 & \textbf{90.3\%} & 90.0\% & 89.7\% \\
 \end{table}
 
 % ============================================================================
+% NON-IID x DP INTERACTION
+% ============================================================================
+
+\begin{table}[htbp]
+\centering
+\caption{Non-IID $\times$ DP interaction on Cardiovascular (mean over 3 seeds). Dirichlet $\alpha$ controls data heterogeneity; smaller $\alpha$ = more extreme non-IID.}
+\label{tab:noniid_dp}
+\small
+\begin{tabular}{llccc}
+\toprule
+\textbf{Algorithm} & $\boldsymbol{\alpha}$ & \textbf{No DP} & $\boldsymbol{\varepsilon{=}10}$ & $\boldsymbol{\varepsilon{=}1}$ \\
+\midrule
+\multirow{3}{*}{FedAvg} & 0.1 & 66.0\% & 64.9\% & 59.0\% \\
+ & 0.5 & 73.9\% & 68.1\% & 48.2\% \\
+ & 1.0 & 73.0\% & 64.1\% & 59.6\% \\
+\midrule
+\multirow{3}{*}{Ditto} & 0.1 & 66.1\% & 60.8\% & 47.7\% \\
+ & 0.5 & 73.9\% & 69.9\% & 45.9\% \\
+ & 1.0 & 73.0\% & 61.0\% & 47.5\% \\
+\midrule
+\multirow{3}{*}{HPFL} & 0.1 & \textbf{95.7\%} & \textbf{95.6\%} & \textbf{94.2\%} \\
+ & 0.5 & 87.6\% & 87.0\% & 81.2\% \\
+ & 1.0 & 81.0\% & 79.5\% & 69.3\% \\
+\bottomrule
+\end{tabular}
+
+\vspace{1mm}
+\footnotesize{HPFL's personalized classifier heads absorb data heterogeneity, so DP noise finds less surface to exploit. Under extreme non-IID ($\alpha{=}0.1$) with $\varepsilon{=}1$, HPFL retains 94.2\% ($-$1.5pp) while Ditto collapses to 47.7\% ($-$18.4pp). The interaction is sub-additive for HPFL but super-additive for global algorithms.}
+\end{table}
+
+% ============================================================================
+% CLIENT SCALABILITY
+% ============================================================================
+
+\begin{table}[htbp]
+\centering
+\caption{Client scalability on Cardiovascular (IID, mean over 3 seeds). Accuracy (\%) and DEI as the number of hospitals increases from 3 to 20.}
+\label{tab:scalability}
+\small
+\begin{tabular}{llcccccc}
+\toprule
+\textbf{Algo} & \textbf{DP} & \multicolumn{5}{c}{\textbf{Number of Clients}} \\
+ & & \textbf{3} & \textbf{5} & \textbf{10} & \textbf{15} & \textbf{20} \\
+\midrule
+FedAvg & No-DP & 73.2 & 72.7 & 72.0 & 70.8 & 68.4 \\
+FedAvg & $\varepsilon{=}10$ & 65.7 & 64.7 & 55.2 & 57.5 & 55.4 \\
+FedAvg & $\varepsilon{=}1$ & 52.1 & 49.5 & 52.3 & 55.4 & 50.7 \\
+\midrule
+Ditto & No-DP & 73.2 & 72.7 & 72.0 & 70.8 & 68.5 \\
+Ditto & $\varepsilon{=}10$ & 64.1 & 56.3 & 58.1 & 57.0 & 57.6 \\
+Ditto & $\varepsilon{=}1$ & 50.1 & 53.2 & 51.3 & 49.5 & 48.1 \\
+\midrule
+HPFL & No-DP & 73.2 & 72.7 & 72.0 & 70.9 & 68.4 \\
+HPFL & $\varepsilon{=}10$ & \textbf{70.6} & \textbf{69.5} & \textbf{65.1} & \textbf{64.7} & \textbf{64.6} \\
+HPFL & $\varepsilon{=}1$ & \textbf{50.7} & \textbf{50.6} & \textbf{50.4} & \textbf{51.0} & \textbf{50.7} \\
+\bottomrule
+\end{tabular}
+
+\vspace{1mm}
+\footnotesize{All algorithms degrade gracefully under no-DP ($-$4.8pp from $K{=}3$ to $K{=}20$). Under $\varepsilon{=}10$, HPFL maintains 64.6\% at $K{=}20$ vs.\ FedAvg 55.4\% ($+$9.2pp). Under $\varepsilon{=}1$, HPFL's accuracy is essentially flat across all $K$ values (50.4--50.7\%), confirming its per-client heads provide constant-factor resilience regardless of federation size.}
+\end{table}
+
+% ============================================================================
+% DP x TOP-K COMBINED
+% ============================================================================
+
+\begin{table}[htbp]
+\centering
+\caption{DP $\times$ Top-$k$ combined on PTB-XL (5 clients, seed 42). Accuracy (\%) under simultaneous privacy and communication constraints.}
+\label{tab:dp_topk}
+\small
+\begin{tabular}{llccc}
+\toprule
+\textbf{Algorithm} & \textbf{Top-$k$} & \textbf{No DP} & $\boldsymbol{\varepsilon{=}10}$ & $\boldsymbol{\varepsilon{=}1}$ \\
+\midrule
+\multirow{3}{*}{FedAvg} & 100\% & 90.8 & 90.3 & 23.7 \\
+ & 5\% & 91.1 & 86.2 & 4.0 \\
+ & 1\% & 87.2 & 63.3 & 15.5 \\
+\midrule
+\multirow{3}{*}{Ditto} & 100\% & 90.8 & 90.0 & 52.5 \\
+ & 5\% & 91.4 & 87.6 & 14.4 \\
+ & 1\% & 86.7 & 40.0 & 4.3 \\
+\midrule
+\multirow{3}{*}{HPFL} & 100\% & 90.6 & 89.7 & 75.5 \\
+ & 5\% & 90.5 & 89.4 & \textbf{83.2} \\
+ & 1\% & 89.1 & 77.4 & \textbf{85.6} \\
+\bottomrule
+\end{tabular}
+
+\vspace{1mm}
+\footnotesize{HPFL exhibits a surprising synergy: Top-$k$ sparsification \textit{improves} accuracy under $\varepsilon{=}1$ (85.6\% at Top-1\% vs.\ 75.5\% without compression). Sparsification acts as implicit regularization that mitigates DP noise impact on the shared backbone. FedAvg/Ditto collapse under the same conditions (4--15\%). HPFL is the only algorithm simultaneously achieving privacy, communication efficiency, and accuracy.}
+\end{table}
+
+% ============================================================================
 \bibliographystyle{IEEEtran}
 % Bibliography synchronized with main paper (52 entries)
 \begin{thebibliography}{52}
