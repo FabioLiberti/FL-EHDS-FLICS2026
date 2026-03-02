@@ -3,7 +3,7 @@
 > File di interscambio tra MacBook Pro M1 e MacBook Air M3.
 > Aggiornato automaticamente dal pre-commit hook (git_hooks/pre-commit).
 
-**Last update:** 2026-02-28T23:02:11 CET (192)
+**Last update:** 2026-03-02T09:24:54 CET (MacBook-Pro-di-FxLybs)
 
 ---
 

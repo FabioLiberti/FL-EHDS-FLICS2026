@@ -353,15 +353,44 @@ def run_single_byzantine(
     )
     trainer.num_rounds = num_rounds
 
-    # Simulate attack on client 0 by flipping labels in training data
-    if attack_type == "label_flip" and 0 in trainer.client_data:
-        X, y = trainer.client_data[0]
-        num_classes = len(set(y.tolist())) if hasattr(y, 'tolist') else len(set(y))
-        y_flipped = (num_classes - 1) - y
-        trainer.client_data[0] = (X, y_flipped)
-        log(f"  Attack: label_flip on client 0 ({len(y)} samples, {num_classes} classes)")
-    elif attack_type in ("noise", "sign_flip"):
-        log(f"  Attack: {attack_type} on client 0 (applied during aggregation)")
+    # Simulate attack on client 0
+    ADVERSARIAL_CLIENT = 0
+
+    if attack_type == "label_flip" and ADVERSARIAL_CLIENT in trainer.client_data:
+        X, y = trainer.client_data[ADVERSARIAL_CLIENT]
+        num_classes = trainer.num_classes  # Use trainer ground truth, NOT data values
+        y_np = y.numpy() if hasattr(y, 'numpy') else np.array(y) if not isinstance(y, np.ndarray) else y
+        y_flipped = (num_classes - 1) - y_np
+        trainer.client_data[ADVERSARIAL_CLIENT] = (X, y_flipped)
+        log(f"  Attack: label_flip on client {ADVERSARIAL_CLIENT} ({len(y_np)} samples, {num_classes} classes)")
+
+    elif attack_type == "noise":
+        _orig_train_client = trainer._train_client
+
+        def _noise_attack(client_id, round_num, _orig=_orig_train_client):
+            result = _orig(client_id, round_num)
+            if client_id == ADVERSARIAL_CLIENT:
+                for name in result.model_update:
+                    noise = torch.randn_like(result.model_update[name]) * 10.0
+                    result.model_update[name] = result.model_update[name] + noise
+            return result
+
+        trainer._train_client = _noise_attack
+        log(f"  Attack: noise on client {ADVERSARIAL_CLIENT} (scale=10.0, applied to gradients)")
+
+    elif attack_type == "sign_flip":
+        _orig_train_client = trainer._train_client
+
+        def _sign_flip_attack(client_id, round_num, _orig=_orig_train_client):
+            result = _orig(client_id, round_num)
+            if client_id == ADVERSARIAL_CLIENT:
+                for name in result.model_update:
+                    result.model_update[name] = result.model_update[name] * (-5.0)
+            return result
+
+        trainer._train_client = _sign_flip_attack
+        log(f"  Attack: sign_flip on client {ADVERSARIAL_CLIENT} (scale=-5.0, applied to gradients)")
+
     else:
         log(f"  No attack (baseline with Krum defense)")
 
