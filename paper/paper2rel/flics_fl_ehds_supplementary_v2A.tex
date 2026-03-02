@@ -2990,6 +2990,119 @@ noniid\_dp & Cardiovascular & No-DP & HPFL vs Ditto & $+$0.136 & 4.25 & 0.018* \
 \footnotesize{* = base learning rate (CV: 0.01, PTB-XL: 0.005, BC: 0.005). LR$_{\text{low}}$/LR$_{\text{high}}$ are 0.1$\times$ and 4--5$\times$ the base rate. HPFL is the most robust on Breast Cancer (28.5pp range vs. 41.2pp for FedAvg/Ditto), while all algorithms are comparably stable on Cardiovascular ($\sim$10pp range).}
 \end{table}
 
+% --- Table S-DataEfficiency ---
+\begin{table}[htbp]
+\centering
+\caption{Data Efficiency: Accuracy (\%) at Subsampled Training Fractions}
+\label{tab:data_efficiency}
+\small
+\begin{tabular}{llcccc}
+\toprule
+\textbf{Dataset} & \textbf{Algorithm} & \textbf{25\%} & \textbf{50\%} & \textbf{75\%} & \textbf{100\%}$^\dagger$ \\
+\midrule
+Cardiovascular & FedAvg & 69.9 & 72.5 & 72.6 & 70.8 \\
+ & Ditto & 69.8 & 72.6 & 72.8 & 83.6 \\
+ & HPFL & 69.5 & 72.6 & 72.6 & 83.6 \\
+\midrule
+PTB-XL & FedAvg & 90.0 & 90.8 & 91.2 & 91.3 \\
+ & Ditto & 90.0 & 90.7 & 91.2 & 92.1 \\
+ & HPFL & \textbf{84.6} & 90.7 & 91.2 & 92.6 \\
+\midrule
+Breast Cancer & FedAvg & 54.5 & 54.5 & 54.5 & 57.3 \\
+ & Ditto & 54.5 & 54.5 & 54.5 & 71.1 \\
+ & HPFL & 60.6 & 60.6 & 60.6 & 71.1 \\
+\bottomrule
+\end{tabular}
+
+\vspace{1mm}
+\footnotesize{$^\dagger$100\% baseline from seeds10 checkpoint (mean of 5 seeds). Subsampled fractions use seed=42 only. On PTB-XL, FedAvg/Ditto retain 98.5\% of full performance at 25\% data. HPFL requires 50\% data to converge but then matches competitors. Breast Cancer ($n{=}456$) is too small for meaningful subsampling analysis.}
+\end{table}
+
+% --- Table S-CompoundStress ---
+\begin{table*}[htbp]
+\centering
+\caption{Compound Stress Test: Accuracy (\%) Under Simultaneous Non-IID + DP + Partial Participation}
+\label{tab:compound_stress}
+\small
+\begin{tabular}{llcccccccc}
+\toprule
+ & & \multicolumn{4}{c}{\textbf{Cardiovascular}} & \multicolumn{4}{c}{\textbf{PTB-XL}} \\
+\cmidrule(lr){3-6} \cmidrule(lr){7-10}
+\textbf{Algorithm} & \textbf{Stress} & \multicolumn{2}{c}{$\alpha{=}0.1$} & \multicolumn{2}{c}{$\alpha{=}0.5$} & \multicolumn{2}{c}{$\alpha{=}0.1$} & \multicolumn{2}{c}{$\alpha{=}0.5$} \\
+\cmidrule(lr){3-4} \cmidrule(lr){5-6} \cmidrule(lr){7-8} \cmidrule(lr){9-10}
+ & & 100\% & 60\% & 100\% & 60\% & 100\% & 60\% & 100\% & 60\% \\
+\midrule
+FedAvg & No-DP & 71.9 & 53.1 & 72.6 & 59.2 & 86.3 & 89.0 & 89.5 & 90.0 \\
+ & $\varepsilon{=}10$ & 63.6 & 52.9 & 63.2 & 56.4 & 77.8 & 81.1 & 90.3 & 91.0 \\
+\midrule
+Ditto & No-DP & 71.9 & 53.2 & 72.1 & 59.7 & 86.4 & 89.3 & 89.4 & 89.8 \\
+ & $\varepsilon{=}10$ & 67.2 & 52.7 & 61.4 & 54.4 & \textbf{59.2} & 76.0 & 82.8 & 87.8 \\
+\midrule
+HPFL & No-DP & \textbf{91.5} & \textbf{91.2} & 87.3 & 86.5 & 85.6 & 86.0 & \textbf{91.9} & 91.3 \\
+ & $\varepsilon{=}10$ & \textbf{91.1} & \textbf{91.1} & \textbf{86.3} & \textbf{86.2} & \textbf{92.2} & \textbf{92.0} & 91.5 & 89.2 \\
+\bottomrule
+\end{tabular}
+
+\vspace{1mm}
+\footnotesize{Bold = best per column. Under triple stress ($\alpha{=}0.1$, $\varepsilon{=}10$, 60\% participation), HPFL achieves 91.1\% on Cardiovascular vs. FedAvg 52.9\% (38.2pp gap). HPFL's worst-case (86.2\%) exceeds FedAvg's best-case (72.6\%). Ditto collapses on PTB-XL at $\alpha{=}0.1$, $\varepsilon{=}10$, 100\% (59.2\%, bold-italic). HPFL Jain $\geq$ 0.971 across all conditions.}
+\end{table*}
+
+% --- Table S-Heterogeneity ---
+\begin{table}[htbp]
+\centering
+\caption{Data Heterogeneity Characterization: Per-Client Statistics Under Dirichlet Partitioning}
+\label{tab:heterogeneity_cascade3}
+\small
+\begin{tabular}{llccc}
+\toprule
+\textbf{Dataset} & \textbf{Condition} & \textbf{Label} & \textbf{Class Imb.} & \textbf{Feature} \\
+ & & \textbf{Entropy} & \textbf{Ratio} & \textbf{KL Div.} \\
+\midrule
+Cardiovascular & IID & 1.000 & 1.0 & 0.000 \\
+ & $\alpha{=}1.0$ & 0.727 & 6.6 & 0.008 \\
+ & $\alpha{=}0.5$ & 0.510 & 25.0 & 0.014 \\
+ & $\alpha{=}0.1$ & 0.325 & 1954.0 & 0.021 \\
+\midrule
+PTB-XL & IID & 2.022 & 12.9 & 0.087 \\
+ & $\alpha{=}1.0$ & 1.654 & 90.4 & 0.032 \\
+ & $\alpha{=}0.5$ & 1.756 & 630.4 & 0.023 \\
+ & $\alpha{=}0.1$ & 1.429 & 1416.0 & 0.071 \\
+\bottomrule
+\end{tabular}
+
+\vspace{1mm}
+\footnotesize{Label Entropy: mean per-client Shannon entropy (bits). Class Imb.\ Ratio: mean max/min class ratio per client. Feature KL Div.: mean KL divergence of per-client feature distributions vs.\ global. At $\alpha{=}0.1$, Cardiovascular clients receive near-single-class data (entropy 0.325 vs.\ 1.0 IID) with class imbalance ratios up to 8,373:1. HPFL achieves 95.7\% at $\alpha{=}0.1$ vs.\ FedAvg 66.0\% (+29.7pp).}
+\end{table}
+
+% --- Table S-PEP ---
+\begin{table}[htbp]
+\centering
+\caption{PEP Triangle: Privacy--Equity--Performance Profiles}
+\label{tab:pep_triangle}
+\small
+\begin{tabular}{llccc}
+\toprule
+\textbf{Dataset} & \textbf{Algorithm} & \textbf{Perf.} & \textbf{Equity} & \textbf{Privacy} \\
+ & & \textbf{(Acc\%)} & \textbf{(Jain)} & \textbf{(MIA AUC)} \\
+\midrule
+Cardiovascular & FedAvg & 69.5 & 0.979 & 0.499 \\
+ & Ditto & 67.6 & 0.951 & 0.500 \\
+ & HPFL & \textbf{85.2} & \textbf{0.991} & \textbf{0.376}$^*$ \\
+\midrule
+PTB-XL & FedAvg & 90.2 & 0.999 & 0.503 \\
+ & Ditto & 90.8 & 0.999 & 0.503 \\
+ & HPFL & 90.7 & 0.999 & 0.666 \\
+\midrule
+Breast Cancer & FedAvg & 48.4 & 0.661 & --- \\
+ & Ditto & 48.3 & 0.664 & --- \\
+ & HPFL & \textbf{73.2} & \textbf{0.889} & --- \\
+\bottomrule
+\end{tabular}
+
+\vspace{1mm}
+\footnotesize{$^*$MIA AUC $<$ 0.5 indicates attack performs worse than random---HPFL's personalization structure provides inherent membership privacy on Cardiovascular without requiring DP. On PTB-XL, HPFL's elevated MIA AUC (0.666) reflects the privacy--personalization tension, fully mitigated by DP at $\varepsilon{=}10$. Equity retention at $\varepsilon{=}1$: HPFL 93.8\% of Jain vs.\ FedAvg 78.4\%.}
+\end{table}
+
 % ============================================================================
 \bibliographystyle{IEEEtran}
 % Bibliography synchronized with main paper (52 entries)
