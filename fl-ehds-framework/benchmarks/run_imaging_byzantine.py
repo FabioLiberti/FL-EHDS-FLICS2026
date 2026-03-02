@@ -663,8 +663,16 @@ def main():
     if not args.fresh:
         checkpoint_data = load_checkpoint()
         if checkpoint_data:
+            # Remove error entries so they get retried
+            err_keys = [k for k, v in checkpoint_data.get("completed", {}).items() if "error" in v]
+            for k in err_keys:
+                del checkpoint_data["completed"][k]
             done = len(checkpoint_data.get("completed", {}))
-            log(f"AUTO-RESUMED: {done}/{total_exps} completed")
+            if err_keys:
+                log(f"AUTO-RESUMED: {done}/{total_exps} completed ({len(err_keys)} errors will be retried)")
+                save_checkpoint(checkpoint_data)
+            else:
+                log(f"AUTO-RESUMED: {done}/{total_exps} completed")
     elif args.fresh:
         ckpt_path = OUTPUT_DIR / CHECKPOINT_FILE
         if ckpt_path.exists():
