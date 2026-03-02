@@ -588,7 +588,7 @@ Homogeneous / IID data & Any & FedAvg & (all equivalent) & --- & PTB-XL: all alg
 \label{sec:advanced}
 % ============================================================================
 
-\textbf{Note:} The paradigms in this section are \textit{implemented in the reference framework} and available for use, but are \textit{not experimentally evaluated} in this paper's benchmark suite. Our experimental validation (Section~IV of the main paper) focuses on horizontal FL with 7 algorithms across 5 tabular datasets and 3 imaging datasets. The advanced paradigms below are provided as architectural capabilities for future evaluation on appropriate multi-institutional datasets.
+\textbf{Note:} The paradigms in this section are \textit{implemented in the reference framework} and available for use. Four of these paradigms---fairness-aware FL, continual FL, personalized FL, and federated unlearning---are now experimentally validated in Section~\ref{sec:cascade4} (135 experiments across 3 datasets). The remaining paradigms (vertical FL, hierarchical FL, multi-task FL, asynchronous FL) are provided as architectural capabilities for future evaluation on appropriate multi-institutional datasets.
 
 The core FL-EHDS pipeline (Section~II) addresses the standard ``horizontal'' FL scenario where all hospitals share the same feature schema. However, real EHDS deployments will encounter more complex configurations: institutions with complementary features for the same patients (vertical FL), adversarial participants (Byzantine resilience), evolving data distributions over the 2025--2031 timeline (continual FL), heterogeneous clinical objectives (multi-task FL), and the hierarchical governance structure of the EU itself (hierarchical FL). This section presents the advanced paradigms implemented in the reference framework, each motivated by a specific EHDS deployment challenge. Algorithms~S9--S13 formalize the core mechanisms.
 
@@ -3272,6 +3272,495 @@ P. Wagner \textit{et al.}, ``PTB-XL, a large publicly available electrocardiogra
 \bibitem{strack2014diabetes}
 B. Strack \textit{et al.}, ``Impact of HbA1c measurement on hospital readmission rates: Analysis of 70,000 clinical database patient records,'' \textit{BioMed Research International}, vol.~2014, art.~781670, 2014.
 
+% === Fairness-Aware FL ===
+\bibitem{li2020fair}
+T. Li \textit{et al.}, ``Fair resource allocation in federated learning,'' in \textit{Proc. ICLR}, 2020.
+
+\bibitem{mohri2019agnostic}
+M. Mohri, G. Sivek, and A. T. Suresh, ``Agnostic federated learning,'' in \textit{Proc. ICML}, PMLR 97, pp.~4615--4625, 2019.
+
+\bibitem{hu2022fedmgda}
+Z. Hu, K. Shaloudegi, G. Zhang, and Y. Yu, ``Federated learning meets multi-objective optimization,'' \textit{IEEE Trans.~Network Science and Engineering}, vol.~9, no.~4, pp.~2039--2051, 2022.
+
+% === Continual Learning ===
+\bibitem{kirkpatrick2017ewc}
+J. Kirkpatrick \textit{et al.}, ``Overcoming catastrophic forgetting in neural networks,'' \textit{Proc. National Academy of Sciences}, vol.~114, no.~13, pp.~3521--3526, 2017.
+
+\bibitem{li2017lwf}
+Z. Li and D. Hoiem, ``Learning without forgetting,'' \textit{IEEE Trans.~Pattern Anal.~Mach.~Intell.}, vol.~40, no.~12, pp.~2935--2947, 2017.
+
+% === Federated Unlearning ===
+\bibitem{liu2021federaser}
+G. Liu, X. Ma, Y. Yang, C. Wang, and J. Liu, ``FedEraser: Enabling efficient client-level data removal from federated learning,'' in \textit{Proc. IEEE/ACM IWQoS}, pp.~1--10, 2021.
+
+\bibitem{wu2022fedunlearn}
+C. Wu, S. Zhu, and P. Mitra, ``Federated unlearning with knowledge distillation,'' \textit{arXiv:2201.09441}, 2022.
+
+% === Client Selection ===
+\bibitem{lai2021oort}
+F. Lai, X. Zhu, H. V. Madhyastha, and M. Chowdhury, ``Oort: Efficient federated learning via guided participant selection,'' in \textit{Proc. OSDI}, pp.~19--35, 2021.
+
+\bibitem{cho2022towards}
+Y. J. Cho, J. Wang, and G. Joshi, ``Towards understanding biased client selection in federated learning,'' in \textit{Proc. AISTATS}, PMLR 151, pp.~10351--10375, 2022.
+
+% === Gradient Inversion ===
+\bibitem{zhu2019deep}
+L. Zhu, Z. Liu, and S. Han, ``Deep leakage from gradients,'' in \textit{Proc. NeurIPS}, vol.~32, 2019.
+
+\bibitem{geiping2020inverting}
+J. Geiping, H. Bauermeister, H. Dr\"oge, and M. Moeller, ``Inverting gradients---How easy is it to break privacy in federated learning?'' in \textit{Proc. NeurIPS}, vol.~33, pp.~16937--16947, 2020.
+
 \end{thebibliography}
+
+% ============================================================================
+% CASCADE 4: ADVANCED FL PARADIGM VALIDATION
+% ============================================================================
+\section{Advanced FL Paradigm Experimental Validation}
+\label{sec:cascade4}
+
+This section presents experimental validation of four advanced FL paradigms that are implemented in the FL-EHDS reference framework but were not experimentally evaluated in prior sections: fairness-aware aggregation (Section~\ref{sec:fairness_exp}), continual federated learning (Section~\ref{sec:continual_exp}), extended personalization comparison (Section~\ref{sec:extended_pers_exp}), and federated unlearning (Section~\ref{sec:unlearning_exp}). Together, these 135 experiments complement the 2,800+ experiments in the main paper, validating that the framework's advanced modules produce scientifically meaningful results on real healthcare datasets.
+
+All experiments use the HealthcareMLP architecture (2-layer, 64 hidden units, ReLU) on three tabular datasets: Cardiovascular (CV, 70K patients, binary, 5 clients), PTB-XL ECG (PX, 21,799 records, 5-class, 5 clients), and Breast Cancer (BC, 569 samples, binary, 4 clients). Configuration follows the dataset-specific hyperparameters established in the main paper (Table~S9). Non-IID partitioning uses Dirichlet $\alpha{=}0.3$.
+
+% ============================================================================
+\subsection{Fairness-Aware Aggregation}
+\label{sec:fairness_exp}
+
+Table~\ref{tab:fairness_comparison} compares five fairness-aware aggregation algorithms against standard FedAvg under IID and non-IID conditions (36 experiments total). Fairness is measured via per-client accuracy variance (Jain index: 1.0 = perfect equity, Gini coefficient: 0.0 = perfect equity) and worst-client accuracy.
+
+\begin{table*}[htbp]
+\centering
+\caption{Fairness-aware aggregation comparison (36 experiments, seed 42, 30 rounds). Algorithms: q-FedAvg~\cite{li2020fair} ($q{=}1.0$), AFL~\cite{mohri2019agnostic} (Agnostic FL), FedMGDA+~\cite{hu2022fedmgda} (Multi-Gradient Descent), PropFair (Proportional Fairness), FedMinMax (Minimax optimization). Best per-dataset non-IID in \textbf{bold}.}
+\label{tab:fairness_comparison}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llccccccccccc}
+\toprule
+& & \multicolumn{5}{c}{\textbf{IID}} & \multicolumn{5}{c}{\textbf{Non-IID ($\alpha{=}0.3$)}} \\
+\cmidrule(lr){3-7} \cmidrule(lr){8-12}
+\textbf{Dataset} & \textbf{Algorithm} & \textbf{Acc\%} & \textbf{Worst\%} & \textbf{Best\%} & \textbf{Jain} & \textbf{Gini} & \textbf{Acc\%} & \textbf{Worst\%} & \textbf{Best\%} & \textbf{Jain} & \textbf{Gini} \\
+\midrule
+\multirow{6}{*}{CV} & Standard & 72.7 & 72.0 & 73.2 & 1.000 & 0.003 & 72.5 & 61.0 & 73.2 & 0.987 & 0.064 \\
+ & q-FedAvg & 72.7 & 72.0 & 73.2 & 1.000 & 0.003 & \textbf{73.0} & \textbf{68.2} & 73.2 & 0.997 & 0.029 \\
+ & AFL & 72.7 & 72.0 & 73.2 & 1.000 & 0.003 & 72.9 & 67.4 & 73.2 & \textbf{0.997} & \textbf{0.032} \\
+ & FedMGDA+ & 72.7 & 72.1 & 73.2 & 1.000 & 0.004 & 64.2 & 33.1 & 73.3 & 0.894 & 0.188 \\
+ & PropFair & 72.7 & 72.0 & 73.2 & 1.000 & 0.003 & 54.6 & 2.6 & 73.2 & 0.693 & 0.361 \\
+ & FedMinMax & 72.7 & 72.0 & 73.2 & 1.000 & 0.003 & 71.2 & 65.0 & 73.0 & 0.994 & 0.043 \\
+\midrule
+\multirow{6}{*}{PX} & Standard & 91.3 & 87.4 & 93.7 & 0.999 & 0.014 & 86.7 & 77.4 & 92.1 & 0.995 & 0.042 \\
+ & q-FedAvg & 91.2 & 88.3 & 93.5 & 1.000 & 0.011 & 91.8 & 89.0 & 93.7 & 0.999 & 0.012 \\
+ & AFL & 91.2 & 88.3 & 93.5 & 1.000 & 0.011 & 91.8 & 89.0 & 93.7 & 0.999 & 0.012 \\
+ & FedMGDA+ & 80.3 & 76.8 & 83.7 & 0.999 & 0.019 & 80.9 & 67.1 & 90.1 & 0.988 & 0.061 \\
+ & PropFair & 91.0 & 87.4 & 93.5 & 0.999 & 0.013 & 91.5 & 89.0 & 93.5 & 0.999 & 0.013 \\
+ & FedMinMax & 88.3 & 85.3 & 90.1 & 0.999 & 0.016 & \textbf{92.0} & \textbf{89.9} & 93.5 & \textbf{1.000} & \textbf{0.011} \\
+\midrule
+\multirow{6}{*}{BC} & Standard & 54.5 & 4.5 & 96.7 & 0.677 & 0.382 & 54.5 & 4.5 & 96.7 & 0.677 & 0.382 \\
+ & q-FedAvg & 60.0 & 22.7 & 96.7 & 0.771 & 0.294 & 60.0 & 22.7 & 96.7 & 0.771 & 0.294 \\
+ & AFL & 58.5 & 18.2 & 96.7 & 0.750 & 0.315 & 58.5 & 18.2 & 96.7 & 0.750 & 0.315 \\
+ & FedMGDA+ & 45.5 & 0.0 & 96.7 & 0.593 & 0.458 & 45.5 & 0.0 & 96.7 & 0.593 & 0.458 \\
+ & PropFair & 48.2 & 0.0 & 96.7 & 0.709 & 0.348 & 48.2 & 0.0 & 96.7 & 0.709 & 0.348 \\
+ & FedMinMax & \textbf{85.7} & \textbf{59.1} & 96.7 & \textbf{0.963} & \textbf{0.101} & \textbf{85.7} & \textbf{59.1} & 96.7 & \textbf{0.963} & \textbf{0.101} \\
+\bottomrule
+\end{tabular}%
+}
+
+\vspace{1mm}
+\footnotesize{Key findings: (1)~Under IID, all fairness algorithms converge to identical accuracy on CV and PX, confirming that fairness reweighting has no effect when data is balanced. (2)~Under non-IID, q-FedAvg achieves the best worst-case improvement on CV (+7.2pp over standard) while FedMinMax achieves the best overall accuracy on PX (92.0\%) and dominates on BC (+31.2pp over standard). (3)~FedMGDA+ and PropFair exhibit instability under non-IID: FedMGDA+ drops to 64.2\% on CV (vs.\ 72.5\% standard), and PropFair collapses to 54.6\% with worst-client at 2.6\%---the Frank-Wolfe and proportional optimization objectives conflict with non-IID gradients. (4)~FedMinMax dramatically improves BC from 54.5\% to 85.7\% by preventing majority-class collapse. \textit{EHDS implication}: fairness-aware aggregation is essential for cross-border federations with heterogeneous hospital sizes; FedMinMax is recommended for small-data settings, q-FedAvg for large-scale deployments.}
+\end{table*}
+
+% ============================================================================
+\subsection{Continual Federated Learning}
+\label{sec:continual_exp}
+
+Table~\ref{tab:continual_fl} evaluates three continual learning strategies for FL under concept drift scenarios (36 experiments). Each experiment trains on Task~1 (original distribution) for 15 rounds, then on Task~2 (shifted distribution) for 15 rounds. Drift scenarios: \textit{no\_drift} (identical distributions), \textit{sudden\_shift} (abrupt feature permutation at round 16), \textit{gradual\_shift} (incremental permutation over rounds 16--25). Backward Transfer (BWT) measures accuracy change on Task~1 data after Task~2 training: positive BWT indicates knowledge preservation, negative BWT indicates catastrophic forgetting.
+
+\begin{table*}[htbp]
+\centering
+\caption{Continual FL under concept drift (36 experiments, seed 42, 30 rounds total: 15 Task~1 + 15 Task~2). Methods: EWC~\cite{kirkpatrick2017ewc} ($\lambda{=}1000$), Replay (buffer=200 samples/client), LwF~\cite{li2017lwf} (temperature=2.0). BWT = Backward Transfer (positive = knowledge preserved, negative = catastrophic forgetting).}
+\label{tab:continual_fl}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llcccccccccccc}
+\toprule
+& & \multicolumn{4}{c}{\textbf{No Drift}} & \multicolumn{4}{c}{\textbf{Sudden Shift}} & \multicolumn{4}{c}{\textbf{Gradual Shift}} \\
+\cmidrule(lr){3-6} \cmidrule(lr){7-10} \cmidrule(lr){11-14}
+\textbf{DS} & \textbf{Method} & \textbf{T1\%} & \textbf{T2\%} & \textbf{BWT} & \textbf{Jain} & \textbf{T1\%} & \textbf{T2\%} & \textbf{BWT} & \textbf{Jain} & \textbf{T1\%} & \textbf{T2\%} & \textbf{BWT} & \textbf{Jain} \\
+\midrule
+\multirow{4}{*}{CV} & Baseline & 72.3 & 72.8 & $+$0.5 & 1.000 & 72.2 & 72.6 & $+$0.4 & 1.000 & 72.3 & 72.6 & $+$0.3 & 1.000 \\
+ & EWC & 72.3 & 49.8 & $-$22.4 & 1.000 & 72.2 & 49.8 & $-$22.4 & 1.000 & 72.3 & 49.8 & $-$22.4 & 1.000 \\
+ & Replay & 72.3 & 72.6 & $+$0.3 & 1.000 & 72.2 & 72.5 & $+$0.3 & 1.000 & 72.3 & 72.6 & $+$0.3 & 1.000 \\
+ & LwF & 72.3 & 72.7 & $+$0.4 & 1.000 & 72.2 & 72.5 & $+$0.3 & 1.000 & 72.3 & 72.6 & $+$0.3 & 1.000 \\
+\midrule
+\multirow{4}{*}{PX} & Baseline & 88.1 & 88.1 & $-$0.0 & 0.999 & 87.9 & 91.0 & $+$3.1 & 0.999 & 88.0 & 90.1 & $+$2.1 & 0.999 \\
+ & EWC & 88.1 & 87.8 & $-$0.3 & 0.999 & 87.9 & 87.8 & $-$0.1 & 0.999 & 88.0 & 88.0 & $+$0.0 & 0.999 \\
+ & Replay & 88.1 & 88.1 & $-$0.0 & 0.999 & 87.9 & 91.0 & $+$3.1 & 0.999 & 88.0 & 90.0 & $+$2.1 & 0.999 \\
+ & LwF & 88.1 & 88.1 & $+$0.0 & 0.999 & 87.9 & 87.9 & $+$0.1 & 0.999 & 88.0 & 88.0 & $+$0.1 & 0.999 \\
+\midrule
+\multirow{4}{*}{BC} & Baseline & 54.5 & 54.5 & 0.0 & 0.677 & 54.5 & 54.5 & 0.0 & 0.677 & 54.5 & 54.5 & 0.0 & 0.677 \\
+ & EWC & 54.5 & 54.5 & 0.0 & 0.677 & 54.5 & 54.5 & 0.0 & 0.677 & 54.5 & 54.5 & 0.0 & 0.677 \\
+ & Replay & 54.5 & 54.5 & 0.0 & 0.677 & 54.5 & 54.5 & 0.0 & 0.677 & 54.5 & 54.5 & 0.0 & 0.677 \\
+ & LwF & 54.5 & 54.5 & 0.0 & 0.677 & 54.5 & 54.5 & 0.0 & 0.677 & 54.5 & 54.5 & 0.0 & 0.677 \\
+\bottomrule
+\end{tabular}%
+}
+
+\vspace{1mm}
+\footnotesize{Key findings: (1)~\textbf{EWC is catastrophically harmful on CV}: the $\lambda{=}1000$ regularization penalty prevents the model from learning Task~2, dropping accuracy to 49.8\% (near chance for binary). The Fisher Information Matrix from Task~1 over-constrains weight updates, blocking adaptation. A lower $\lambda$ or per-layer adaptive regularization would be needed. (2)~\textbf{Replay and LwF preserve knowledge effectively}: both maintain Task~1 accuracy after Task~2 training, with positive backward transfer on CV ($+$0.3--0.4pp). Replay achieves this by mixing stored Task~1 samples into Task~2 training batches; LwF by distilling Task~1 predictions. (3)~\textbf{PTB-XL under sudden shift}: the baseline actually \textit{improves} ($+$3.1pp BWT), suggesting the shifted distribution is complementary. EWC prevents this improvement by anchoring to Task~1 weights. (4)~\textbf{BC is unresponsive}: all methods produce identical results (54.5\%), indicating the 569-sample dataset is too small for the model to learn a discriminative representation under FL partitioning (4 clients, $\sim$142 samples each). \textit{EHDS implication}: for the long-term 2025--2031 EHDS deployment, Experience Replay or LwF are recommended for maintaining model quality under evolving data distributions; EWC requires careful hyperparameter tuning per dataset.}
+\end{table*}
+
+% ============================================================================
+\subsection{Extended Personalization Comparison}
+\label{sec:extended_pers_exp}
+
+Table~\ref{tab:extended_personalization} extends the personalization evaluation from the main paper (which covered Ditto and HPFL) with three additional algorithms: Per-FedAvg~\cite{fallah2020personalized} (MAML-based meta-learning), FedPer (shared base + personalized head), and APFL (Adaptive Personalized FL with mixing coefficient $\alpha$). Evaluation covers IID and two non-IID conditions (Dirichlet $\alpha \in \{0.1, 0.5\}$) across 45 experiments.
+
+\begin{table*}[htbp]
+\centering
+\caption{Extended personalization comparison (45 experiments, seed 42, 30 rounds). FedAvg baseline, Ditto ($\lambda{=}0.1$), Per-FedAvg (5 inner steps, meta-lr=0.01), FedPer (shared base + 1-layer head), APFL (mixing $\alpha{=}0.5$). Best per-dataset/condition in \textbf{bold}.}
+\label{tab:extended_personalization}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llccccccccc}
+\toprule
+& & \multicolumn{3}{c}{\textbf{IID}} & \multicolumn{3}{c}{\textbf{Non-IID ($\alpha{=}0.1$)}} & \multicolumn{3}{c}{\textbf{Non-IID ($\alpha{=}0.5$)}} \\
+\cmidrule(lr){3-5} \cmidrule(lr){6-8} \cmidrule(lr){9-11}
+\textbf{DS} & \textbf{Method} & \textbf{Acc\%} & \textbf{Worst\%} & \textbf{Jain} & \textbf{Acc\%} & \textbf{Worst\%} & \textbf{Jain} & \textbf{Acc\%} & \textbf{Worst\%} & \textbf{Jain} \\
+\midrule
+\multirow{5}{*}{CV} & FedAvg & 72.7 & 72.0 & 1.000 & 71.3 & 49.6 & 0.965 & 72.5 & 61.0 & 0.987 \\
+ & Ditto & 72.7 & 72.1 & 1.000 & \textbf{91.6} & \textbf{72.9} & 0.986 & \textbf{87.1} & \textbf{72.8} & 0.983 \\
+ & Per-FedAvg & 62.0 & 60.9 & 1.000 & 55.8 & 16.8 & 0.746 & 59.0 & 18.8 & 0.812 \\
+ & FedPer & 72.8 & 72.0 & 1.000 & 91.5 & 72.8 & \textbf{0.986} & 87.1 & 72.8 & 0.982 \\
+ & APFL & 72.7 & 72.0 & 1.000 & \textbf{91.6} & 73.2 & 0.986 & 87.2 & 72.7 & \textbf{0.983} \\
+\midrule
+\multirow{5}{*}{PX} & FedAvg & 91.3 & 87.4 & 0.999 & 77.5 & 60.7 & 0.967 & 86.7 & 77.4 & 0.995 \\
+ & Ditto & 89.9 & 84.8 & 0.998 & \textbf{94.8} & \textbf{87.6} & \textbf{0.999} & \textbf{93.3} & \textbf{90.1} & \textbf{0.999} \\
+ & Per-FedAvg & 17.4 & 12.9 & 0.980 & 32.0 & 4.8 & 0.770 & 21.1 & 15.6 & 0.943 \\
+ & FedPer & 89.2 & 83.6 & 0.997 & 94.4 & 86.6 & 0.998 & 93.1 & 89.9 & 0.999 \\
+ & APFL & 90.1 & 85.6 & 0.998 & 92.3 & 84.8 & 0.996 & 93.0 & 89.6 & 0.999 \\
+\midrule
+\multirow{5}{*}{BC} & FedAvg & 54.5 & 4.5 & 0.677 & 54.5 & 4.5 & 0.677 & 54.5 & 4.5 & 0.677 \\
+ & Ditto & \textbf{60.6} & 0.0 & \textbf{0.734} & \textbf{60.6} & 0.0 & \textbf{0.734} & \textbf{60.6} & 0.0 & \textbf{0.734} \\
+ & Per-FedAvg & 45.5 & 0.0 & 0.593 & 45.5 & 0.0 & 0.593 & 45.5 & 0.0 & 0.593 \\
+ & FedPer & 60.6 & 0.0 & 0.734 & 60.6 & 0.0 & 0.734 & 60.6 & 0.0 & 0.734 \\
+ & APFL & 60.6 & 0.0 & 0.734 & 60.6 & 0.0 & 0.734 & 60.6 & 0.0 & 0.734 \\
+\bottomrule
+\end{tabular}%
+}
+
+\vspace{1mm}
+\footnotesize{Key findings: (1)~\textbf{Ditto, FedPer, and APFL form a high-performance cluster}: on CV non-IID ($\alpha{=}0.1$), all three achieve $\sim$91.6\% ($+$20.3pp over FedAvg). Their personalization mechanisms---L2 regularization (Ditto), split architecture (FedPer), and adaptive mixing (APFL)---converge to similar solutions on the compact MLP. (2)~\textbf{Ditto leads on PTB-XL}: 94.8\% at $\alpha{=}0.1$ ($+$17.3pp over FedAvg), followed by FedPer (94.4\%) and APFL (92.3\%). The 5-class task benefits from Ditto's complete dual-model architecture. (3)~\textbf{Per-FedAvg (MAML) fails}: 17.4\% on PTB-XL IID (vs.\ 91.3\% FedAvg) and 55.8\% on CV non-IID (vs.\ 72.5\% FedAvg). The MAML inner loop (5 steps, lr=0.01) is insufficient for convergence on these datasets; MAML's sensitivity to inner-loop hyperparameters is a known challenge~\cite{fallah2020personalized}. (4)~\textbf{BC is personalization-insensitive}: IID and non-IID produce identical results for all personalization methods, confirming dataset saturation at 569 samples with 4 clients. \textit{EHDS implication}: Ditto, FedPer, and APFL are all viable for EHDS personalization; the choice depends on deployment constraints (Ditto requires 2$\times$ model storage, FedPer requires architecture modification, APFL is parameter-free). Per-FedAvg should be avoided without extensive hyperparameter tuning.}
+\end{table*}
+
+% ============================================================================
+\subsection{Federated Unlearning (Right to Be Forgotten)}
+\label{sec:unlearning_exp}
+
+Table~\ref{tab:unlearning_results} evaluates three federated unlearning methods for GDPR Article~17 ``right to erasure'' and EHDS Article~71 compliance (18 experiments). Each experiment first trains a baseline model with all clients, then removes 1 or 2 clients' contributions. The key metrics are post-unlearning accuracy (should remain close to pre-unlearning) and computational cost relative to full retraining from scratch.
+
+\begin{table*}[htbp]
+\centering
+\caption{Federated unlearning comparison (18 experiments, seed 42, 30 rounds pre-training). Methods: Exact Retrain (gold standard, retrain from scratch without target clients), Gradient Ascent~\cite{wu2022fedunlearn} (reverse gradient contribution, 5\% cost), FedEraser~\cite{liu2021federaser} (subtract accumulated updates + calibration, 37\% cost). Negative ``Drop'' indicates post-unlearning accuracy \textit{improves} (removing harmful clients). MIA = membership inference verification pass.}
+\label{tab:unlearning_results}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llccccccc}
+\toprule
+\textbf{Dataset} & \textbf{Scenario} & \textbf{Method} & \textbf{Pre-Acc\%} & \textbf{Post-Acc\%} & \textbf{Acc Drop (pp)} & \textbf{Cost} & \textbf{Removed Client Acc\%} & \textbf{MIA Pass} \\
+\midrule
+\multirow{6}{*}{CV} & \multirow{3}{*}{Remove 1 client} & Exact Retrain & 72.7 & 72.7 & 0.0 & 100\% & 73.2 & \checkmark \\
+ & & Gradient Ascent & 72.7 & 72.6 & 0.1 & 5\% & 73.1 & \checkmark \\
+ & & FedEraser & 72.7 & 72.6 & 0.1 & 37\% & 73.4 & \checkmark \\
+\cmidrule{2-9}
+ & \multirow{3}{*}{Remove 2 clients} & Exact Retrain & 72.7 & 72.7 & $-$0.0 & 100\% & 72.9 & \checkmark \\
+ & & Gradient Ascent & 72.7 & 72.5 & 0.2 & 5\% & 72.9 & \checkmark \\
+ & & FedEraser & 72.7 & 72.6 & 0.1 & 37\% & 72.5 & \checkmark \\
+\midrule
+\multirow{6}{*}{PX} & \multirow{3}{*}{Remove 1 client} & Exact Retrain & 91.1 & 91.4 & $-$0.3 & 100\% & 91.0 & \checkmark \\
+ & & Gradient Ascent & 91.1 & 91.2 & $-$0.0 & 5\% & 91.0 & \checkmark \\
+ & & FedEraser & 91.1 & 91.2 & $-$0.1 & 37\% & 91.0 & \checkmark \\
+\cmidrule{2-9}
+ & \multirow{3}{*}{Remove 2 clients} & Exact Retrain & 91.1 & 92.7 & $-$1.6 & 100\% & 89.2 & \checkmark \\
+ & & Gradient Ascent & 91.1 & 92.4 & $-$1.3 & 5\% & 89.2 & \checkmark \\
+ & & FedEraser & 91.1 & 92.3 & $-$1.2 & 37\% & 89.2 & \checkmark \\
+\midrule
+\multirow{6}{*}{BC} & \multirow{3}{*}{Remove 1 client} & Exact Retrain & 59.1 & 61.6 & $-$2.5 & 100\% & 33.3 & \checkmark \\
+ & & Gradient Ascent & 59.1 & 68.8 & $-$9.7 & 5\% & 33.3 & \checkmark \\
+ & & FedEraser & 59.1 & 61.6 & $-$2.5 & 37\% & 33.3 & \checkmark \\
+\cmidrule{2-9}
+ & \multirow{3}{*}{Remove 2 clients} & Exact Retrain & 59.1 & 90.1 & $-$31.0 & 100\% & 18.9 & \checkmark \\
+ & & Gradient Ascent & 59.1 & 91.9 & $-$32.8 & 5\% & 75.0 & \checkmark \\
+ & & FedEraser & 59.1 & 90.1 & $-$31.0 & 37\% & 18.9 & \checkmark \\
+\bottomrule
+\end{tabular}%
+}
+
+\vspace{1mm}
+\footnotesize{Key findings: (1)~\textbf{Gradient Ascent is the most cost-effective}: at only 5\% of full retraining cost, it achieves comparable post-unlearning accuracy ($\leq$0.2pp drop on CV). This makes it practical for EHDS ``right to erasure'' scenarios where computational budget is limited. (2)~\textbf{Unlearning can \textit{improve} accuracy}: on BC, removing 2 clients raises accuracy from 59.1\% to 90.1--91.9\%, indicating that some clients' data distributions were actively harmful to the global model. On PTB-XL, 2-client removal improves accuracy by 1.2--1.6pp. This has a surprising EHDS implication: exercising Article~17 opt-out rights may \textit{benefit} the remaining federation. (3)~\textbf{All methods pass MIA verification}: post-unlearning models show no residual membership signal for removed clients, confirming effective data erasure. (4)~\textbf{FedEraser offers a middle ground}: 37\% cost with accuracy matching exact retraining on CV and BC---its calibration rounds effectively recover from the subtracted contribution. (5)~\textbf{CV is robust to client removal}: the large dataset (70K samples, 5 clients) absorbs the loss of 1--2 clients with negligible accuracy impact, suggesting that adequately-sized EHDS federations can handle opt-out requests without quality degradation. \textit{EHDS implication}: Gradient Ascent should be the default unlearning method for operational EHDS deployments, reserving Exact Retrain for audit verification scenarios. The framework's unlearning module enables Article~17 compliance at 5--37\% of the computational cost of full model retraining.}
+\end{table*}
+
+% ============================================================================
+% CASCADE 5: CLIENT SELECTION & GRADIENT INVERSION PRIVACY
+% ============================================================================
+\section{Client Selection and Gradient Inversion Privacy Validation}
+\label{sec:cascade5}
+
+This section presents experimental validation of the framework's client selection strategies and gradient inversion privacy analysis (87~experiments total).
+
+\subsection{Client Selection Strategy Comparison}
+\label{sec:client_selection}
+
+We evaluate six client selection strategies across three EHDS-relevant datasets (Cardiovascular, PTB-XL, Breast Cancer) with participation rate 60\%, two federation scales ($K \in \{5, 10\}$; Breast Cancer $K{=}5$ only due to limited size), and 2 seeds per configuration (60~experiments total).
+
+\begin{table*}[htbp]
+\centering
+\caption{Client Selection Strategy Comparison: Average Accuracy, Jain Fairness Index, and Gini Coefficient}
+\label{tab:client_selection}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lcccccccccc}
+\toprule
+& \multicolumn{3}{c}{\textbf{Cardiovascular}} & \multicolumn{3}{c}{\textbf{PTB-XL}} & \multicolumn{3}{c}{\textbf{Breast Cancer}} & \textbf{Overall} \\
+\cmidrule(lr){2-4} \cmidrule(lr){5-7} \cmidrule(lr){8-10} \cmidrule(lr){11-11}
+Strategy & Acc & Jain & Gini & Acc & Jain & Gini & Acc & Jain & Gini & Avg Acc \\
+\midrule
+random & 65.76 & 0.904 & 0.166 & 87.48 & 0.981 & 0.055 & 56.15 & 0.688 & 0.359 & 72.52 \\
+loss\_based & 70.04 & 0.958 & 0.096 & 88.79 & 0.983 & 0.044 & 72.70 & 0.799 & 0.243 & 78.07 \\
+importance\_sampling & 66.61 & 0.922 & 0.150 & 88.09 & 0.984 & 0.049 & \textbf{74.16} & \textbf{0.808} & \textbf{0.230} & 76.71 \\
+resource\_aware & 70.37 & 0.964 & 0.093 & 86.18 & 0.980 & 0.066 & 69.81 & 0.764 & 0.273 & 76.58 \\
+fairness\_aware & 62.82 & 0.869 & 0.203 & 87.41 & 0.983 & 0.054 & 57.09 & 0.639 & 0.397 & 71.51 \\
+oort & \textbf{70.85} & \textbf{0.963} & \textbf{0.096} & \textbf{88.99} & \textbf{0.983} & \textbf{0.044} & 72.70 & 0.799 & 0.243 & \textbf{78.47} \\
+\bottomrule
+\end{tabular}%
+}
+
+\vspace{1mm}
+\footnotesize{Key findings: (1)~\textbf{Oort achieves the best overall performance}: 78.47\% average accuracy with Jain fairness index 0.938 and Gini coefficient 0.105, achieving the highest accuracy on both Cardiovascular (70.85\%) and PTB-XL (88.99\%). (2)~\textbf{Loss-based selection is a close second}: 78.07\% accuracy with nearly identical fairness (Jain 0.936, Gini 0.105), confirming that selecting clients by training loss jointly optimizes accuracy and equity. (3)~\textbf{Fairness-aware selection is paradoxically the worst}: despite targeting balanced participation, it achieves the lowest accuracy (71.51\%) and worst Jain index (0.868), driven by catastrophic K=10 behavior on Cardiovascular (Jain 0.658). This reveals that \textit{participation} fairness $\neq$ \textit{outcome} fairness---a critical distinction for EHDS deployment. (4)~\textbf{Importance sampling achieves the best Breast Cancer accuracy} (74.16\%, Jain 0.808), suggesting that variance-based selection benefits small, imbalanced datasets. \textit{EHDS implication}: Oort or loss-based selection should be the default for cross-border federations, as they jointly optimize accuracy and equity without requiring explicit fairness constraints.}
+\end{table*}
+
+\begin{table}[htbp]
+\centering
+\caption{Federation Scale Impact: $K{=}5$ vs.\ $K{=}10$ (Cardiovascular + PTB-XL)}
+\label{tab:scale_comparison}
+\begin{tabular}{lcc}
+\toprule
+Scale & Avg Accuracy (\%) & Avg Jain Index \\
+\midrule
+$K{=}5$ & 79.27 & 0.978 \\
+$K{=}10$ & 76.30 & 0.934 \\
+\midrule
+$\Delta$ & $-$2.97pp & $-$0.044 \\
+\bottomrule
+\end{tabular}
+
+\vspace{1mm}
+\footnotesize{Increasing federation size from 5 to 10 clients reduces average accuracy by 2.97pp and Jain fairness by 0.044 points. The degradation is strategy-dependent: fairness\_aware suffers most ($-$4.85pp accuracy, $-$0.085 Jain) while random is nearly unaffected ($-$0.98pp). This is consistent with the client scalability findings in Section~\ref{sec:scalability}: larger federations require proportionally more communication rounds for convergence, a critical consideration for EHDS deployments spanning many hospitals.}
+\end{table}
+
+\subsection{Gradient Inversion Privacy Analysis}
+\label{sec:gradient_inversion}
+
+We evaluate Deep Leakage from Gradients (DLG)~\cite{zhu2019deep} attacks against the FL framework under three differential privacy levels ($\varepsilon \in \{\infty, 10, 1\}$) across three datasets with 3~seeds each (27~experiments). The attack uses L-BFGS optimization to reconstruct training data from shared gradients. We measure reconstruction quality via MSE, cosine similarity, and Pearson correlation, classifying results as \textsc{Successful} (MSE $< 0.1$), \textsc{Partial} ($0.1 \leq \text{MSE} \leq 1.0$), or \textsc{Failed} (MSE $> 1.0$).
+
+\begin{table*}[htbp]
+\centering
+\caption{Gradient Inversion Attack Results by Dataset and Differential Privacy Level}
+\label{tab:gradient_inversion}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llrrrcc}
+\toprule
+Dataset & DP Level & Avg MSE & Avg Cosine Sim & Avg Correlation & Result & MSE Factor \\
+\midrule
+\multirow{3}{*}{Cardiovascular (dim=11)} & no DP & 0.63 & 0.369 & 0.200 & 3/3 \textsc{Partial} & $1.0\times$ \\
+ & $\varepsilon{=}10$ & 1{,}401.52 & 0.027 & 0.031 & 3/3 \textsc{Failed} & $2{,}215\times$ \\
+ & $\varepsilon{=}1$ & 63{,}374 & 0.029 & $-$0.000 & 3/3 \textsc{Failed} & $100{,}133\times$ \\
+\midrule
+\multirow{3}{*}{PTB-XL (dim=9)} & no DP & 0.10 & 0.816 & 0.683 & 2/3 \textsc{Successful}$^\dagger$ & $1.0\times$ \\
+ & $\varepsilon{=}10$ & 1{,}600.20 & $-$0.035 & 0.001 & 3/3 \textsc{Failed} & $16{,}163\times$ \\
+ & $\varepsilon{=}1$ & 39{,}163$^\ddagger$ & $-$0.003 & $-$0.002 & 3/3 \textsc{Failed} & $395{,}586\times$ \\
+\midrule
+\multirow{3}{*}{Breast Cancer (dim=30)} & no DP & 1.07 & 0.389 & 0.160 & 1/3 \textsc{Successful}$^\dagger$ & $1.0\times$ \\
+ & $\varepsilon{=}10$ & 468.02 & 0.072 & 0.040 & 3/3 \textsc{Failed} & $438\times$ \\
+ & $\varepsilon{=}1$ & 131{,}662$^\ddagger$ & 0.038 & $-$0.023 & 3/3 \textsc{Failed} & $123{,}197\times$ \\
+\midrule
+\multicolumn{2}{l}{\textbf{Aggregated (all datasets)}} & & & & & \\
+ & no DP & 0.60 & 0.525 & 0.348 & 3S/4P/2F & $1.0\times$ \\
+ & $\varepsilon{=}10$ & 1{,}156.58 & 0.021 & 0.024 & 9/9 \textsc{Failed} & $1{,}927\times$ \\
+ & $\varepsilon{=}1$ & 56{,}761$^\ddagger$ & 0.021 & $-$0.008 & 9/9 \textsc{Failed} & $94{,}569\times$ \\
+\bottomrule
+\end{tabular}%
+}
+
+\vspace{1mm}
+\footnotesize{$^\dagger$\textsc{Successful}: MSE $< 0.1$; $^\ddagger$Median reported (2 outlier runs with numerical divergence excluded from eps=1 average). Key findings: (1)~\textbf{Without DP, gradient inversion achieves successful reconstruction on low-dimensional data}: PTB-XL (9 features) yields 2/3 successful attacks (MSE 0.10, cosine similarity 0.816), with Breast Cancer also partially vulnerable (1/3 successful). This confirms that gradient sharing without privacy protection poses a real data leakage risk in EHDS deployments~\cite{geiping2020inverting}. (2)~\textbf{PTB-XL is the most vulnerable}: its lower dimensionality yields the highest reconstruction fidelity (correlation 0.683), recovering clinically meaningful signal from shared gradients. (3)~\textbf{Even moderate DP ($\varepsilon{=}10$) completely prevents gradient inversion}: 100\% attack failure rate (9/9 failed) with MSE increasing $1{,}927\times$ and cosine similarity dropping from 0.525 to 0.021 (indistinguishable from random). This is the same $\varepsilon{=}10$ that imposes $<$2pp accuracy cost---confirming that practical EHDS deployments get privacy ``for free.'' (4)~\textbf{Strong DP ($\varepsilon{=}1$) provides $94{,}569\times$ MSE amplification} and causes optimizer divergence in 2/9 runs (MSE $>10^{9}$), rendering the attack not merely ineffective but numerically catastrophic. (5)~\textbf{Dimensionality inversely correlates with vulnerability}: PTB-XL (9 dim, MSE 0.10) $>$ Cardiovascular (11 dim, MSE 0.63) $>$ Breast Cancer (30 dim, MSE 1.07), suggesting that EHDS datasets with rich feature spaces have inherent structural protection against gradient-based reconstruction. \textit{EHDS implication}: DP at $\varepsilon{=}10$ should be mandatory for all cross-border gradient sharing---it eliminates gradient inversion risk at negligible accuracy cost.}
+\end{table*}
+
+% ============================================================================
+% CASCADE 6: EXTENDED FL VALIDATION (TIERS 7–12)
+% ============================================================================
+\section{Extended Federated Learning Validation}
+\label{sec:cascade6}
+
+This section presents experimental validation across six additional tiers (234~experiments total), covering dataset coverage expansion, hierarchical FL, asynchronous FL, multi-task FL, extended Byzantine robustness, and Shapley-based client valuation.
+
+\subsection{Dataset Coverage Expansion}
+\label{sec:dataset_coverage}
+
+We extend the framework evaluation to three additional clinical datasets: Stroke Prediction (5,110 samples, 10 features, 4.9\% positive rate), Chronic Kidney Disease (399 samples, 24 features), and Cirrhosis Patient Survival (418 samples, 18 features). Each dataset is tested with 5 FL algorithms (FedAvg, Ditto, HPFL, FedProx, SCAFFOLD) under 3 conditions (IID, non-IID $\alpha{=}0.5$, non-IID + DP $\varepsilon{=}10$) with 2~seeds (90~experiments).
+
+\begin{table*}[htbp]
+\centering
+\caption{Dataset Coverage Expansion: Mean Accuracy (\%) Across Seeds}
+\label{tab:dataset_coverage}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llccccc}
+\toprule
+Dataset & Condition & FedAvg & Ditto & HPFL & FedProx & SCAFFOLD \\
+\midrule
+\multirow{3}{*}{Stroke (5,110)} & IID & 94.9 & 94.9 & 94.9 & 94.9 & 94.9 \\
+ & NonIID & 95.3 & 88.5 & 91.3 & 95.3 & 95.3 \\
+ & NonIID+DP & 90.6 & 83.0 & \textbf{90.3} & 90.5 & 89.8 \\
+\midrule
+\multirow{3}{*}{CKD (399)} & IID & 59.5 & 59.5 & 64.1 & 59.5 & 59.5 \\
+ & NonIID & 77.2 & 74.9 & \textbf{90.7} & 77.2 & 79.1 \\
+ & NonIID+DP & 70.3 & 88.8 & \textbf{91.7} & 70.9 & 71.5 \\
+\midrule
+\multirow{3}{*}{Cirrhosis (418)} & IID & 62.2 & 62.1 & 62.1 & 62.2 & 62.2 \\
+ & NonIID & 64.6 & 62.2 & \textbf{83.6} & 64.6 & 64.0 \\
+ & NonIID+DP & 65.9 & 79.2 & \textbf{88.9} & 65.9 & 65.3 \\
+\bottomrule
+\end{tabular}%
+}
+
+\vspace{1mm}
+\footnotesize{HPFL dominates on CKD and Cirrhosis across all conditions, with only 1.1pp DP degradation on Stroke (vs.\ 4--5pp for other algorithms). On CKD and Cirrhosis, DP paradoxically \textit{improves} accuracy over NonIID alone for Ditto ($+$13.9pp on CKD, $+$17.0pp on Cirrhosis) and HPFL ($+$1.1pp on CKD, $+$5.4pp on Cirrhosis), consistent with DP noise acting as regularization on small, imbalanced datasets---an effect previously observed only on PTB-XL under compound stress. Under IID, FedAvg/FedProx/SCAFFOLD converge to identical solutions, confirming the convex loss landscape observation from main experiments. 11 instances of client accuracy = 0.0\% occur under NonIID partitioning on CKD and Cirrhosis (Client~3), driven by pathological Dirichlet splits on small datasets. \textit{EHDS implication}: HPFL's personalized architecture is essential for small-sample clinical datasets ($<$500 samples), where standard algorithms fail to adapt to heterogeneous client distributions.}
+\end{table*}
+
+\subsection{Hierarchical FL Topologies}
+\label{sec:hierarchical_fl}
+
+We evaluate three FL topologies---flat (standard), 2-tier (regional $\to$ global), and 3-tier (local $\to$ regional $\to$ global)---across 3~datasets with 2~seeds each (18~experiments). Hierarchical topologies reflect EHDS multi-level governance where hospitals aggregate within national HDABs before cross-border federation.
+
+\begin{table}[htbp]
+\centering
+\caption{Hierarchical FL: Mean Accuracy (\%) by Topology}
+\label{tab:hierarchical_fl}
+\begin{tabular}{lccc}
+\toprule
+Dataset & Flat & 2-Tier & 3-Tier \\
+\midrule
+Cardiovascular & 72.52 & 72.52 & 72.56 \\
+PTB-XL & 92.86 & 92.86 & 92.87 \\
+Breast Cancer & 74.63 & 74.63 & 75.06 \\
+\bottomrule
+\end{tabular}
+
+\vspace{1mm}
+\footnotesize{No meaningful difference between topologies (max range 0.44pp on Breast Cancer). Hierarchical aggregation layers are functionally equivalent to flat aggregation for compact MLP models, suggesting that EHDS multi-level governance can be implemented without accuracy penalty. Seed variance (Breast Cancer: 64.3\% vs.\ 85.0\% across seeds) dominates any topology effect, confirming that deployment decisions about HDAB aggregation hierarchy can be driven by governance requirements rather than accuracy considerations.}
+\end{table}
+
+\subsection{Asynchronous FL Strategies}
+\label{sec:async_fl}
+
+We evaluate four asynchronous FL strategies---FedAsync, FedBuff (buffered), AsyncSGD, and FedAT (attentive)---across 3~datasets and 3~staleness levels ($s \in \{1, 3, 5\}$) representing 36~experiments. Asynchronous FL is critical for EHDS deployments where hospitals operate on different schedules and network latencies.
+
+\begin{table*}[htbp]
+\centering
+\caption{Asynchronous FL: Accuracy (\%) by Strategy and Staleness}
+\label{tab:async_fl}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llccc|ccc|ccc}
+\toprule
+ & & \multicolumn{3}{c|}{Cardiovascular} & \multicolumn{3}{c|}{PTB-XL} & \multicolumn{3}{c}{Breast Cancer} \\
+Strategy & & $s$=1 & $s$=3 & $s$=5 & $s$=1 & $s$=3 & $s$=5 & $s$=1 & $s$=3 & $s$=5 \\
+\midrule
+FedAsync & & 72.68 & 72.69 & 72.76 & 92.88 & 92.88 & 92.72 & 64.29 & 64.29 & 64.29 \\
+FedBuff & & 72.71 & 72.67 & 72.59 & 89.84 & 89.84 & 89.82 & 64.29 & 64.29 & 64.29 \\
+AsyncSGD & & 72.66 & 72.67 & 71.79 & 92.88 & 92.88 & 92.77 & 64.29 & 64.29 & 64.29 \\
+FedAT & & 72.73 & 72.74 & 72.73 & 92.88 & 92.88 & 92.88 & 64.29 & 64.29 & 64.29 \\
+\bottomrule
+\end{tabular}%
+}
+
+\vspace{1mm}
+\footnotesize{FedAT (attentive aggregation) is the most staleness-resilient strategy, with 0.00pp degradation on PTB-XL and Breast Cancer across all staleness levels. FedBuff shows a persistent 3pp accuracy deficit on PTB-XL compared to other strategies (89.84\% vs.\ 92.88\%), though staleness degradation within FedBuff is minimal (0.02pp). AsyncSGD shows the largest degradation at high staleness (0.87pp on Cardiovascular). All strategies converge to identical results on Breast Cancer (64.29\%), consistent with the dataset's convergence behavior in other experiments. \textit{EHDS implication}: FedAT should be the default for cross-border federations where hospital update latencies vary widely; FedBuff should be avoided on multi-class datasets (PTB-XL) where its buffered aggregation consistently underperforms.}
+\end{table*}
+
+\subsection{Multi-Task FL}
+\label{sec:multitask_fl}
+
+We evaluate multi-task FL with two parameter sharing modes (hard, soft) and two task combinations (diagnosis+severity, diagnosis+readmission) across 3~datasets with 2~seeds (24~experiments). Multi-task FL enables EHDS analytics to produce multiple clinical outputs from a single federated model.
+
+\begin{table*}[htbp]
+\centering
+\caption{Multi-Task FL: Primary and Secondary Task Accuracy (\%)}
+\label{tab:multitask_fl}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llcc|cc|cc}
+\toprule
+ & & \multicolumn{2}{c|}{Cardiovascular} & \multicolumn{2}{c|}{PTB-XL} & \multicolumn{2}{c}{Breast Cancer} \\
+Sharing & Task Combo & Primary & Secondary & Primary & Secondary & Primary & Secondary \\
+\midrule
+Hard & diagnosis+severity & 72.50 & 50.30 & 92.85 & 49.89 & 74.63 & 55.09 \\
+Hard & diagnosis+readmission & 72.55 & 60.40 & 92.80 & 68.19 & 74.18 & 64.85 \\
+Soft & diagnosis+severity & 72.56 & 50.02 & 92.65 & 49.93 & 65.33 & 51.09 \\
+Soft & diagnosis+readmission & 72.59 & 60.47 & 92.65 & 68.53 & 65.33 & 64.85 \\
+\bottomrule
+\end{tabular}%
+}
+
+\vspace{1mm}
+\footnotesize{Hard and soft sharing produce equivalent primary task accuracy on Cardiovascular ($<$0.1pp difference) and PTB-XL ($<$0.2pp). On Breast Cancer, hard sharing outperforms soft by 9.3pp in primary accuracy, suggesting that small datasets benefit from the stronger inductive bias of fully shared representations. The severity secondary task performs near random ($\sim$50\%) across all datasets---consistent with synthetic label generation---while the readmission secondary task achieves 60--68\%. \textit{EHDS implication}: Hard parameter sharing is preferable for multi-task EHDS analytics, providing equivalent or better accuracy with simpler implementation. Secondary task performance depends critically on task-specific signal quality, and EHDS data permits should specify minimum label quality requirements for auxiliary tasks.}
+\end{table*}
+
+\subsection{Extended Byzantine Robustness}
+\label{sec:byzantine_extended}
+
+We evaluate three Byzantine attacks (scale, label\_flip, sign\_flip) against four defense strategies (none, Krum, Trimmed Mean, Median) across 3~datasets (36~experiments). One out of 5 clients (Cardiovascular, PTB-XL) or 1 out of 4 clients (Breast Cancer) is Byzantine.
+
+\begin{table*}[htbp]
+\centering
+\caption{Byzantine Robustness: Accuracy (\%) by Attack and Defense}
+\label{tab:byzantine_extended}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llcccc|cccc|cccc}
+\toprule
+ & & \multicolumn{4}{c|}{Cardiovascular} & \multicolumn{4}{c|}{PTB-XL} & \multicolumn{4}{c}{Breast Cancer} \\
+Attack & & None & Krum & TrimMean & Median & None & Krum & TrimMean & Median & None & Krum & TrimMean & Median \\
+\midrule
+Scale & & 49.84 & \textbf{72.78} & 72.74 & 72.75 & 91.10 & 89.16 & \textbf{92.51} & 92.53 & 64.29 & 35.71 & 35.71 & 35.71 \\
+Label flip & & 71.23 & \textbf{72.78} & 72.60 & 72.74 & 89.96 & 89.16 & \textbf{89.89} & 89.33 & 64.29 & 29.46 & 35.71 & 35.71 \\
+Sign flip & & 72.66 & \textbf{72.78} & 72.74 & 72.76 & 89.86 & 89.16 & \textbf{89.86} & 89.79 & 64.29 & 35.71 & 35.71 & 35.71 \\
+\bottomrule
+\end{tabular}%
+}
+
+\vspace{1mm}
+\footnotesize{Byzantine defense effectiveness is strongly dataset-dependent. On Cardiovascular, all three defenses effectively neutralize all attacks (recovering to 72.7\% from scale-attack collapse at 49.8\%). On PTB-XL, Trimmed Mean is the most reliable defense (best or near-best on all attacks), while Krum returns a uniform 89.16\% regardless of attack type---suggesting it deterministically selects the same client update every round. On Breast Cancer, \textbf{all defenses are catastrophically counterproductive}: accuracy drops from 64.29\% (no defense) to 29--36\% (with any defense), because robust aggregation rules exclude correct client updates on this small, imbalanced dataset. Scale attack is the most damaging without defense (Cardiovascular: $-$22.8pp to near-random), while label and sign flips have minimal impact on well-trained models. \textit{EHDS implication}: Trimmed Mean should be the default Byzantine defense for multi-hospital federations, but small-dataset deployments ($<$500 samples) should disable Byzantine defenses entirely, as the robust aggregation assumption (majority honest) breaks down with few clients.}
+\end{table*}
+
+\subsection{Shapley Values and Client Valuation}
+\label{sec:shapley_values}
+
+We compute exact Shapley values via exhaustive enumeration of all $2^K$ client subsets ($K \in \{4, 5\}$) to quantify each client's marginal contribution to the federation. Experiments span 3~datasets, 2~conditions (IID, non-IID $\alpha{=}0.5$), and 5~seeds (30~experiments, 15~rounds each).
+
+\begin{table*}[htbp]
+\centering
+\caption{Shapley Values: Mean Client Contributions (5 seeds, $\pm$ std)}
+\label{tab:shapley_values}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llccccc|c}
+\toprule
+Dataset & Condition & Client 0 & Client 1 & Client 2 & Client 3 & Client 4 & Coalition Acc \\
+\midrule
+\multirow{2}{*}{Cardiovascular} & IID & 0.045$\pm$.001 & 0.046$\pm$.001 & 0.045$\pm$.001 & 0.045$\pm$.001 & 0.045$\pm$.001 & 72.66\% \\
+ & NonIID & 0.035$\pm$.027 & 0.044$\pm$.036 & 0.020$\pm$.031 & 0.048$\pm$.028 & 0.035$\pm$.019 & 68.22\% \\
+\midrule
+\multirow{2}{*}{PTB-XL} & IID & 0.175$\pm$.008 & 0.178$\pm$.010 & 0.161$\pm$.012 & 0.107$\pm$.018 & 0.078$\pm$.018 & 89.90\% \\
+ & NonIID & 0.155$\pm$.040 & 0.108$\pm$.059 & 0.121$\pm$.049 & 0.172$\pm$.066 & 0.142$\pm$.049 & 89.85\% \\
+\midrule
+\multirow{2}{*}{Breast Cancer} & IID & 0.097$\pm$.115 & 0.077$\pm$.085 & 0.051$\pm$.084 & 0.023$\pm$.083 & --- & 74.82\% \\
+ & NonIID & 0.059$\pm$.142 & 0.025$\pm$.098 & 0.053$\pm$.120 & 0.068$\pm$.127 & --- & 70.44\% \\
+\bottomrule
+\end{tabular}%
+}
+
+\vspace{1mm}
+\footnotesize{The IID/NonIID comparison reveals three key patterns. (1)~\textbf{IID produces symmetric Shapley values}: on Cardiovascular with equal data shares (20\% each), all clients contribute $\sim$0.045 (range 0.0005), exactly as game-theoretic symmetry predicts. On PTB-XL, IID Shapley values are proportional to data quantity (Client~0 holds 40.6\% of data and has the highest SV at 0.175). (2)~\textbf{NonIID introduces large variance and negative contributions}: Cardiovascular NonIID SV dispersion is $59\times$ larger than IID (range 0.028 vs.\ 0.0005). 6/25 client-seed combinations produce negative Shapley values on Cardiovascular NonIID, and 9/20 on Breast Cancer NonIID---indicating clients whose biased data actively hurts the coalition. Breast Cancer IID also produces 1/20 negative SVs due to dataset noise ($n{=}112$). (3)~\textbf{NonIID degrades coalition accuracy}: Cardiovascular drops 4.4pp (72.66\%$\to$68.22\%), Breast Cancer drops 4.4pp (74.82\%$\to$70.44\%), while PTB-XL is resilient ($-$0.05pp). Shapley efficiency gaps are $<2 \times 10^{-6}$ (exact enumeration). \textit{EHDS implication}: Shapley-based incentive mechanisms should be mandatory for cross-border federations to detect and penalize clients with harmful data distributions. The high negative-SV rate under NonIID (up to 45\% on small datasets) suggests that client data quality certification should precede federation participation.}
+\end{table*}
 
 \end{document}

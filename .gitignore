@@ -15,6 +15,9 @@ fl-ehds-framework/data/chest_xray/
 fl-ehds-framework/data/Brain_Tumor/
 fl-ehds-framework/data/Skin Cancer/
 fl-ehds-framework/data/breast_cancer_wisconsin/
+fl-ehds-framework/data/stroke_prediction/
+fl-ehds-framework/data/chronic_kidney_disease/
+fl-ehds-framework/data/cirrhosis/
 
 # Dataset archives
 *.zip
