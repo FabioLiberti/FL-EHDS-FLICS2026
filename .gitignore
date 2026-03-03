@@ -18,6 +18,7 @@ fl-ehds-framework/data/breast_cancer_wisconsin/
 fl-ehds-framework/data/stroke_prediction/
 fl-ehds-framework/data/chronic_kidney_disease/
 fl-ehds-framework/data/cirrhosis/
+fl-ehds-framework/data/cdc_diabetes/
 
 # Dataset archives
 *.zip

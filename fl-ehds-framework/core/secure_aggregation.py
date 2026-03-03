@@ -330,7 +330,9 @@ class ShamirSecretSharing:
         scale = 1e6
         quantized = (arr * scale).astype(np.int64)
 
-        shares = {i: np.zeros_like(quantized) for i in range(1, self.num_shares + 1)}
+        # Use object dtype because share values can exceed int64
+        # (prime = 2^127-1, shares live in Z_p)
+        shares = {i: np.empty(len(quantized), dtype=object) for i in range(1, self.num_shares + 1)}
 
         for idx in range(len(quantized)):
             element_shares = self.share(int(quantized[idx]) % self.prime)
@@ -345,15 +347,22 @@ class ShamirSecretSharing:
             raise ValueError(f"Need at least {self.threshold} shares")
 
         first_share = next(iter(shares.values()))
-        result = np.zeros(len(first_share), dtype=np.int64)
+        result = np.empty(len(first_share), dtype=object)
 
         for idx in range(len(first_share)):
             element_shares = {k: int(v[idx]) for k, v in shares.items()}
             result[idx] = self.reconstruct(element_shares)
 
-        # Dequantize
+        # Dequantize — convert back from Z_p to float
         scale = 1e6
-        return result.astype(np.float64) / scale
+        # Handle negative values (stored as large positive in Z_p)
+        half_prime = self.prime // 2
+        float_result = np.empty(len(result), dtype=np.float64)
+        for i, val in enumerate(result):
+            if val > half_prime:
+                val = val - self.prime
+            float_result[i] = float(val)
+        return float_result / scale
 
 
 # =============================================================================
