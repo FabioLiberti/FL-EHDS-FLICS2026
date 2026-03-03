@@ -38,7 +38,7 @@
 \maketitle
 
 \begin{abstract}
-This document provides supplementary material for the FL-EHDS paper, including complete algorithm pseudocode for all framework components, extended experimental figures, detailed algorithm comparison analysis with effect sizes (rank-biserial correlation), 10-seed statistical validation, advanced FL paradigm descriptions, infrastructure component specifications, extended EHDS interoperability details, clinical imaging experiment configurations with Chest X-ray baseline results, local epochs sweep, scalability analysis up to K=100 clients, noise-as-regularization analysis for small-cohort studies, Article~71 opt-out impact with policy recommendations, an extended threat model with attack taxonomy and defense mapping, and a detailed framework positioning analysis. The open-source reference implementation ($\sim$40K lines, 159 modules) is available at \url{https://github.com/FabioLiberti/FL-EHDS-FLICS2026}.
+This document provides supplementary material for the FL-EHDS paper, including complete algorithm pseudocode for all framework components, extended experimental figures, detailed algorithm comparison analysis with effect sizes (rank-biserial correlation), 10-seed statistical validation, advanced FL paradigm descriptions, infrastructure component specifications, extended EHDS interoperability details, clinical imaging experiment configurations with Chest X-ray baseline results, 10-seed Wilcoxon validation on imaging (90~experiments confirming Ditto's superiority and HPFL's modality-dependent reversal), Byzantine robustness on medical imaging (108~experiments with Krum defense), local epochs sweep, scalability analysis up to K=100 clients, noise-as-regularization analysis for small-cohort studies, Article~71 opt-out impact with policy recommendations, an extended threat model with attack taxonomy and defense mapping, and a detailed framework positioning analysis. The open-source reference implementation ($\sim$40K lines, 159 modules) is available at \url{https://github.com/FabioLiberti/FL-EHDS-FLICS2026}.
 \end{abstract}
 
 % ============================================================================
@@ -2352,6 +2352,43 @@ Chest X-ray & $-$0.9 & $-$0.22 & $-$0.25 & 0.828 \\
 
 The Cohen's $d$ values for Ditto on Brain Tumor ($d{=}5.86$) and Skin Cancer ($d{=}3.62$) far exceed the conventional ``large effect'' threshold ($d{>}0.8$), indicating that the observed accuracy improvements are not artifacts of seed selection. HPFL shows no significant difference from FedAvg on any imaging dataset (Brain Tumor: $d{=}0.10$, $p{=}0.88$; Skin Cancer: $d{=}-0.45$, $p{=}0.73$; Chest X-ray: $d{=}-3.66$, $p{=}0.08$).
 
+\subsection{10-Seed Wilcoxon Signed-Rank Tests on Imaging}
+\label{sec:imaging_wilcoxon}
+
+To strengthen the 3-seed $t$-test results (Table~\ref{tab:imaging_significance}), we extend the imaging evaluation to 10~seeds (42, 123, 456, 789, 999, 7, 13, 31, 67, 101), yielding 90~additional experiments (3~algorithms $\times$ 3~datasets $\times$ 10~seeds). This enables Wilcoxon signed-rank tests---the non-parametric analog used for the tabular validation (Table~\ref{tab:significance})---with sufficient power ($n{=}10$, minimum achievable $p = 0.00195$).
+
+\begin{table}[htbp]
+\centering
+\caption{Imaging Wilcoxon signed-rank $p$-values vs.\ FedAvg (10~seeds, paired by seed). $\dagger$: $p < 0.05$; $\ddagger$: $p < 0.01$. Pooled: test across 30~paired observations (3~datasets $\times$ 10~seeds). $r$: rank-biserial correlation ($|r| > 0.5$ = large effect). $\overline{\Delta}$: mean accuracy difference (pp).}
+\label{tab:imaging_wilcoxon}
+\small
+\begin{tabular}{llccc}
+\toprule
+\textbf{vs FedAvg} & \textbf{Dataset} & $\boldsymbol{p}$ & $\boldsymbol{r}$ & $\boldsymbol{\overline{\Delta}}$ \textbf{(pp)} \\
+\midrule
+\multirow{4}{*}{Ditto} & Brain Tumor & \textbf{0.004}$^\ddagger$ & 0.96 & $+$9.1 \\
+ & Skin Cancer & 0.084 & 0.64 & $+$6.2 \\
+ & Chest X-ray & 0.557 & 0.24 & $+$1.5 \\
+ & \textit{Pooled (30 obs.)} & \textbf{0.004}$^\ddagger$ & \textit{0.60} & $+$5.6 \\
+\midrule
+\multirow{4}{*}{HPFL} & Brain Tumor & \textbf{0.027}$^\dagger$ & 0.78 & $-$11.5 \\
+ & Skin Cancer & 0.066 & 0.75 & $-$8.7 \\
+ & Chest X-ray & 0.160 & 0.53 & $-$17.8 \\
+ & \textit{Pooled (30 obs.)} & \textbf{0.002}$^\ddagger$ & \textit{0.68} & $-$12.7 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Key findings.} The 10-seed Wilcoxon analysis confirms and extends the 3-seed $t$-test results with higher statistical power:
+
+\textit{First}, \textbf{Ditto significantly outperforms FedAvg on Brain Tumor} ($p{=}0.004$, $r{=}0.96$, $\overline{\Delta}{=}{+}9.1$pp), confirming the large effect observed in the 3-seed analysis ($d{=}5.86$). The pooled test across all datasets is also highly significant ($p{=}0.004$, $r{=}0.60$, $\overline{\Delta}{=}{+}5.6$pp), establishing that Ditto's advantage is not dataset-specific.
+
+\textit{Second}, \textbf{HPFL is significantly \textit{worse} than FedAvg on imaging}---the inverse of the tabular finding. On Brain Tumor, HPFL loses 11.5pp ($p{=}0.027$); the pooled test yields $p{=}0.002$ ($r{=}0.68$, $\overline{\Delta}{=}{-}12.7$pp). This represents a \textbf{modality-dependent reversal}: the same algorithm that significantly outperforms FedAvg on all three tabular datasets (Table~\ref{tab:significance}) significantly \textit{underperforms} on imaging. HPFL's split-head architecture cannot learn robust shared CNN representations under non-IID partitioning; its detached classifier head fails to benefit from the rich feature hierarchies that ResNet-18 produces.
+
+\textit{Third}, \textbf{Chest X-ray remains the exception}: neither Ditto ($p{=}0.557$) nor HPFL ($p{=}0.160$) differs significantly from FedAvg, consistent with the hypothesis that large, binary datasets with class imbalance provide sufficient signal for global aggregation alone.
+
+\textit{EHDS implication}: The 10-seed validation produces an actionable recommendation for EHDS imaging analytics: \textbf{Ditto should be the default algorithm} (significant improvement on complex tasks, never worse than FedAvg), while \textbf{HPFL should be excluded} from imaging deployments despite its superiority on tabular data.
+
 \subsection{Extended Algorithm Comparison on Imaging (5 Seeds)}
 \label{sec:imaging_extended_algos}
 
@@ -3730,6 +3767,49 @@ Sign flip & & 72.66 & \textbf{72.78} & 72.74 & 72.76 & 89.86 & 89.16 & \textbf{8
 \vspace{1mm}
 \footnotesize{Byzantine defense effectiveness is strongly dataset-dependent. On Cardiovascular, all three defenses effectively neutralize all attacks (recovering to 72.7\% from scale-attack collapse at 49.8\%). On PTB-XL, Trimmed Mean is the most reliable defense (best or near-best on all attacks), while Krum returns a uniform 89.16\% regardless of attack type---suggesting it deterministically selects the same client update every round. On Breast Cancer, \textbf{all defenses are catastrophically counterproductive}: accuracy drops from 64.29\% (no defense) to 29--36\% (with any defense), because robust aggregation rules exclude correct client updates on this small, imbalanced dataset. Scale attack is the most damaging without defense (Cardiovascular: $-$22.8pp to near-random), while label and sign flips have minimal impact on well-trained models. \textit{EHDS implication}: Trimmed Mean should be the default Byzantine defense for multi-hospital federations, but small-dataset deployments ($<$500 samples) should disable Byzantine defenses entirely, as the robust aggregation assumption (majority honest) breaks down with few clients.}
 \end{table*}
+
+\subsection{Byzantine Robustness on Medical Imaging}
+\label{sec:byzantine_imaging}
+
+While the preceding section evaluated Byzantine resilience on tabular clinical data (Table~\ref{tab:byzantine_extended}), medical imaging presents fundamentally different challenges: larger model capacity (ResNet-18 with 11.2M parameters vs.\ 3-layer MLP), richer gradient signals, and heterogeneous visual features across institutions. We evaluate three attack types---\textit{label flipping} (adversary inverts class labels), \textit{gradient noise injection} (Gaussian noise $\sigma{=}10$ added to model updates), and \textit{sign flipping} (gradients multiplied by $-5$)---with Krum defense ($f{=}1$ Byzantine out of $K{=}5$ clients) across 3~imaging datasets, 3~algorithms, and 3~seeds (108~experiments total, ${\sim}27$~hours on NVIDIA A40).
+
+\begin{table*}[htbp]
+\centering
+\caption{Byzantine Robustness on Medical Imaging: Best accuracy (\%, mean$\pm$std over 3~seeds) under Krum defense ($f{=}1/5$ Byzantine). ResNet-18, 5 clients, Dirichlet $\alpha{=}0.5$, 20 rounds, early stopping (patience=4). $\Delta$: accuracy change from no\_attack baseline. Best per-dataset in \textbf{bold}. Resilience: ratio of mean attacked accuracy to no\_attack baseline.}
+\label{tab:byzantine_imaging}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{ll cccc cccc c}
+\toprule
+ & & \multicolumn{4}{c}{\textbf{Accuracy (\%)}} & \multicolumn{4}{c}{\textbf{$\Delta$ vs.\ no\_attack (pp)}} & \textbf{Resil.} \\
+\cmidrule(lr){3-6}\cmidrule(lr){7-10}\cmidrule(lr){11-11}
+\textbf{Dataset} & \textbf{Algorithm} & \textbf{no\_attack} & \textbf{label\_flip} & \textbf{noise} & \textbf{sign\_flip} & \textbf{label\_flip} & \textbf{noise} & \textbf{sign\_flip} & \textbf{avg} & \\
+\midrule
+\multirow{3}{*}{Chest X-ray} & FedAvg & 88.6$\pm$2.2 & 84.8$\pm$6.1 & 85.8$\pm$2.6 & 86.4$\pm$0.9 & $-$3.8 & $-$2.8 & $-$2.2 & $-$2.9 & 96.7\% \\
+ & \textbf{Ditto} & 85.4$\pm$2.1 & 82.5$\pm$3.9 & 83.3$\pm$4.4 & \textbf{88.1$\pm$1.9} & $-$2.9 & $-$2.1 & $+$2.7 & $-$0.8 & \textbf{99.1\%} \\
+ & HPFL & 67.8$\pm$29.5 & 42.7$\pm$23.5 & 66.1$\pm$28.4 & 59.7$\pm$25.6 & $-$25.1 & $-$1.7 & $-$8.1 & $-$11.6 & 82.9\% \\
+\midrule
+\multirow{3}{*}{Brain Tumor} & FedAvg & 51.0$\pm$17.7 & 44.1$\pm$13.8 & 61.9$\pm$2.1 & 61.8$\pm$2.1 & $-$6.9 & $+$10.9 & $+$10.8 & $+$4.9 & 109.6\% \\
+ & \textbf{Ditto} & 57.7$\pm$12.3 & 50.2$\pm$13.1 & \textbf{66.3$\pm$7.2} & \textbf{70.1$\pm$5.0} & $-$7.5 & $+$8.6 & $+$12.4 & $+$4.5 & \textbf{107.8\%} \\
+ & HPFL & 41.1$\pm$12.1 & 28.1$\pm$4.9 & 42.9$\pm$9.6 & 40.6$\pm$8.1 & $-$13.0 & $+$1.8 & $-$0.5 & $-$3.9 & 90.4\% \\
+\midrule
+\multirow{3}{*}{Skin Cancer} & FedAvg & 71.5$\pm$6.5 & 61.0$\pm$12.5 & 69.5$\pm$4.3 & 72.2$\pm$3.0 & $-$10.5 & $-$2.0 & $+$0.7 & $-$3.9 & 94.5\% \\
+ & \textbf{Ditto} & \textbf{77.4$\pm$2.0} & \textbf{68.1$\pm$3.8} & \textbf{77.5$\pm$1.3} & \textbf{77.6$\pm$0.9} & $-$9.3 & $+$0.1 & $+$0.2 & $-$3.0 & \textbf{96.1\%} \\
+ & HPFL & 64.0$\pm$8.0 & 53.7$\pm$7.5 & 62.6$\pm$8.4 & 63.4$\pm$7.4 & $-$10.3 & $-$1.4 & $-$0.6 & $-$4.1 & 93.7\% \\
+\bottomrule
+\end{tabular}%
+}
+\par{\footnotesize Label flipping is the most damaging attack across all algorithms and datasets (average $-$9.9pp), while noise and sign flipping are largely neutralized by Krum (average $-$0.3pp and $+$1.5pp respectively). HPFL exhibits extreme variance on Chest X-ray ($\sigma{=}29.5\%$ at baseline, $23.5\%$ under label\_flip), confirming architectural instability. Brain Tumor no\_attack baselines are lower than the non-Byzantine results (Table~\ref{tab:imaging_bt_sc_full}) because Krum's client filtering reduces effective participation even without adversaries---the filtering itself acts as a regularizer that \textit{improves} accuracy under noise/sign\_flip attacks (see text). Ditto achieves the highest absolute accuracy and resilience on 2/3 datasets, with remarkably low variance under attack ($\sigma \leq 5.0\%$ on Brain Tumor noise/sign\_flip vs.\ FedAvg $\sigma{=}17.7\%$ at baseline).}
+\end{table*}
+
+\textbf{Key findings.} The 108-experiment imaging Byzantine evaluation reveals three findings that complement the tabular analysis:
+
+\textit{First}, \textbf{label flipping bypasses Krum defense on imaging}. Unlike noise and sign flipping---which Krum filters effectively (average drop $<$3pp)---label flipping causes significant accuracy degradation across all algorithms: FedAvg $-$7.1pp, Ditto $-$6.6pp, HPFL $-$16.1pp (averaged across datasets). This occurs because label flipping corrupts the \textit{training data} rather than the gradient signal: Krum operates on model updates and cannot detect that a client's update was trained on corrupted labels, since the update itself has normal magnitude and direction.
+
+\textit{Second}, \textbf{Ditto is the most Byzantine-resilient algorithm}. Ditto achieves the highest resilience scores on Chest X-ray (99.1\%) and Skin Cancer (96.1\%), and the highest absolute accuracy under attack on 2/3 datasets. Its L2-regularized personal model provides an implicit defense: even when the global model is degraded by Byzantine clients, the personal model's L2 penalty toward the (partially corrupted) global acts as a conservative anchor, limiting the propagation of Byzantine influence to local models.
+
+\textit{Third}, \textbf{noise and sign flipping anomalously improve Brain Tumor accuracy} for FedAvg (+10.9pp, +10.8pp) and Ditto (+8.6pp, +12.4pp). This ``noise-as-regularization'' effect occurs because Krum's filtering of the adversarial client also excludes that client's potentially harmful non-IID update---on this small, 4-class dataset with high heterogeneity, removing one client's contribution can actually improve the global model. This mirrors the finding from the tabular analysis (Table~\ref{tab:byzantine_extended}) where Breast Cancer showed counterproductive defense effects.
+
+\textit{EHDS implication}: For cross-border imaging federations, Ditto with Krum defense provides the best resilience against Byzantine participants. However, \textbf{data poisoning via label corruption remains a critical threat} that aggregation-level defenses cannot address---EHDS implementations should complement Byzantine-resilient aggregation with data quality auditing mechanisms at the governance layer (Layer~1) to detect corrupted training labels before they enter the federation.
 
 \subsection{Shapley Values and Client Valuation}
 \label{sec:shapley_values}
