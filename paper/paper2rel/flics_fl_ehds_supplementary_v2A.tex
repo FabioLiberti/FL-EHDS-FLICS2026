@@ -4010,6 +4010,207 @@ Table~\ref{tab:rq_index} provides a cross-reference of all 35~research questions
 }
 \end{table*}
 
+\subsection{Cascade 7: Trustworthiness Detailed Results}
+
+The following tables present the quantitative results from Cascade~7's trustworthiness evaluation (243 experiments across 6~blocks, Cardiovascular/PTB\_XL/Breast Cancer datasets, 2~seeds each).
+
+% ── Block M: Model Calibration ──
+\smallskip\noindent\textbf{Model Calibration under DP (Block M, 54 experiments).}
+Table~\ref{tab:calibration_ece} shows Expected Calibration Error (ECE) before and after temperature scaling across 3~DP levels. Without DP, models are well-calibrated (ECE$\leq$0.03 on CV and PTB\_XL). DP noise induces systematic overconfidence: at $\varepsilon{=}10$, ECE rises to 0.07--0.42, but temperature scaling recovers calibration effectively (e.g., HPFL on CV: 0.215$\to$0.030). At $\varepsilon{=}1$, overconfidence saturates (ratio$\approx$1.0) and temperature scaling provides negligible improvement.
+
+\begin{table*}[htbp]
+\centering
+\caption{Model Calibration: ECE before and after temperature scaling (Block~M, 54 experiments, 2 seeds). Lower ECE is better. Overconf.\ ratio: fraction of bins where predicted confidence exceeds true accuracy.}
+\label{tab:calibration_ece}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{ll rrr rrr rrr}
+\toprule
+& & \multicolumn{3}{c}{\textbf{No DP}} & \multicolumn{3}{c}{$\boldsymbol{\varepsilon{=}10}$} & \multicolumn{3}{c}{$\boldsymbol{\varepsilon{=}1}$} \\
+\cmidrule(lr){3-5} \cmidrule(lr){6-8} \cmidrule(lr){9-11}
+\textbf{Dataset} & \textbf{Algorithm} & ECE$_\text{pre}$ & ECE$_\text{post}$ & Overconf. & ECE$_\text{pre}$ & ECE$_\text{post}$ & Overconf. & ECE$_\text{pre}$ & ECE$_\text{post}$ & Overconf. \\
+\midrule
+\multirow{3}{*}{Cardiovascular} & FedAvg & 0.024 & 0.025 & 0.15 & 0.416 & 0.270 & 0.92 & 0.441 & 0.438 & 1.00 \\
+& Ditto & 0.026 & 0.027 & 0.15 & 0.299 & 0.120 & 0.82 & 0.363 & 0.363 & 1.00 \\
+& HPFL & 0.024 & 0.024 & 0.15 & \textbf{0.215} & \textbf{0.030} & 0.70 & 0.330 & 0.328 & 1.00 \\
+\midrule
+\multirow{3}{*}{PTB\_XL} & FedAvg & 0.028 & 0.012 & 0.11 & 0.129 & 0.053 & 0.88 & 0.151 & 0.154 & 1.00 \\
+& Ditto & 0.026 & 0.013 & 0.10 & \textbf{0.070} & \textbf{0.019} & 0.75 & 0.095 & 0.093 & 1.00 \\
+& HPFL & 0.028 & 0.011 & 0.11 & 0.119 & 0.043 & 0.90 & 0.140 & 0.142 & 1.00 \\
+\midrule
+\multirow{3}{*}{Breast Cancer} & FedAvg & 0.169 & 0.098 & 0.00 & 0.156 & 0.163 & 0.94 & 0.178 & 0.213 & 1.00 \\
+& Ditto & 0.168 & 0.101 & 0.00 & 0.157 & 0.124 & 0.88 & 0.188 & 0.223 & 1.00 \\
+& HPFL & 0.168 & 0.087 & 0.00 & 0.162 & 0.146 & 0.81 & 0.166 & 0.192 & 1.00 \\
+\bottomrule
+\end{tabular}%
+}
+\end{table*}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\columnwidth]{figures/fig_calibration_ece.pdf}
+\caption{ECE before and after temperature scaling across DP levels on Cardiovascular and PTB-XL. Temperature scaling effectively recalibrates models under $\varepsilon{=}10$ but fails under $\varepsilon{=}1$ where overconfidence saturates.}
+\label{fig:calibration_ece}
+\end{figure}
+
+% ── Block N: Conformal Prediction ──
+\smallskip\noindent\textbf{Conformal Prediction under FL and DP (Block N, 36 experiments).}
+Table~\ref{tab:conformal_prediction} reports conformal prediction coverage and prediction set sizes. At target 90\% coverage, noDP and $\varepsilon{=}10$ models maintain valid coverage with compact prediction sets (1.0--1.6 average set size). However, $\varepsilon{=}1$ produces \textit{vacuous predictions}: 100\% coverage achieved by including \textit{all} classes (set size$=$2.0 for binary tasks, 5.0 for 5-class PTB\_XL), rendering predictions clinically useless.
+
+\begin{table*}[htbp]
+\centering
+\caption{Conformal Prediction: coverage and average prediction set size at target 90\% coverage (Block~N, 36 experiments, 2 seeds). Singleton fraction: proportion of predictions containing exactly one class.}
+\label{tab:conformal_prediction}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{ll rrr rrr rrr}
+\toprule
+& & \multicolumn{3}{c}{\textbf{No DP}} & \multicolumn{3}{c}{$\boldsymbol{\varepsilon{=}10}$} & \multicolumn{3}{c}{$\boldsymbol{\varepsilon{=}1}$} \\
+\cmidrule(lr){3-5} \cmidrule(lr){6-8} \cmidrule(lr){9-11}
+\textbf{Dataset} & \textbf{Condition} & Cov. & Set Size & Single. & Cov. & Set Size & Single. & Cov. & Set Size & Single. \\
+\midrule
+\multirow{2}{*}{Cardiovascular} & IID & 0.896 & 1.460 & 0.540 & 0.901 & 1.620 & 0.380 & \cellcolor{red!15}1.000 & \cellcolor{red!15}2.000 & \cellcolor{red!15}0.000 \\
+& NonIID & 0.896 & 1.457 & 0.543 & 0.897 & 1.550 & 0.451 & \cellcolor{red!15}1.000 & \cellcolor{red!15}2.000 & \cellcolor{red!15}0.000 \\
+\midrule
+\multirow{2}{*}{PTB\_XL} & IID & 0.910 & 0.961 & 0.961 & 0.895 & 1.168 & 0.850 & \cellcolor{red!15}1.000 & \cellcolor{red!15}5.000 & \cellcolor{red!15}0.000 \\
+& NonIID & 0.902 & 0.983 & 0.955 & 0.903 & 1.094 & 0.909 & \cellcolor{red!15}1.000 & \cellcolor{red!15}5.000 & \cellcolor{red!15}0.000 \\
+\midrule
+\multirow{2}{*}{Breast Cancer} & IID & 0.911 & 1.277 & 0.723 & 0.866 & 1.429 & 0.429 & 0.902 & 1.500 & 0.500 \\
+& NonIID & 0.929 & 1.364 & 0.637 & 0.921 & 1.248 & 0.752 & \cellcolor{red!15}1.000 & \cellcolor{red!15}2.000 & \cellcolor{red!15}0.000 \\
+\bottomrule
+\end{tabular}%
+}
+\smallskip
+
+\noindent\footnotesize{Red-highlighted cells indicate vacuous predictions where the conformal set includes all possible classes, providing zero diagnostic value.}
+\end{table*}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\columnwidth]{figures/fig_conformal_setsize.pdf}
+\caption{Conformal prediction set size inflation under DP. At $\varepsilon{=}1$, prediction sets expand to include all classes (5.0 for PTB-XL, 2.0 for binary tasks), producing vacuous but trivially valid predictions.}
+\label{fig:conformal_setsize}
+\end{figure}
+
+% ── Block O: Feature Attribution ──
+\smallskip\noindent\textbf{Feature Attribution Stability (Block O, 36 experiments).}
+Table~\ref{tab:feature_attribution} reports cross-client Spearman rank correlation of feature importance vectors. Under IID, clients agree strongly on feature rankings ($\rho{>}0.80$ on CV and PTB\_XL). NonIID + DP destroys this agreement for Cardiovascular ($\rho{\approx}0$), while PTB\_XL retains moderate consistency ($\rho{\approx}0.60$), suggesting that feature salience is more robust in high-dimensional signal spaces.
+
+\begin{table}[htbp]
+\centering
+\caption{Cross-client feature importance rank correlation (Spearman $\rho$, Block~O, 36 experiments, 2 seeds). Higher is better.}
+\label{tab:feature_attribution}
+\begin{tabular}{llcc}
+\toprule
+\textbf{Dataset} & \textbf{Algorithm} & \textbf{IID} & \textbf{NonIID+$\varepsilon{=}10$} \\
+\midrule
+\multirow{3}{*}{Cardiovascular} & FedAvg & 0.845 & 0.020 \\
+& Ditto & 0.804 & $-$0.041 \\
+& HPFL & 0.850 & $-$0.038 \\
+\midrule
+\multirow{3}{*}{PTB\_XL} & FedAvg & 0.851 & 0.606 \\
+& Ditto & 0.837 & 0.560 \\
+& HPFL & 0.861 & 0.616 \\
+\midrule
+\multirow{3}{*}{Breast Cancer} & FedAvg & 0.234 & 0.204 \\
+& Ditto & 0.255 & 0.170 \\
+& HPFL & 0.243 & 0.141 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ── Block P: Demographic Fairness ──
+\smallskip\noindent\textbf{Demographic Fairness (Block P, 36 experiments).}
+Table~\ref{tab:demographic_fairness} reports equalized odds gaps (TPR and FPR differences between demographic groups) on Cardiovascular disease prediction. Gender fairness is generally acceptable under IID ($<$0.03 gap), but NonIID + DP amplifies disparities (FedAvg NonIID+$\varepsilon{=}10$: TPR gap 0.19). Age fairness is consistently more problematic: demographic parity gaps reach 0.33--0.45 across all conditions, driven by inherent prevalence differences between age groups.
+
+\begin{table*}[htbp]
+\centering
+\caption{Demographic fairness gaps on Cardiovascular (Block~P, 36 experiments, 2 seeds). Gender: male/female. Age: young/old. Lower gaps indicate fairer models.}
+\label{tab:demographic_fairness}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lll rrrr rrrr}
+\toprule
+& & & \multicolumn{4}{c}{\textbf{Gender Fairness}} & \multicolumn{4}{c}{\textbf{Age Fairness}} \\
+\cmidrule(lr){4-7} \cmidrule(lr){8-11}
+\textbf{Algorithm} & \textbf{Cond.} & \textbf{DP} & Acc Gap & TPR Gap & FPR Gap & DP Gap & Acc Gap & TPR Gap & FPR Gap & DP Gap \\
+\midrule
+\multirow{4}{*}{FedAvg} & IID & noDP & 0.005 & 0.008 & 0.011 & 0.004 & 0.084 & 0.243 & 0.249 & 0.335 \\
+& IID & $\varepsilon{=}10$ & 0.014 & 0.008 & 0.026 & 0.010 & 0.050 & 0.097 & 0.270 & 0.222 \\
+& NonIID & noDP & 0.011 & 0.040 & 0.022 & 0.029 & 0.075 & 0.242 & 0.216 & 0.314 \\
+& NonIID & $\varepsilon{=}10$ & 0.052 & \textbf{0.190} & \textbf{0.267} & \textbf{0.232} & 0.049 & 0.201 & 0.188 & 0.263 \\
+\midrule
+\multirow{4}{*}{Ditto} & IID & noDP & 0.007 & 0.007 & 0.013 & 0.004 & 0.084 & 0.242 & 0.248 & 0.334 \\
+& IID & $\varepsilon{=}10$ & 0.010 & 0.017 & 0.024 & 0.015 & 0.089 & 0.181 & 0.347 & 0.335 \\
+& NonIID & noDP & 0.013 & 0.016 & 0.010 & 0.004 & 0.051 & 0.181 & 0.202 & 0.322 \\
+& NonIID & $\varepsilon{=}10$ & 0.010 & 0.030 & 0.018 & 0.022 & \textbf{0.029} & \textbf{0.114} & \textbf{0.105} & \textbf{0.207} \\
+\midrule
+\multirow{4}{*}{HPFL} & IID & noDP & 0.005 & 0.009 & 0.011 & 0.005 & 0.084 & 0.243 & 0.249 & 0.335 \\
+& IID & $\varepsilon{=}10$ & 0.019 & 0.035 & 0.045 & 0.035 & 0.111 & 0.247 & 0.367 & 0.394 \\
+& NonIID & noDP & 0.011 & 0.039 & 0.020 & 0.028 & 0.059 & 0.238 & 0.196 & 0.315 \\
+& NonIID & $\varepsilon{=}10$ & 0.016 & 0.120 & 0.087 & 0.110 & 0.034 & 0.190 & 0.129 & 0.267 \\
+\bottomrule
+\end{tabular}%
+}
+\end{table*}
+
+% ── Block Q: Concept Drift ──
+\smallskip\noindent\textbf{Concept Drift Robustness (Block Q, 36 experiments).}
+Table~\ref{tab:concept_drift} reports accuracy before and after simulated distribution shifts on Cardiovascular. Mild drift causes negligible degradation ($<$0.6pp), while severe drift induces a uniform $\sim$13pp drop across all algorithms. Critically, \textit{neither retraining nor EMA adaptation provides meaningful recovery} (max recovery $<$0.3pp), indicating that single-round post-hoc adaptation is insufficient for severe covariate shift in FL---multi-round continual adaptation strategies (cf.\ Cascade~4 Block~B) are required.
+
+\begin{table}[htbp]
+\centering
+\caption{Concept drift robustness on Cardiovascular (Block~Q, 36 experiments, 2 seeds). Drop: accuracy decrease from pre-drift. Recovery: accuracy gain from adaptation.}
+\label{tab:concept_drift}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{llrrrr}
+\toprule
+\textbf{Algorithm} & \textbf{Severity} & \textbf{Pre-Drift} & \textbf{Post-Drift} & \textbf{Drop} & \textbf{Best Recovery} \\
+\midrule
+\multirow{2}{*}{FedAvg} & Mild & 72.5\% & 72.1\% & 0.4pp & $<$0.1pp (ema) \\
+& Severe & 72.5\% & 59.4\% & 13.1pp & 0.1pp (ema) \\
+\midrule
+\multirow{2}{*}{Ditto} & Mild & 72.6\% & 72.1\% & 0.6pp & 0.1pp (retrain) \\
+& Severe & 72.6\% & 59.4\% & 13.2pp & 0.1pp (ema) \\
+\midrule
+\multirow{2}{*}{HPFL} & Mild & 72.5\% & 72.1\% & 0.4pp & $<$0.1pp (ema) \\
+& Severe & 72.5\% & 59.5\% & 13.1pp & 0.1pp (ema) \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+% ── Block R: DP Composition ──
+\smallskip\noindent\textbf{DP Composition for Sequential Studies (Block R, 45 experiments).}
+Table~\ref{tab:dp_composition} compares na\"ive, advanced, and R\'enyi DP (RDP) composition across 1--20 sequential studies. Na\"ive and advanced composition yield identical (linear) budgets in all tested configurations. RDP provides strictly sub-linear composition, with the improvement ratio increasing with the number of studies and with tighter per-study budgets. At $\varepsilon{=}1$ per study, RDP enables 20 sequential studies at a total budget of 4.86 (vs.\ na\"ive 20.0), a $4.12\times$ improvement. This result is dataset-independent (composition depends only on noise parameters).
+
+\begin{table}[htbp]
+\centering
+\caption{DP composition: total $\varepsilon$ after $k$ sequential studies (Block~R, 45 experiments). RDP ratio: na\"ive$/$RDP improvement factor.}
+\label{tab:dp_composition}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{l rrrrr}
+\toprule
+& \multicolumn{5}{c}{\textbf{Number of Sequential Studies ($k$)}} \\
+\cmidrule(lr){2-6}
+\textbf{Per-Study $\varepsilon$} & $k{=}1$ & $k{=}2$ & $k{=}5$ & $k{=}10$ & $k{=}20$ \\
+\midrule
+\multicolumn{6}{l}{\textit{Na\"ive / Advanced Composition ($\varepsilon_\text{total} = k \cdot \varepsilon$)}} \\
+$\varepsilon{=}1.0$ & 1.0 & 2.0 & 5.0 & 10.0 & 20.0 \\
+$\varepsilon{=}5.0$ & 5.0 & 10.0 & 25.0 & 50.0 & 100.0 \\
+$\varepsilon{=}10.0$ & 10.0 & 20.0 & 50.0 & 100.0 & 200.0 \\
+\midrule
+\multicolumn{6}{l}{\textit{RDP Composition ($\varepsilon_\text{total}$)}} \\
+$\varepsilon{=}1.0$ & 1.0 & 1.44 & 2.32 & 3.35 & \textbf{4.86} \\
+$\varepsilon{=}5.0$ & 5.0 & 8.13 & 13.74 & 21.74 & 32.79 \\
+$\varepsilon{=}10.0$ & 10.0 & 18.52 & 32.89 & 52.63 & 86.96 \\
+\midrule
+\multicolumn{6}{l}{\textit{RDP Improvement Ratio (na\"ive / RDP)}} \\
+$\varepsilon{=}1.0$ & 1.00 & 1.39 & 2.15 & 2.99 & \textbf{4.12$\times$} \\
+$\varepsilon{=}5.0$ & 1.00 & 1.23 & 1.82 & 2.30 & 3.05$\times$ \\
+$\varepsilon{=}10.0$ & 1.00 & 1.08 & 1.52 & 1.90 & 2.30$\times$ \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
 \subsection{Cascade 10: Detailed Results}
 
 The following tables present the key quantitative results from Cascade~10's clinical imbalance deep-dive (384 experiments, 0 errors, 22 min 16 sec).
