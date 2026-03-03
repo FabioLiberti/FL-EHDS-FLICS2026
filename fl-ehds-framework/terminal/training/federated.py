@@ -8,6 +8,7 @@ from dataclasses import dataclass, field
 from copy import deepcopy
 import time
 import os
+from sklearn.metrics import f1_score as sklearn_f1_score
 
 import torch
 import torch.nn as nn
@@ -928,34 +929,43 @@ class FederatedTrainer:
         # Calculate metrics
         accuracy = (all_preds == all_labels).mean()
 
-        # True positives, false positives, false negatives
-        tp = ((all_preds == 1) & (all_labels == 1)).sum()
-        fp = ((all_preds == 1) & (all_labels == 0)).sum()
-        fn = ((all_preds == 0) & (all_labels == 1)).sum()
+        # Determine number of classes from data
+        num_classes = len(np.unique(np.concatenate([all_preds, all_labels])))
 
-        # Precision, Recall, F1
-        precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
-        recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
-        f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0.0
-
-        # AUC-ROC (simple calculation)
-        # Sort by probability and calculate
-        sorted_indices = np.argsort(all_probs)[::-1]
-        sorted_labels = all_labels[sorted_indices]
-        n_pos = (all_labels == 1).sum()
-        n_neg = (all_labels == 0).sum()
-
-        if n_pos > 0 and n_neg > 0:
-            tpr_sum = 0.0
-            tp_count = 0
-            for label in sorted_labels:
-                if label == 1:
-                    tp_count += 1
-                else:
-                    tpr_sum += tp_count / n_pos
-            auc = tpr_sum / n_neg
+        if num_classes <= 2:
+            # Binary: positive-class (class 1) precision/recall/F1
+            tp = ((all_preds == 1) & (all_labels == 1)).sum()
+            fp = ((all_preds == 1) & (all_labels == 0)).sum()
+            fn = ((all_preds == 0) & (all_labels == 1)).sum()
+            precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
+            recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
+            f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0.0
         else:
-            auc = 0.5
+            # Multiclass: macro-averaged F1 via sklearn
+            f1 = float(sklearn_f1_score(all_labels, all_preds, average='macro', zero_division=0))
+            precision = 0.0  # not meaningful as single scalar for multiclass
+            recall = 0.0
+
+        # AUC-ROC
+        if num_classes <= 2:
+            n_pos = (all_labels == 1).sum()
+            n_neg = (all_labels == 0).sum()
+            if n_pos > 0 and n_neg > 0:
+                sorted_indices = np.argsort(all_probs)[::-1]
+                sorted_labels = all_labels[sorted_indices]
+                tpr_sum = 0.0
+                tp_count = 0
+                for label in sorted_labels:
+                    if label == 1:
+                        tp_count += 1
+                    else:
+                        tpr_sum += tp_count / n_pos
+                auc = tpr_sum / n_neg
+            else:
+                auc = 0.5
+        else:
+            # Multiclass: AUC not computable from single-class probs
+            auc = 0.0
 
         return {
             "loss": total_loss / total_samples,
@@ -999,28 +1009,38 @@ class FederatedTrainer:
         all_probs = np.array(all_probs)
 
         accuracy = (all_preds == all_labels).mean()
-        tp = ((all_preds == 1) & (all_labels == 1)).sum()
-        fp = ((all_preds == 1) & (all_labels == 0)).sum()
-        fn = ((all_preds == 0) & (all_labels == 1)).sum()
-        precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
-        recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
-        f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0.0
+        num_classes = len(np.unique(np.concatenate([all_preds, all_labels])))
 
-        n_pos = (all_labels == 1).sum()
-        n_neg = (all_labels == 0).sum()
-        if n_pos > 0 and n_neg > 0:
-            sorted_indices = np.argsort(all_probs)[::-1]
-            sorted_labels = all_labels[sorted_indices]
-            tpr_sum = 0.0
-            tp_count = 0
-            for label in sorted_labels:
-                if label == 1:
-                    tp_count += 1
-                else:
-                    tpr_sum += tp_count / n_pos
-            auc = tpr_sum / n_neg
+        if num_classes <= 2:
+            tp = ((all_preds == 1) & (all_labels == 1)).sum()
+            fp = ((all_preds == 1) & (all_labels == 0)).sum()
+            fn = ((all_preds == 0) & (all_labels == 1)).sum()
+            precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
+            recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
+            f1 = 2 * precision * recall / (precision + recall) if (precision + recall) > 0 else 0.0
         else:
-            auc = 0.5
+            f1 = float(sklearn_f1_score(all_labels, all_preds, average='macro', zero_division=0))
+            precision = 0.0
+            recall = 0.0
+
+        if num_classes <= 2:
+            n_pos = (all_labels == 1).sum()
+            n_neg = (all_labels == 0).sum()
+            if n_pos > 0 and n_neg > 0:
+                sorted_indices = np.argsort(all_probs)[::-1]
+                sorted_labels = all_labels[sorted_indices]
+                tpr_sum = 0.0
+                tp_count = 0
+                for label in sorted_labels:
+                    if label == 1:
+                        tp_count += 1
+                    else:
+                        tpr_sum += tp_count / n_pos
+                auc = tpr_sum / n_neg
+            else:
+                auc = 0.5
+        else:
+            auc = 0.0
 
         return {
             "loss": total_loss / total_samples,
