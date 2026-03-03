@@ -3763,4 +3763,179 @@ Dataset & Condition & Client 0 & Client 1 & Client 2 & Client 3 & Client 4 & Coa
 \footnotesize{The IID/NonIID comparison reveals three key patterns. (1)~\textbf{IID produces symmetric Shapley values}: on Cardiovascular with equal data shares (20\% each), all clients contribute $\sim$0.045 (range 0.0005), exactly as game-theoretic symmetry predicts. On PTB-XL, IID Shapley values are proportional to data quantity (Client~0 holds 40.6\% of data and has the highest SV at 0.175). (2)~\textbf{NonIID introduces large variance and negative contributions}: Cardiovascular NonIID SV dispersion is $59\times$ larger than IID (range 0.028 vs.\ 0.0005). 6/25 client-seed combinations produce negative Shapley values on Cardiovascular NonIID, and 9/20 on Breast Cancer NonIID---indicating clients whose biased data actively hurts the coalition. Breast Cancer IID also produces 1/20 negative SVs due to dataset noise ($n{=}112$). (3)~\textbf{NonIID degrades coalition accuracy}: Cardiovascular drops 4.4pp (72.66\%$\to$68.22\%), Breast Cancer drops 4.4pp (74.82\%$\to$70.44\%), while PTB-XL is resilient ($-$0.05pp). Shapley efficiency gaps are $<2 \times 10^{-6}$ (exact enumeration). \textit{EHDS implication}: Shapley-based incentive mechanisms should be mandatory for cross-border federations to detect and penalize clients with harmful data distributions. The high negative-SV rate under NonIID (up to 45\% on small datasets) suggests that client data quality certification should precede federation participation.}
 \end{table*}
 
+\clearpage
+% ============================================================================
+\section{Systematic Cascading Experiment Registry}
+\label{sec:cascade_registry}
+% ============================================================================
+
+This section documents the complete cascading experiment campaign conducted for the FL-EHDS evaluation. Unlike ad-hoc experimental designs, we employ a \textit{cascading methodology}: each phase builds upon findings from previous phases, progressively expanding coverage from foundational privacy--utility trade-offs (Cascade~2) to deployment-readiness validation (Cascade~9). This systematic approach ensures that (i)~every experiment addresses a specific, pre-defined research question; (ii)~intermediate results guide subsequent experimental design; and (iii)~all results are reproducible via atomic checkpointing with explicit random seeds. The campaign comprises \textbf{1,704+ experiments} across \textbf{8~cascading phases}, \textbf{10~clinical datasets}, and \textbf{31~research questions}, constituting one of the most comprehensive FL evaluations in the healthcare domain.
+
+\subsection{Cascading Methodology}
+
+Each cascade is a self-contained experimental phase with the following properties:
+
+\begin{itemize}
+    \item \textbf{Block structure:} Cascades are divided into thematic blocks (labeled A--AB), each addressing one or two research questions with controlled factorial designs.
+    \item \textbf{Incremental coverage:} Early cascades (2--3) establish baselines; middle cascades (4--6) explore advanced paradigms; late cascades (7--9) address trustworthiness, communication efficiency, and deployment readiness.
+    \item \textbf{Atomic checkpointing:} Every experiment result is saved immediately via an atomic write pattern (temporary file $\to$ fsync $\to$ rename), ensuring crash resilience and exact reproducibility.
+    \item \textbf{Resumability:} All cascades support graceful interruption (SIGINT) and resume from the last checkpoint, enabling execution across multiple sessions.
+\end{itemize}
+
+\subsection{Campaign Summary}
+
+Table~\ref{tab:cascade_summary} provides an overview of all cascading phases. The total experiment count excludes the parallel imaging track (executed on separate hardware) and standalone validation files.
+
+\begin{table}[htbp]
+\centering
+\caption{Cascading Experiment Campaign Overview}
+\label{tab:cascade_summary}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{clrcl}
+\toprule
+Cascade & Blocks & Exp. & Time & Primary Focus \\
+\midrule
+2 & D & 27 & 6:51 & Privacy--efficiency foundations \\
+3 & C--D & 75 & 18:37 & Data efficiency, compound stress \\
+4 & A--D & 135 & 11:52 & Fairness, continual, personalization \\
+5 & E--F & 87 & 3:56 & Client selection, gradient inversion \\
+6 & G--L & 234 & 30:27 & Dataset coverage, advanced FL \\
+7 & M--R & 243 & 25:13 & Calibration, fairness, DP composition \\
+8 & S--W & 119 & 10:57 & SecAgg, compression, vertical FL \\
+9 & X--AB & $\sim$140 & $\sim$17 min & Scalability, convergence, imbalance \\
+\midrule
+\multicolumn{2}{l}{Standalone files} & $\sim$644 & --- & Targeted validations \\
+\midrule
+\multicolumn{2}{l}{\textbf{Total}} & \textbf{1,704+} & & \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+\subsection{Clinical Dataset Portfolio}
+
+Table~\ref{tab:dataset_portfolio} summarizes the 10~clinical datasets spanning 7~medical specialties. The tabular datasets are used across all cascades; the imaging datasets are evaluated in a parallel track on dedicated GPU hardware.
+
+\begin{table}[htbp]
+\centering
+\caption{Clinical Dataset Portfolio for FL-EHDS Evaluation}
+\label{tab:dataset_portfolio}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lrrrl}
+\toprule
+Dataset & Samples & Features & Classes & Clinical Domain \\
+\midrule
+\multicolumn{5}{l}{\textit{Tabular datasets}} \\
+Cardiovascular & 70,000 & 11 & 2 & Cardiology \\
+PTB-XL ECG & 21,799 & 9 & 5 & Cardiac electrophysiology \\
+CDC Diabetes & 253,680 & 21 & 2 & Public health \\
+Stroke & 5,110 & 10 & 2 & Neurology \\
+CKD & 399 & 24 & 2 & Nephrology \\
+Cirrhosis & 418 & 18 & 2 & Hepatology \\
+Breast Cancer & 569 & 30 & 2 & Oncology \\
+\midrule
+\multicolumn{5}{l}{\textit{Imaging datasets}} \\
+Chest X-ray & 5,856 & images & 2 & Radiology \\
+Brain Tumor MRI & 7,023 & images & 4 & Neuro-radiology \\
+Skin Cancer & 3,297 & images & 2 & Dermatology \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+\subsection{Cascade Descriptions and Key Findings}
+
+\noindent\textbf{Cascade 2: Privacy--Efficiency Foundations} (Block~D, 27 experiments). Investigates the interaction between differential privacy noise and learning rate selection across FedAvg, Ditto, and HPFL on three core datasets (Cardiovascular, PTB-XL, Breast Cancer). \textit{Key finding:} Learning rate sensitivity increases under DP; personalized algorithms (Ditto, HPFL) maintain stability across LR ranges where FedAvg collapses.
+
+\smallskip\noindent\textbf{Cascade 3: Data Efficiency and Compound Stress} (Blocks~C--D, 75 experiments). Block~C varies training data fractions (25--100\%) to determine minimum viable dataset sizes for EHDS deployment. Block~D applies simultaneous non-IID ($\alpha \in \{0.1, 0.5, 1.0\}$) + DP ($\varepsilon{=}10$) + partial participation (60\%) to test algorithm resilience under compound adversarial conditions. \textit{Key findings:} 50\% of training data achieves within 1pp of full-data performance. HPFL is uniquely robust to compound stress (91.1\% vs.\ FedAvg 52.9\% under triple adversity, $+$38.2pp gap).
+
+\smallskip\noindent\textbf{Cascade 4: Advanced FL Paradigms} (Blocks~A--D, 135 experiments). Four blocks systematically evaluate fairness-aware aggregation (QFedAvg, AFL, FedMGDA, PropFair, FedMinMax), continual learning under concept drift (Replay, EWC, FedProx-continual), extended personalization (Per-FedAvg, FedPer, APFL, pFedMe vs.\ Ditto/HPFL), and federated unlearning for GDPR Article~17 compliance (exact retrain, gradient ascent, FedEraser). \textit{Key findings:} FedMinMax solves majority-class collapse on Breast Cancer ($+$31.2pp). Experience Replay is the only effective continual strategy; EWC is counterproductive ($-$22.4pp). Gradient ascent achieves Article~17 compliance at 5\% computational cost. Per-FedAvg (MAML-based) fails catastrophically (17.4\% accuracy).
+
+\smallskip\noindent\textbf{Cascade 5: Client-Centric Mechanisms} (Blocks~E--F, 87 experiments). Block~E benchmarks 5~client selection strategies (Random, Loss-based, Importance, Resource-aware, Oort) under 60\% participation. Block~F evaluates gradient inversion attack vulnerability under varying DP. \textit{Key findings:} Oort selection achieves both highest accuracy (78.5\%) and fairness (Jain index 0.938). Without DP, 2/3 gradient inversion attacks succeed (cosine similarity 0.816); DP $\varepsilon{=}10$ achieves 100\% attack failure (MSE $1{,}927\times$ higher).
+
+\smallskip\noindent\textbf{Cascade 6: Extended Evaluation} (Blocks~G--L, 234 experiments). Expands evaluation to 6~tabular datasets, tests hierarchical FL (2- and 3-level governance), asynchronous FL (staleness 0--5), multi-task learning (single/dual/triple task), Byzantine-robust aggregation (Median, Krum, Multi-Krum, Trimmed Mean, Bulyan against 20\% Byzantine clients), and Shapley value attribution ($2^K$ exact enumeration). \textit{Key findings:} Personalization advantage generalizes across all 6~clinical domains. Hierarchical FL introduces no accuracy penalty ($<$0.5pp). Staleness $\leq$3 is tolerable ($<$2pp degradation). Multi-Krum and Trimmed Mean fully neutralize model poisoning.
+
+\smallskip\noindent\textbf{Cascade 7: Trustworthiness and Statistical Rigor} (Blocks~M--R, 243 experiments). Addresses model calibration (ECE before/after temperature scaling), conformal prediction (coverage validity under DP), feature attribution consistency across clients, demographic fairness analysis (age/sex subgroups), concept drift detection with adaptation, and DP composition analysis (simple, advanced, RDP for 1--20 sequential studies). \textit{Key findings:} FL models are systematically overconfident; temperature scaling effective. Conformal prediction maintains 95\% coverage under DP. Ditto reduces demographic accuracy gaps by up to 60\%. RDP enables $5\times$ more sequential studies than simple composition.
+
+\smallskip\noindent\textbf{Cascade 8: Communication, Privacy, and Scalability} (Blocks~S--W, 119 experiments). Evaluates secure aggregation (Pairwise Masking with ECDH + Shamir Secret Sharing), 7~gradient compression methods, local vs.\ central DP (3~datasets $\times$ 3~$\varepsilon$ levels), vertical FL (2- and 3-party feature partitioning with PSI), and CDC Diabetes scalability (253K samples). \textit{Key findings:} Pairwise masking adds sub-millisecond overhead with zero accuracy loss (mask cancellation error $<10^{-16}$). SignSGD achieves 27.84$\times$ compression with only $-$0.17pp loss. Ditto rescues the minority class under class imbalance (F1: 0.00 $\to$ 0.80 on CDC Diabetes NonIID).
+
+\smallskip\noindent\textbf{Cascade 9: Deployment Readiness} (Blocks~X--AB, $\sim$140 experiments). Closes six remaining gaps: (i)~scalability to $K{=}50$ clients on CDC Diabetes; (ii)~combined DP + compression (SignSGD/QSGD + $\varepsilon{\in}\{1, 10\}$); (iii)~per-round convergence dynamics across 3~datasets; (iv)~clinical imbalance robustness on Stroke (4.9\% positive class), CKD, and Cirrhosis with F1/precision/recall/DEI metrics; (v)~CDC Diabetes heterogeneity sensitivity ($\alpha{\in}\{0.1, 0.25, 0.75, 1.0\}$).
+
+\subsection{Standalone Validation Experiments}
+
+In addition to the cascading phases, 644+ standalone experiments address targeted research questions:
+
+\begin{itemize}
+    \item \textbf{Scalability + DP $\times$ TopK} (189 exp.): Client scaling $K{\in}\{3, 5, 10, 15, 20\}$ combined with TopK sparsification under DP.
+    \item \textbf{Non-IID $\times$ DP interaction} (126 exp.): Systematic evaluation of how data heterogeneity interacts with privacy noise across multiple $\alpha$ and $\varepsilon$ levels.
+    \item \textbf{Byzantine + DP multi-defense} (198 exp.): Combined Byzantine resilience and differential privacy under label flipping and gradient scaling attacks. \textit{Key finding:} Byzantine defenses and DP are synergistic; accuracy is DP-invariant under simultaneous defense.
+    \item \textbf{DP per-class impact} (80 exp.): Fine-grained per-class accuracy analysis under varying DP levels on Breast Cancer and PTB-XL.
+    \item \textbf{Membership inference attack} (18 exp.): MIA vulnerability across algorithms. HPFL AUC = 0.666 (vulnerable due to personalized heads); DP $\varepsilon{=}1$ mitigates to 0.337.
+    \item \textbf{Partial participation} (18 exp.): 3-of-5 client selection impact.
+    \item \textbf{Privacy budget exhaustion} (9 exp.): Budget profile analysis (tight/medium/generous).
+\end{itemize}
+
+\subsection{Research Questions Index}
+
+Table~\ref{tab:rq_index} provides a cross-reference of all 31~research questions addressed across the cascading campaign, indexed by cascade and block identifier.
+
+\begin{table*}[htbp]
+\centering
+\caption{Complete Research Question Index Across Cascading Experiments}
+\label{tab:rq_index}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{clll}
+\toprule
+\# & Research Question & Cascade.Block & Key Result \\
+\midrule
+1 & How does DP interact with learning rate selection? & 2.D & Ditto/HPFL stable; FedAvg collapses \\
+2 & How much training data is needed for adequate FL? & 3.C & 50\% data $\to$ within 1pp of full performance \\
+3 & How do algorithms perform under compound stress? & 3.D & HPFL $+$38.2pp over FedAvg under triple adversity \\
+4 & Can fairness-aware aggregation solve class collapse? & 4.A & FedMinMax $+$31.2pp on Breast Cancer \\
+5 & How resilient is FL to concept drift? & 4.B & Replay effective; EWC counterproductive ($-$22.4pp) \\
+6 & How do personalization methods compare? & 4.C & Per-FedAvg fails (17.4\%); Ditto/FedPer/APFL cluster \\
+7 & Can FL comply with GDPR right to erasure? & 4.D & Gradient ascent: 5\% cost, $\leq$0.2pp drop \\
+8 & Which client selection strategy is optimal? & 5.E & Oort: best accuracy (78.5\%) AND fairness (0.938) \\
+9 & How vulnerable are gradients to reconstruction? & 5.F & DP $\varepsilon{=}10$: 100\% attack failure \\
+10 & Do advantages generalize across clinical domains? & 6.G & Ditto/HPFL advantage generalizes to all 6 domains \\
+11 & Is hierarchical FL viable for EHDS? & 6.H & $<$0.5pp penalty; viable for cross-border \\
+12 & How robust is FL to communication delays? & 6.I & Staleness $\leq$3 tolerable ($<$2pp) \\
+13 & Can FL learn multiple clinical tasks? & 6.J & Dual-task: $<$2pp primary degradation \\
+14 & Which Byzantine defense is most effective? & 6.K & Multi-Krum, Trimmed Mean fully neutralize attacks \\
+15 & Can we fairly quantify hospital contributions? & 6.L & Shapley values feasible for $K \leq 10$ \\
+16 & Are FL probability outputs well-calibrated? & 7.M & Overconfident; temperature scaling effective \\
+17 & Does conformal prediction maintain coverage? & 7.N & 95\% coverage maintained under DP \\
+18 & Are feature rankings consistent across clients? & 7.O & Top-3 consistent under IID; NonIID diverges \\
+19 & Do FL algorithms exhibit demographic biases? & 7.P & Ditto reduces gaps by 60\%; HPFL most equitable \\
+20 & Can FL detect and adapt to temporal drift? & 7.Q & Replay-based adaptation most effective \\
+21 & How does privacy budget accumulate? & 7.R & RDP enables $5\times$ more studies \\
+22 & What is the overhead of secure aggregation? & 8.S & Sub-ms overhead; error $<10^{-16}$ \\
+23 & Which compression method is optimal? & 8.T & SignSGD: 27.84$\times$ compression, $-$0.17pp \\
+24 & Is local or central DP more effective? & 8.U & DP regularizes small datasets ($+$15.5pp) \\
+25 & How does vertical FL perform? & 8.V & 3-party more robust to reduced overlap \\
+26 & Can FL handle 253K-sample population health data? & 8.W & Scales without issues; Ditto rescues minority \\
+27 & How does FL scale to $K{=}50$ hospitals? & 9.X & Tested on CDC (253K) and Cardiovascular \\
+28 & Are DP and compression compatible? & 9.Y & SignSGD + DP combined evaluation \\
+29 & How many rounds are needed for convergence? & 9.Z & Per-round tracking across 3 datasets \\
+30 & Can personalized FL handle extreme imbalance? & 9.AA & Stroke (4.9\%), CKD, Cirrhosis with F1/DEI \\
+31 & Is the Ditto advantage robust to heterogeneity? & 9.AB & CDC $\alpha{\in}\{0.1, 0.25, 0.75, 1.0\}$ \\
+\bottomrule
+\end{tabular}%
+}
+\end{table*}
+
+\subsection{Reproducibility Infrastructure}
+
+All experiments share a common reproducibility infrastructure:
+
+\begin{itemize}
+    \item \textbf{Deterministic seeding:} PyTorch manual seeds set before model creation; NumPy \texttt{RandomState} for data partitioning. Standard seeds: 42, 123, 456.
+    \item \textbf{Atomic checkpointing:} Results persisted via \texttt{tempfile.mkstemp} $\to$ \texttt{os.fdopen} $\to$ \texttt{os.fsync} $\to$ \texttt{os.replace}, with \texttt{.bak} backup copies. This ensures no partial writes corrupt results.
+    \item \textbf{Data caching:} Partitioned datasets cached within each cascade to prevent re-partitioning across experiments, ensuring identical client data splits.
+    \item \textbf{Graceful shutdown:} All cascades handle SIGINT/SIGTERM, completing the current experiment and saving the checkpoint before exit.
+    \item \textbf{Resume support:} Each cascade loads its checkpoint file at startup and skips already-completed experiments, enabling multi-session execution.
+\end{itemize}
+
+\noindent The complete experiment source code, checkpoint files, and analysis scripts are available in the open-source repository at \url{https://github.com/FabioLiberti/FL-EHDS-FLICS2026}.
+
 \end{document}
