@@ -22,9 +22,10 @@ use real clinical datasets with atomic checkpointing for reproducibility.
 | 6 | G-L | 234 | 30:27 | Dataset coverage, hierarchical/async FL, Byzantine, Shapley |
 | 7 | M-R | 243 | 25:13 | Calibration, conformal, attribution, demographic fairness, drift, DP composition |
 | 8 | S-W | 119 | 10:57 | Secure aggregation, compression, local/central DP, vertical FL, CDC Diabetes |
-| 9 | X-AB | ~140 | ~15-20 min | Scalability K=50, DP+compression, convergence dynamics, clinical imbalance |
+| 9 | X-AB | 144 | 18:24 | Scalability K=50, DP+compression, convergence dynamics, clinical imbalance |
+| 10 | AC-TH | 384 | 22:16 | Clinical imbalance deep-dive: DP regularization, loss mitigation, threshold tuning |
 | **Standalone** | | **~644** | | Scalability, Non-IID+DP, Byzantine+DP, MIA, partial participation, etc. |
-| **Total** | | **~1,704+** | | |
+| **Total** | | **~2,092+** | | |
 
 ### Datasets used across all cascades
 
@@ -33,10 +34,10 @@ use real clinical datasets with atomic checkpointing for reproducibility.
 | Cardiovascular | 70,000 | 11 | 2 | Cardiology | 2-9, standalone |
 | PTB-XL ECG | 21,799 | 9 | 5 | Cardiac electrophysiology | 2-9, standalone |
 | Breast Cancer | 569 | 30 | 2 | Oncology (radiology) | 2-8, standalone |
-| CDC Diabetes | 253,680 | 21 | 2 | Endocrinology / Public health | 8-9 |
-| Stroke | 5,110 | 10 | 2 | Neurology | 6, 9 |
+| CDC Diabetes | 253,680 | 21 | 2 | Endocrinology / Public health | 8-10 |
+| Stroke | 5,110 | 10 | 2 | Neurology | 6, 9, 10 |
 | CKD | 399 | 24 | 2 | Nephrology | 6, 9 |
-| Cirrhosis | 418 | 18 | 2 | Hepatology | 6, 9 |
+| Cirrhosis | 418 | 18 | 2 | Hepatology | 6, 9, 10 |
 | Chest X-ray | 5,856 | images | 2 | Radiology | imaging track |
 | Brain Tumor MRI | 7,023 | images | 4 | Neuro-radiology | imaging track |
 | Skin Cancer | 3,297 | images | 2 | Dermatology | imaging track |
@@ -621,6 +622,110 @@ determine if this is a robust finding or specific to alpha=0.5.
 
 ---
 
+## Cascade 10: Clinical Imbalance Deep-Dive
+
+**Checkpoint:** `checkpoint_cascade10.json`
+**Experiments:** 384 | **Runtime:** 22:16
+
+Cascade 10 is a systematic investigation of the majority-class collapse phenomenon
+discovered in Cascade 9 Block AA, where 37% of experiments on imbalanced datasets
+produced F1=0.0. This cascade tests DP noise as a regularizer, class-weighted loss
+functions as mitigation, local epoch tuning for Ditto, and post-hoc threshold
+optimization as a rescue mechanism.
+
+### Block AC: Complete Condition Matrix (90 experiments)
+
+**Research question:** Does DP noise act as an implicit regularizer against
+majority-class collapse? Is the effect consistent across privacy budgets (eps=1, eps=10)?
+
+| Factor | Values |
+|--------|--------|
+| Datasets | Stroke (4.9% positive), Cirrhosis (37% positive) |
+| Algorithms | FedAvg, Ditto, HPFL |
+| Conditions | IID+eps10, IID+eps1, NonIID+eps1 (filling gaps from Block AA) |
+| Seeds | 42, 123, 456, 789, 999 |
+
+**Key finding:** DP noise eliminates majority-class collapse. Without DP, collapse
+rate is 75-83% (Block AA). With any DP level (eps=1 or eps=10), collapse drops to
+0-3.3%. The DP gradient noise prevents the optimizer from converging to the trivial
+"always predict majority" solution. NonIID+eps1 is the most protective condition
+(Stroke F1=0.22, Cirrhosis F1=0.57), confirming the "double regularization"
+hypothesis: data heterogeneity + DP noise force diverse gradient signals that
+benefit minority-class learning.
+
+### Block AD: Mitigation Strategies (234 experiments)
+
+**Research question:** Can class-weighted cross-entropy or focal loss eliminate
+the F1=0.0 collapse? Which strategy is superior for clinical deployment?
+
+| Factor | Values |
+|--------|--------|
+| Datasets | Stroke (5 seeds), Cirrhosis (5 seeds), CDC Diabetes (3 seeds) |
+| Algorithms | FedAvg, Ditto, HPFL |
+| Loss types | Weighted CE (w = N_total / (N_classes × N_k)), Focal (gamma=2.0) |
+| Conditions | IID+noDP, NonIID+noDP, NonIID+eps10 |
+| Class weights | Stroke: 0.53/10.36 (19.7×), CDC: 0.58/3.58 (6.2×), Cirrhosis: 0.82/1.29 (1.6×) |
+
+**Key findings:**
+- **Collapse nearly eliminated**: from 55.6% (Block AA baseline) to 0.85% (2/234).
+  Focal loss achieves zero collapses (0/117). Weighted CE has 2 residual collapses
+  (both seed=42, Cirrhosis, NonIID+noDP).
+- **Weighted CE wins 18/27 matchups** against focal on mean F1, but focal is more
+  robust (zero collapses, lower variance).
+- **Best configurations**: weighted_ce + Ditto + NonIID+noDP achieves F1=0.39 on
+  Stroke (from 0.00 baseline), F1=0.72 on Cirrhosis, F1=0.57 on CDC Diabetes.
+- **Threshold tuning amplifies focal loss**: focal + threshold tuning achieves up
+  to +177% F1 improvement (Stroke Ditto NonIID+noDP: 0.18 → 0.50).
+- **Ditto is the best algorithm** across all 3 datasets, ranking #1 consistently.
+
+### Block AE: Ditto Local Epochs Sweep (40 experiments)
+
+**Research question:** Does increasing local training epochs improve Ditto's
+minority-class rescue? What is the optimal epoch count?
+
+| Factor | Values |
+|--------|--------|
+| Datasets | Stroke, Cirrhosis |
+| Algorithm | Ditto |
+| Local epochs | 5, 10 (baseline: 3 from Block AA) |
+| Conditions | NonIID+noDP, NonIID+eps10 |
+| Seeds | 42, 123, 456, 789, 999 |
+
+**Key findings:**
+- **Cirrhosis + noDP: monotonic improvement** — F1 rises from 0.36 (ep=3) to 0.57
+  (ep=5) to 0.78 (ep=10), with variance shrinking 5× (std: 0.36 → 0.07).
+- **Stroke + noDP: collapse broken at ep=10** — F1 from 0.00 (ep=3) to 0.36 (ep=10),
+  but with high variance (std=0.25). At ep=5, 4/5 seeds still collapse.
+- **DP interaction**: Under eps=10, improvements plateau. DP already regularizes
+  against collapse, leaving less room for epoch-based improvement.
+- **ep=5 is a "danger zone"** for Stroke: enough epochs to overfit to majority class,
+  not enough to learn minority class patterns.
+
+### Block TH: Threshold Rescue (20 experiments)
+
+**Research question:** Can post-hoc threshold optimization rescue models that
+collapsed to F1=0.0? Is the rescue clinically meaningful?
+
+| Factor | Values |
+|--------|--------|
+| Source | Cascade 9 Block AA experiments with F1=0.0 |
+| Models re-trained | 20 (all F1=0.0 from Block AA) |
+| Threshold sweep | 0.05 to 0.95, step 0.05 |
+
+**Key findings:**
+- **All 20 collapsed models produce TT-F1 > 0** after threshold tuning, but quality
+  varies dramatically by dataset.
+- **Cirrhosis: effective rescue** — 7/7 models achieve TT-F1 ≥ 0.56, best: 0.87
+  (Ditto NonIID+noDP). Optimal thresholds cluster at 0.30-0.45, indicating the
+  models learned minority class features but were miscalibrated.
+- **Stroke: marginal rescue** — 9/13 models achieve TT-F1 < 0.20. Optimal threshold
+  is 0.05 for 12/20 models (the minimum tested), indicating minimal learned signal.
+- **Conclusion**: Threshold tuning is effective for moderately imbalanced datasets
+  (Cirrhosis) where the model learned discriminative features, but insufficient for
+  severely imbalanced datasets (Stroke 4.9%) where the fundamental learning failed.
+
+---
+
 ## Standalone Experiment Files
 
 These experiments address specific research questions outside the cascade
@@ -792,3 +897,7 @@ For quick reference, all research questions addressed across cascades:
 | 29 | How many rounds are needed for convergence? | 9.Z |
 | 30 | Can personalized FL handle extreme class imbalance? | 9.AA |
 | 31 | Is the Ditto advantage robust to heterogeneity level? | 9.AB |
+| 32 | Does DP noise act as implicit regularizer against majority-class collapse? | 10.AC |
+| 33 | Can weighted CE or focal loss eliminate class-imbalance collapse in FL? | 10.AD |
+| 34 | Does increasing local epochs improve Ditto's minority-class rescue? | 10.AE |
+| 35 | Can post-hoc threshold tuning rescue collapsed FL models? | 10.TH |

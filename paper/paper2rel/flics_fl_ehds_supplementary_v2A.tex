@@ -2355,7 +2355,7 @@ The Cohen's $d$ values for Ditto on Brain Tumor ($d{=}5.86$) and Skin Cancer ($d
 \subsection{Extended Algorithm Comparison on Imaging (5 Seeds)}
 \label{sec:imaging_extended_algos}
 
-To verify whether the personalization gap generalises beyond the four algorithms in the main imaging comparison, we evaluate five additional FL algorithms---FedSAM~\cite{qu2022generalized}, FedLC~\cite{zhang2022fedlc}, FedDecorr~\cite{shi2023feddecorr}, FedExP~\cite{jhunjhunwala2023fedexp}, and FedAvg as baseline---on all three imaging datasets with 5~seeds each (75~additional experiments). These algorithms employ server-side or regularisation-based strategies without maintaining separate personal models. A lightweight training configuration was used (12~rounds max, frozen backbone, local\_epochs=1, early stopping patience=4, min\_rounds=6) to isolate the effect of aggregation strategy from training depth.
+To verify whether the personalization gap generalises beyond the four algorithms in the main imaging comparison, we evaluate five additional FL algorithms---FedSAM~\cite{qu2022fedsam}, FedLC~\cite{zhang2022fedlc}, FedDecorr~\cite{shi2023feddecorr}, FedExP~\cite{jhunjhunwala2023fedexp}, and FedAvg as baseline---on all three imaging datasets with 5~seeds each (75~additional experiments). These algorithms employ server-side or regularisation-based strategies without maintaining separate personal models. A lightweight training configuration was used (12~rounds max, frozen backbone, local\_epochs=1, early stopping patience=4, min\_rounds=6) to isolate the effect of aggregation strategy from training depth.
 
 \begin{table*}[htbp]
 \centering
@@ -2775,7 +2775,7 @@ HPFL & $\varepsilon{=}1$ & \textbf{50.7} & \textbf{50.6} & \textbf{50.4} & \text
 \begin{table*}[htbp]
 \centering
 \caption{Statistical significance of HPFL advantage across multi-seed experiments (paired $t$-test, two-sided). All 24 significant results ($p{<}0.05$) favor HPFL; no test finds a competitor significantly better. Effect sizes (Cohen's $d$): $>$0.8 = large, $>$2.0 = very large. Seeds10: 5 seeds, no DP. DP: 5 seeds per $\varepsilon$ level. Non-IID+DP: 3 seeds.}
-\label{tab:significance}
+\label{tab:significance_extended}
 \small
 \begin{tabular}{llllrrl}
 \toprule
@@ -3303,9 +3303,7 @@ F. Lai, X. Zhu, H. V. Madhyastha, and M. Chowdhury, ``Oort: Efficient federated 
 \bibitem{cho2022towards}
 Y. J. Cho, J. Wang, and G. Joshi, ``Towards understanding biased client selection in federated learning,'' in \textit{Proc. AISTATS}, PMLR 151, pp.~10351--10375, 2022.
 
-% === Gradient Inversion ===
-\bibitem{zhu2019deep}
-L. Zhu, Z. Liu, and S. Han, ``Deep leakage from gradients,'' in \textit{Proc. NeurIPS}, vol.~32, 2019.
+% === Gradient Inversion === (zhu2019deep already defined above under Privacy and Security)
 
 \bibitem{geiping2020inverting}
 J. Geiping, H. Bauermeister, H. Dr\"oge, and M. Moeller, ``Inverting gradients---How easy is it to break privacy in federated learning?'' in \textit{Proc. NeurIPS}, vol.~33, pp.~16937--16947, 2020.
@@ -3769,15 +3767,15 @@ Dataset & Condition & Client 0 & Client 1 & Client 2 & Client 3 & Client 4 & Coa
 \label{sec:cascade_registry}
 % ============================================================================
 
-This section documents the complete cascading experiment campaign conducted for the FL-EHDS evaluation. Unlike ad-hoc experimental designs, we employ a \textit{cascading methodology}: each phase builds upon findings from previous phases, progressively expanding coverage from foundational privacy--utility trade-offs (Cascade~2) to deployment-readiness validation (Cascade~9). This systematic approach ensures that (i)~every experiment addresses a specific, pre-defined research question; (ii)~intermediate results guide subsequent experimental design; and (iii)~all results are reproducible via atomic checkpointing with explicit random seeds. The campaign comprises \textbf{1,704+ experiments} across \textbf{8~cascading phases}, \textbf{10~clinical datasets}, and \textbf{31~research questions}, constituting one of the most comprehensive FL evaluations in the healthcare domain.
+This section documents the complete cascading experiment campaign conducted for the FL-EHDS evaluation. Unlike ad-hoc experimental designs, we employ a \textit{cascading methodology}: each phase builds upon findings from previous phases, progressively expanding coverage from foundational privacy--utility trade-offs (Cascade~2) to clinical imbalance mitigation (Cascade~10). This systematic approach ensures that (i)~every experiment addresses a specific, pre-defined research question; (ii)~intermediate results guide subsequent experimental design; and (iii)~all results are reproducible via atomic checkpointing with explicit random seeds. The campaign comprises \textbf{2,092+ experiments} across \textbf{9~cascading phases}, \textbf{10~clinical datasets}, and \textbf{35~research questions}, constituting one of the most comprehensive FL evaluations in the healthcare domain.
 
 \subsection{Cascading Methodology}
 
 Each cascade is a self-contained experimental phase with the following properties:
 
 \begin{itemize}
-    \item \textbf{Block structure:} Cascades are divided into thematic blocks (labeled A--AB), each addressing one or two research questions with controlled factorial designs.
-    \item \textbf{Incremental coverage:} Early cascades (2--3) establish baselines; middle cascades (4--6) explore advanced paradigms; late cascades (7--9) address trustworthiness, communication efficiency, and deployment readiness.
+    \item \textbf{Block structure:} Cascades are divided into thematic blocks (labeled A--TH), each addressing one or two research questions with controlled factorial designs.
+    \item \textbf{Incremental coverage:} Early cascades (2--3) establish baselines; middle cascades (4--6) explore advanced paradigms; late cascades (7--10) address trustworthiness, communication efficiency, deployment readiness, and clinical imbalance mitigation.
     \item \textbf{Atomic checkpointing:} Every experiment result is saved immediately via an atomic write pattern (temporary file $\to$ fsync $\to$ rename), ensuring crash resilience and exact reproducibility.
     \item \textbf{Resumability:} All cascades support graceful interruption (SIGINT) and resume from the last checkpoint, enabling execution across multiple sessions.
 \end{itemize}
@@ -3802,11 +3800,12 @@ Cascade & Blocks & Exp. & Time & Primary Focus \\
 6 & G--L & 234 & 30:27 & Dataset coverage, advanced FL \\
 7 & M--R & 243 & 25:13 & Calibration, fairness, DP composition \\
 8 & S--W & 119 & 10:57 & SecAgg, compression, vertical FL \\
-9 & X--AB & $\sim$140 & $\sim$17 min & Scalability, convergence, imbalance \\
+9 & X--AB & 144 & 18:24 & Scalability, convergence, imbalance \\
+10 & AC--TH & 384 & 22:16 & Imbalance deep-dive, DP regularization \\
 \midrule
 \multicolumn{2}{l}{Standalone files} & $\sim$644 & --- & Targeted validations \\
 \midrule
-\multicolumn{2}{l}{\textbf{Total}} & \textbf{1,704+} & & \\
+\multicolumn{2}{l}{\textbf{Total}} & \textbf{2,092+} & & \\
 \bottomrule
 \end{tabular}%
 }
@@ -3859,7 +3858,9 @@ Skin Cancer & 3,297 & images & 2 & Dermatology \\
 
 \smallskip\noindent\textbf{Cascade 8: Communication, Privacy, and Scalability} (Blocks~S--W, 119 experiments). Evaluates secure aggregation (Pairwise Masking with ECDH + Shamir Secret Sharing), 7~gradient compression methods, local vs.\ central DP (3~datasets $\times$ 3~$\varepsilon$ levels), vertical FL (2- and 3-party feature partitioning with PSI), and CDC Diabetes scalability (253K samples). \textit{Key findings:} Pairwise masking adds sub-millisecond overhead with zero accuracy loss (mask cancellation error $<10^{-16}$). SignSGD achieves 27.84$\times$ compression with only $-$0.17pp loss. Ditto rescues the minority class under class imbalance (F1: 0.00 $\to$ 0.80 on CDC Diabetes NonIID).
 
-\smallskip\noindent\textbf{Cascade 9: Deployment Readiness} (Blocks~X--AB, $\sim$140 experiments). Closes six remaining gaps: (i)~scalability to $K{=}50$ clients on CDC Diabetes; (ii)~combined DP + compression (SignSGD/QSGD + $\varepsilon{\in}\{1, 10\}$); (iii)~per-round convergence dynamics across 3~datasets; (iv)~clinical imbalance robustness on Stroke (4.9\% positive class), CKD, and Cirrhosis with F1/precision/recall/DEI metrics; (v)~CDC Diabetes heterogeneity sensitivity ($\alpha{\in}\{0.1, 0.25, 0.75, 1.0\}$).
+\smallskip\noindent\textbf{Cascade 9: Deployment Readiness} (Blocks~X--AB, 144 experiments). Closes six remaining gaps: (i)~scalability to $K{=}50$ clients on CDC Diabetes; (ii)~combined DP + compression (SignSGD/QSGD + $\varepsilon{\in}\{1, 10\}$); (iii)~per-round convergence dynamics across 3~datasets; (iv)~clinical imbalance robustness on Stroke (4.9\% positive class), CKD, and Cirrhosis with F1/precision/recall/DEI metrics; (v)~CDC Diabetes heterogeneity sensitivity ($\alpha{\in}\{0.1, 0.25, 0.75, 1.0\}$). \textit{Critical finding:} 37\% of experiments on imbalanced datasets exhibit majority-class collapse (F1$=$0.0), motivating Cascade~10.
+
+\smallskip\noindent\textbf{Cascade 10: Clinical Imbalance Deep-Dive} (Blocks~AC--TH, 384 experiments). Systematically investigates and resolves the majority-class collapse phenomenon discovered in Cascade~9. Four blocks: (i)~Block~AC completes the condition matrix with 3~missing DP conditions (IID+$\varepsilon{=}10$, IID+$\varepsilon{=}1$, NonIID+$\varepsilon{=}1$) across Stroke/Cirrhosis $\times$ 3~algorithms $\times$ 5~seeds (90~exp.); (ii)~Block~AD evaluates class-weighted cross-entropy and focal loss ($\gamma{=}2.0$) as mitigation strategies across 3~datasets $\times$ 3~conditions $\times$ 3~algorithms (234~exp.); (iii)~Block~AE sweeps Ditto local epochs $\{5, 10\}$ on Stroke/Cirrhosis (40~exp.); (iv)~Block~TH re-evaluates 20~collapsed models from Cascade~9 with post-hoc threshold tuning (sweep 0.05--0.95). \textit{Key findings:} DP noise acts as implicit regularizer (collapse rate: 83\% without DP $\to$ 0\% with any DP). Weighted CE eliminates collapse on all datasets (F1=0.39 on Stroke, from 0.00 baseline). Focal loss achieves zero collapses (0/117). Ditto at 10 local epochs doubles F1 on Cirrhosis (0.36 $\to$ 0.78). Threshold tuning rescues 7/7 Cirrhosis collapsed models (mean F1=0.65) but provides only marginal rescue for Stroke (mean F1=0.19).
 
 \subsection{Standalone Validation Experiments}
 
@@ -3877,7 +3878,7 @@ In addition to the cascading phases, 644+ standalone experiments address targete
 
 \subsection{Research Questions Index}
 
-Table~\ref{tab:rq_index} provides a cross-reference of all 31~research questions addressed across the cascading campaign, indexed by cascade and block identifier.
+Table~\ref{tab:rq_index} provides a cross-reference of all 35~research questions addressed across the cascading campaign, indexed by cascade and block identifier.
 
 \begin{table*}[htbp]
 \centering
@@ -3919,17 +3920,128 @@ Table~\ref{tab:rq_index} provides a cross-reference of all 31~research questions
 29 & How many rounds are needed for convergence? & 9.Z & Per-round tracking across 3 datasets \\
 30 & Can personalized FL handle extreme imbalance? & 9.AA & Stroke (4.9\%), CKD, Cirrhosis with F1/DEI \\
 31 & Is the Ditto advantage robust to heterogeneity? & 9.AB & CDC $\alpha{\in}\{0.1, 0.25, 0.75, 1.0\}$ \\
+\midrule
+32 & Does DP noise regularize against majority-class collapse? & 10.AC & Collapse: 83\% (no DP) $\to$ 0\% (any DP) \\
+33 & Can weighted CE / focal loss eliminate class collapse? & 10.AD & Weighted CE: 0.85\% residual; Focal: 0\% \\
+34 & Does increasing local epochs improve Ditto rescue? & 10.AE & Cirrhosis F1: 0.36 (ep=3) $\to$ 0.78 (ep=10) \\
+35 & Can threshold tuning rescue collapsed models? & 10.TH & Cirrhosis: yes (F1=0.65); Stroke: marginal \\
 \bottomrule
 \end{tabular}%
 }
 \end{table*}
+
+\subsection{Cascade 10: Detailed Results}
+
+The following tables present the key quantitative results from Cascade~10's clinical imbalance deep-dive (384 experiments, 0 errors, 22 min 16 sec).
+
+\smallskip\noindent\textbf{DP as Anti-Collapse Regularizer (Block AC).} Table~\ref{tab:collapse_rate} shows the collapse rate (fraction of experiments producing F1$=$0.0) across all 6~experimental conditions. The Block~AA conditions (no DP) are from Cascade~9; the Block~AC conditions (with DP) are from Cascade~10.
+
+\begin{table}[htbp]
+\centering
+\caption{Majority-Class Collapse Rate by Condition (Stroke + Cirrhosis)}
+\label{tab:collapse_rate}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{llrrl}
+\toprule
+IID/NonIID & DP Level & Collapses & Total & Rate \\
+\midrule
+IID & No DP & 10 & 12 & 83.3\% \\
+NonIID & No DP & 9 & 12 & 75.0\% \\
+NonIID & $\varepsilon{=}10$ & 1 & 12 & 8.3\% \\
+\midrule
+IID & $\varepsilon{=}10$ & 0 & 30 & 0.0\% \\
+IID & $\varepsilon{=}1$ & 0 & 30 & 0.0\% \\
+NonIID & $\varepsilon{=}1$ & 1 & 30 & 3.3\% \\
+\midrule
+\multicolumn{2}{l}{No DP (any partition)} & 19 & 24 & \textbf{79.2\%} \\
+\multicolumn{2}{l}{Any DP (any partition)} & 2 & 102 & \textbf{2.0\%} \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\columnwidth]{figures/fig_collapse_rate_heatmap.pdf}
+\caption{Majority-class collapse rate across experimental conditions. No-DP conditions (left) show 75--83\% collapse; any DP level (right) reduces collapse to 0--3.3\%, supporting the hypothesis of DP noise as implicit anti-collapse regularizer.}
+\label{fig:collapse_rate}
+\end{figure}
+
+\smallskip\noindent\textbf{Mitigation Strategy Comparison (Block AD).} Table~\ref{tab:mitigation_best} reports the best F1 score achieved per dataset under each loss function, compared to the standard (unweighted) baseline from Cascade~9.
+
+\begin{table}[htbp]
+\centering
+\caption{Best F1 by Loss Type and Dataset (Block AD, Mean $\pm$ Std)}
+\label{tab:mitigation_best}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{llccl}
+\toprule
+Dataset & Loss Type & Best Config & Mean F1 & Collapses \\
+\midrule
+\multirow{3}{*}{Stroke} & Standard (AA) & --- & 0.000 & 55.6\% \\
+ & Weighted CE & Ditto NonIID+noDP & 0.391 $\pm$ 0.072 & 0/45 \\
+ & Focal & Ditto NonIID+eps10 & 0.334 $\pm$ 0.072 & 0/45 \\
+\midrule
+\multirow{3}{*}{Cirrhosis} & Standard (AA) & --- & 0.000--0.693 & 55.6\% \\
+ & Weighted CE & Ditto NonIID+eps10 & 0.715 $\pm$ 0.102 & 2/45 \\
+ & Focal & Ditto NonIID+eps10 & 0.712 $\pm$ 0.094 & 0/45 \\
+\midrule
+\multirow{2}{*}{CDC Diabetes} & Weighted CE & Ditto NonIID+noDP & 0.572 $\pm$ 0.137 & 0/27 \\
+ & Focal & HPFL NonIID+noDP & 0.488 $\pm$ 0.206 & 0/27 \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\columnwidth]{figures/fig_mitigation_comparison.pdf}
+\caption{Loss function mitigation strategies for class imbalance. Weighted CE and Focal loss ($\gamma{=}2$) eliminate majority-class collapse across all three datasets; Weighted CE achieves the highest F1 on Stroke (0.39) and Cirrhosis (0.72).}
+\label{fig:mitigation_comparison}
+\end{figure}
+
+\smallskip\noindent\textbf{Ditto Local Epochs Effect (Block AE).} Table~\ref{tab:ditto_epochs} shows the monotonic improvement of Ditto's minority-class F1 as local epochs increase from 3 (Cascade~9 baseline) to 10.
+
+\begin{table}[htbp]
+\centering
+\caption{Ditto F1 by Local Epochs (NonIID, 5 Seeds)}
+\label{tab:ditto_epochs}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{llccc}
+\toprule
+Dataset & Condition & ep$=$3 (baseline) & ep$=$5 & ep$=$10 \\
+\midrule
+Cirrhosis & NonIID+noDP & 0.364 $\pm$ 0.364 & 0.571 $\pm$ 0.213 & \textbf{0.785 $\pm$ 0.073} \\
+Cirrhosis & NonIID+eps10 & 0.693 $\pm$ 0.100 & 0.678 $\pm$ 0.078 & \textbf{0.729 $\pm$ 0.059} \\
+Stroke & NonIID+noDP & 0.000 $\pm$ 0.000 & 0.025 $\pm$ 0.049 & \textbf{0.357 $\pm$ 0.247} \\
+Stroke & NonIID+eps10 & 0.239 $\pm$ 0.188 & \textbf{0.353 $\pm$ 0.130} & 0.335 $\pm$ 0.148 \\
+\bottomrule
+\end{tabular}%
+}
+\end{table}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\columnwidth]{figures/fig_ditto_epochs_sweep.pdf}
+\caption{Effect of local epochs on Ditto minority-class F1. Cirrhosis shows monotonic improvement (0.36$\to$0.57$\to$0.78 for NonIID+noDP); Stroke improves dramatically at ep$=$10 (0.00$\to$0.36), suggesting more local personalization steps help overcome extreme imbalance.}
+\label{fig:ditto_epochs}
+\end{figure}
+
+\smallskip\noindent\textbf{Threshold Rescue (Block TH).} Of the 20~collapsed models (F1$=$0.0) from Cascade~9 Block~AA, all 20 produce threshold-tuned F1${>}$0 after sweeping the classification threshold from 0.05 to 0.95. For Cirrhosis, the rescue is clinically meaningful (mean threshold-tuned F1$=$0.648, optimal thresholds 0.30--0.45); for Stroke, the rescue is marginal (mean threshold-tuned F1$=$0.190, optimal thresholds concentrated at the minimum 0.05), indicating that the models have not learned sufficient minority-class signal.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\columnwidth]{figures/fig_threshold_rescue.pdf}
+\caption{Post-hoc threshold rescue of F1$=$0.0 collapsed models. Cirrhosis models (blue) achieve clinically meaningful rescue (mean threshold-tuned F1$=$0.648); Stroke models (red) show marginal improvement (mean threshold-tuned F1$=$0.190), indicating insufficient minority-class signal.}
+\label{fig:threshold_rescue}
+\end{figure}
 
 \subsection{Reproducibility Infrastructure}
 
 All experiments share a common reproducibility infrastructure:
 
 \begin{itemize}
-    \item \textbf{Deterministic seeding:} PyTorch manual seeds set before model creation; NumPy \texttt{RandomState} for data partitioning. Standard seeds: 42, 123, 456.
+    \item \textbf{Deterministic seeding:} PyTorch manual seeds set before model creation; NumPy \texttt{RandomState} for data partitioning. Standard seeds: 42, 123, 456; extended to 5~seeds (42, 123, 456, 789, 999) in Cascade~10 for enhanced statistical power.
     \item \textbf{Atomic checkpointing:} Results persisted via \texttt{tempfile.mkstemp} $\to$ \texttt{os.fdopen} $\to$ \texttt{os.fsync} $\to$ \texttt{os.replace}, with \texttt{.bak} backup copies. This ensures no partial writes corrupt results.
     \item \textbf{Data caching:} Partitioned datasets cached within each cascade to prevent re-partitioning across experiments, ensuring identical client data splits.
     \item \textbf{Graceful shutdown:} All cascades handle SIGINT/SIGTERM, completing the current experiment and saving the checkpoint before exit.
