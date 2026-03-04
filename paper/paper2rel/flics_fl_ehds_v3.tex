@@ -4,7 +4,7 @@
 % March 2026
 % ============================================================================
 
-\documentclass[conference,a4paper]{IEEEtran}
+\documentclass[conference,letterpaper]{IEEEtran}
 
 % ===== PACKAGES =====
 \usepackage{cite}
@@ -43,7 +43,7 @@
 % ABSTRACT
 % ============================================================================
 \begin{abstract}
-The European Health Data Space (EHDS), established by Regulation (EU) 2025/327, mandates cross-border health data analytics while preserving citizen privacy. We present FL-EHDS, a three-layer compliance framework integrating EHDS governance (Health Data Access Bodies, data permits, Article~71 opt-out) with federated learning orchestration (17~algorithms including ICML/ICLR 2024--2025 advances, differential privacy, secure aggregation) and data holder components (FHIR~R4 preprocessing). Multimodal validation across 4,241+ experiments on tabular clinical, ECG, and medical imaging datasets demonstrates that \textit{personalization architecture---not aggregation algorithm---is the critical deployment decision}: only methods maintaining separate local models (Ditto, HPFL) differentiate from FedAvg on compact clinical models, producing up to 12.6pp accuracy gains. Privacy at $\varepsilon{=}10$ costs $<$2pp; cross-border heterogeneous per-client privacy budgets are viable with Ditto ($-$0.9pp); Article~71 opt-out costs $<$1pp. On imaging (ResNet-18), personalization is method-dependent: Ditto excels ($+$25.5pp Skin Cancer) while HPFL fails ($-$18.2pp Chest X-ray). A novel Diagnostic Equity Index reveals that accuracy masks severe per-class disparities correctable only by personalized algorithms. The open-source implementation provides deployment guidance for the 2029 secondary use deadline.
+The European Health Data Space (EHDS), established by Regulation (EU) 2025/327, mandates cross-border health data analytics while preserving citizen privacy. We present FL-EHDS, a three-layer compliance framework integrating EHDS governance (Health Data Access Bodies, data permits, Article~71 opt-out) with federated learning orchestration (17~algorithms including ICML/ICLR 2024--2025 advances, differential privacy, secure aggregation) and data holder components (FHIR~R4 preprocessing). Multimodal validation across 4,241+ experiments on tabular clinical, ECG, and medical imaging datasets demonstrates that \textit{personalization architecture---not aggregation algorithm---is the critical deployment decision}: only methods maintaining separate local models (Ditto, HPFL) differentiate from FedAvg on compact clinical models, producing up to 26.8pp accuracy gains. Privacy at $\varepsilon{=}10$ costs $<$2pp; cross-border heterogeneous per-client privacy budgets are viable with Ditto ($-$0.9pp); Article~71 opt-out costs $<$1pp. On imaging (ResNet-18), personalization is method-dependent: Ditto excels ($+$25.5pp Skin Cancer) while HPFL fails ($-$18.2pp Chest X-ray). A novel Diagnostic Equity Index reveals that accuracy masks severe per-class disparities correctable only by personalized algorithms. The open-source implementation provides deployment guidance for the 2029 secondary use deadline.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -78,7 +78,7 @@ This paper bridges the technology-governance divide through four contributions:
 
 \subsection{EHDS and Federated Learning}
 
-The EHDS establishes HDABs to authorize secondary use through standardized data permits, with Secure Processing Environments (SPEs) providing controlled analytics~\cite{svingel2025hdab}. Implementation readiness varies significantly: Nordic countries hold 2--3 year advantages in HDAB capacity-building~\cite{tehdas2024ready}, while data access timelines range from 3~weeks (Finland) to over 12~months (France)~\cite{forster2025journeys}. Only 5.2\% of FL healthcare studies achieve real-life application~\cite{teo2024systematic}.
+The EHDS establishes HDABs to authorize secondary use through standardized data permits, with Secure Processing Environments (SPEs) providing controlled analytics~\cite{svingel2025hdab}. Implementation readiness varies significantly: Nordic countries hold 2--3 year advantages in HDAB capacity-building~\cite{tehdas2024ready}, while data access timelines range from 3~weeks (Finland) to over 12~months (France)~\cite{forster2025journeys}. Only 5.2\% of FL healthcare studies achieve real-life application~\cite{teo2024systematic}, with notable exceptions such as the EXAM COVID-19 study~\cite{dayan2021federated}.
 
 FL inverts the traditional ML paradigm: local training produces gradients that are aggregated centrally~\cite{mcmahan2017communication}. Known challenges include non-IID distributions~\cite{li2020federated}, communication costs~\cite{bonawitz2019scale}, and privacy attacks~\cite{zhu2019deep, shokri2017membership}. Recent advances target healthcare heterogeneity: FedLESAM~\cite{qu2024fedlesam} (ICML 2024) provides globally-guided sharpness-aware optimization, while HPFL~\cite{chen2025hpfl} (ICLR 2025) decouples backbone from classifier for per-institution specialization.
 
@@ -194,7 +194,7 @@ Algorithm~1 presents the core FL-EHDS training procedure with governance checkpo
 }}
 \end{figure}
 
-\textbf{Layer 2 -- FL Orchestration}: The framework implements 17 aggregation algorithms spanning six categories---from foundational methods (FedAvg~\cite{mcmahan2017communication}, FedProx~\cite{li2020federated}) through variance reduction (SCAFFOLD~\cite{karimireddy2020scaffold}), adaptive optimization~\cite{reddi2021adaptive}, and personalization (Ditto~\cite{li2021ditto}) to FedLESAM~\cite{qu2024fedlesam} (ICML 2024) and HPFL~\cite{chen2025hpfl} (ICLR 2025). The complete algorithm catalogue is provided in Supplementary Material, Table~S-AlgoCatalogue. Differential privacy uses DP-SGD with R\'enyi composition~\cite{mironov2017renyi, wei2020federated}; secure aggregation with ECDH key exchange mitigates gradient inversion~\cite{zhu2019deep}; six Byzantine resilience methods defend against malicious clients. The threat model, covering honest-but-curious server, malicious clients, and external attackers, is detailed in Supplementary Material, Section~S-Threat.
+\textbf{Layer 2 -- FL Orchestration}: The framework implements 17 aggregation algorithms spanning six categories---from foundational methods (FedAvg~\cite{mcmahan2017communication}, FedProx~\cite{li2020federated}) through variance reduction (SCAFFOLD~\cite{karimireddy2020scaffold}), adaptive optimization~\cite{reddi2021adaptive}, and personalization (Ditto~\cite{li2021ditto}) to FedLESAM~\cite{qu2024fedlesam} (ICML 2024) and HPFL~\cite{chen2025hpfl} (ICLR 2025). The complete algorithm catalogue is provided in Supplementary Material, Table~S-AlgoCatalogue. Differential privacy uses DP-SGD~\cite{abadi2016deep} with R\'enyi composition~\cite{dwork2014dp, mironov2017renyi, wei2020federated}; secure aggregation with ECDH key exchange mitigates gradient inversion~\cite{zhu2019deep}; six Byzantine resilience methods defend against malicious clients. The threat model, covering honest-but-curious server, malicious clients, and external attackers, is detailed in Supplementary Material, Section~S-Threat.
 
 \textbf{Layer 3 -- Data Holders}: Resource-aware training engines dynamically adjust batch sizes and model complexity for hardware heterogeneity (78\% barrier prevalence). FHIR~R4 preprocessing pipelines bridge format gaps across heterogeneous EHR systems~\cite{hussein2025interop}. End-to-end encrypted gradient transmission ensures no raw data leaves institutional boundaries.
 
@@ -303,7 +303,7 @@ FedLESAM & 91.9$\pm$0.5 & 88.3 & 0.999 & 71.1$\pm$1.8 & 68.8 & 0.981 & 52.3$\pm$
 
     \item \textbf{PTB-XL validates European FL}: The European-origin PTB-XL with natural 52-site partitioning achieves 92.5\% accuracy (HPFL) with near-perfect fairness (Jain 0.999)---demonstrating FL viability for real European multi-center clinical data.
 
-    \item \textbf{Diagnostic equity is algorithm-dependent}: We introduce the Diagnostic Equity Index (DEI~$= \min_c R_c \cdot (1 - \text{CV}(\mathbf{R}))$), revealing that FedAvg achieves 57.3\% accuracy but DEI~$=$~0.092 on Breast Cancer (single-class collapse), while HPFL reaches DEI~$=$~0.740 ($8\times$). On Brain Tumor, Ditto DEI~$=$~0.435 vs.\ FedAvg 0.063 ($6.9\times$). EHDS data permits should specify minimum DEI thresholds (Supplementary Material, Section~S-DEI).
+    \item \textbf{Diagnostic equity is algorithm-dependent}: We introduce the Diagnostic Equity Index (DEI~$= \min_c R_c \cdot (1 - \text{CV}(\mathbf{R}))$), revealing that FedAvg achieves 52.3\% accuracy but DEI as low as 0.092 on Breast Cancer (single-class collapse on 8/10 seeds), while HPFL reaches DEI~$=$~0.740 ($8\times$). On Brain Tumor, Ditto DEI~$=$~0.435 vs.\ FedAvg 0.063 ($6.9\times$). EHDS data permits should specify minimum DEI thresholds (Supplementary Material, Section~S-DEI).
 
     \item \textbf{Imaging personalization is method-dependent}: Table~\ref{tab:imaging_main} extends the evaluation to medical imaging with ResNet-18 (11.2M parameters). The personalization effect reverses: Ditto achieves $+$23.5pp on Brain Tumor ($p{=}0.015$) and $+$25.5pp on Skin Cancer, while HPFL is counterproductive on all imaging tasks ($-$3.8pp to $-$18.2pp). The distinction is architectural: Ditto preserves full CNN capacity via complete local copies, while HPFL's split-head cannot learn shared representations under non-IID imaging distributions. Notably, on Chest X-ray (binary, 5.8K samples), global aggregation suffices and personalization degrades performance---demonstrating that the optimal architecture depends on both modality and task complexity (Supplementary Material, Section~S-Imaging).
 \end{enumerate}
@@ -313,18 +313,18 @@ FedLESAM & 91.9$\pm$0.5 & 88.3 & 0.999 & 71.1$\pm$1.8 & 68.8 & 0.981 & 52.3$\pm$
 \caption{Medical imaging evaluation (ResNet-18, 11.2M params). 5 clients, Dirichlet $\alpha{=}0.5$, 20 rounds, early stopping. Mean over 3 seeds. Best per dataset in \textbf{bold}.}
 \label{tab:imaging_main}
 \small
-\begin{tabular}{lcccc}
+\begin{tabular}{lccccc}
 \toprule
-\textbf{Dataset} & \textbf{FedAvg} & \textbf{FedLESAM} & \textbf{Ditto} & \textbf{HPFL} \\
+\textbf{Dataset} & \textbf{FedAvg} & \textbf{FedLESAM} & \textbf{Ditto} & \textbf{HPFL} & \textbf{DEI$^\S$} \\
 \midrule
-Chest X-ray & \textbf{87.3}\% & 87.8\%$^\dagger$ & 80.0\% & 69.1\% \\
-Brain Tumor & 53.8\% & 53.8\%$^\dagger$ & \textbf{77.3}\% & 50.0\% \\
-Skin Cancer & 65.0\% & 65.0\%$^\dagger$ & \textbf{90.5}\% & 60.9\% \\
+Chest X-ray & 87.3\% & \textbf{87.8}\%$^\dagger$ & 80.0\% & 69.1\% & .528/.652 \\
+Brain Tumor & 53.8\% & 53.8\%$^\dagger$ & \textbf{77.3}\% & 50.0\% & .063/.435 \\
+Skin Cancer & 65.0\% & 65.0\%$^\dagger$ & \textbf{90.5}\% & 60.9\% & --- \\
 \bottomrule
 \end{tabular}
 
 \vspace{1mm}
-\footnotesize{$^\dagger$FedLESAM $\equiv$ FedAvg: per-seed accuracies identical on Brain Tumor and Skin Cancer, $<$1.2pp difference on Chest X-ray---confirming that the global algorithm convergence observed on tabular models extends to imaging (ResNet-18, 11.2M params). Only Ditto's complete local copies differentiate. 4 additional global algorithms (FedSAM, FedLC, FedDecorr, FedExP) confirm this pattern (Supplementary Material).}
+\footnotesize{$^\dagger$FedLESAM $\equiv$ FedAvg: per-seed accuracies identical on Brain Tumor and Skin Cancer, $<$1.2pp difference on Chest X-ray---confirming that the global algorithm convergence extends to imaging. 4 additional global algorithms confirm this pattern (Supplementary Material). $^\S$DEI column: FedAvg/best-personalized. On Brain Tumor, Ditto DEI (0.435) is $6.9\times$ FedAvg (0.063); on Chest X-ray, HPFL DEI (0.652) exceeds FedAvg (0.528) despite lower accuracy (Supplementary Material, Table~S-DEI).}
 \end{table}
 
 \subsection{Convergence and Centralized Baselines}
@@ -372,7 +372,7 @@ FL-FedAvg & $62.5 \pm 8.0$\% & $.736$ & $.834$ & 19.2pp \\
 \end{tabular}
 
 \vspace{1mm}
-\footnotesize{4 hospitals, natural non-IID. Mean $\pm$ std over 5 seeds. FL: 20 rounds $\times$ 3 local epochs.}
+\footnotesize{4 hospitals, natural non-IID. Mean $\pm$ std over 5 seeds. FL: 20 rounds $\times$ 3 local epochs. Full 5-algorithm comparison (including SCAFFOLD, FedProx, FedNova) in Supplementary Material, Table~S-HeartDisease.}
 \end{table}
 
 \subsection{Non-IID Impact and Compound Stress}
@@ -420,20 +420,20 @@ The interaction between non-IID data and DP is \textit{sub-additive for HPFL} bu
 
 \subsection{Privacy and EHDS Compliance}
 
-Table~\ref{tab:dp_mini} summarizes the privacy-utility tradeoff on PTB-XL. At $\varepsilon{=}10$, all algorithms recover to within 1pp of no-DP baselines; at $\varepsilon{=}1$, only personalized methods retain $>$87\% accuracy while FedAvg collapses to 52.3\%. Across 180 DP experiments, privacy at $\varepsilon{=}10$ is essentially free ($<$2pp cost), satisfying EHDS Article~50 SPE requirements. On small datasets (Breast Cancer, 569 samples), DP acts as implicit regularization: FedAvg improves from 52.3\% to 78.7\% with $\varepsilon{=}5$ ($+$26.4pp). This regularization effect extends to population scale: on CDC Diabetes (253K samples), FedAvg improves from 74.7\% to 83.6\% at $\varepsilon{=}5$ (Supplementary Material, Section~S-CDC).
+Table~\ref{tab:dp_mini} summarizes the privacy-utility tradeoff on PTB-XL. At $\varepsilon{=}10$, all algorithms recover to within 1pp of no-DP baselines; at $\varepsilon{=}1$, only personalized methods retain $>$87\% accuracy while FedAvg collapses to 52.3\%. Across 180 DP experiments, privacy at $\varepsilon{=}10$ is essentially free ($<$2pp cost), satisfying EHDS Article~50 SPE requirements. On small datasets (Breast Cancer, 569 samples), DP acts as implicit regularization: FedAvg improves from 52.3\% to 78.7\% with $\varepsilon{=}5$ ($+$26.4pp). This regularization effect extends to population scale: on CDC Diabetes (253K samples), FedAvg improves from 70.1\% to 85.8\% at $\varepsilon{=}5$ (Supplementary Material, Section~S-CDC).
 
 \begin{table}[htbp]
 \centering
 \caption{Privacy-utility on PTB-XL ECG: accuracy (\%) under central DP. Gaussian mechanism, $C{=}1.0$, $\delta{=}10^{-5}$. Mean over 5 seeds.}
 \label{tab:dp_mini}
 \small
-\begin{tabular}{lccc}
+\begin{tabular}{lcccc}
 \toprule
-\textbf{Algorithm} & $\boldsymbol{\varepsilon{=}1}$ & $\boldsymbol{\varepsilon{=}10}$ & \textbf{No DP} \\
+\textbf{Algorithm} & $\boldsymbol{\varepsilon{=}1}$ & $\boldsymbol{\varepsilon{=}10}$ & $\boldsymbol{\varepsilon{=}50}$ & \textbf{No DP} \\
 \midrule
-FedAvg & 52.3 & \textbf{92.4} & 91.9 \\
-Ditto & 89.2 & 91.6 & 91.8 \\
-HPFL & 87.1 & 92.4 & 92.5 \\
+FedAvg & 52.3 & \textbf{92.4} & 92.4 & 91.9 \\
+Ditto & 89.2 & 91.6 & 91.9 & 91.8 \\
+HPFL & 87.1 & 92.4 & \textbf{92.7} & 92.5 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -474,7 +474,7 @@ Five key implications emerge for EHDS deployment. \textit{First}, EHDS SPEs cann
 
 \subsection{Limitations and Future Work}
 
-Our evaluation uses retrospective public datasets; real-world EHR integration remains essential. While PTB-XL provides authentic European heterogeneity (52 sites), true cross-border validation requires multi-national datasets spanning distinct healthcare systems---a resource the EHDS itself aims to enable. The tabular MLP ($\sim$10K parameters) produces a nearly convex landscape where most algorithms converge; deeper architectures may differentiate further. Confusion matrix analysis (10 seeds) confirms that the convergence is clinically severe: on Breast Cancer, FedAvg/FedProx/Ditto exhibit single-class collapse on 8/10 data partitions (21.5\% Malignant recall), while HPFL avoids collapse on all seeds (78.7\% Malignant recall; Supplementary Material, Table~XIX). Governance modules operate as simulation backends pending HDAB availability (2027--2029). Future work should prioritize: (1)~cross-border validation with true multi-national datasets; (2)~HealthData@EU pilot integration with production EHR systems; (3)~citizen attitude studies examining FL acceptance and opt-out intentions; (4)~extended imaging evaluation across architectures (EfficientNet, Vision Transformers) with full DEI computation.
+Our evaluation uses retrospective public datasets; real-world EHR integration remains essential. While PTB-XL provides authentic European heterogeneity (52 sites), true cross-border validation requires multi-national datasets spanning distinct healthcare systems---a resource the EHDS itself aims to enable. The tabular MLP ($\sim$10K parameters) produces a nearly convex landscape where most algorithms converge; however, validation with DeepHealthcareMLP ($\sim$110K parameters, 4-layer with dropout; 70 experiments, 5 seeds) confirms that the convergence phenomenon persists: on Cardiovascular, five global algorithms converge to 71.2\% (identical) while Ditto/HPFL reach 85.0\%/$84.8$\% ($+$13.8pp); on PTB-XL, all seven algorithms cluster within 0.5pp (92.2--92.7\%). The personalization gap is model-size invariant (Supplementary Material, Table~S-DeepMLP). Confusion matrix analysis (10 seeds) confirms that the convergence is clinically severe: on Breast Cancer, FedAvg/FedProx/Ditto exhibit single-class collapse on 8/10 data partitions (21.5\% Malignant recall), while HPFL avoids collapse on all seeds (78.7\% Malignant recall; Supplementary Material, Table~XIX). Governance modules operate as simulation backends pending HDAB availability (2027--2029); however, the simulation implements complete functional logic---permit lifecycle (application, validation, budget tracking, revocation), opt-out registry with record-level filtering, and compliance audit trails---requiring only endpoint configuration via the pluggable connector interface for production binding (Supplementary Material, Table~S-ReadinessAssessment). Future work should prioritize: (1)~cross-border validation with true multi-national datasets; (2)~HealthData@EU pilot integration with production EHR systems; (3)~citizen attitude studies examining FL acceptance and opt-out intentions; (4)~extended imaging evaluation across architectures (EfficientNet, Vision Transformers) with full DEI computation.
 
 % ============================================================================
 % 6. CONCLUSIONS
@@ -482,7 +482,7 @@ Our evaluation uses retrospective public datasets; real-world EHR integration re
 \section{Conclusions}
 \label{sec:conclusions}
 
-FL-EHDS bridges the technology-governance divide for health analytics under the EHDS, providing 17~FL algorithms with governance reference implementations that no existing framework offers. Across 4,241+ experiments, we establish that personalization architecture---not aggregation algorithm---is the critical deployment decision: only Ditto and HPFL differentiate from baseline on compact clinical models, while 12+ aggregation and optimization strategies converge to identical solutions. Privacy at $\varepsilon{=}10$ is essentially free ($<$2pp cost), cross-border heterogeneous per-client privacy budgets are viable with Ditto ($-$0.9pp), and Article~71 opt-out---both static and dynamic mid-training withdrawal---costs $<$1pp. A novel Diagnostic Equity Index reveals that accuracy masks severe per-class disparities correctable only by personalized algorithms. On imaging, the personalization effect is method-dependent: Ditto's complete local models succeed ($+$28.0pp) while HPFL's split-head architecture fails. Legal uncertainties---not technical barriers---remain the critical blocker; the 2027 delegated acts must address gradient data status and cross-border privacy harmonization. The open-source reference implementation provides actionable deployment guidance for the 2029 secondary use deadline.
+FL-EHDS bridges the technology-governance divide for health analytics under the EHDS, providing 17~FL algorithms with governance reference implementations that no existing framework offers. Across 4,241+ experiments, we establish that personalization architecture---not aggregation algorithm---is the critical deployment decision: only Ditto and HPFL differentiate from baseline on compact clinical models, while 12+ aggregation and optimization strategies converge to identical solutions. Privacy at $\varepsilon{=}10$ is essentially free ($<$2pp cost), cross-border heterogeneous per-client privacy budgets are viable with Ditto ($-$0.9pp), and Article~71 opt-out---both static and dynamic mid-training withdrawal---costs $<$1pp. A novel Diagnostic Equity Index reveals that accuracy masks severe per-class disparities correctable only by personalized algorithms. On imaging, the personalization effect is method-dependent: Ditto's complete local models succeed ($+$25.5pp on Skin Cancer) while HPFL's split-head architecture fails. Legal uncertainties---not technical barriers---remain the critical blocker; the 2027 delegated acts must address gradient data status and cross-border privacy harmonization. The open-source reference implementation provides actionable deployment guidance for the 2029 secondary use deadline.
 
 % ============================================================================
 % ACKNOWLEDGMENTS
