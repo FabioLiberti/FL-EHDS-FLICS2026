@@ -1,0 +1,47 @@
+{
+  "session_id": "session-20260305100641-f86d6304a948b90e",
+  "actor": "fl-ehds-framework",
+  "generated_at": "2026-03-05T10:06:41.361182",
+  "storage_backend": "structured_file",
+  "retention_days": 2555,
+  "compliance_status": "compliant",
+  "legal_basis": "EHDS Article 53",
+  "gdpr_article_30_compliant": true,
+  "budget_status": {
+    "total": 10.0,
+    "used": 8.0,
+    "remaining": 2.0,
+    "utilization_pct": 80.0,
+    "rounds_completed": 16,
+    "max_rounds": 20
+  },
+  "permit_usage": {
+    "permit_id": "PERMIT-GOV-VALID-123",
+    "registered_at": "2026-03-05T10:06:41.026020",
+    "rounds_used": 16,
+    "last_used": "2026-03-05T10:06:41.346379",
+    "data_categories_accessed": [
+      "ehr",
+      "lab_results"
+    ]
+  },
+  "permit_details": {
+    "permit_id": "PERMIT-GOV-VALID-123",
+    "purpose": "scientific_research",
+    "data_categories": [
+      "ehr",
+      "lab_results"
+    ],
+    "valid_from": "2026-03-05T10:06:41.025954",
+    "valid_until": "2026-03-12T10:06:41.025955",
+    "privacy_budget_total": 10.0,
+    "privacy_budget_used": 8.0,
+    "max_rounds": 20
+  },
+  "ehds_compliance": {
+    "article_53_purpose_valid": true,
+    "article_44_data_minimization": "not_required",
+    "gdpr_article_30_audit_trail": true,
+    "framework_version": "FL-EHDS v4.8"
+  }
+}

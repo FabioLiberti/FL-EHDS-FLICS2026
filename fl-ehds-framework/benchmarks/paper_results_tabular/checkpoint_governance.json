@@ -1,0 +1,3740 @@
+{
+  "completed": {
+    "A_lifecycle_s42": {
+      "seed": 42,
+      "experiment": "A_governance_lifecycle",
+      "session_id": "session-20260305100640-9384b5690d817df5",
+      "permit_id": "PERMIT-GOV-VALID-42",
+      "governance_events": [
+        {
+          "round": 0,
+          "event": "validate_round",
+          "ok": true,
+          "reason": "Round autorizzato",
+          "epsilon_used": 0.0,
+          "epsilon_remaining": 10.0
+        },
+        {
+          "round": 0,
+          "event": "round_completed",
+          "accuracy": 0.5769230769230769,
+          "f1": 0.7298245614035088,
+          "epsilon_cumulative": 0.5
+        },
+        {
+          "round": 1,
+          "event": "validate_round",
+          "ok": true,
+          "reason": "Round autorizzato",
+          "epsilon_used": 0.5,
+          "epsilon_remaining": 9.5
+        },
+        {
+          "round": 1,
+          "event": "round_completed",
+          "accuracy": 0.5714285714285714,
+          "f1": 0.7272727272727272,
+          "epsilon_cumulative": 1.0
+        },
+        {
+          "round": 2,
+          "event": "validate_round",
+          "ok": true,
+          "reason": "Round autorizzato",
+          "epsilon_used": 1.0,
+          "epsilon_remaining": 9.0
+        },
+        {
+          "round": 2,
+          "event": "round_completed",
+          "accuracy": 0.5824175824175825,
+          "f1": 0.736111111111111,
+          "epsilon_cumulative": 1.5
+        },
+        {
+          "round": 3,
+          "event": "validate_round",
+          "ok": true,
+          "reason": "Round autorizzato",
+          "epsilon_used": 1.5,
+          "epsilon_remaining": 8.5
+        },
+        {
+          "round": 3,
+          "event": "round_completed",
+          "accuracy": 0.5824175824175825,
+          "f1": 0.736111111111111,
+          "epsilon_cumulative": 2.0
+        },
+        {
+          "round": 4,
+          "event": "validate_round",
+          "ok": true,
+          "reason": "Round autorizzato",
+          "epsilon_used": 2.0,
+          "epsilon_remaining": 8.0
+        },
+        {
+          "round": 4,
+          "event": "round_completed",
+          "accuracy": 0.5824175824175825,
+          "f1": 0.736111111111111,
+          "epsilon_cumulative": 2.5
+        },
+        {
+          "round": 5,
+          "event": "validate_round",
+          "ok": true,
+          "reason": "Round autorizzato",
+          "epsilon_used": 2.5,
+          "epsilon_remaining": 7.5
+        },
+        {
+          "round": 5,
+          "event": "round_completed",
+          "accuracy": 0.5824175824175825,
+          "f1": 0.736111111111111,
+          "epsilon_cumulative": 3.0
+        },
+        {
+          "round": 6,
+          "event": "validate_round",
+          "ok": true,
+          "reason": "Round autorizzato",
+          "epsilon_used": 3.0,
+          "epsilon_remaining": 7.0
+        },
+        {
+          "round": 6,
+          "event": "round_completed",
+          "accuracy": 0.5824175824175825,
+          "f1": 0.736111111111111,
+          "epsilon_cumulative": 3.5
+        },
+        {
+          "round": 7,
+          "event": "validate_round",
+          "ok": true,
+          "reason": "Round autorizzato",
+          "epsilon_used": 3.5,
+          "epsilon_remaining": 6.5
+        },
+        {
+          "round": 7,
+          "event": "round_completed",
+          "accuracy": 0.5824175824175825,
+          "f1": 0.736111111111111,
+          "epsilon_cumulative": 4.0
+        },
+        {
+          "round": 8,
+          "event": "validate_round",
+          "ok": true,
+          "reason": "Round autorizzato",
+          "epsilon_used": 4.0,
+          "epsilon_remaining": 6.0
+        },
+        {
+          "round": 8,
+          "event": "round_completed",
+          "accuracy": 0.5824175824175825,
+          "f1": 0.736111111111111,
+          "epsilon_cumulative": 4.5
+        },
+        {
+          "round": 9,
+          "event": "validate_round",
+          "ok": true,
+          "reason": "Round autorizzato",
+          "epsilon_used": 4.5,
+          "epsilon_remaining": 5.5
+        },
+        {
+          "round": 9,
+          "event": "round_completed",
+          "accuracy": 0.5824175824175825,
+          "f1": 0.736111111111111,
+          "epsilon_cumulative": 5.0
+        },
+        {
+          "round": 10,
+          "event": "validate_round",
+          "ok": true,
+          "reason": "Round autorizzato",
+          "epsilon_used": 5.0,
+          "epsilon_remaining": 5.0
+        },
+        {
+          "round": 10,
+          "event": "round_completed",
+          "accuracy": 0.5824175824175825,
+          "f1": 0.736111111111111,
+          "epsilon_cumulative": 5.5
+        },
+        {
+          "round": 11,
+          "event": "validate_round",
+          "ok": true,
+          "reason": "Round autorizzato",
+          "epsilon_used": 5.5,
+          "epsilon_remaining": 4.5
+        },
+        {
+          "round": 11,
+          "event": "optout_registered",
+          "n_opted_out": 73,
+          "n_excluded_from_training": 73,
+          "optout_rate": 0.099,
+          "patient_ids_opted_out": [
+            "P-1-0047",
+            "P-1-0088",
+            "P-0-0227",
+            "P-2-0049",
+            "P-0-0158",
+            "..."
+          ]
+        },
+        {
+          "round": 11,
+          "event": "round_completed",
+          "accuracy": 0.5824175824175825,
+          "f1": 0.736111111111111,
+          "epsilon_cumulative": 6.0
+        },
+        {
+          "round": 12,
+          "event": "validate_round",
+          "ok": true,
+          "reason": "Round autorizzato",
+          "epsilon_used": 6.0,
+          "epsilon_remaining": 4.0
+        },
+        {
+          "round": 12,
+          "event": "round_completed",
+          "accuracy": 0.5824175824175825,
+          "f1": 0.736111111111111,
+          "epsilon_cumulative": 6.5
+        },
+        {
+          "round": 13,
+          "event": "validate_round",
+          "ok": true,
+          "reason": "Round autorizzato",
+          "epsilon_used": 6.5,
+          "epsilon_remaining": 3.5
+        },
+        {
+          "round": 13,
+          "event": "round_completed",
+          "accuracy": 0.5824175824175825,
+          "f1": 0.7342657342657343,
+          "epsilon_cumulative": 7.0
+        },
+        {
+          "round": 14,
+          "event": "validate_round",
+          "ok": true,
+          "reason": "Round autorizzato",
+          "epsilon_used": 7.0,
+          "epsilon_remaining": 3.0
+        },
+        {
+          "round": 14,
+          "event": "round_completed",
+          "accuracy": 0.5824175824175825,
+          "f1": 0.7342657342657343,
+          "epsilon_cumulative": 7.5
+        },
+        {
+          "round": 15,
+          "event": "validate_round",
+          "ok": true,
+          "reason": "Round autorizzato",
+          "epsilon_used": 7.5,
+          "epsilon_remaining": 2.5
+        },
+        {
+          "round": 15,
+          "event": "permit_revoked",
+          "permit_id": "PERMIT-GOV-VALID-42",
+          "reason": "HDAB revocation (validation test)"
+        },
+        {
+          "round": 15,
+          "event": "round_completed",
+          "accuracy": 0.5879120879120879,
+          "f1": 0.736842105263158,
+          "epsilon_cumulative": 8.0
+        },
+        {
+          "round": 16,
+          "event": "validate_round",
+          "ok": false,
+          "reason": "Permit non valido (scaduto o status non attivo)",
+          "epsilon_used": 8.0,
+          "epsilon_remaining": 2.0
+        },
+        {
+          "round": 16,
+          "event": "training_aborted",
+          "reason": "Permit non valido (scaduto o status non attivo)"
+        },
+        {
+          "event": "session_ended",
+          "total_rounds_executed": 16,
+          "final_accuracy": 0.5879120879120879,
+          "budget_status": {
+            "total": 10.0,
+            "used": 8.0,
+            "remaining": 2.0,
+            "utilization_pct": 80.0,
+            "rounds_completed": 16,
+            "max_rounds": 20
+          },
+          "audit_file": "/Users/fabioliberti/_DEVAir/FL-EHDS-FLICS2026/fl-ehds-framework/benchmarks/paper_results_tabular/audit_a_s42/audit_compliance.json"
+        }
+      ],
+      "round_metrics": [
+        {
+          "round": 0,
+          "accuracy": 0.5769230769230769,
+          "loss": 0.6924010875460865,
+          "f1": 0.7298245614035088,
+          "auc": 0.32795431976166833
+        },
+        {
+          "round": 1,
+          "accuracy": 0.5714285714285714,
+          "loss": 0.6904911418537517,
+          "f1": 0.7272727272727272,
+          "auc": 0.37437934458788485
+        },
+        {
+          "round": 2,
+          "accuracy": 0.5824175824175825,
+          "loss": 0.6886581752326463,
+          "f1": 0.736111111111111,
+          "auc": 0.42688679245283023
+        },
+        {
+          "round": 3,
+          "accuracy": 0.5824175824175825,
+          "loss": 0.6868308238930755,
+          "f1": 0.736111111111111,
+          "auc": 0.48386295928500506
+        },
+        {
+          "round": 4,
+          "accuracy": 0.5824175824175825,
+          "loss": 0.6853598461046324,
+          "f1": 0.736111111111111,
+          "auc": 0.5323982125124128
+        },
+        {
+          "round": 5,
+          "accuracy": 0.5824175824175825,
+          "loss": 0.6837683221796057,
+          "f1": 0.736111111111111,
+          "auc": 0.5847815292949354
+        },
+        {
+          "round": 6,
+          "accuracy": 0.5824175824175825,
+          "loss": 0.6822020784839169,
+          "f1": 0.736111111111111,
+          "auc": 0.6309582919563058
+        },
+        {
+          "round": 7,
+          "accuracy": 0.5824175824175825,
+          "loss": 0.6808525074969282,
+          "f1": 0.736111111111111,
+          "auc": 0.6627358490566037
+        },
+        {
+          "round": 8,
+          "accuracy": 0.5824175824175825,
+          "loss": 0.6794418751538455,
+          "f1": 0.736111111111111,
+          "auc": 0.6967477656405163
+        },
+        {
+          "round": 9,
+          "accuracy": 0.5824175824175825,
+          "loss": 0.6781830564960019,
+          "f1": 0.736111111111111,
+          "auc": 0.7229394240317778
+        },
+        {
+          "round": 10,
+          "accuracy": 0.5824175824175825,
+          "loss": 0.6771366943369855,
+          "f1": 0.736111111111111,
+          "auc": 0.7420556107249258
+        },
+        {
+          "round": 11,
+          "accuracy": 0.5824175824175825,
+          "loss": 0.6767071701668121,
+          "f1": 0.736111111111111,
+          "auc": 0.7557100297914597
+        },
+        {
+          "round": 12,
+          "accuracy": 0.5824175824175825,
+          "loss": 0.6762661901149121,
+          "f1": 0.736111111111111,
+          "auc": 0.7681231380337635
+        },
+        {
+          "round": 13,
+          "accuracy": 0.5824175824175825,
+          "loss": 0.6759359194682195,
+          "f1": 0.7342657342657343,
+          "auc": 0.7801638530287984
+        },
+        {
+          "round": 14,
+          "accuracy": 0.5824175824175825,
+          "loss": 0.675563918365227,
+          "f1": 0.7342657342657343,
+          "auc": 0.7878599801390268
+        },
+        {
+          "round": 15,
+          "accuracy": 0.5879120879120879,
+          "loss": 0.6744584487034724,
+          "f1": 0.736842105263158,
+          "auc": 0.798783515392254
+        }
+      ],
+      "total_rounds_executed": 16,
+      "expected_rounds": 20,
+      "training_aborted_at_round": 16,
+      "optout_event_round": 11,
+      "budget_status": {
+        "total": 10.0,
+        "used": 8.0,
+        "remaining": 2.0,
+        "utilization_pct": 80.0,
+        "rounds_completed": 16,
+        "max_rounds": 20
+      },
+      "optout_stats": {
+        "total_opted_out": 73,
+        "by_scope": {
+          "all": 73
+        },
+        "by_member_state": {
+          "IT": 73
+        },
+        "cache_size": 73,
+        "cache_hit_rate": 1.0,
+        "last_sync": null,
+        "sync_count": 0,
+        "total_lookups": 738,
+        "total_violations_blocked": 0
+      },
+      "audit_file": "/Users/fabioliberti/_DEVAir/FL-EHDS-FLICS2026/fl-ehds-framework/benchmarks/paper_results_tabular/audit_a_s42/audit_compliance.json",
+      "governance_summary": {
+        "permit_lifecycle": "PASS",
+        "optout_enforcement": "PASS",
+        "privacy_budget_tracking": "PASS",
+        "permit_revocation": "PASS",
+        "audit_trail_export": "PASS"
+      },
+      "runtime_seconds": 0.5
+    },
+    "A_lifecycle_s123": {
+      "seed": 123,
+      "experiment": "A_governance_lifecycle",
+      "session_id": "session-20260305100641-f86d6304a948b90e",
+      "permit_id": "PERMIT-GOV-VALID-123",
+      "governance_events": [
+        {
+          "round": 0,
+          "event": "validate_round",
+          "ok": true,
+          "reason": "Round autorizzato",
+          "epsilon_used": 0.0,
+          "epsilon_remaining": 10.0
+        },
+        {
+          "round": 0,
+          "event": "round_completed",
+          "accuracy": 0.489010989010989,
+          "f1": 0.6568265682656826,
+          "epsilon_cumulative": 0.5
+        },
+        {
+          "round": 1,
+          "event": "validate_round",
+          "ok": true,
+          "reason": "Round autorizzato",
+          "epsilon_used": 0.5,
+          "epsilon_remaining": 9.5
+        },
+        {
+          "round": 1,
+          "event": "round_completed",
+          "accuracy": 0.489010989010989,
+          "f1": 0.6568265682656826,
+          "epsilon_cumulative": 1.0
+        },
+        {
+          "round": 2,
+          "event": "validate_round",
+          "ok": true,
+          "reason": "Round autorizzato",
+          "epsilon_used": 1.0,
+          "epsilon_remaining": 9.0
+        },
+        {
+          "round": 2,
+          "event": "round_completed",
+          "accuracy": 0.489010989010989,
+          "f1": 0.6568265682656826,
+          "epsilon_cumulative": 1.5
+        },
+        {
+          "round": 3,
+          "event": "validate_round",
+          "ok": true,
+          "reason": "Round autorizzato",
+          "epsilon_used": 1.5,
+          "epsilon_remaining": 8.5
+        },
+        {
+          "round": 3,
+          "event": "round_completed",
+          "accuracy": 0.489010989010989,
+          "f1": 0.6568265682656826,
+          "epsilon_cumulative": 2.0
+        },
+        {
+          "round": 4,
+          "event": "validate_round",
+          "ok": true,
+          "reason": "Round autorizzato",
+          "epsilon_used": 2.0,
+          "epsilon_remaining": 8.0
+        },
+        {
+          "round": 4,
+          "event": "round_completed",
+          "accuracy": 0.489010989010989,
+          "f1": 0.6568265682656826,
+          "epsilon_cumulative": 2.5
+        },
+        {
+          "round": 5,
+          "event": "validate_round",
+          "ok": true,
+          "reason": "Round autorizzato",
+          "epsilon_used": 2.5,
+          "epsilon_remaining": 7.5
+        },
+        {
+          "round": 5,
+          "event": "round_completed",
+          "accuracy": 0.489010989010989,
+          "f1": 0.6568265682656826,
+          "epsilon_cumulative": 3.0
+        },
+        {
+          "round": 6,
+          "event": "validate_round",
+          "ok": true,
+          "reason": "Round autorizzato",
+          "epsilon_used": 3.0,
+          "epsilon_remaining": 7.0
+        },
+        {
+          "round": 6,
+          "event": "round_completed",
+          "accuracy": 0.489010989010989,
+          "f1": 0.6568265682656826,
+          "epsilon_cumulative": 3.5
+        },
+        {
+          "round": 7,
+          "event": "validate_round",
+          "ok": true,
+          "reason": "Round autorizzato",
+          "epsilon_used": 3.5,
+          "epsilon_remaining": 6.5
+        },
+        {
+          "round": 7,
+          "event": "round_completed",
+          "accuracy": 0.489010989010989,
+          "f1": 0.6568265682656826,
+          "epsilon_cumulative": 4.0
+        },
+        {
+          "round": 8,
+          "event": "validate_round",
+          "ok": true,
+          "reason": "Round autorizzato",
+          "epsilon_used": 4.0,
+          "epsilon_remaining": 6.0
+        },
+        {
+          "round": 8,
+          "event": "round_completed",
+          "accuracy": 0.489010989010989,
+          "f1": 0.6568265682656826,
+          "epsilon_cumulative": 4.5
+        },
+        {
+          "round": 9,
+          "event": "validate_round",
+          "ok": true,
+          "reason": "Round autorizzato",
+          "epsilon_used": 4.5,
+          "epsilon_remaining": 5.5
+        },
+        {
+          "round": 9,
+          "event": "round_completed",
+          "accuracy": 0.489010989010989,
+          "f1": 0.6568265682656826,
+          "epsilon_cumulative": 5.0
+        },
+        {
+          "round": 10,
+          "event": "validate_round",
+          "ok": true,
+          "reason": "Round autorizzato",
+          "epsilon_used": 5.0,
+          "epsilon_remaining": 5.0
+        },
+        {
+          "round": 10,
+          "event": "round_completed",
+          "accuracy": 0.489010989010989,
+          "f1": 0.6568265682656826,
+          "epsilon_cumulative": 5.5
+        },
+        {
+          "round": 11,
+          "event": "validate_round",
+          "ok": true,
+          "reason": "Round autorizzato",
+          "epsilon_used": 5.5,
+          "epsilon_remaining": 4.5
+        },
+        {
+          "round": 11,
+          "event": "optout_registered",
+          "n_opted_out": 73,
+          "n_excluded_from_training": 73,
+          "optout_rate": 0.099,
+          "patient_ids_opted_out": [
+            "P-3-0109",
+            "P-3-0155",
+            "P-0-0242",
+            "P-3-0095",
+            "P-3-0041",
+            "..."
+          ]
+        },
+        {
+          "round": 11,
+          "event": "round_completed",
+          "accuracy": 0.489010989010989,
+          "f1": 0.6568265682656826,
+          "epsilon_cumulative": 6.0
+        },
+        {
+          "round": 12,
+          "event": "validate_round",
+          "ok": true,
+          "reason": "Round autorizzato",
+          "epsilon_used": 6.0,
+          "epsilon_remaining": 4.0
+        },
+        {
+          "round": 12,
+          "event": "round_completed",
+          "accuracy": 0.489010989010989,
+          "f1": 0.6568265682656826,
+          "epsilon_cumulative": 6.5
+        },
+        {
+          "round": 13,
+          "event": "validate_round",
+          "ok": true,
+          "reason": "Round autorizzato",
+          "epsilon_used": 6.5,
+          "epsilon_remaining": 3.5
+        },
+        {
+          "round": 13,
+          "event": "round_completed",
+          "accuracy": 0.489010989010989,
+          "f1": 0.6568265682656826,
+          "epsilon_cumulative": 7.0
+        },
+        {
+          "round": 14,
+          "event": "validate_round",
+          "ok": true,
+          "reason": "Round autorizzato",
+          "epsilon_used": 7.0,
+          "epsilon_remaining": 3.0
+        },
+        {
+          "round": 14,
+          "event": "round_completed",
+          "accuracy": 0.489010989010989,
+          "f1": 0.6568265682656826,
+          "epsilon_cumulative": 7.5
+        },
+        {
+          "round": 15,
+          "event": "validate_round",
+          "ok": true,
+          "reason": "Round autorizzato",
+          "epsilon_used": 7.5,
+          "epsilon_remaining": 2.5
+        },
+        {
+          "round": 15,
+          "event": "permit_revoked",
+          "permit_id": "PERMIT-GOV-VALID-123",
+          "reason": "HDAB revocation (validation test)"
+        },
+        {
+          "round": 15,
+          "event": "round_completed",
+          "accuracy": 0.489010989010989,
+          "f1": 0.6568265682656826,
+          "epsilon_cumulative": 8.0
+        },
+        {
+          "round": 16,
+          "event": "validate_round",
+          "ok": false,
+          "reason": "Permit non valido (scaduto o status non attivo)",
+          "epsilon_used": 8.0,
+          "epsilon_remaining": 2.0
+        },
+        {
+          "round": 16,
+          "event": "training_aborted",
+          "reason": "Permit non valido (scaduto o status non attivo)"
+        },
+        {
+          "event": "session_ended",
+          "total_rounds_executed": 16,
+          "final_accuracy": 0.489010989010989,
+          "budget_status": {
+            "total": 10.0,
+            "used": 8.0,
+            "remaining": 2.0,
+            "utilization_pct": 80.0,
+            "rounds_completed": 16,
+            "max_rounds": 20
+          },
+          "audit_file": "/Users/fabioliberti/_DEVAir/FL-EHDS-FLICS2026/fl-ehds-framework/benchmarks/paper_results_tabular/audit_a_s123/audit_compliance.json"
+        }
+      ],
+      "round_metrics": [
+        {
+          "round": 0,
+          "accuracy": 0.489010989010989,
+          "loss": 0.7094429685519292,
+          "f1": 0.6568265682656826,
+          "auc": 0.46780234384438824
+        },
+        {
+          "round": 1,
+          "accuracy": 0.489010989010989,
+          "loss": 0.7073008404983269,
+          "f1": 0.6568265682656826,
+          "auc": 0.4742056300592005
+        },
+        {
+          "round": 2,
+          "accuracy": 0.489010989010989,
+          "loss": 0.7054270053957845,
+          "f1": 0.6568265682656826,
+          "auc": 0.4849583182312435
+        },
+        {
+          "round": 3,
+          "accuracy": 0.489010989010989,
+          "loss": 0.7037769935943268,
+          "f1": 0.6568265682656826,
+          "auc": 0.4995771414763806
+        },
+        {
+          "round": 4,
+          "accuracy": 0.489010989010989,
+          "loss": 0.7024518952264891,
+          "f1": 0.6568265682656826,
+          "auc": 0.5133502476742784
+        },
+        {
+          "round": 5,
+          "accuracy": 0.489010989010989,
+          "loss": 0.701231490124713,
+          "f1": 0.6568265682656826,
+          "auc": 0.5271233538721762
+        },
+        {
+          "round": 6,
+          "accuracy": 0.489010989010989,
+          "loss": 0.7000737773193108,
+          "f1": 0.6568265682656826,
+          "auc": 0.5448834118642023
+        },
+        {
+          "round": 7,
+          "accuracy": 0.489010989010989,
+          "loss": 0.6991474386099931,
+          "f1": 0.6568265682656826,
+          "auc": 0.5558777334783135
+        },
+        {
+          "round": 8,
+          "accuracy": 0.489010989010989,
+          "loss": 0.6981179144356277,
+          "f1": 0.6568265682656826,
+          "auc": 0.5713422737706899
+        },
+        {
+          "round": 9,
+          "accuracy": 0.489010989010989,
+          "loss": 0.6971057208029778,
+          "f1": 0.6568265682656826,
+          "auc": 0.5866859973420321
+        },
+        {
+          "round": 10,
+          "accuracy": 0.489010989010989,
+          "loss": 0.6962465257435054,
+          "f1": 0.6568265682656826,
+          "auc": 0.6079497402440496
+        },
+        {
+          "round": 11,
+          "accuracy": 0.489010989010989,
+          "loss": 0.6954523973412566,
+          "f1": 0.6568265682656826,
+          "auc": 0.6209979461157421
+        },
+        {
+          "round": 12,
+          "accuracy": 0.489010989010989,
+          "loss": 0.6947086813685658,
+          "f1": 0.6568265682656826,
+          "auc": 0.6370665700132895
+        },
+        {
+          "round": 13,
+          "accuracy": 0.489010989010989,
+          "loss": 0.6941210896104246,
+          "f1": 0.6568265682656826,
+          "auc": 0.6484233417905034
+        },
+        {
+          "round": 14,
+          "accuracy": 0.489010989010989,
+          "loss": 0.6935761151732979,
+          "f1": 0.6568265682656826,
+          "auc": 0.6631629817566749
+        },
+        {
+          "round": 15,
+          "accuracy": 0.489010989010989,
+          "loss": 0.6930770670974647,
+          "f1": 0.6568265682656826,
+          "auc": 0.6775401715597434
+        }
+      ],
+      "total_rounds_executed": 16,
+      "expected_rounds": 20,
+      "training_aborted_at_round": 16,
+      "optout_event_round": 11,
+      "budget_status": {
+        "total": 10.0,
+        "used": 8.0,
+        "remaining": 2.0,
+        "utilization_pct": 80.0,
+        "rounds_completed": 16,
+        "max_rounds": 20
+      },
+      "optout_stats": {
+        "total_opted_out": 73,
+        "by_scope": {
+          "all": 73
+        },
+        "by_member_state": {
+          "IT": 73
+        },
+        "cache_size": 73,
+        "cache_hit_rate": 1.0,
+        "last_sync": null,
+        "sync_count": 0,
+        "total_lookups": 738,
+        "total_violations_blocked": 0
+      },
+      "audit_file": "/Users/fabioliberti/_DEVAir/FL-EHDS-FLICS2026/fl-ehds-framework/benchmarks/paper_results_tabular/audit_a_s123/audit_compliance.json",
+      "governance_summary": {
+        "permit_lifecycle": "PASS",
+        "optout_enforcement": "PASS",
+        "privacy_budget_tracking": "PASS",
+        "permit_revocation": "PASS",
+        "audit_trail_export": "PASS"
+      },
+      "runtime_seconds": 0.3
+    },
+    "A_lifecycle_s456": {
+      "seed": 456,
+      "experiment": "A_governance_lifecycle",
+      "session_id": "session-20260305100641-0a3c7be4badae1cb",
+      "permit_id": "PERMIT-GOV-VALID-456",
+      "governance_events": [
+        {
+          "round": 0,
+          "event": "validate_round",
+          "ok": true,
+          "reason": "Round autorizzato",
+          "epsilon_used": 0.0,
+          "epsilon_remaining": 10.0
+        },
+        {
+          "round": 0,
+          "event": "round_completed",
+          "accuracy": 0.5494505494505495,
+          "f1": 0.7092198581560284,
+          "epsilon_cumulative": 0.5
+        },
+        {
+          "round": 1,
+          "event": "validate_round",
+          "ok": true,
+          "reason": "Round autorizzato",
+          "epsilon_used": 0.5,
+          "epsilon_remaining": 9.5
+        },
+        {
+          "round": 1,
+          "event": "round_completed",
+          "accuracy": 0.5494505494505495,
+          "f1": 0.7092198581560284,
+          "epsilon_cumulative": 1.0
+        },
+        {
+          "round": 2,
+          "event": "validate_round",
+          "ok": true,
+          "reason": "Round autorizzato",
+          "epsilon_used": 1.0,
+          "epsilon_remaining": 9.0
+        },
+        {
+          "round": 2,
+          "event": "round_completed",
+          "accuracy": 0.5494505494505495,
+          "f1": 0.7092198581560284,
+          "epsilon_cumulative": 1.5
+        },
+        {
+          "round": 3,
+          "event": "validate_round",
+          "ok": true,
+          "reason": "Round autorizzato",
+          "epsilon_used": 1.5,
+          "epsilon_remaining": 8.5
+        },
+        {
+          "round": 3,
+          "event": "round_completed",
+          "accuracy": 0.5494505494505495,
+          "f1": 0.7092198581560284,
+          "epsilon_cumulative": 2.0
+        },
+        {
+          "round": 4,
+          "event": "validate_round",
+          "ok": true,
+          "reason": "Round autorizzato",
+          "epsilon_used": 2.0,
+          "epsilon_remaining": 8.0
+        },
+        {
+          "round": 4,
+          "event": "round_completed",
+          "accuracy": 0.5494505494505495,
+          "f1": 0.7092198581560284,
+          "epsilon_cumulative": 2.5
+        },
+        {
+          "round": 5,
+          "event": "validate_round",
+          "ok": true,
+          "reason": "Round autorizzato",
+          "epsilon_used": 2.5,
+          "epsilon_remaining": 7.5
+        },
+        {
+          "round": 5,
+          "event": "round_completed",
+          "accuracy": 0.5494505494505495,
+          "f1": 0.7092198581560284,
+          "epsilon_cumulative": 3.0
+        },
+        {
+          "round": 6,
+          "event": "validate_round",
+          "ok": true,
+          "reason": "Round autorizzato",
+          "epsilon_used": 3.0,
+          "epsilon_remaining": 7.0
+        },
+        {
+          "round": 6,
+          "event": "round_completed",
+          "accuracy": 0.5494505494505495,
+          "f1": 0.7092198581560284,
+          "epsilon_cumulative": 3.5
+        },
+        {
+          "round": 7,
+          "event": "validate_round",
+          "ok": true,
+          "reason": "Round autorizzato",
+          "epsilon_used": 3.5,
+          "epsilon_remaining": 6.5
+        },
+        {
+          "round": 7,
+          "event": "round_completed",
+          "accuracy": 0.5494505494505495,
+          "f1": 0.7092198581560284,
+          "epsilon_cumulative": 4.0
+        },
+        {
+          "round": 8,
+          "event": "validate_round",
+          "ok": true,
+          "reason": "Round autorizzato",
+          "epsilon_used": 4.0,
+          "epsilon_remaining": 6.0
+        },
+        {
+          "round": 8,
+          "event": "round_completed",
+          "accuracy": 0.5494505494505495,
+          "f1": 0.7092198581560284,
+          "epsilon_cumulative": 4.5
+        },
+        {
+          "round": 9,
+          "event": "validate_round",
+          "ok": true,
+          "reason": "Round autorizzato",
+          "epsilon_used": 4.5,
+          "epsilon_remaining": 5.5
+        },
+        {
+          "round": 9,
+          "event": "round_completed",
+          "accuracy": 0.5494505494505495,
+          "f1": 0.7092198581560284,
+          "epsilon_cumulative": 5.0
+        },
+        {
+          "round": 10,
+          "event": "validate_round",
+          "ok": true,
+          "reason": "Round autorizzato",
+          "epsilon_used": 5.0,
+          "epsilon_remaining": 5.0
+        },
+        {
+          "round": 10,
+          "event": "round_completed",
+          "accuracy": 0.5494505494505495,
+          "f1": 0.7092198581560284,
+          "epsilon_cumulative": 5.5
+        },
+        {
+          "round": 11,
+          "event": "validate_round",
+          "ok": true,
+          "reason": "Round autorizzato",
+          "epsilon_used": 5.5,
+          "epsilon_remaining": 4.5
+        },
+        {
+          "round": 11,
+          "event": "optout_registered",
+          "n_opted_out": 73,
+          "n_excluded_from_training": 73,
+          "optout_rate": 0.099,
+          "patient_ids_opted_out": [
+            "P-0-0059",
+            "P-1-0143",
+            "P-1-0013",
+            "P-1-0117",
+            "P-0-0081",
+            "..."
+          ]
+        },
+        {
+          "round": 11,
+          "event": "round_completed",
+          "accuracy": 0.554945054945055,
+          "f1": 0.7117437722419929,
+          "epsilon_cumulative": 6.0
+        },
+        {
+          "round": 12,
+          "event": "validate_round",
+          "ok": true,
+          "reason": "Round autorizzato",
+          "epsilon_used": 6.0,
+          "epsilon_remaining": 4.0
+        },
+        {
+          "round": 12,
+          "event": "round_completed",
+          "accuracy": 0.5604395604395604,
+          "f1": 0.7142857142857143,
+          "epsilon_cumulative": 6.5
+        },
+        {
+          "round": 13,
+          "event": "validate_round",
+          "ok": true,
+          "reason": "Round autorizzato",
+          "epsilon_used": 6.5,
+          "epsilon_remaining": 3.5
+        },
+        {
+          "round": 13,
+          "event": "round_completed",
+          "accuracy": 0.5604395604395604,
+          "f1": 0.7142857142857143,
+          "epsilon_cumulative": 7.0
+        },
+        {
+          "round": 14,
+          "event": "validate_round",
+          "ok": true,
+          "reason": "Round autorizzato",
+          "epsilon_used": 7.0,
+          "epsilon_remaining": 3.0
+        },
+        {
+          "round": 14,
+          "event": "round_completed",
+          "accuracy": 0.554945054945055,
+          "f1": 0.7096774193548387,
+          "epsilon_cumulative": 7.5
+        },
+        {
+          "round": 15,
+          "event": "validate_round",
+          "ok": true,
+          "reason": "Round autorizzato",
+          "epsilon_used": 7.5,
+          "epsilon_remaining": 2.5
+        },
+        {
+          "round": 15,
+          "event": "permit_revoked",
+          "permit_id": "PERMIT-GOV-VALID-456",
+          "reason": "HDAB revocation (validation test)"
+        },
+        {
+          "round": 15,
+          "event": "round_completed",
+          "accuracy": 0.554945054945055,
+          "f1": 0.7096774193548387,
+          "epsilon_cumulative": 8.0
+        },
+        {
+          "round": 16,
+          "event": "validate_round",
+          "ok": false,
+          "reason": "Permit non valido (scaduto o status non attivo)",
+          "epsilon_used": 8.0,
+          "epsilon_remaining": 2.0
+        },
+        {
+          "round": 16,
+          "event": "training_aborted",
+          "reason": "Permit non valido (scaduto o status non attivo)"
+        },
+        {
+          "event": "session_ended",
+          "total_rounds_executed": 16,
+          "final_accuracy": 0.554945054945055,
+          "budget_status": {
+            "total": 10.0,
+            "used": 8.0,
+            "remaining": 2.0,
+            "utilization_pct": 80.0,
+            "rounds_completed": 16,
+            "max_rounds": 20
+          },
+          "audit_file": "/Users/fabioliberti/_DEVAir/FL-EHDS-FLICS2026/fl-ehds-framework/benchmarks/paper_results_tabular/audit_a_s456/audit_compliance.json"
+        }
+      ],
+      "round_metrics": [
+        {
+          "round": 0,
+          "accuracy": 0.5494505494505495,
+          "loss": 0.6802013640875345,
+          "f1": 0.7092198581560284,
+          "auc": 0.7063414634146341
+        },
+        {
+          "round": 1,
+          "accuracy": 0.5494505494505495,
+          "loss": 0.6793124643000927,
+          "f1": 0.7092198581560284,
+          "auc": 0.7176829268292683
+        },
+        {
+          "round": 2,
+          "accuracy": 0.5494505494505495,
+          "loss": 0.6784082664238228,
+          "f1": 0.7092198581560284,
+          "auc": 0.728292682926829
+        },
+        {
+          "round": 3,
+          "accuracy": 0.5494505494505495,
+          "loss": 0.6774929126540383,
+          "f1": 0.7092198581560284,
+          "auc": 0.7384146341463415
+        },
+        {
+          "round": 4,
+          "accuracy": 0.5494505494505495,
+          "loss": 0.6766194105148315,
+          "f1": 0.7092198581560284,
+          "auc": 0.745
+        },
+        {
+          "round": 5,
+          "accuracy": 0.5494505494505495,
+          "loss": 0.6756517107670124,
+          "f1": 0.7092198581560284,
+          "auc": 0.7523170731707318
+        },
+        {
+          "round": 6,
+          "accuracy": 0.5494505494505495,
+          "loss": 0.6747233926594912,
+          "f1": 0.7092198581560284,
+          "auc": 0.7617073170731706
+        },
+        {
+          "round": 7,
+          "accuracy": 0.5494505494505495,
+          "loss": 0.6737897605686397,
+          "f1": 0.7092198581560284,
+          "auc": 0.7679268292682928
+        },
+        {
+          "round": 8,
+          "accuracy": 0.5494505494505495,
+          "loss": 0.6728347330302983,
+          "f1": 0.7092198581560284,
+          "auc": 0.7747560975609755
+        },
+        {
+          "round": 9,
+          "accuracy": 0.5494505494505495,
+          "loss": 0.6718664464059767,
+          "f1": 0.7092198581560284,
+          "auc": 0.7793902439024389
+        },
+        {
+          "round": 10,
+          "accuracy": 0.5494505494505495,
+          "loss": 0.6709080521876996,
+          "f1": 0.7092198581560284,
+          "auc": 0.7841463414634146
+        },
+        {
+          "round": 11,
+          "accuracy": 0.554945054945055,
+          "loss": 0.669677238542955,
+          "f1": 0.7117437722419929,
+          "auc": 0.7891463414634146
+        },
+        {
+          "round": 12,
+          "accuracy": 0.5604395604395604,
+          "loss": 0.6685845170702253,
+          "f1": 0.7142857142857143,
+          "auc": 0.7929268292682928
+        },
+        {
+          "round": 13,
+          "accuracy": 0.5604395604395604,
+          "loss": 0.6675919189557924,
+          "f1": 0.7142857142857143,
+          "auc": 0.7964634146341464
+        },
+        {
+          "round": 14,
+          "accuracy": 0.554945054945055,
+          "loss": 0.666464531814659,
+          "f1": 0.7096774193548387,
+          "auc": 0.8001219512195122
+        },
+        {
+          "round": 15,
+          "accuracy": 0.554945054945055,
+          "loss": 0.6650999640370463,
+          "f1": 0.7096774193548387,
+          "auc": 0.802926829268293
+        }
+      ],
+      "total_rounds_executed": 16,
+      "expected_rounds": 20,
+      "training_aborted_at_round": 16,
+      "optout_event_round": 11,
+      "budget_status": {
+        "total": 10.0,
+        "used": 8.0,
+        "remaining": 2.0,
+        "utilization_pct": 80.0,
+        "rounds_completed": 16,
+        "max_rounds": 20
+      },
+      "optout_stats": {
+        "total_opted_out": 73,
+        "by_scope": {
+          "all": 73
+        },
+        "by_member_state": {
+          "IT": 73
+        },
+        "cache_size": 73,
+        "cache_hit_rate": 1.0,
+        "last_sync": null,
+        "sync_count": 0,
+        "total_lookups": 738,
+        "total_violations_blocked": 0
+      },
+      "audit_file": "/Users/fabioliberti/_DEVAir/FL-EHDS-FLICS2026/fl-ehds-framework/benchmarks/paper_results_tabular/audit_a_s456/audit_compliance.json",
+      "governance_summary": {
+        "permit_lifecycle": "PASS",
+        "optout_enforcement": "PASS",
+        "privacy_budget_tracking": "PASS",
+        "permit_revocation": "PASS",
+        "audit_trail_export": "PASS"
+      },
+      "runtime_seconds": 0.3
+    },
+    "C_scientific_research_s42": {
+      "seed": 42,
+      "purpose": "scientific_research",
+      "experiment": "C_data_minimization",
+      "original_features": 13,
+      "kept_features": 10,
+      "kept_feature_names": [
+        "age",
+        "sex",
+        "chest_pain_type",
+        "cholesterol",
+        "resting_ecg",
+        "max_heart_rate",
+        "exercise_angina",
+        "st_depression",
+        "num_major_vessels",
+        "thalassemia"
+      ],
+      "reduction_pct": 23.1,
+      "allowed_groups": "all",
+      "purpose_removed": [],
+      "importance_removed": [
+        {
+          "name": "resting_bp",
+          "score": "0.0027"
+        },
+        {
+          "name": "fasting_blood_sugar",
+          "score": "0.0086"
+        },
+        {
+          "name": "st_slope",
+          "score": "0.0052"
+        }
+      ],
+      "importance_scores": {
+        "age": 0.0317,
+        "sex": 0.0598,
+        "chest_pain_type": 0.1677,
+        "resting_bp": 0.0027,
+        "cholesterol": 0.0763,
+        "fasting_blood_sugar": 0.0086,
+        "resting_ecg": 0.02,
+        "max_heart_rate": 0.0537,
+        "exercise_angina": 0.0892,
+        "st_depression": 0.0832,
+        "st_slope": 0.0052,
+        "num_major_vessels": 0.0163,
+        "thalassemia": 0.0635
+      },
+      "final_accuracy": 0.6538461538461539,
+      "final_f1": 0.7640449438202247,
+      "final_auc": 0.8219960278053623,
+      "final_loss": 0.6669368770096328,
+      "history": [
+        {
+          "round": 1,
+          "accuracy": 0.5824175824175825,
+          "loss": 0.684768279175182,
+          "f1": 0.736111111111111,
+          "auc": 0.5814299900695135
+        },
+        {
+          "round": 2,
+          "accuracy": 0.5769230769230769,
+          "loss": 0.6838261760198153,
+          "f1": 0.7317073170731707,
+          "auc": 0.6215243296921548
+        },
+        {
+          "round": 3,
+          "accuracy": 0.5769230769230769,
+          "loss": 0.6831202572518653,
+          "f1": 0.7317073170731707,
+          "auc": 0.6511916583912609
+        },
+        {
+          "round": 4,
+          "accuracy": 0.5769230769230769,
+          "loss": 0.6820915066278898,
+          "f1": 0.7317073170731707,
+          "auc": 0.6775074478649451
+        },
+        {
+          "round": 5,
+          "accuracy": 0.5824175824175825,
+          "loss": 0.6813453180449349,
+          "f1": 0.7342657342657343,
+          "auc": 0.6979890764647467
+        },
+        {
+          "round": 6,
+          "accuracy": 0.5824175824175825,
+          "loss": 0.6804422664118337,
+          "f1": 0.7342657342657343,
+          "auc": 0.7184707050645477
+        },
+        {
+          "round": 7,
+          "accuracy": 0.5824175824175825,
+          "loss": 0.6796477476319114,
+          "f1": 0.7342657342657343,
+          "auc": 0.7332423038728892
+        },
+        {
+          "round": 8,
+          "accuracy": 0.5824175824175825,
+          "loss": 0.678796506190038,
+          "f1": 0.7323943661971831,
+          "auc": 0.7454071499503471
+        },
+        {
+          "round": 9,
+          "accuracy": 0.5824175824175825,
+          "loss": 0.6776901968232878,
+          "f1": 0.7323943661971831,
+          "auc": 0.7568272095332664
+        },
+        {
+          "round": 10,
+          "accuracy": 0.5824175824175825,
+          "loss": 0.6767932307589185,
+          "f1": 0.7323943661971831,
+          "auc": 0.767502482621648
+        },
+        {
+          "round": 11,
+          "accuracy": 0.5879120879120879,
+          "loss": 0.675981818319677,
+          "f1": 0.734982332155477,
+          "auc": 0.7768123138033761
+        },
+        {
+          "round": 12,
+          "accuracy": 0.5934065934065934,
+          "loss": 0.6749948833014939,
+          "f1": 0.7375886524822695,
+          "auc": 0.7847567030784508
+        },
+        {
+          "round": 13,
+          "accuracy": 0.6043956043956044,
+          "loss": 0.6739393020724203,
+          "f1": 0.7428571428571429,
+          "auc": 0.791459781529295
+        },
+        {
+          "round": 14,
+          "accuracy": 0.6043956043956044,
+          "loss": 0.6729547073552896,
+          "f1": 0.7428571428571429,
+          "auc": 0.7982869910625621
+        },
+        {
+          "round": 15,
+          "accuracy": 0.6263736263736264,
+          "loss": 0.6719311495403667,
+          "f1": 0.7536231884057971,
+          "auc": 0.8035004965243294
+        },
+        {
+          "round": 16,
+          "accuracy": 0.6483516483516484,
+          "loss": 0.670995817734645,
+          "f1": 0.7647058823529412,
+          "auc": 0.8080933465739818
+        },
+        {
+          "round": 17,
+          "accuracy": 0.6593406593406593,
+          "loss": 0.6699328474946075,
+          "f1": 0.7703703703703704,
+          "auc": 0.8114448857994039
+        },
+        {
+          "round": 18,
+          "accuracy": 0.6593406593406593,
+          "loss": 0.6689028032533415,
+          "f1": 0.7703703703703704,
+          "auc": 0.8144240317775568
+        },
+        {
+          "round": 19,
+          "accuracy": 0.6538461538461539,
+          "loss": 0.668000381726485,
+          "f1": 0.7657992565055762,
+          "auc": 0.8193892750744783
+        },
+        {
+          "round": 20,
+          "accuracy": 0.6538461538461539,
+          "loss": 0.6669368770096328,
+          "f1": 0.7640449438202247,
+          "auc": 0.8219960278053623
+        }
+      ],
+      "config": {
+        "algorithm": "FedAvg",
+        "num_rounds": 20,
+        "local_epochs": 3,
+        "learning_rate": 0.01,
+        "batch_size": 64
+      },
+      "runtime_seconds": 0.5
+    },
+    "C_scientific_research_s123": {
+      "seed": 123,
+      "purpose": "scientific_research",
+      "experiment": "C_data_minimization",
+      "original_features": 13,
+      "kept_features": 13,
+      "kept_feature_names": [
+        "age",
+        "sex",
+        "chest_pain_type",
+        "resting_bp",
+        "cholesterol",
+        "fasting_blood_sugar",
+        "resting_ecg",
+        "max_heart_rate",
+        "exercise_angina",
+        "st_depression",
+        "st_slope",
+        "num_major_vessels",
+        "thalassemia"
+      ],
+      "reduction_pct": 0.0,
+      "allowed_groups": "all",
+      "purpose_removed": [],
+      "importance_removed": [],
+      "importance_scores": {
+        "age": 0.0266,
+        "sex": 0.0357,
+        "chest_pain_type": 0.159,
+        "resting_bp": 0.0261,
+        "cholesterol": 0.0832,
+        "fasting_blood_sugar": 0.0487,
+        "resting_ecg": 0.0261,
+        "max_heart_rate": 0.0756,
+        "exercise_angina": 0.1133,
+        "st_depression": 0.1018,
+        "st_slope": 0.0228,
+        "num_major_vessels": 0.0393,
+        "thalassemia": 0.0661
+      },
+      "final_accuracy": 0.489010989010989,
+      "final_f1": 0.6568265682656826,
+      "final_auc": 0.7220007249003259,
+      "final_loss": 0.6902534365653992,
+      "history": [
+        {
+          "round": 1,
+          "accuracy": 0.489010989010989,
+          "loss": 0.7094429685519292,
+          "f1": 0.6568265682656826,
+          "auc": 0.46780234384438824
+        },
+        {
+          "round": 2,
+          "accuracy": 0.489010989010989,
+          "loss": 0.7073008404983269,
+          "f1": 0.6568265682656826,
+          "auc": 0.4742056300592005
+        },
+        {
+          "round": 3,
+          "accuracy": 0.489010989010989,
+          "loss": 0.7054270053957845,
+          "f1": 0.6568265682656826,
+          "auc": 0.4849583182312435
+        },
+        {
+          "round": 4,
+          "accuracy": 0.489010989010989,
+          "loss": 0.7037769935943268,
+          "f1": 0.6568265682656826,
+          "auc": 0.4995771414763806
+        },
+        {
+          "round": 5,
+          "accuracy": 0.489010989010989,
+          "loss": 0.7024518952264891,
+          "f1": 0.6568265682656826,
+          "auc": 0.5133502476742784
+        },
+        {
+          "round": 6,
+          "accuracy": 0.489010989010989,
+          "loss": 0.701231490124713,
+          "f1": 0.6568265682656826,
+          "auc": 0.5271233538721762
+        },
+        {
+          "round": 7,
+          "accuracy": 0.489010989010989,
+          "loss": 0.7000737773193108,
+          "f1": 0.6568265682656826,
+          "auc": 0.5448834118642023
+        },
+        {
+          "round": 8,
+          "accuracy": 0.489010989010989,
+          "loss": 0.6991474386099931,
+          "f1": 0.6568265682656826,
+          "auc": 0.5558777334783135
+        },
+        {
+          "round": 9,
+          "accuracy": 0.489010989010989,
+          "loss": 0.6981179144356277,
+          "f1": 0.6568265682656826,
+          "auc": 0.5713422737706899
+        },
+        {
+          "round": 10,
+          "accuracy": 0.489010989010989,
+          "loss": 0.6971057208029778,
+          "f1": 0.6568265682656826,
+          "auc": 0.5866859973420321
+        },
+        {
+          "round": 11,
+          "accuracy": 0.489010989010989,
+          "loss": 0.6962465257435054,
+          "f1": 0.6568265682656826,
+          "auc": 0.6079497402440496
+        },
+        {
+          "round": 12,
+          "accuracy": 0.489010989010989,
+          "loss": 0.6954106020403432,
+          "f1": 0.6568265682656826,
+          "auc": 0.6219644798840157
+        },
+        {
+          "round": 13,
+          "accuracy": 0.489010989010989,
+          "loss": 0.694679373568231,
+          "f1": 0.6568265682656826,
+          "auc": 0.6383955539446655
+        },
+        {
+          "round": 14,
+          "accuracy": 0.489010989010989,
+          "loss": 0.6939684886198777,
+          "f1": 0.6568265682656826,
+          "auc": 0.6532560106318711
+        },
+        {
+          "round": 15,
+          "accuracy": 0.489010989010989,
+          "loss": 0.6932679133100824,
+          "f1": 0.6568265682656826,
+          "auc": 0.6682372840401107
+        },
+        {
+          "round": 16,
+          "accuracy": 0.489010989010989,
+          "loss": 0.6926211210397574,
+          "f1": 0.6568265682656826,
+          "auc": 0.6801981394224955
+        },
+        {
+          "round": 17,
+          "accuracy": 0.489010989010989,
+          "loss": 0.6919947404127854,
+          "f1": 0.6568265682656826,
+          "auc": 0.6936087954572907
+        },
+        {
+          "round": 18,
+          "accuracy": 0.489010989010989,
+          "loss": 0.6914291591434688,
+          "f1": 0.6568265682656826,
+          "auc": 0.7041198501872653
+        },
+        {
+          "round": 19,
+          "accuracy": 0.489010989010989,
+          "loss": 0.6908648688714583,
+          "f1": 0.6568265682656826,
+          "auc": 0.7125770206596588
+        },
+        {
+          "round": 20,
+          "accuracy": 0.489010989010989,
+          "loss": 0.6902534365653992,
+          "f1": 0.6568265682656826,
+          "auc": 0.7220007249003259
+        }
+      ],
+      "config": {
+        "algorithm": "FedAvg",
+        "num_rounds": 20,
+        "local_epochs": 3,
+        "learning_rate": 0.01,
+        "batch_size": 64
+      },
+      "runtime_seconds": 0.3
+    },
+    "C_scientific_research_s456": {
+      "seed": 456,
+      "purpose": "scientific_research",
+      "experiment": "C_data_minimization",
+      "original_features": 13,
+      "kept_features": 13,
+      "kept_feature_names": [
+        "age",
+        "sex",
+        "chest_pain_type",
+        "resting_bp",
+        "cholesterol",
+        "fasting_blood_sugar",
+        "resting_ecg",
+        "max_heart_rate",
+        "exercise_angina",
+        "st_depression",
+        "st_slope",
+        "num_major_vessels",
+        "thalassemia"
+      ],
+      "reduction_pct": 0.0,
+      "allowed_groups": "all",
+      "purpose_removed": [],
+      "importance_removed": [],
+      "importance_scores": {
+        "age": 0.0635,
+        "sex": 0.0614,
+        "chest_pain_type": 0.1832,
+        "resting_bp": 0.014,
+        "cholesterol": 0.0801,
+        "fasting_blood_sugar": 0.0587,
+        "resting_ecg": 0.0325,
+        "max_heart_rate": 0.11,
+        "exercise_angina": 0.1091,
+        "st_depression": 0.0808,
+        "st_slope": 0.047,
+        "num_major_vessels": 0.0573,
+        "thalassemia": 0.059
+      },
+      "final_accuracy": 0.6043956043956044,
+      "final_f1": 0.7333333333333335,
+      "final_auc": 0.8124390243902443,
+      "final_loss": 0.6608779246990497,
+      "history": [
+        {
+          "round": 1,
+          "accuracy": 0.5494505494505495,
+          "loss": 0.6802013640875345,
+          "f1": 0.7092198581560284,
+          "auc": 0.7063414634146341
+        },
+        {
+          "round": 2,
+          "accuracy": 0.5494505494505495,
+          "loss": 0.6793124643000927,
+          "f1": 0.7092198581560284,
+          "auc": 0.7176829268292683
+        },
+        {
+          "round": 3,
+          "accuracy": 0.5494505494505495,
+          "loss": 0.6784082664238228,
+          "f1": 0.7092198581560284,
+          "auc": 0.728292682926829
+        },
+        {
+          "round": 4,
+          "accuracy": 0.5494505494505495,
+          "loss": 0.6774929126540383,
+          "f1": 0.7092198581560284,
+          "auc": 0.7384146341463415
+        },
+        {
+          "round": 5,
+          "accuracy": 0.5494505494505495,
+          "loss": 0.6766194105148315,
+          "f1": 0.7092198581560284,
+          "auc": 0.745
+        },
+        {
+          "round": 6,
+          "accuracy": 0.5494505494505495,
+          "loss": 0.6756517107670124,
+          "f1": 0.7092198581560284,
+          "auc": 0.7523170731707318
+        },
+        {
+          "round": 7,
+          "accuracy": 0.5494505494505495,
+          "loss": 0.6747233926594912,
+          "f1": 0.7092198581560284,
+          "auc": 0.7617073170731706
+        },
+        {
+          "round": 8,
+          "accuracy": 0.5494505494505495,
+          "loss": 0.6737897605686397,
+          "f1": 0.7092198581560284,
+          "auc": 0.7679268292682928
+        },
+        {
+          "round": 9,
+          "accuracy": 0.5494505494505495,
+          "loss": 0.6728347330302983,
+          "f1": 0.7092198581560284,
+          "auc": 0.7747560975609755
+        },
+        {
+          "round": 10,
+          "accuracy": 0.5494505494505495,
+          "loss": 0.6718664464059767,
+          "f1": 0.7092198581560284,
+          "auc": 0.7793902439024389
+        },
+        {
+          "round": 11,
+          "accuracy": 0.5494505494505495,
+          "loss": 0.6709080521876996,
+          "f1": 0.7092198581560284,
+          "auc": 0.7841463414634146
+        },
+        {
+          "round": 12,
+          "accuracy": 0.5604395604395604,
+          "loss": 0.6699708903228844,
+          "f1": 0.7142857142857143,
+          "auc": 0.7880487804878049
+        },
+        {
+          "round": 13,
+          "accuracy": 0.5604395604395604,
+          "loss": 0.6689055489969777,
+          "f1": 0.7142857142857143,
+          "auc": 0.7917073170731708
+        },
+        {
+          "round": 14,
+          "accuracy": 0.554945054945055,
+          "loss": 0.6678589071546283,
+          "f1": 0.7096774193548387,
+          "auc": 0.7959756097560974
+        },
+        {
+          "round": 15,
+          "accuracy": 0.554945054945055,
+          "loss": 0.6667541232737866,
+          "f1": 0.7096774193548387,
+          "auc": 0.7997560975609758
+        },
+        {
+          "round": 16,
+          "accuracy": 0.5879120879120879,
+          "loss": 0.6657072017481039,
+          "f1": 0.7252747252747254,
+          "auc": 0.8015853658536586
+        },
+        {
+          "round": 17,
+          "accuracy": 0.5989010989010989,
+          "loss": 0.6645816217412005,
+          "f1": 0.7306273062730627,
+          "auc": 0.8046341463414637
+        },
+        {
+          "round": 18,
+          "accuracy": 0.5989010989010989,
+          "loss": 0.663257469187726,
+          "f1": 0.7306273062730627,
+          "auc": 0.8074390243902444
+        },
+        {
+          "round": 19,
+          "accuracy": 0.5989010989010989,
+          "loss": 0.6620519338073311,
+          "f1": 0.7306273062730627,
+          "auc": 0.8096341463414639
+        },
+        {
+          "round": 20,
+          "accuracy": 0.6043956043956044,
+          "loss": 0.6608779246990497,
+          "f1": 0.7333333333333335,
+          "auc": 0.8124390243902443
+        }
+      ],
+      "config": {
+        "algorithm": "FedAvg",
+        "num_rounds": 20,
+        "local_epochs": 3,
+        "learning_rate": 0.01,
+        "batch_size": 64
+      },
+      "runtime_seconds": 0.3
+    },
+    "C_public_health_surveillance_s42": {
+      "seed": 42,
+      "purpose": "public_health_surveillance",
+      "experiment": "C_data_minimization",
+      "original_features": 13,
+      "kept_features": 7,
+      "kept_feature_names": [
+        "age",
+        "sex",
+        "chest_pain_type",
+        "resting_bp",
+        "max_heart_rate",
+        "exercise_angina",
+        "thalassemia"
+      ],
+      "reduction_pct": 46.2,
+      "allowed_groups": [
+        "medications",
+        "demographics",
+        "vitals",
+        "conditions"
+      ],
+      "purpose_removed": [
+        "cholesterol",
+        "fasting_blood_sugar",
+        "resting_ecg",
+        "st_depression",
+        "st_slope",
+        "num_major_vessels"
+      ],
+      "importance_removed": [],
+      "importance_scores": {
+        "age": 0.0308,
+        "sex": 0.0373,
+        "chest_pain_type": 0.1575,
+        "resting_bp": 0.028,
+        "max_heart_rate": 0.0602,
+        "exercise_angina": 0.1102,
+        "thalassemia": 0.0864
+      },
+      "final_accuracy": 0.8241758241758241,
+      "final_f1": 0.8476190476190476,
+      "final_auc": 0.878723932472691,
+      "final_loss": 0.6604593297937414,
+      "history": [
+        {
+          "round": 1,
+          "accuracy": 0.4175824175824176,
+          "loss": 0.7280512766523676,
+          "f1": 0.0,
+          "auc": 0.5901191658391259
+        },
+        {
+          "round": 2,
+          "accuracy": 0.4175824175824176,
+          "loss": 0.720584844494914,
+          "f1": 0.0,
+          "auc": 0.6443644488579942
+        },
+        {
+          "round": 3,
+          "accuracy": 0.4175824175824176,
+          "loss": 0.7141628822127541,
+          "f1": 0.0,
+          "auc": 0.6982373386295926
+        },
+        {
+          "round": 4,
+          "accuracy": 0.4175824175824176,
+          "loss": 0.7088018996374947,
+          "f1": 0.0,
+          "auc": 0.737959285004965
+        },
+        {
+          "round": 5,
+          "accuracy": 0.4175824175824176,
+          "loss": 0.7039977580636412,
+          "f1": 0.0,
+          "auc": 0.7778053624627608
+        },
+        {
+          "round": 6,
+          "accuracy": 0.4175824175824176,
+          "loss": 0.6995268758836684,
+          "f1": 0.0,
+          "auc": 0.8039970208540221
+        },
+        {
+          "round": 7,
+          "accuracy": 0.4175824175824176,
+          "loss": 0.6957344773051503,
+          "f1": 0.0,
+          "auc": 0.8226166832174776
+        },
+        {
+          "round": 8,
+          "accuracy": 0.4175824175824176,
+          "loss": 0.6920077401203114,
+          "f1": 0.0,
+          "auc": 0.8362711022840118
+        },
+        {
+          "round": 9,
+          "accuracy": 0.4175824175824176,
+          "loss": 0.6885053895332001,
+          "f1": 0.0,
+          "auc": 0.8490566037735846
+        },
+        {
+          "round": 10,
+          "accuracy": 0.4340659340659341,
+          "loss": 0.6853999731304882,
+          "f1": 0.07207207207207207,
+          "auc": 0.8570009930486588
+        },
+        {
+          "round": 11,
+          "accuracy": 0.5824175824175825,
+          "loss": 0.6825463496721708,
+          "f1": 0.4647887323943662,
+          "auc": 0.8630834160873884
+        },
+        {
+          "round": 12,
+          "accuracy": 0.6538461538461539,
+          "loss": 0.679788521357945,
+          "f1": 0.5987261146496815,
+          "auc": 0.8680486593843098
+        },
+        {
+          "round": 13,
+          "accuracy": 0.6813186813186813,
+          "loss": 0.6771649266337301,
+          "f1": 0.6463414634146342,
+          "auc": 0.8707795431976164
+        },
+        {
+          "round": 14,
+          "accuracy": 0.7362637362637363,
+          "loss": 0.674690693289369,
+          "f1": 0.7333333333333333,
+          "auc": 0.8707795431976164
+        },
+        {
+          "round": 15,
+          "accuracy": 0.8021978021978022,
+          "loss": 0.6723685513485919,
+          "f1": 0.8124999999999999,
+          "auc": 0.8735104270109234
+        },
+        {
+          "round": 16,
+          "accuracy": 0.8186813186813187,
+          "loss": 0.6699781889443869,
+          "f1": 0.8341708542713568,
+          "auc": 0.8741310824230386
+        },
+        {
+          "round": 17,
+          "accuracy": 0.8241758241758241,
+          "loss": 0.6676844548393082,
+          "f1": 0.8431372549019608,
+          "auc": 0.8753723932472689
+        },
+        {
+          "round": 18,
+          "accuracy": 0.8241758241758241,
+          "loss": 0.6652905325313191,
+          "f1": 0.8446601941747572,
+          "auc": 0.8766137040714993
+        },
+        {
+          "round": 19,
+          "accuracy": 0.8131868131868132,
+          "loss": 0.6629807470919011,
+          "f1": 0.8365384615384616,
+          "auc": 0.8771102284011915
+        },
+        {
+          "round": 20,
+          "accuracy": 0.8241758241758241,
+          "loss": 0.6604593297937414,
+          "f1": 0.8476190476190476,
+          "auc": 0.878723932472691
+        }
+      ],
+      "config": {
+        "algorithm": "FedAvg",
+        "num_rounds": 20,
+        "local_epochs": 3,
+        "learning_rate": 0.01,
+        "batch_size": 64
+      },
+      "runtime_seconds": 0.3
+    },
+    "C_public_health_surveillance_s123": {
+      "seed": 123,
+      "purpose": "public_health_surveillance",
+      "experiment": "C_data_minimization",
+      "original_features": 13,
+      "kept_features": 6,
+      "kept_feature_names": [
+        "age",
+        "sex",
+        "chest_pain_type",
+        "max_heart_rate",
+        "exercise_angina",
+        "thalassemia"
+      ],
+      "reduction_pct": 53.8,
+      "allowed_groups": [
+        "medications",
+        "demographics",
+        "vitals",
+        "conditions"
+      ],
+      "purpose_removed": [
+        "cholesterol",
+        "fasting_blood_sugar",
+        "resting_ecg",
+        "st_depression",
+        "st_slope",
+        "num_major_vessels"
+      ],
+      "importance_removed": [
+        {
+          "name": "resting_bp",
+          "score": "0.0083"
+        }
+      ],
+      "importance_scores": {
+        "age": 0.0595,
+        "sex": 0.0703,
+        "chest_pain_type": 0.1948,
+        "resting_bp": 0.0083,
+        "max_heart_rate": 0.075,
+        "exercise_angina": 0.1032,
+        "thalassemia": 0.0827
+      },
+      "final_accuracy": 0.5989010989010989,
+      "final_f1": 0.7020408163265307,
+      "final_auc": 0.8263863718738671,
+      "final_loss": 0.6532070309251219,
+      "history": [
+        {
+          "round": 1,
+          "accuracy": 0.4835164835164835,
+          "loss": 0.689716732108986,
+          "f1": 0.34722222222222227,
+          "auc": 0.5328017397607834
+        },
+        {
+          "round": 2,
+          "accuracy": 0.6263736263736264,
+          "loss": 0.6866900121772682,
+          "f1": 0.7043478260869566,
+          "auc": 0.619789778905401
+        },
+        {
+          "round": 3,
+          "accuracy": 0.5934065934065934,
+          "loss": 0.6843557167839218,
+          "f1": 0.6890756302521008,
+          "auc": 0.7642865772622932
+        },
+        {
+          "round": 4,
+          "accuracy": 0.5879120879120879,
+          "loss": 0.6825610628494849,
+          "f1": 0.691358024691358,
+          "auc": 0.7947323909629094
+        },
+        {
+          "round": 5,
+          "accuracy": 0.5934065934065934,
+          "loss": 0.6809453309237302,
+          "f1": 0.6991869918699186,
+          "auc": 0.8063307961821916
+        },
+        {
+          "round": 6,
+          "accuracy": 0.5879120879120879,
+          "loss": 0.6795007547179421,
+          "f1": 0.6963562753036437,
+          "auc": 0.8074181466714996
+        },
+        {
+          "round": 7,
+          "accuracy": 0.5879120879120879,
+          "loss": 0.6780809786293532,
+          "f1": 0.6963562753036437,
+          "auc": 0.8103177479763201
+        },
+        {
+          "round": 8,
+          "accuracy": 0.5879120879120879,
+          "loss": 0.6765586209821177,
+          "f1": 0.6963562753036437,
+          "auc": 0.8109218315814911
+        },
+        {
+          "round": 9,
+          "accuracy": 0.5879120879120879,
+          "loss": 0.675090913589184,
+          "f1": 0.6963562753036437,
+          "auc": 0.8112842817445938
+        },
+        {
+          "round": 10,
+          "accuracy": 0.5879120879120879,
+          "loss": 0.6735496796094455,
+          "f1": 0.6963562753036437,
+          "auc": 0.8126132656759699
+        },
+        {
+          "round": 11,
+          "accuracy": 0.5879120879120879,
+          "loss": 0.671870333807809,
+          "f1": 0.6963562753036437,
+          "auc": 0.8143046997704487
+        },
+        {
+          "round": 12,
+          "accuracy": 0.5879120879120879,
+          "loss": 0.6701699803163718,
+          "f1": 0.6963562753036437,
+          "auc": 0.8157545004228589
+        },
+        {
+          "round": 13,
+          "accuracy": 0.5879120879120879,
+          "loss": 0.6683636550064925,
+          "f1": 0.6963562753036437,
+          "auc": 0.8156336837018245
+        },
+        {
+          "round": 14,
+          "accuracy": 0.5879120879120879,
+          "loss": 0.6666493664731036,
+          "f1": 0.6963562753036437,
+          "auc": 0.8167210341911322
+        },
+        {
+          "round": 15,
+          "accuracy": 0.5879120879120879,
+          "loss": 0.6645800143807798,
+          "f1": 0.6963562753036437,
+          "auc": 0.8179292014014741
+        },
+        {
+          "round": 16,
+          "accuracy": 0.5934065934065934,
+          "loss": 0.6623947666241572,
+          "f1": 0.6991869918699186,
+          "auc": 0.8196206354959527
+        },
+        {
+          "round": 17,
+          "accuracy": 0.5934065934065934,
+          "loss": 0.6601744765763754,
+          "f1": 0.6991869918699186,
+          "auc": 0.8209496194273287
+        },
+        {
+          "round": 18,
+          "accuracy": 0.5934065934065934,
+          "loss": 0.6578767843298859,
+          "f1": 0.6991869918699186,
+          "auc": 0.8223994200797391
+        },
+        {
+          "round": 19,
+          "accuracy": 0.5989010989010989,
+          "loss": 0.6556670816390069,
+          "f1": 0.7020408163265307,
+          "auc": 0.8242116708952518
+        },
+        {
+          "round": 20,
+          "accuracy": 0.5989010989010989,
+          "loss": 0.6532070309251219,
+          "f1": 0.7020408163265307,
+          "auc": 0.8263863718738671
+        }
+      ],
+      "config": {
+        "algorithm": "FedAvg",
+        "num_rounds": 20,
+        "local_epochs": 3,
+        "learning_rate": 0.01,
+        "batch_size": 64
+      },
+      "runtime_seconds": 0.3
+    },
+    "C_public_health_surveillance_s456": {
+      "seed": 456,
+      "purpose": "public_health_surveillance",
+      "experiment": "C_data_minimization",
+      "original_features": 13,
+      "kept_features": 7,
+      "kept_feature_names": [
+        "age",
+        "sex",
+        "chest_pain_type",
+        "resting_bp",
+        "max_heart_rate",
+        "exercise_angina",
+        "thalassemia"
+      ],
+      "reduction_pct": 46.2,
+      "allowed_groups": [
+        "medications",
+        "demographics",
+        "vitals",
+        "conditions"
+      ],
+      "purpose_removed": [
+        "cholesterol",
+        "fasting_blood_sugar",
+        "resting_ecg",
+        "st_depression",
+        "st_slope",
+        "num_major_vessels"
+      ],
+      "importance_removed": [],
+      "importance_scores": {
+        "age": 0.0516,
+        "sex": 0.0682,
+        "chest_pain_type": 0.1514,
+        "resting_bp": 0.0119,
+        "max_heart_rate": 0.0742,
+        "exercise_angina": 0.095,
+        "thalassemia": 0.064
+      },
+      "final_accuracy": 0.6428571428571429,
+      "final_f1": 0.7490347490347491,
+      "final_auc": 0.7890243902439019,
+      "final_loss": 0.6557852003600572,
+      "history": [
+        {
+          "round": 1,
+          "accuracy": 0.5494505494505495,
+          "loss": 0.6848825976088807,
+          "f1": 0.7092198581560284,
+          "auc": 0.6063414634146336
+        },
+        {
+          "round": 2,
+          "accuracy": 0.5494505494505495,
+          "loss": 0.6831163678850446,
+          "f1": 0.7092198581560284,
+          "auc": 0.6310975609756091
+        },
+        {
+          "round": 3,
+          "accuracy": 0.5494505494505495,
+          "loss": 0.6814875163874783,
+          "f1": 0.7092198581560284,
+          "auc": 0.6556097560975604
+        },
+        {
+          "round": 4,
+          "accuracy": 0.5494505494505495,
+          "loss": 0.6799691797612788,
+          "f1": 0.7092198581560284,
+          "auc": 0.6736585365853657
+        },
+        {
+          "round": 5,
+          "accuracy": 0.5494505494505495,
+          "loss": 0.6785041866721687,
+          "f1": 0.7092198581560284,
+          "auc": 0.6897560975609752
+        },
+        {
+          "round": 6,
+          "accuracy": 0.5494505494505495,
+          "loss": 0.6770846024974362,
+          "f1": 0.7092198581560284,
+          "auc": 0.703414634146341
+        },
+        {
+          "round": 7,
+          "accuracy": 0.5494505494505495,
+          "loss": 0.675717891572596,
+          "f1": 0.7092198581560284,
+          "auc": 0.71280487804878
+        },
+        {
+          "round": 8,
+          "accuracy": 0.5494505494505495,
+          "loss": 0.6743128483112042,
+          "f1": 0.7092198581560284,
+          "auc": 0.7206097560975603
+        },
+        {
+          "round": 9,
+          "accuracy": 0.5494505494505495,
+          "loss": 0.6729038521483705,
+          "f1": 0.7092198581560284,
+          "auc": 0.726097560975609
+        },
+        {
+          "round": 10,
+          "accuracy": 0.5384615384615384,
+          "loss": 0.6715093012694474,
+          "f1": 0.7,
+          "auc": 0.7315853658536577
+        },
+        {
+          "round": 11,
+          "accuracy": 0.5494505494505495,
+          "loss": 0.6701192502137069,
+          "f1": 0.7050359712230216,
+          "auc": 0.737439024390243
+        },
+        {
+          "round": 12,
+          "accuracy": 0.5934065934065934,
+          "loss": 0.6687090482030597,
+          "f1": 0.7259259259259259,
+          "auc": 0.7420731707317068
+        },
+        {
+          "round": 13,
+          "accuracy": 0.6043956043956044,
+          "loss": 0.667248799250676,
+          "f1": 0.7313432835820894,
+          "auc": 0.7469512195121946
+        },
+        {
+          "round": 14,
+          "accuracy": 0.6208791208791209,
+          "loss": 0.6657282218828307,
+          "f1": 0.7396226415094339,
+          "auc": 0.7510975609756092
+        },
+        {
+          "round": 15,
+          "accuracy": 0.6428571428571429,
+          "loss": 0.6642358322719951,
+          "f1": 0.7509578544061303,
+          "auc": 0.7563414634146336
+        },
+        {
+          "round": 16,
+          "accuracy": 0.6428571428571429,
+          "loss": 0.6625892303802154,
+          "f1": 0.7490347490347491,
+          "auc": 0.762926829268292
+        },
+        {
+          "round": 17,
+          "accuracy": 0.6428571428571429,
+          "loss": 0.6610144357104878,
+          "f1": 0.7490347490347491,
+          "auc": 0.7706097560975602
+        },
+        {
+          "round": 18,
+          "accuracy": 0.6428571428571429,
+          "loss": 0.659298640031081,
+          "f1": 0.7490347490347491,
+          "auc": 0.7771951219512189
+        },
+        {
+          "round": 19,
+          "accuracy": 0.6428571428571429,
+          "loss": 0.6575211279994839,
+          "f1": 0.7490347490347491,
+          "auc": 0.7837804878048775
+        },
+        {
+          "round": 20,
+          "accuracy": 0.6428571428571429,
+          "loss": 0.6557852003600572,
+          "f1": 0.7490347490347491,
+          "auc": 0.7890243902439019
+        }
+      ],
+      "config": {
+        "algorithm": "FedAvg",
+        "num_rounds": 20,
+        "local_epochs": 3,
+        "learning_rate": 0.01,
+        "batch_size": 64
+      },
+      "runtime_seconds": 0.3
+    },
+    "C_patient_safety_s42": {
+      "seed": 42,
+      "purpose": "patient_safety",
+      "experiment": "C_data_minimization",
+      "original_features": 13,
+      "kept_features": 10,
+      "kept_feature_names": [
+        "chest_pain_type",
+        "resting_bp",
+        "cholesterol",
+        "fasting_blood_sugar",
+        "max_heart_rate",
+        "exercise_angina",
+        "st_depression",
+        "st_slope",
+        "num_major_vessels",
+        "thalassemia"
+      ],
+      "reduction_pct": 23.1,
+      "allowed_groups": [
+        "medications",
+        "vitals",
+        "measurements",
+        "conditions"
+      ],
+      "purpose_removed": [
+        "age",
+        "sex"
+      ],
+      "importance_removed": [
+        {
+          "name": "resting_ecg",
+          "score": "0.0000"
+        }
+      ],
+      "importance_scores": {
+        "chest_pain_type": 0.1581,
+        "resting_bp": 0.0407,
+        "cholesterol": 0.0648,
+        "fasting_blood_sugar": 0.0122,
+        "resting_ecg": 0.0,
+        "max_heart_rate": 0.0735,
+        "exercise_angina": 0.0991,
+        "st_depression": 0.0874,
+        "st_slope": 0.0205,
+        "num_major_vessels": 0.0285,
+        "thalassemia": 0.097
+      },
+      "final_accuracy": 0.6043956043956044,
+      "final_f1": 0.7410071942446043,
+      "final_auc": 0.8859235352532264,
+      "final_loss": 0.669452238868881,
+      "history": [
+        {
+          "round": 1,
+          "accuracy": 0.5824175824175825,
+          "loss": 0.6850366579307304,
+          "f1": 0.736111111111111,
+          "auc": 0.5631827209533269
+        },
+        {
+          "round": 2,
+          "accuracy": 0.5824175824175825,
+          "loss": 0.6841735800543984,
+          "f1": 0.736111111111111,
+          "auc": 0.6155660377358492
+        },
+        {
+          "round": 3,
+          "accuracy": 0.5824175824175825,
+          "loss": 0.6835376417243874,
+          "f1": 0.736111111111111,
+          "auc": 0.6575223435948365
+        },
+        {
+          "round": 4,
+          "accuracy": 0.5824175824175825,
+          "loss": 0.6826357540193495,
+          "f1": 0.736111111111111,
+          "auc": 0.7044438927507447
+        },
+        {
+          "round": 5,
+          "accuracy": 0.5824175824175825,
+          "loss": 0.6820607558711544,
+          "f1": 0.736111111111111,
+          "auc": 0.7388282025819268
+        },
+        {
+          "round": 6,
+          "accuracy": 0.5824175824175825,
+          "loss": 0.6813753103161906,
+          "f1": 0.736111111111111,
+          "auc": 0.7713505461767628
+        },
+        {
+          "round": 7,
+          "accuracy": 0.5824175824175825,
+          "loss": 0.6806524363192883,
+          "f1": 0.736111111111111,
+          "auc": 0.7936941410129096
+        },
+        {
+          "round": 8,
+          "accuracy": 0.5824175824175825,
+          "loss": 0.6799341545000182,
+          "f1": 0.736111111111111,
+          "auc": 0.8160377358490564
+        },
+        {
+          "round": 9,
+          "accuracy": 0.5824175824175825,
+          "loss": 0.6789724473114852,
+          "f1": 0.736111111111111,
+          "auc": 0.8329195630585897
+        },
+        {
+          "round": 10,
+          "accuracy": 0.5824175824175825,
+          "loss": 0.6781731857048287,
+          "f1": 0.736111111111111,
+          "auc": 0.8455809334657397
+        },
+        {
+          "round": 11,
+          "accuracy": 0.5824175824175825,
+          "loss": 0.6774961352348328,
+          "f1": 0.736111111111111,
+          "auc": 0.8552631578947368
+        },
+        {
+          "round": 12,
+          "accuracy": 0.5824175824175825,
+          "loss": 0.6766197498028095,
+          "f1": 0.736111111111111,
+          "auc": 0.8610973187686196
+        },
+        {
+          "round": 13,
+          "accuracy": 0.5824175824175825,
+          "loss": 0.6756442536364545,
+          "f1": 0.736111111111111,
+          "auc": 0.8676762661370404
+        },
+        {
+          "round": 14,
+          "accuracy": 0.5824175824175825,
+          "loss": 0.6748009952870044,
+          "f1": 0.736111111111111,
+          "auc": 0.8710278053624624
+        },
+        {
+          "round": 15,
+          "accuracy": 0.5824175824175825,
+          "loss": 0.6738926971351707,
+          "f1": 0.736111111111111,
+          "auc": 0.8752482621648454
+        },
+        {
+          "round": 16,
+          "accuracy": 0.5769230769230769,
+          "loss": 0.6730737836806329,
+          "f1": 0.7317073170731707,
+          "auc": 0.8772343594836142
+        },
+        {
+          "round": 17,
+          "accuracy": 0.5714285714285714,
+          "loss": 0.6721485768045697,
+          "f1": 0.7272727272727272,
+          "auc": 0.8812065541211512
+        },
+        {
+          "round": 18,
+          "accuracy": 0.5714285714285714,
+          "loss": 0.6712251652728071,
+          "f1": 0.7272727272727272,
+          "auc": 0.884558093346573
+        },
+        {
+          "round": 19,
+          "accuracy": 0.5824175824175825,
+          "loss": 0.6704173867519085,
+          "f1": 0.7323943661971831,
+          "auc": 0.8849304865938422
+        },
+        {
+          "round": 20,
+          "accuracy": 0.6043956043956044,
+          "loss": 0.669452238868881,
+          "f1": 0.7410071942446043,
+          "auc": 0.8859235352532264
+        }
+      ],
+      "config": {
+        "algorithm": "FedAvg",
+        "num_rounds": 20,
+        "local_epochs": 3,
+        "learning_rate": 0.01,
+        "batch_size": 64
+      },
+      "runtime_seconds": 0.3
+    },
+    "C_patient_safety_s123": {
+      "seed": 123,
+      "purpose": "patient_safety",
+      "experiment": "C_data_minimization",
+      "original_features": 13,
+      "kept_features": 10,
+      "kept_feature_names": [
+        "chest_pain_type",
+        "cholesterol",
+        "fasting_blood_sugar",
+        "resting_ecg",
+        "max_heart_rate",
+        "exercise_angina",
+        "st_depression",
+        "st_slope",
+        "num_major_vessels",
+        "thalassemia"
+      ],
+      "reduction_pct": 23.1,
+      "allowed_groups": [
+        "medications",
+        "vitals",
+        "measurements",
+        "conditions"
+      ],
+      "purpose_removed": [
+        "age",
+        "sex"
+      ],
+      "importance_removed": [
+        {
+          "name": "resting_bp",
+          "score": "0.0062"
+        }
+      ],
+      "importance_scores": {
+        "chest_pain_type": 0.1478,
+        "resting_bp": 0.0062,
+        "cholesterol": 0.087,
+        "fasting_blood_sugar": 0.0223,
+        "resting_ecg": 0.0233,
+        "max_heart_rate": 0.0866,
+        "exercise_angina": 0.1187,
+        "st_depression": 0.1106,
+        "st_slope": 0.0117,
+        "num_major_vessels": 0.0809,
+        "thalassemia": 0.0913
+      },
+      "final_accuracy": 0.5494505494505495,
+      "final_f1": 0.6746031746031745,
+      "final_auc": 0.8401594780717646,
+      "final_loss": 0.6540985834467542,
+      "history": [
+        {
+          "round": 1,
+          "accuracy": 0.510989010989011,
+          "loss": 0.6824854370001908,
+          "f1": 0.0,
+          "auc": 0.8246949377793883
+        },
+        {
+          "round": 2,
+          "accuracy": 0.5164835164835165,
+          "loss": 0.6792854522610758,
+          "f1": 0.02222222222222222,
+          "auc": 0.8301316902259267
+        },
+        {
+          "round": 3,
+          "accuracy": 0.5824175824175825,
+          "loss": 0.676660207601694,
+          "f1": 0.2692307692307693,
+          "auc": 0.8300108735048927
+        },
+        {
+          "round": 4,
+          "accuracy": 0.7252747252747253,
+          "loss": 0.6743667761048118,
+          "f1": 0.6575342465753424,
+          "auc": 0.832789658088679
+        },
+        {
+          "round": 5,
+          "accuracy": 0.7857142857142857,
+          "loss": 0.672432535297268,
+          "f1": 0.7664670658682635,
+          "auc": 0.8317023075993714
+        },
+        {
+          "round": 6,
+          "accuracy": 0.8186813186813187,
+          "loss": 0.6708281557638567,
+          "f1": 0.8156424581005587,
+          "auc": 0.8332729249728159
+        },
+        {
+          "round": 7,
+          "accuracy": 0.7362637362637363,
+          "loss": 0.6694177782142555,
+          "f1": 0.7623762376237623,
+          "auc": 0.835205992509363
+        },
+        {
+          "round": 8,
+          "accuracy": 0.6978021978021978,
+          "loss": 0.6681856454073728,
+          "f1": 0.7393364928909953,
+          "auc": 0.8359308928355681
+        },
+        {
+          "round": 9,
+          "accuracy": 0.6318681318681318,
+          "loss": 0.6669694656854147,
+          "f1": 0.7022222222222222,
+          "auc": 0.8366557931617733
+        },
+        {
+          "round": 10,
+          "accuracy": 0.6483516483516484,
+          "loss": 0.6658010882335704,
+          "f1": 0.7192982456140352,
+          "auc": 0.83713906004591
+        },
+        {
+          "round": 11,
+          "accuracy": 0.554945054945055,
+          "loss": 0.6647076639500293,
+          "f1": 0.6720647773279352,
+          "auc": 0.8388304941403885
+        },
+        {
+          "round": 12,
+          "accuracy": 0.554945054945055,
+          "loss": 0.6636701101785177,
+          "f1": 0.6720647773279352,
+          "auc": 0.8395553944665936
+        },
+        {
+          "round": 13,
+          "accuracy": 0.5439560439560439,
+          "loss": 0.6625738615518088,
+          "f1": 0.6666666666666666,
+          "auc": 0.8399178446296961
+        },
+        {
+          "round": 14,
+          "accuracy": 0.5439560439560439,
+          "loss": 0.6615052917501428,
+          "f1": 0.6666666666666666,
+          "auc": 0.8396762111876278
+        },
+        {
+          "round": 15,
+          "accuracy": 0.5494505494505495,
+          "loss": 0.6603438271271004,
+          "f1": 0.672,
+          "auc": 0.8391929443034911
+        },
+        {
+          "round": 16,
+          "accuracy": 0.5439560439560439,
+          "loss": 0.659189400437114,
+          "f1": 0.6693227091633466,
+          "auc": 0.8400386613507304
+        },
+        {
+          "round": 17,
+          "accuracy": 0.5439560439560439,
+          "loss": 0.6579615146249205,
+          "f1": 0.6693227091633466,
+          "auc": 0.8400386613507304
+        },
+        {
+          "round": 18,
+          "accuracy": 0.5494505494505495,
+          "loss": 0.6567227611174951,
+          "f1": 0.6746031746031745,
+          "auc": 0.8399178446296962
+        },
+        {
+          "round": 19,
+          "accuracy": 0.5494505494505495,
+          "loss": 0.655524288560008,
+          "f1": 0.6746031746031745,
+          "auc": 0.8400386613507304
+        },
+        {
+          "round": 20,
+          "accuracy": 0.5494505494505495,
+          "loss": 0.6540985834467542,
+          "f1": 0.6746031746031745,
+          "auc": 0.8401594780717646
+        }
+      ],
+      "config": {
+        "algorithm": "FedAvg",
+        "num_rounds": 20,
+        "local_epochs": 3,
+        "learning_rate": 0.01,
+        "batch_size": 64
+      },
+      "runtime_seconds": 0.3
+    },
+    "C_patient_safety_s456": {
+      "seed": 456,
+      "purpose": "patient_safety",
+      "experiment": "C_data_minimization",
+      "original_features": 13,
+      "kept_features": 11,
+      "kept_feature_names": [
+        "chest_pain_type",
+        "resting_bp",
+        "cholesterol",
+        "fasting_blood_sugar",
+        "resting_ecg",
+        "max_heart_rate",
+        "exercise_angina",
+        "st_depression",
+        "st_slope",
+        "num_major_vessels",
+        "thalassemia"
+      ],
+      "reduction_pct": 15.4,
+      "allowed_groups": [
+        "medications",
+        "vitals",
+        "measurements",
+        "conditions"
+      ],
+      "purpose_removed": [
+        "age",
+        "sex"
+      ],
+      "importance_removed": [],
+      "importance_scores": {
+        "chest_pain_type": 0.1771,
+        "resting_bp": 0.0316,
+        "cholesterol": 0.0652,
+        "fasting_blood_sugar": 0.0192,
+        "resting_ecg": 0.0109,
+        "max_heart_rate": 0.0559,
+        "exercise_angina": 0.1196,
+        "st_depression": 0.099,
+        "st_slope": 0.0215,
+        "num_major_vessels": 0.0259,
+        "thalassemia": 0.0639
+      },
+      "final_accuracy": 0.6098901098901099,
+      "final_f1": 0.7300380228136881,
+      "final_auc": 0.84219512195122,
+      "final_loss": 0.6628373147367121,
+      "history": [
+        {
+          "round": 1,
+          "accuracy": 0.5494505494505495,
+          "loss": 0.6836280816203946,
+          "f1": 0.7092198581560284,
+          "auc": 0.7178048780487806
+        },
+        {
+          "round": 2,
+          "accuracy": 0.5494505494505495,
+          "loss": 0.6825962911595355,
+          "f1": 0.7092198581560284,
+          "auc": 0.7498780487804878
+        },
+        {
+          "round": 3,
+          "accuracy": 0.5494505494505495,
+          "loss": 0.6815373432505262,
+          "f1": 0.7092198581560284,
+          "auc": 0.7741463414634141
+        },
+        {
+          "round": 4,
+          "accuracy": 0.5494505494505495,
+          "loss": 0.6804999014833472,
+          "f1": 0.7092198581560284,
+          "auc": 0.7934146341463415
+        },
+        {
+          "round": 5,
+          "accuracy": 0.5494505494505495,
+          "loss": 0.6795269322919322,
+          "f1": 0.7092198581560284,
+          "auc": 0.8036585365853658
+        },
+        {
+          "round": 6,
+          "accuracy": 0.554945054945055,
+          "loss": 0.678475375358875,
+          "f1": 0.7117437722419929,
+          "auc": 0.8128048780487804
+        },
+        {
+          "round": 7,
+          "accuracy": 0.5604395604395604,
+          "loss": 0.6774474382400513,
+          "f1": 0.7142857142857143,
+          "auc": 0.8208536585365854
+        },
+        {
+          "round": 8,
+          "accuracy": 0.5604395604395604,
+          "loss": 0.6763971179396242,
+          "f1": 0.7142857142857143,
+          "auc": 0.8242682926829269
+        },
+        {
+          "round": 9,
+          "accuracy": 0.5604395604395604,
+          "loss": 0.6753057241439819,
+          "f1": 0.7142857142857143,
+          "auc": 0.8284146341463415
+        },
+        {
+          "round": 10,
+          "accuracy": 0.5714285714285714,
+          "loss": 0.6742379324776786,
+          "f1": 0.7194244604316548,
+          "auc": 0.8307317073170732
+        },
+        {
+          "round": 11,
+          "accuracy": 0.5714285714285714,
+          "loss": 0.673149756022862,
+          "f1": 0.7194244604316548,
+          "auc": 0.8325609756097561
+        },
+        {
+          "round": 12,
+          "accuracy": 0.5714285714285714,
+          "loss": 0.6720153558385241,
+          "f1": 0.7194244604316548,
+          "auc": 0.8352439024390244
+        },
+        {
+          "round": 13,
+          "accuracy": 0.5659340659340659,
+          "loss": 0.6709496994594951,
+          "f1": 0.7127272727272728,
+          "auc": 0.8353658536585364
+        },
+        {
+          "round": 14,
+          "accuracy": 0.5604395604395604,
+          "loss": 0.6698657745843405,
+          "f1": 0.7080291970802921,
+          "auc": 0.8364634146341462
+        },
+        {
+          "round": 15,
+          "accuracy": 0.5604395604395604,
+          "loss": 0.6687498996545981,
+          "f1": 0.7080291970802921,
+          "auc": 0.8382926829268293
+        },
+        {
+          "round": 16,
+          "accuracy": 0.5659340659340659,
+          "loss": 0.6676294358222039,
+          "f1": 0.7106227106227107,
+          "auc": 0.8397560975609759
+        },
+        {
+          "round": 17,
+          "accuracy": 0.5769230769230769,
+          "loss": 0.6664856108990345,
+          "f1": 0.7158671586715868,
+          "auc": 0.8412195121951225
+        },
+        {
+          "round": 18,
+          "accuracy": 0.5824175824175825,
+          "loss": 0.6652515091738858,
+          "f1": 0.7164179104477612,
+          "auc": 0.84219512195122
+        },
+        {
+          "round": 19,
+          "accuracy": 0.5989010989010989,
+          "loss": 0.6640679430175613,
+          "f1": 0.7245283018867924,
+          "auc": 0.8419512195121955
+        },
+        {
+          "round": 20,
+          "accuracy": 0.6098901098901099,
+          "loss": 0.6628373147367121,
+          "f1": 0.7300380228136881,
+          "auc": 0.84219512195122
+        }
+      ],
+      "config": {
+        "algorithm": "FedAvg",
+        "num_rounds": 20,
+        "local_epochs": 3,
+        "learning_rate": 0.01,
+        "batch_size": 64
+      },
+      "runtime_seconds": 0.3
+    },
+    "C_official_statistics_s42": {
+      "seed": 42,
+      "purpose": "official_statistics",
+      "experiment": "C_data_minimization",
+      "original_features": 13,
+      "kept_features": 2,
+      "kept_feature_names": [
+        "age",
+        "sex"
+      ],
+      "reduction_pct": 84.6,
+      "allowed_groups": [
+        "demographics"
+      ],
+      "purpose_removed": [
+        "chest_pain_type",
+        "resting_bp",
+        "cholesterol",
+        "fasting_blood_sugar",
+        "resting_ecg",
+        "max_heart_rate",
+        "exercise_angina",
+        "st_depression",
+        "st_slope",
+        "num_major_vessels",
+        "thalassemia"
+      ],
+      "importance_removed": [],
+      "importance_scores": {
+        "age": 0.0599,
+        "sex": 0.0464
+      },
+      "final_accuracy": 0.6318681318681318,
+      "final_f1": 0.7392996108949416,
+      "final_auc": 0.7198361469712014,
+      "final_loss": 0.6727353904273484,
+      "history": [
+        {
+          "round": 1,
+          "accuracy": 0.47802197802197804,
+          "loss": 0.6931271631639082,
+          "f1": 0.27480916030534347,
+          "auc": 0.5986842105263154
+        },
+        {
+          "round": 2,
+          "accuracy": 0.6263736263736264,
+          "loss": 0.6906112406280015,
+          "f1": 0.7481481481481482,
+          "auc": 0.6681976166832173
+        },
+        {
+          "round": 3,
+          "accuracy": 0.6208791208791209,
+          "loss": 0.6885661954408163,
+          "f1": 0.7453874538745386,
+          "auc": 0.6840863952333663
+        },
+        {
+          "round": 4,
+          "accuracy": 0.6263736263736264,
+          "loss": 0.6870868376323155,
+          "f1": 0.7443609022556391,
+          "auc": 0.6969960278053624
+        },
+        {
+          "round": 5,
+          "accuracy": 0.6318681318681318,
+          "loss": 0.6856906047234168,
+          "f1": 0.7452471482889734,
+          "auc": 0.708664349553128
+        },
+        {
+          "round": 6,
+          "accuracy": 0.6318681318681318,
+          "loss": 0.6844053667980236,
+          "f1": 0.7432950191570882,
+          "auc": 0.7137537239324727
+        },
+        {
+          "round": 7,
+          "accuracy": 0.6208791208791209,
+          "loss": 0.683246340070452,
+          "f1": 0.7335907335907336,
+          "auc": 0.724428997020854
+        },
+        {
+          "round": 8,
+          "accuracy": 0.6263736263736264,
+          "loss": 0.6822634142833751,
+          "f1": 0.7364341085271316,
+          "auc": 0.7223187686196622
+        },
+        {
+          "round": 9,
+          "accuracy": 0.6318681318681318,
+          "loss": 0.6813907728090391,
+          "f1": 0.7392996108949416,
+          "auc": 0.7207050645481627
+        },
+        {
+          "round": 10,
+          "accuracy": 0.6318681318681318,
+          "loss": 0.6802383674370064,
+          "f1": 0.7392996108949416,
+          "auc": 0.7210774577954319
+        },
+        {
+          "round": 11,
+          "accuracy": 0.6318681318681318,
+          "loss": 0.6797061870386313,
+          "f1": 0.7392996108949416,
+          "auc": 0.7208291956305858
+        },
+        {
+          "round": 12,
+          "accuracy": 0.6318681318681318,
+          "loss": 0.6789436320682148,
+          "f1": 0.7392996108949416,
+          "auc": 0.7208291956305858
+        },
+        {
+          "round": 13,
+          "accuracy": 0.6318681318681318,
+          "loss": 0.6779222475303398,
+          "f1": 0.7392996108949416,
+          "auc": 0.7207050645481626
+        },
+        {
+          "round": 14,
+          "accuracy": 0.6318681318681318,
+          "loss": 0.6771942056142367,
+          "f1": 0.7392996108949416,
+          "auc": 0.7207050645481626
+        },
+        {
+          "round": 15,
+          "accuracy": 0.6318681318681318,
+          "loss": 0.676393353677058,
+          "f1": 0.7392996108949416,
+          "auc": 0.7204568023833167
+        },
+        {
+          "round": 16,
+          "accuracy": 0.6318681318681318,
+          "loss": 0.6758007525087713,
+          "f1": 0.7392996108949416,
+          "auc": 0.7205809334657397
+        },
+        {
+          "round": 17,
+          "accuracy": 0.6318681318681318,
+          "loss": 0.6751253107091882,
+          "f1": 0.7392996108949416,
+          "auc": 0.7203326713008936
+        },
+        {
+          "round": 18,
+          "accuracy": 0.6318681318681318,
+          "loss": 0.6743773968665154,
+          "f1": 0.7392996108949416,
+          "auc": 0.7203326713008936
+        },
+        {
+          "round": 19,
+          "accuracy": 0.6318681318681318,
+          "loss": 0.6735826173981467,
+          "f1": 0.7392996108949416,
+          "auc": 0.7199602780536245
+        },
+        {
+          "round": 20,
+          "accuracy": 0.6318681318681318,
+          "loss": 0.6727353904273484,
+          "f1": 0.7392996108949416,
+          "auc": 0.7198361469712014
+        }
+      ],
+      "config": {
+        "algorithm": "FedAvg",
+        "num_rounds": 20,
+        "local_epochs": 3,
+        "learning_rate": 0.01,
+        "batch_size": 64
+      },
+      "runtime_seconds": 0.3
+    },
+    "C_official_statistics_s123": {
+      "seed": 123,
+      "purpose": "official_statistics",
+      "experiment": "C_data_minimization",
+      "original_features": 13,
+      "kept_features": 2,
+      "kept_feature_names": [
+        "age",
+        "sex"
+      ],
+      "reduction_pct": 84.6,
+      "allowed_groups": [
+        "demographics"
+      ],
+      "purpose_removed": [
+        "chest_pain_type",
+        "resting_bp",
+        "cholesterol",
+        "fasting_blood_sugar",
+        "resting_ecg",
+        "max_heart_rate",
+        "exercise_angina",
+        "st_depression",
+        "st_slope",
+        "num_major_vessels",
+        "thalassemia"
+      ],
+      "importance_removed": [],
+      "importance_scores": {
+        "age": 0.0364,
+        "sex": 0.0363
+      },
+      "final_accuracy": 0.5934065934065934,
+      "final_f1": 0.6890756302521008,
+      "final_auc": 0.7378277153558052,
+      "final_loss": 0.6858477291170058,
+      "history": [
+        {
+          "round": 1,
+          "accuracy": 0.5934065934065934,
+          "loss": 0.6912609175011352,
+          "f1": 0.6890756302521008,
+          "auc": 0.6933671620152231
+        },
+        {
+          "round": 2,
+          "accuracy": 0.521978021978022,
+          "loss": 0.6907483909156297,
+          "f1": 0.6716981132075471,
+          "auc": 0.7211550078530868
+        },
+        {
+          "round": 3,
+          "accuracy": 0.5,
+          "loss": 0.6905452504262819,
+          "f1": 0.6617100371747212,
+          "auc": 0.7337199468406426
+        },
+        {
+          "round": 4,
+          "accuracy": 0.489010989010989,
+          "loss": 0.6905068440751715,
+          "f1": 0.6568265682656826,
+          "auc": 0.7355321976561554
+        },
+        {
+          "round": 5,
+          "accuracy": 0.489010989010989,
+          "loss": 0.6904610205482651,
+          "f1": 0.6568265682656826,
+          "auc": 0.737223631750634
+        },
+        {
+          "round": 6,
+          "accuracy": 0.489010989010989,
+          "loss": 0.6904574776743795,
+          "f1": 0.6568265682656826,
+          "auc": 0.7426603841971725
+        },
+        {
+          "round": 7,
+          "accuracy": 0.489010989010989,
+          "loss": 0.6902551192503709,
+          "f1": 0.6568265682656826,
+          "auc": 0.7444726350126853
+        },
+        {
+          "round": 8,
+          "accuracy": 0.489010989010989,
+          "loss": 0.690005789746295,
+          "f1": 0.6568265682656826,
+          "auc": 0.7450767186178562
+        },
+        {
+          "round": 9,
+          "accuracy": 0.489010989010989,
+          "loss": 0.6899034878709814,
+          "f1": 0.6568265682656826,
+          "auc": 0.7410897668237284
+        },
+        {
+          "round": 10,
+          "accuracy": 0.489010989010989,
+          "loss": 0.6896700400572556,
+          "f1": 0.6568265682656826,
+          "auc": 0.7412105835447623
+        },
+        {
+          "round": 11,
+          "accuracy": 0.489010989010989,
+          "loss": 0.6893497567910415,
+          "f1": 0.6568265682656826,
+          "auc": 0.7421771173130359
+        },
+        {
+          "round": 12,
+          "accuracy": 0.5,
+          "loss": 0.6889994576737121,
+          "f1": 0.6617100371747212,
+          "auc": 0.7397607828923521
+        },
+        {
+          "round": 13,
+          "accuracy": 0.5054945054945055,
+          "loss": 0.6886817472321647,
+          "f1": 0.664179104477612,
+          "auc": 0.7387942491240787
+        },
+        {
+          "round": 14,
+          "accuracy": 0.510989010989011,
+          "loss": 0.6884206972279392,
+          "f1": 0.6666666666666666,
+          "auc": 0.7374652651927026
+        },
+        {
+          "round": 15,
+          "accuracy": 0.521978021978022,
+          "loss": 0.6880283185413906,
+          "f1": 0.6716981132075471,
+          "auc": 0.7366195481454634
+        },
+        {
+          "round": 16,
+          "accuracy": 0.521978021978022,
+          "loss": 0.6875985297527942,
+          "f1": 0.6692015209125476,
+          "auc": 0.7381901655189077
+        },
+        {
+          "round": 17,
+          "accuracy": 0.5494505494505495,
+          "loss": 0.6871659500258309,
+          "f1": 0.6796875,
+          "auc": 0.7366195481454634
+        },
+        {
+          "round": 18,
+          "accuracy": 0.5769230769230769,
+          "loss": 0.6867014412041549,
+          "f1": 0.6907630522088354,
+          "auc": 0.737706898634771
+        },
+        {
+          "round": 19,
+          "accuracy": 0.5714285714285714,
+          "loss": 0.6862511949224787,
+          "f1": 0.680327868852459,
+          "auc": 0.7375860819137368
+        },
+        {
+          "round": 20,
+          "accuracy": 0.5934065934065934,
+          "loss": 0.6858477291170058,
+          "f1": 0.6890756302521008,
+          "auc": 0.7378277153558052
+        }
+      ],
+      "config": {
+        "algorithm": "FedAvg",
+        "num_rounds": 20,
+        "local_epochs": 3,
+        "learning_rate": 0.01,
+        "batch_size": 64
+      },
+      "runtime_seconds": 0.3
+    },
+    "C_official_statistics_s456": {
+      "seed": 456,
+      "purpose": "official_statistics",
+      "experiment": "C_data_minimization",
+      "original_features": 13,
+      "kept_features": 2,
+      "kept_feature_names": [
+        "age",
+        "sex"
+      ],
+      "reduction_pct": 84.6,
+      "allowed_groups": [
+        "demographics"
+      ],
+      "purpose_removed": [
+        "chest_pain_type",
+        "resting_bp",
+        "cholesterol",
+        "fasting_blood_sugar",
+        "resting_ecg",
+        "max_heart_rate",
+        "exercise_angina",
+        "st_depression",
+        "st_slope",
+        "num_major_vessels",
+        "thalassemia"
+      ],
+      "importance_removed": [],
+      "importance_scores": {
+        "age": 0.069,
+        "sex": 0.0506
+      },
+      "final_accuracy": 0.6318681318681318,
+      "final_f1": 0.7351778656126482,
+      "final_auc": 0.7124390243902443,
+      "final_loss": 0.666932510805654,
+      "history": [
+        {
+          "round": 1,
+          "accuracy": 0.5494505494505495,
+          "loss": 0.6844327338449248,
+          "f1": 0.7092198581560284,
+          "auc": 0.6834146341463413
+        },
+        {
+          "round": 2,
+          "accuracy": 0.5494505494505495,
+          "loss": 0.683535737650735,
+          "f1": 0.7092198581560284,
+          "auc": 0.6947560975609758
+        },
+        {
+          "round": 3,
+          "accuracy": 0.5494505494505495,
+          "loss": 0.682677149772644,
+          "f1": 0.7092198581560284,
+          "auc": 0.7041463414634149
+        },
+        {
+          "round": 4,
+          "accuracy": 0.5494505494505495,
+          "loss": 0.6818329521587917,
+          "f1": 0.7092198581560284,
+          "auc": 0.7082926829268293
+        },
+        {
+          "round": 5,
+          "accuracy": 0.5494505494505495,
+          "loss": 0.6808878707361745,
+          "f1": 0.7071428571428571,
+          "auc": 0.711829268292683
+        },
+        {
+          "round": 6,
+          "accuracy": 0.5604395604395604,
+          "loss": 0.6800685688689515,
+          "f1": 0.7122302158273381,
+          "auc": 0.7118292682926832
+        },
+        {
+          "round": 7,
+          "accuracy": 0.5714285714285714,
+          "loss": 0.6792823947392977,
+          "f1": 0.717391304347826,
+          "auc": 0.7121951219512197
+        },
+        {
+          "round": 8,
+          "accuracy": 0.5879120879120879,
+          "loss": 0.678379238306821,
+          "f1": 0.7252747252747254,
+          "auc": 0.7121951219512197
+        },
+        {
+          "round": 9,
+          "accuracy": 0.5989010989010989,
+          "loss": 0.6774695482882824,
+          "f1": 0.7306273062730627,
+          "auc": 0.7118292682926834
+        },
+        {
+          "round": 10,
+          "accuracy": 0.6263736263736264,
+          "loss": 0.6764769305239667,
+          "f1": 0.7424242424242423,
+          "auc": 0.7125609756097565
+        },
+        {
+          "round": 11,
+          "accuracy": 0.6208791208791209,
+          "loss": 0.6755565090493841,
+          "f1": 0.735632183908046,
+          "auc": 0.7124390243902443
+        },
+        {
+          "round": 12,
+          "accuracy": 0.6208791208791209,
+          "loss": 0.674520785336966,
+          "f1": 0.7335907335907336,
+          "auc": 0.7124390243902443
+        },
+        {
+          "round": 13,
+          "accuracy": 0.6263736263736264,
+          "loss": 0.6735326831157391,
+          "f1": 0.7343749999999999,
+          "auc": 0.7124390243902443
+        },
+        {
+          "round": 14,
+          "accuracy": 0.6318681318681318,
+          "loss": 0.6725900120787568,
+          "f1": 0.7372549019607842,
+          "auc": 0.7124390243902443
+        },
+        {
+          "round": 15,
+          "accuracy": 0.6318681318681318,
+          "loss": 0.6716432322512617,
+          "f1": 0.7351778656126482,
+          "auc": 0.7124390243902443
+        },
+        {
+          "round": 16,
+          "accuracy": 0.6318681318681318,
+          "loss": 0.6707164396296491,
+          "f1": 0.7351778656126482,
+          "auc": 0.7124390243902443
+        },
+        {
+          "round": 17,
+          "accuracy": 0.6318681318681318,
+          "loss": 0.669660685481606,
+          "f1": 0.7351778656126482,
+          "auc": 0.7124390243902443
+        },
+        {
+          "round": 18,
+          "accuracy": 0.6318681318681318,
+          "loss": 0.6687079071998596,
+          "f1": 0.7351778656126482,
+          "auc": 0.7124390243902443
+        },
+        {
+          "round": 19,
+          "accuracy": 0.6318681318681318,
+          "loss": 0.6677966425707053,
+          "f1": 0.7351778656126482,
+          "auc": 0.7124390243902443
+        },
+        {
+          "round": 20,
+          "accuracy": 0.6318681318681318,
+          "loss": 0.666932510805654,
+          "f1": 0.7351778656126482,
+          "auc": 0.7124390243902443
+        }
+      ],
+      "config": {
+        "algorithm": "FedAvg",
+        "num_rounds": 20,
+        "local_epochs": 3,
+        "learning_rate": 0.01,
+        "batch_size": 64
+      },
+      "runtime_seconds": 0.3
+    },
+    "D_compliance_report": {
+      "experiment": "D_compliance_report",
+      "report_file": "/Users/fabioliberti/_DEVAir/FL-EHDS-FLICS2026/fl-ehds-framework/benchmarks/paper_results_tabular/audit_compliance.json",
+      "overall_status": "COMPLIANT",
+      "governance_validation_summary": {
+        "permit_lifecycle": true,
+        "optout_enforcement": true,
+        "privacy_budget_tracking": true,
+        "permit_revocation": true,
+        "audit_trail_export": true
+      }
+    }
+  },
+  "metadata": {
+    "total_experiments": 15,
+    "experiment_types": [
+      "A_governance_lifecycle",
+      "C_data_minimization",
+      "D_compliance_report"
+    ],
+    "seeds": [
+      42,
+      123,
+      456
+    ],
+    "purposes": [
+      "scientific_research",
+      "public_health_surveillance",
+      "patient_safety",
+      "official_statistics"
+    ],
+    "dataset": "Heart Disease UCI",
+    "config": {
+      "name": "Heart Disease",
+      "loader": "heart_disease",
+      "input_dim": 13,
+      "num_classes": 2,
+      "num_clients": 4,
+      "learning_rate": 0.01,
+      "batch_size": 64,
+      "num_rounds": 20,
+      "local_epochs": 3,
+      "mu": 0.1
+    },
+    "start_time": "2026-03-05T11:06:40.456163",
+    "last_save": "2026-03-05T11:06:45.354102",
+    "end_time": "2026-03-05T11:06:45.354079",
+    "total_elapsed": 4.866654872894287
+  }
+}
