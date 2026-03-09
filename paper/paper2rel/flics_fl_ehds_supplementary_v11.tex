@@ -1591,13 +1591,13 @@ Cross-border EHR, heterogeneous sites & Tabular & Ditto, HPFL & SCAFFOLD$^a$, Fe
 \addlinespace
 Small-cohort rare disease ($<$1K samples) & Tabular & HPFL & FedAvg$^b$ & 0.740$^\dagger$ & Table~S-ConfusionBC: HPFL avoids collapse 10/10 seeds vs.\ 2/10 FedAvg \\
 \addlinespace
-Multiclass radiology ($\geq$3 classes) & Imaging & Ditto & HPFL (neutral) & 0.435 & Table~XXV: Ditto $+$23.5pp Brain Tumor ($d{=}4.05$, 3 seeds; $p{=}0.004$, 10 seeds) \\
+Multiclass radiology ($\geq$3 classes) & Imaging & Ditto & HPFL (neutral) & 0.435$^\ddagger$ & Table~\ref{tab:imaging_bt_sc_full}: Ditto $+$23.5pp Brain Tumor ($d{=}4.05$, 3 seeds; $p{=}0.004$, 10 seeds) \\
 \addlinespace
-Binary radiology & Imaging & FedAvg & HPFL ($-$18.2pp) & 0.528$^\S$ & Tables~XX,~XXV: FedAvg 87.3\% vs.\ HPFL 69.1\% Chest X-ray \\
+Binary radiology & Imaging & FedAvg & HPFL ($-$18.2pp) & 0.528$^\S$ & Tables~\ref{tab:imaging_chest},~\ref{tab:imaging_bt_sc_full}: FedAvg 87.3\% vs.\ HPFL 69.1\% Chest X-ray \\
 \addlinespace
-High privacy ($\varepsilon \leq 5$) & Any & Ditto & FedAvg$^c$ & --- & Table~XXII: Ditto 89.2\% vs.\ FedAvg 52.3\% at $\varepsilon{=}1$ \\
+High privacy ($\varepsilon \leq 5$) & Any & Ditto & FedAvg$^c$ & --- & Table~\ref{tab:dp_tradeoff}: Ditto 89.2\% vs.\ FedAvg 52.3\% at $\varepsilon{=}1$ \\
 \addlinespace
-Large federation ($K \geq 50$) & Any & Ditto, HPFL & SCAFFOLD & --- & Tables~XVII--XVIII: Ditto $-$0.8pp at $K{=}100$ vs.\ FedAvg $-$4.7pp \\
+Large federation ($K \geq 50$) & Any & Ditto, HPFL & SCAFFOLD & --- & Tables~\ref{tab:cv_scalability},~\ref{tab:px_scalability}: Ditto $-$0.8pp at $K{=}100$ vs.\ FedAvg $-$4.7pp \\
 \addlinespace
 Homogeneous / IID data & Any & FedAvg & (all equivalent) & --- & PTB-XL: all algorithms within 0.6pp (91.9--92.5\%) \\
 \bottomrule
@@ -1607,7 +1607,7 @@ Homogeneous / IID data & Any & FedAvg & (all equivalent) & --- & PTB-XL: all alg
 \footnotesize{$^a$SCAFFOLD oscillates on class-imbalanced tabular data; FedNova amplifies noise from divergent objectives (11.2\%, 13.0\% on Diabetes). $^b$FedAvg/Ditto exhibit single-class collapse on 8/10 seeds (Table~S-ConfusionBC). $^c$FedAvg collapses from 91.9\% to 52.3\% at $\varepsilon{=}1$ ($-$39.6pp). $^\dagger$Breast Cancer HPFL DEI. $^\ddagger$Brain Tumor Ditto DEI (3 seeds). $^\S$Chest X-ray FedAvg DEI. DEI values reported only where confusion matrix analysis is available.}
 \end{table*}
 
-\textbf{Critical corrections from prior version}: (1)~SCAFFOLD is no longer recommended for heterogeneous deployments---our experiments demonstrate catastrophic failure on class-imbalanced tabular data (oscillating convergence; 11.2\% on Diabetes, Table~V). (2)~Ditto+DP is strongly preferred over FedAvg+DP for privacy-critical deployments (89.2\% vs.\ 52.3\% at $\varepsilon{=}1$ on PTB-XL). (3)~Imaging recommendations now distinguish between Ditto (recommended for multiclass) and HPFL (avoid on all imaging tasks). (4)~The DEI column provides diagnostic equity information absent from accuracy-only comparisons.
+\textbf{Critical corrections from prior version}: (1)~SCAFFOLD is no longer recommended for heterogeneous deployments---our experiments demonstrate catastrophic failure on class-imbalanced tabular data (oscillating convergence; 11.2\% on Diabetes, Table~\ref{tab:hd_diabetes}). (2)~Ditto+DP is strongly preferred over FedAvg+DP for privacy-critical deployments (89.2\% vs.\ 52.3\% at $\varepsilon{=}1$ on PTB-XL). (3)~Imaging recommendations now distinguish between Ditto (recommended for multiclass) and HPFL (avoid on all imaging tasks). (4)~The DEI column provides diagnostic equity information absent from accuracy-only comparisons.
 
 
 \subsection{Extended Results from Main Paper}
@@ -1744,7 +1744,7 @@ Table~\ref{tab:heterogeneity} shows accuracy as a function of Dirichlet $\alpha$
 \midrule
 PX & FedAvg & 90.8 & 89.8 & 91.2 & 90.8 & 91.7 & 91.9 \\
  & FedProx & 91.0 & 89.7 & 91.3 & 90.7 & 91.7 & 91.6 \\
- & Ditto & 91.7 & \textbf{96.5} & \textbf{96.5} & \textbf{95.4} & 93.9 & 91.8 \\
+ & Ditto & \textbf{91.7} & \textbf{96.5} & \textbf{96.5} & \textbf{95.4} & 93.9 & 91.8 \\
  & FedLC & 90.7 & 89.7 & 91.2 & 90.4 & 91.4 & 91.9 \\
  & FedExP & 90.8 & 89.8 & 91.2 & 90.8 & 91.7 & 92.0 \\
  & FedLESAM & 90.8 & 89.8 & 91.2 & 90.8 & 91.7 & 91.9 \\
@@ -1752,19 +1752,19 @@ PX & FedAvg & 90.8 & 89.8 & 91.2 & 90.8 & 91.7 & 91.9 \\
 \midrule
 CV & FedAvg & 72.7 & 61.2 & 65.7 & 71.1 & 72.6 & -- \\
  & FedProx & 72.7 & 62.5 & 65.9 & 71.6 & 72.5 & -- \\
- & Ditto & 72.6 & \textbf{92.4} & \textbf{90.7} & \textbf{82.5} & 81.5 & -- \\
+ & Ditto & 72.6 & \textbf{92.4} & \textbf{90.7} & \textbf{82.5} & \textbf{81.5} & -- \\
  & FedLC & 72.7 & 61.9 & 66.0 & 71.1 & 72.6 & -- \\
  & FedExP & 72.7 & 61.2 & 65.7 & 71.1 & 72.6 & -- \\
  & FedLESAM & 72.7 & 61.2 & 65.7 & 71.1 & 72.6 & -- \\
- & HPFL & \textbf{72.7} & 92.4 & 90.7 & 82.3 & \textbf{81.4} & -- \\
+ & HPFL & 72.7 & \textbf{92.4} & \textbf{90.7} & 82.3 & 81.4 & -- \\
 \midrule
 BC & FedAvg & 47.1 & 62.1 & 57.3 & 52.3 & 51.5 & -- \\
  & FedProx & 47.1 & 62.1 & 57.3 & 52.3 & 51.5 & -- \\
- & Ditto & 51.5 & \textbf{88.3} & \textbf{84.8} & \textbf{79.1} & 72.4 & -- \\
+ & Ditto & 51.5 & \textbf{88.3} & \textbf{84.8} & \textbf{79.1} & \textbf{72.4} & -- \\
  & FedLC & 47.3 & 63.2 & 57.2 & 52.1 & 51.5 & -- \\
  & FedExP & 47.1 & 62.1 & 57.3 & 52.3 & 51.5 & -- \\
  & FedLESAM & 47.1 & 62.1 & 57.3 & 52.3 & 51.5 & -- \\
- & HPFL & 51.9 & 88.3 & 84.8 & 74.1 & \textbf{66.9} & -- \\
+ & HPFL & \textbf{51.9} & \textbf{88.3} & \textbf{84.8} & 74.1 & 66.9 & -- \\
 \bottomrule
 \end{tabular}
 \end{table*}
@@ -2005,8 +2005,8 @@ PX & FedAvg & 91.9{\tiny$\pm$0.5} & 91.6{\tiny$\pm$0.7} & 91.6{\tiny$\pm$0.7} & 
  & HPFL & \textbf{92.8}{\tiny$\pm$0.4} & \textbf{92.7}{\tiny$\pm$0.4} & \textbf{92.7}{\tiny$\pm$0.4} & \textbf{92.7}{\tiny$\pm$0.4} & \textbf{92.7}{\tiny$\pm$0.4} & $-$0.1 \\
 \midrule
 CV & FedAvg & 70.6{\tiny$\pm$1.6} & 70.5{\tiny$\pm$1.9} & 70.5{\tiny$\pm$1.6} & 70.4{\tiny$\pm$1.8} & 70.6{\tiny$\pm$1.6} & $-$0.2 \\
- & Ditto & \textbf{84.9}{\tiny$\pm$4.1} & \textbf{84.9}{\tiny$\pm$4.1} & \textbf{84.9}{\tiny$\pm$4.1} & 84.8{\tiny$\pm$3.9} & 84.7{\tiny$\pm$4.0} & $-$0.2 \\
- & HPFL & 84.8{\tiny$\pm$3.8} & 84.7{\tiny$\pm$3.9} & 84.8{\tiny$\pm$3.8} & \textbf{84.7}{\tiny$\pm$3.8} & \textbf{84.7}{\tiny$\pm$3.8} & $-$0.1 \\
+ & Ditto & \textbf{84.9}{\tiny$\pm$4.1} & \textbf{84.9}{\tiny$\pm$4.1} & \textbf{84.9}{\tiny$\pm$4.1} & \textbf{84.8}{\tiny$\pm$3.9} & \textbf{84.7}{\tiny$\pm$4.0} & $-$0.2 \\
+ & HPFL & 84.8{\tiny$\pm$3.8} & 84.7{\tiny$\pm$3.9} & 84.8{\tiny$\pm$3.8} & 84.7{\tiny$\pm$3.8} & \textbf{84.7}{\tiny$\pm$3.8} & $-$0.1 \\
 \midrule
 BC & FedAvg & 52.8{\tiny$\pm$17.6} & 52.8{\tiny$\pm$17.6} & 53.0{\tiny$\pm$17.9} & 52.8{\tiny$\pm$17.6} & 52.8{\tiny$\pm$17.6} & $-$0.0 \\
  & Ditto & 83.5{\tiny$\pm$10.3} & \textbf{84.1}{\tiny$\pm$10.7} & \textbf{84.1}{\tiny$\pm$10.7} & \textbf{84.1}{\tiny$\pm$10.7} & \textbf{84.1}{\tiny$\pm$10.7} & +0.6 \\
@@ -2240,7 +2240,7 @@ To investigate whether the personalization advantage extends to medical imaging,
 \caption{Chest X-ray confusion matrix analysis (FedAvg vs HPFL, aggregated over 3 seeds). N~Recall = NORMAL recall, P~Recall = PNEUMONIA recall.}
 \label{tab:confusion_matrix_chest}
 \small
-\begin{tabular}{lccccc}
+\begin{tabular}{lcccc}
 \toprule
 \textbf{Algorithm} & \textbf{Acc (\%)} & \textbf{N Recall} & \textbf{P Recall} & \textbf{TP} \\
 \midrule
@@ -2389,7 +2389,7 @@ HPFL & \textbf{81.5}{\tiny$\pm$2.4} & \textbf{82.3}{\tiny$\pm$1.4} & +0.9pp & \t
 \footnotesize{Jain column reports the DP-enabled ($\varepsilon{=}10$) fairness. Positive $\Delta$ indicates DP \textit{improves} accuracy (Gaussian noise regularization). FedAvg is unstable at $K{=}50$ even without DP (62.0\%), reflecting convergence difficulty under extreme non-IID partitioning across 50 clients.}
 \end{table*}
 
-\textbf{Key finding}: At deployment scale ($K{=}50$, 70K patients), personalized methods (Ditto, HPFL) remain fully DP-robust: both \textit{improve} by +0.6--0.9pp under $\varepsilon{=}10$, likely due to Gaussian noise acting as regularization. HPFL additionally preserves fairness (Jain~0.951 vs.\ 0.720 for Ditto), confirming its suitability for equitable cross-border EHDS deployment. FedAvg, in contrast, shows a $-$4.3pp DP cost compounded by convergence instability ($\sigma{=}8.6$pp without DP), reinforcing the finding that personalization is essential at scale. \textit{This result bridges Tables~XVII and~\ref{tab:dp_scale}: the ``DP is free'' property, established at $K{=}5$, generalizes to the 50-institution consortium scenario.}
+\textbf{Key finding}: At deployment scale ($K{=}50$, 70K patients), personalized methods (Ditto, HPFL) remain fully DP-robust: both \textit{improve} by +0.6--0.9pp under $\varepsilon{=}10$, likely due to Gaussian noise acting as regularization. HPFL additionally preserves fairness (Jain~0.951 vs.\ 0.720 for Ditto), confirming its suitability for equitable cross-border EHDS deployment. FedAvg, in contrast, shows a $-$4.3pp DP cost compounded by convergence instability ($\sigma{=}8.6$pp without DP), reinforcing the finding that personalization is essential at scale. \textit{This result bridges Tables~\ref{tab:dp_tradeoff} and~\ref{tab:dp_scale}: the ``DP is free'' property, established at $K{=}5$, generalizes to the 50-institution consortium scenario.}
 
 \subsubsection{Byzantine Resilience under Differential Privacy}\label{sec:byzantine_dp}
 
@@ -3278,7 +3278,6 @@ Breast Cancer & FedAvg & 48.4 & 0.661 & --- \\
 \footnotesize{$^*$MIA AUC $<$ 0.5 indicates attack performs worse than random---HPFL's personalization structure provides inherent membership privacy on Cardiovascular without requiring DP. On PTB-XL, HPFL's elevated MIA AUC (0.666) reflects the privacy--personalization tension, fully mitigated by DP at $\varepsilon{=}10$. Equity retention at $\varepsilon{=}1$: HPFL 93.8\% of Jain vs.\ FedAvg 78.4\%.}
 \end{table*}
 
-\bibliographystyle{IEEEtran}
 % Bibliography synchronized with main paper (52 entries)
 
 \subsection{Advanced FL Paradigm Experimental Validation}
@@ -4033,7 +4032,7 @@ Stroke & NonIID+eps10 & 0.239 $\pm$ 0.188 & \textbf{0.353 $\pm$ 0.130} & 0.335 $
 \label{fig:threshold_rescue}
 \end{figure*}
 
-\subsubsection{Main Paper Extended Content (v3)}
+\subsubsection{Main Paper Extended Content}
 \label{sec:main_extended_v3}
 
 The following content provides extended details from the main paper that were condensed for the 8-page conference submission.
@@ -4542,7 +4541,7 @@ $K$ & FedAvg & Ditto & HPFL & $\Delta_{\text{Ditto}}$ & $\Delta_{\text{HPFL}}$ \
 \subsubsection{Phase 5A: Extended Personalization Baselines}
 \label{sec:phase5a}
 
-To address the concern that only two personalized algorithms (Ditto, HPFL) were evaluated, we add three additional baselines: Per-FedAvg (meta-learning, ICLR 2020), FedDyn (dynamic regularization, ICLR 2021), and FedSAM (sharpness-aware minimization, ICLR 2022). We evaluate on 3 datasets with 5 seeds (45 experiments total).
+To address the concern that only two personalized algorithms (Ditto, HPFL) were evaluated, we add three additional baselines: Per-FedAvg (meta-learning, NeurIPS 2020), FedDyn (dynamic regularization, ICLR 2021), and FedSAM (sharpness-aware minimization, ICML 2022). We evaluate on 3 datasets with 5 seeds (45 experiments total).
 
 \begin{table*}[htbp]
 \centering
