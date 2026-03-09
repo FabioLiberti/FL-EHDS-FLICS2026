@@ -1,0 +1,4028 @@
+{
+  "completed": {
+    "1A_FedAvg_M_CV_s42": {
+      "algorithm": "FedAvg",
+      "dataset": "CV",
+      "seed": 42,
+      "hidden_dims": [
+        128,
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 10,
+      "num_params": 11938,
+      "final_accuracy": 0.7071515324712438,
+      "runtime_seconds": 10.5,
+      "key": "1A_FedAvg_M_CV_s42",
+      "phase": "1A",
+      "sz_name": "M"
+    },
+    "1A_Ditto_M_CV_s42": {
+      "algorithm": "Ditto",
+      "dataset": "CV",
+      "seed": 42,
+      "hidden_dims": [
+        128,
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 10,
+      "num_params": 11938,
+      "final_accuracy": 0.7936700721583196,
+      "runtime_seconds": 23.6,
+      "key": "1A_Ditto_M_CV_s42",
+      "phase": "1A",
+      "sz_name": "M"
+    },
+    "1A_HPFL_M_CV_s42": {
+      "algorithm": "HPFL",
+      "dataset": "CV",
+      "seed": 42,
+      "hidden_dims": [
+        128,
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 10,
+      "num_params": 11938,
+      "final_accuracy": 0.7987425876973637,
+      "runtime_seconds": 9.6,
+      "key": "1A_HPFL_M_CV_s42",
+      "phase": "1A",
+      "sz_name": "M"
+    },
+    "1A_FedAvg_L_CV_s42": {
+      "algorithm": "FedAvg",
+      "dataset": "CV",
+      "seed": 42,
+      "hidden_dims": [
+        256,
+        128,
+        64
+      ],
+      "num_clients": 5,
+      "num_rounds": 10,
+      "num_params": 44354,
+      "final_accuracy": 0.7101521754661714,
+      "runtime_seconds": 12.1,
+      "key": "1A_FedAvg_L_CV_s42",
+      "phase": "1A",
+      "sz_name": "L"
+    },
+    "1A_Ditto_L_CV_s42": {
+      "algorithm": "Ditto",
+      "dataset": "CV",
+      "seed": 42,
+      "hidden_dims": [
+        256,
+        128,
+        64
+      ],
+      "num_clients": 5,
+      "num_rounds": 10,
+      "num_params": 44354,
+      "final_accuracy": 0.80124312352647,
+      "runtime_seconds": 28.2,
+      "key": "1A_Ditto_L_CV_s42",
+      "phase": "1A",
+      "sz_name": "L"
+    },
+    "1A_HPFL_L_CV_s42": {
+      "algorithm": "HPFL",
+      "dataset": "CV",
+      "seed": 42,
+      "hidden_dims": [
+        256,
+        128,
+        64
+      ],
+      "num_clients": 5,
+      "num_rounds": 10,
+      "num_params": 44354,
+      "final_accuracy": 0.8001714653139959,
+      "runtime_seconds": 12.5,
+      "key": "1A_HPFL_L_CV_s42",
+      "phase": "1A",
+      "sz_name": "L"
+    },
+    "1A_FedAvg_XL_CV_s42": {
+      "algorithm": "FedAvg",
+      "dataset": "CV",
+      "seed": 42,
+      "hidden_dims": [
+        512,
+        256,
+        128
+      ],
+      "num_clients": 5,
+      "num_rounds": 10,
+      "num_params": 170626,
+      "final_accuracy": 0.6990783739372722,
+      "runtime_seconds": 18.9,
+      "key": "1A_FedAvg_XL_CV_s42",
+      "phase": "1A",
+      "sz_name": "XL"
+    },
+    "1A_Ditto_XL_CV_s42": {
+      "algorithm": "Ditto",
+      "dataset": "CV",
+      "seed": 42,
+      "hidden_dims": [
+        512,
+        256,
+        128
+      ],
+      "num_clients": 5,
+      "num_rounds": 10,
+      "num_params": 170626,
+      "final_accuracy": 0.8006715724798171,
+      "runtime_seconds": 52.5,
+      "key": "1A_Ditto_XL_CV_s42",
+      "phase": "1A",
+      "sz_name": "XL"
+    },
+    "1A_HPFL_XL_CV_s42": {
+      "algorithm": "HPFL",
+      "dataset": "CV",
+      "seed": 42,
+      "hidden_dims": [
+        512,
+        256,
+        128
+      ],
+      "num_clients": 5,
+      "num_rounds": 10,
+      "num_params": 170626,
+      "final_accuracy": 0.7946702864899622,
+      "runtime_seconds": 25.5,
+      "key": "1A_HPFL_XL_CV_s42",
+      "phase": "1A",
+      "sz_name": "XL"
+    },
+    "3A_FedAvg_CDC_s42": {
+      "algorithm": "FedAvg",
+      "dataset": "CDC",
+      "seed": 42,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 10,
+      "num_params": 3554,
+      "final_accuracy": 0.8615354291908939,
+      "runtime_seconds": 15.8,
+      "key": "3A_FedAvg_CDC_s42",
+      "phase": "3A"
+    },
+    "3A_Ditto_CDC_s42": {
+      "algorithm": "Ditto",
+      "dataset": "CDC",
+      "seed": 42,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 10,
+      "num_params": 3554,
+      "final_accuracy": 0.9101606386123977,
+      "runtime_seconds": 30.6,
+      "key": "3A_Ditto_CDC_s42",
+      "phase": "3A"
+    },
+    "3A_HPFL_CDC_s42": {
+      "algorithm": "HPFL",
+      "dataset": "CDC",
+      "seed": 42,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 10,
+      "num_params": 3554,
+      "final_accuracy": 0.8933674977825958,
+      "runtime_seconds": 13.7,
+      "key": "3A_HPFL_CDC_s42",
+      "phase": "3A"
+    },
+    "3B_FedAvg_PX_K3_s42": {
+      "algorithm": "FedAvg",
+      "dataset": "PX",
+      "seed": 42,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 3,
+      "num_rounds": 10,
+      "num_params": 2885,
+      "final_accuracy": 0.9049625468164794,
+      "runtime_seconds": 2.9,
+      "key": "3B_FedAvg_PX_K3_s42",
+      "phase": "3B"
+    },
+    "3B_Ditto_PX_K3_s42": {
+      "algorithm": "Ditto",
+      "dataset": "PX",
+      "seed": 42,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 3,
+      "num_rounds": 10,
+      "num_params": 2885,
+      "final_accuracy": 0.9047284644194756,
+      "runtime_seconds": 5.9,
+      "key": "3B_Ditto_PX_K3_s42",
+      "phase": "3B"
+    },
+    "3B_HPFL_PX_K3_s42": {
+      "algorithm": "HPFL",
+      "dataset": "PX",
+      "seed": 42,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 3,
+      "num_rounds": 10,
+      "num_params": 2885,
+      "final_accuracy": 0.9073033707865169,
+      "runtime_seconds": 2.5,
+      "key": "3B_HPFL_PX_K3_s42",
+      "phase": "3B"
+    },
+    "3B_FedAvg_PX_K10_s42": {
+      "algorithm": "FedAvg",
+      "dataset": "PX",
+      "seed": 42,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 10,
+      "num_rounds": 10,
+      "num_params": 2885,
+      "final_accuracy": 0.9051966292134831,
+      "runtime_seconds": 2.8,
+      "key": "3B_FedAvg_PX_K10_s42",
+      "phase": "3B"
+    },
+    "3B_Ditto_PX_K10_s42": {
+      "algorithm": "Ditto",
+      "dataset": "PX",
+      "seed": 42,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 10,
+      "num_rounds": 10,
+      "num_params": 2885,
+      "final_accuracy": 0.8785112359550562,
+      "runtime_seconds": 5.9,
+      "key": "3B_Ditto_PX_K10_s42",
+      "phase": "3B"
+    },
+    "3B_HPFL_PX_K10_s42": {
+      "algorithm": "HPFL",
+      "dataset": "PX",
+      "seed": 42,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 10,
+      "num_rounds": 10,
+      "num_params": 2885,
+      "final_accuracy": 0.9028558052434457,
+      "runtime_seconds": 2.5,
+      "key": "3B_HPFL_PX_K10_s42",
+      "phase": "3B"
+    },
+    "3B_FedAvg_PX_K20_s42": {
+      "algorithm": "FedAvg",
+      "dataset": "PX",
+      "seed": 42,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 20,
+      "num_rounds": 10,
+      "num_params": 2885,
+      "final_accuracy": 0.9051966292134831,
+      "runtime_seconds": 2.8,
+      "key": "3B_FedAvg_PX_K20_s42",
+      "phase": "3B"
+    },
+    "3B_Ditto_PX_K20_s42": {
+      "algorithm": "Ditto",
+      "dataset": "PX",
+      "seed": 42,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 20,
+      "num_rounds": 10,
+      "num_params": 2885,
+      "final_accuracy": 0.8785112359550562,
+      "runtime_seconds": 5.7,
+      "key": "3B_Ditto_PX_K20_s42",
+      "phase": "3B"
+    },
+    "3B_HPFL_PX_K20_s42": {
+      "algorithm": "HPFL",
+      "dataset": "PX",
+      "seed": 42,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 20,
+      "num_rounds": 10,
+      "num_params": 2885,
+      "final_accuracy": 0.9028558052434457,
+      "runtime_seconds": 2.5,
+      "key": "3B_HPFL_PX_K20_s42",
+      "phase": "3B"
+    },
+    "5A_Per-FedAvg_CV_s42": {
+      "algorithm": "Per-FedAvg",
+      "dataset": "CV",
+      "seed": 42,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 10,
+      "num_params": 2914,
+      "final_accuracy": 0.7847395870543687,
+      "runtime_seconds": 10.9,
+      "key": "5A_Per-FedAvg_CV_s42",
+      "phase": "5A"
+    },
+    "5A_FedDyn_CV_s42": {
+      "algorithm": "FedDyn",
+      "dataset": "CV",
+      "seed": 42,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 10,
+      "num_params": 2914,
+      "final_accuracy": 0.7147960277202258,
+      "runtime_seconds": 13.3,
+      "key": "5A_FedDyn_CV_s42",
+      "phase": "5A"
+    },
+    "5A_FedSAM_CV_s42": {
+      "algorithm": "FedSAM",
+      "dataset": "CV",
+      "seed": 42,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 10,
+      "num_params": 2914,
+      "final_accuracy": 0.7005072515539044,
+      "runtime_seconds": 15.4,
+      "key": "5A_FedSAM_CV_s42",
+      "phase": "5A"
+    },
+    "1A_FedAvg_S_CV_s42": {
+      "algorithm": "FedAvg",
+      "dataset": "CV",
+      "seed": 42,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 2914,
+      "final_accuracy": 0.708937629492034,
+      "runtime_seconds": 21.5,
+      "key": "1A_FedAvg_S_CV_s42",
+      "phase": "1A",
+      "sz_name": "S"
+    },
+    "1A_FedAvg_S_CV_s123": {
+      "algorithm": "FedAvg",
+      "dataset": "CV",
+      "seed": 123,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 2914,
+      "final_accuracy": 0.7306043720531504,
+      "runtime_seconds": 21.1,
+      "key": "1A_FedAvg_S_CV_s123",
+      "phase": "1A",
+      "sz_name": "S"
+    },
+    "1A_FedAvg_S_CV_s456": {
+      "algorithm": "FedAvg",
+      "dataset": "CV",
+      "seed": 456,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 2914,
+      "final_accuracy": 0.6598085440777254,
+      "runtime_seconds": 20.8,
+      "key": "1A_FedAvg_S_CV_s456",
+      "phase": "1A",
+      "sz_name": "S"
+    },
+    "1A_FedAvg_S_HD_s42": {
+      "algorithm": "FedAvg",
+      "dataset": "HD",
+      "seed": 42,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 3042,
+      "final_accuracy": 0.5824175824175825,
+      "runtime_seconds": 0.3,
+      "key": "1A_FedAvg_S_HD_s42",
+      "phase": "1A",
+      "sz_name": "S"
+    },
+    "1A_FedAvg_S_HD_s123": {
+      "algorithm": "FedAvg",
+      "dataset": "HD",
+      "seed": 123,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 3042,
+      "final_accuracy": 0.489010989010989,
+      "runtime_seconds": 0.3,
+      "key": "1A_FedAvg_S_HD_s123",
+      "phase": "1A",
+      "sz_name": "S"
+    },
+    "1A_FedAvg_S_HD_s456": {
+      "algorithm": "FedAvg",
+      "dataset": "HD",
+      "seed": 456,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 3042,
+      "final_accuracy": 0.6043956043956044,
+      "runtime_seconds": 0.3,
+      "key": "1A_FedAvg_S_HD_s456",
+      "phase": "1A",
+      "sz_name": "S"
+    },
+    "1A_Ditto_S_CV_s42": {
+      "algorithm": "Ditto",
+      "dataset": "CV",
+      "seed": 42,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 2914,
+      "final_accuracy": 0.8035293277130814,
+      "runtime_seconds": 50.4,
+      "key": "1A_Ditto_S_CV_s42",
+      "phase": "1A",
+      "sz_name": "S"
+    },
+    "1A_Ditto_S_CV_s123": {
+      "algorithm": "Ditto",
+      "dataset": "CV",
+      "seed": 123,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 2914,
+      "final_accuracy": 0.8302614659237034,
+      "runtime_seconds": 48.3,
+      "key": "1A_Ditto_S_CV_s123",
+      "phase": "1A",
+      "sz_name": "S"
+    },
+    "1A_Ditto_S_CV_s456": {
+      "algorithm": "Ditto",
+      "dataset": "CV",
+      "seed": 456,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 2914,
+      "final_accuracy": 0.8182597513930562,
+      "runtime_seconds": 47.8,
+      "key": "1A_Ditto_S_CV_s456",
+      "phase": "1A",
+      "sz_name": "S"
+    },
+    "1A_Ditto_S_HD_s42": {
+      "algorithm": "Ditto",
+      "dataset": "HD",
+      "seed": 42,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 3042,
+      "final_accuracy": 0.7307692307692307,
+      "runtime_seconds": 0.6,
+      "key": "1A_Ditto_S_HD_s42",
+      "phase": "1A",
+      "sz_name": "S"
+    },
+    "1A_Ditto_S_HD_s123": {
+      "algorithm": "Ditto",
+      "dataset": "HD",
+      "seed": 123,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 3042,
+      "final_accuracy": 0.7307692307692307,
+      "runtime_seconds": 0.6,
+      "key": "1A_Ditto_S_HD_s123",
+      "phase": "1A",
+      "sz_name": "S"
+    },
+    "1A_Ditto_S_HD_s456": {
+      "algorithm": "Ditto",
+      "dataset": "HD",
+      "seed": 456,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 3042,
+      "final_accuracy": 0.7032967032967034,
+      "runtime_seconds": 0.7,
+      "key": "1A_Ditto_S_HD_s456",
+      "phase": "1A",
+      "sz_name": "S"
+    },
+    "1A_HPFL_S_CV_s42": {
+      "algorithm": "HPFL",
+      "dataset": "CV",
+      "seed": 42,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 2914,
+      "final_accuracy": 0.8004572408373223,
+      "runtime_seconds": 20.6,
+      "key": "1A_HPFL_S_CV_s42",
+      "phase": "1A",
+      "sz_name": "S"
+    },
+    "1A_HPFL_S_CV_s123": {
+      "algorithm": "HPFL",
+      "dataset": "CV",
+      "seed": 123,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 2914,
+      "final_accuracy": 0.8314044863551936,
+      "runtime_seconds": 20.9,
+      "key": "1A_HPFL_S_CV_s123",
+      "phase": "1A",
+      "sz_name": "S"
+    },
+    "1A_HPFL_S_CV_s456": {
+      "algorithm": "HPFL",
+      "dataset": "CV",
+      "seed": 456,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 2914,
+      "final_accuracy": 0.8183311901700243,
+      "runtime_seconds": 22.6,
+      "key": "1A_HPFL_S_CV_s456",
+      "phase": "1A",
+      "sz_name": "S"
+    },
+    "1A_HPFL_S_HD_s42": {
+      "algorithm": "HPFL",
+      "dataset": "HD",
+      "seed": 42,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 3042,
+      "final_accuracy": 0.7307692307692307,
+      "runtime_seconds": 0.3,
+      "key": "1A_HPFL_S_HD_s42",
+      "phase": "1A",
+      "sz_name": "S"
+    },
+    "1A_HPFL_S_HD_s123": {
+      "algorithm": "HPFL",
+      "dataset": "HD",
+      "seed": 123,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 3042,
+      "final_accuracy": 0.7142857142857143,
+      "runtime_seconds": 0.3,
+      "key": "1A_HPFL_S_HD_s123",
+      "phase": "1A",
+      "sz_name": "S"
+    },
+    "1A_HPFL_S_HD_s456": {
+      "algorithm": "HPFL",
+      "dataset": "HD",
+      "seed": 456,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 3042,
+      "final_accuracy": 0.6923076923076923,
+      "runtime_seconds": 0.3,
+      "key": "1A_HPFL_S_HD_s456",
+      "phase": "1A",
+      "sz_name": "S"
+    },
+    "1A_FedProx_S_CV_s42": {
+      "algorithm": "FedProx",
+      "dataset": "CV",
+      "seed": 42,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 2914,
+      "final_accuracy": 0.7106522826319925,
+      "runtime_seconds": 28.0,
+      "key": "1A_FedProx_S_CV_s42",
+      "phase": "1A",
+      "sz_name": "S"
+    },
+    "1A_FedProx_S_CV_s123": {
+      "algorithm": "FedProx",
+      "dataset": "CV",
+      "seed": 123,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 2914,
+      "final_accuracy": 0.7287469638519789,
+      "runtime_seconds": 27.9,
+      "key": "1A_FedProx_S_CV_s123",
+      "phase": "1A",
+      "sz_name": "S"
+    },
+    "1A_FedProx_S_CV_s456": {
+      "algorithm": "FedProx",
+      "dataset": "CV",
+      "seed": 456,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 2914,
+      "final_accuracy": 0.6808115445063581,
+      "runtime_seconds": 27.1,
+      "key": "1A_FedProx_S_CV_s456",
+      "phase": "1A",
+      "sz_name": "S"
+    },
+    "1A_FedProx_S_HD_s42": {
+      "algorithm": "FedProx",
+      "dataset": "HD",
+      "seed": 42,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 3042,
+      "final_accuracy": 0.5824175824175825,
+      "runtime_seconds": 0.4,
+      "key": "1A_FedProx_S_HD_s42",
+      "phase": "1A",
+      "sz_name": "S"
+    },
+    "1A_FedProx_S_HD_s123": {
+      "algorithm": "FedProx",
+      "dataset": "HD",
+      "seed": 123,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 3042,
+      "final_accuracy": 0.489010989010989,
+      "runtime_seconds": 0.4,
+      "key": "1A_FedProx_S_HD_s123",
+      "phase": "1A",
+      "sz_name": "S"
+    },
+    "1A_FedProx_S_HD_s456": {
+      "algorithm": "FedProx",
+      "dataset": "HD",
+      "seed": 456,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 3042,
+      "final_accuracy": 0.6043956043956044,
+      "runtime_seconds": 0.4,
+      "key": "1A_FedProx_S_HD_s456",
+      "phase": "1A",
+      "sz_name": "S"
+    },
+    "1A_FedAvg_M_CV_s123": {
+      "algorithm": "FedAvg",
+      "dataset": "CV",
+      "seed": 123,
+      "hidden_dims": [
+        128,
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 11938,
+      "final_accuracy": 0.7309615659379911,
+      "runtime_seconds": 24.7,
+      "key": "1A_FedAvg_M_CV_s123",
+      "phase": "1A",
+      "sz_name": "M"
+    },
+    "1A_FedAvg_M_CV_s456": {
+      "algorithm": "FedAvg",
+      "dataset": "CV",
+      "seed": 456,
+      "hidden_dims": [
+        128,
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 11938,
+      "final_accuracy": 0.6698099728532647,
+      "runtime_seconds": 24.4,
+      "key": "1A_FedAvg_M_CV_s456",
+      "phase": "1A",
+      "sz_name": "M"
+    },
+    "1A_FedAvg_M_HD_s42": {
+      "algorithm": "FedAvg",
+      "dataset": "HD",
+      "seed": 42,
+      "hidden_dims": [
+        128,
+        64,
+        32
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 12194,
+      "final_accuracy": 0.5989010989010989,
+      "runtime_seconds": 0.3,
+      "key": "1A_FedAvg_M_HD_s42",
+      "phase": "1A",
+      "sz_name": "M"
+    },
+    "1A_FedAvg_M_HD_s123": {
+      "algorithm": "FedAvg",
+      "dataset": "HD",
+      "seed": 123,
+      "hidden_dims": [
+        128,
+        64,
+        32
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 12194,
+      "final_accuracy": 0.489010989010989,
+      "runtime_seconds": 0.3,
+      "key": "1A_FedAvg_M_HD_s123",
+      "phase": "1A",
+      "sz_name": "M"
+    },
+    "1A_FedAvg_M_HD_s456": {
+      "algorithm": "FedAvg",
+      "dataset": "HD",
+      "seed": 456,
+      "hidden_dims": [
+        128,
+        64,
+        32
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 12194,
+      "final_accuracy": 0.5494505494505495,
+      "runtime_seconds": 0.3,
+      "key": "1A_FedAvg_M_HD_s456",
+      "phase": "1A",
+      "sz_name": "M"
+    },
+    "1A_Ditto_M_CV_s123": {
+      "algorithm": "Ditto",
+      "dataset": "CV",
+      "seed": 123,
+      "hidden_dims": [
+        128,
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 11938,
+      "final_accuracy": 0.8310472924703529,
+      "runtime_seconds": 62.6,
+      "key": "1A_Ditto_M_CV_s123",
+      "phase": "1A",
+      "sz_name": "M"
+    },
+    "1A_Ditto_M_CV_s456": {
+      "algorithm": "Ditto",
+      "dataset": "CV",
+      "seed": 456,
+      "hidden_dims": [
+        128,
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 11938,
+      "final_accuracy": 0.8180454350621518,
+      "runtime_seconds": 61.4,
+      "key": "1A_Ditto_M_CV_s456",
+      "phase": "1A",
+      "sz_name": "M"
+    },
+    "1A_Ditto_M_HD_s42": {
+      "algorithm": "Ditto",
+      "dataset": "HD",
+      "seed": 42,
+      "hidden_dims": [
+        128,
+        64,
+        32
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 12194,
+      "final_accuracy": 0.6373626373626373,
+      "runtime_seconds": 0.7,
+      "key": "1A_Ditto_M_HD_s42",
+      "phase": "1A",
+      "sz_name": "M"
+    },
+    "1A_Ditto_M_HD_s123": {
+      "algorithm": "Ditto",
+      "dataset": "HD",
+      "seed": 123,
+      "hidden_dims": [
+        128,
+        64,
+        32
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 12194,
+      "final_accuracy": 0.6813186813186813,
+      "runtime_seconds": 0.7,
+      "key": "1A_Ditto_M_HD_s123",
+      "phase": "1A",
+      "sz_name": "M"
+    },
+    "1A_Ditto_M_HD_s456": {
+      "algorithm": "Ditto",
+      "dataset": "HD",
+      "seed": 456,
+      "hidden_dims": [
+        128,
+        64,
+        32
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 12194,
+      "final_accuracy": 0.6758241758241759,
+      "runtime_seconds": 0.7,
+      "key": "1A_Ditto_M_HD_s456",
+      "phase": "1A",
+      "sz_name": "M"
+    },
+    "1A_HPFL_M_CV_s123": {
+      "algorithm": "HPFL",
+      "dataset": "CV",
+      "seed": 123,
+      "hidden_dims": [
+        128,
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 11938,
+      "final_accuracy": 0.8323331904557794,
+      "runtime_seconds": 26.1,
+      "key": "1A_HPFL_M_CV_s123",
+      "phase": "1A",
+      "sz_name": "M"
+    },
+    "1A_HPFL_M_CV_s456": {
+      "algorithm": "HPFL",
+      "dataset": "CV",
+      "seed": 456,
+      "hidden_dims": [
+        128,
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 11938,
+      "final_accuracy": 0.816616659522789,
+      "runtime_seconds": 24.3,
+      "key": "1A_HPFL_M_CV_s456",
+      "phase": "1A",
+      "sz_name": "M"
+    },
+    "1A_HPFL_M_HD_s42": {
+      "algorithm": "HPFL",
+      "dataset": "HD",
+      "seed": 42,
+      "hidden_dims": [
+        128,
+        64,
+        32
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 12194,
+      "final_accuracy": 0.6373626373626373,
+      "runtime_seconds": 0.3,
+      "key": "1A_HPFL_M_HD_s42",
+      "phase": "1A",
+      "sz_name": "M"
+    },
+    "1A_HPFL_M_HD_s123": {
+      "algorithm": "HPFL",
+      "dataset": "HD",
+      "seed": 123,
+      "hidden_dims": [
+        128,
+        64,
+        32
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 12194,
+      "final_accuracy": 0.6648351648351648,
+      "runtime_seconds": 0.3,
+      "key": "1A_HPFL_M_HD_s123",
+      "phase": "1A",
+      "sz_name": "M"
+    },
+    "1A_HPFL_M_HD_s456": {
+      "algorithm": "HPFL",
+      "dataset": "HD",
+      "seed": 456,
+      "hidden_dims": [
+        128,
+        64,
+        32
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 12194,
+      "final_accuracy": 0.6703296703296703,
+      "runtime_seconds": 0.3,
+      "key": "1A_HPFL_M_HD_s456",
+      "phase": "1A",
+      "sz_name": "M"
+    },
+    "1A_FedProx_M_CV_s42": {
+      "algorithm": "FedProx",
+      "dataset": "CV",
+      "seed": 42,
+      "hidden_dims": [
+        128,
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 11938,
+      "final_accuracy": 0.7185825534043009,
+      "runtime_seconds": 35.4,
+      "key": "1A_FedProx_M_CV_s42",
+      "phase": "1A",
+      "sz_name": "M"
+    },
+    "1A_FedProx_M_CV_s123": {
+      "algorithm": "FedProx",
+      "dataset": "CV",
+      "seed": 123,
+      "hidden_dims": [
+        128,
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 11938,
+      "final_accuracy": 0.7288898414059152,
+      "runtime_seconds": 38.5,
+      "key": "1A_FedProx_M_CV_s123",
+      "phase": "1A",
+      "sz_name": "M"
+    },
+    "1A_FedProx_M_CV_s456": {
+      "algorithm": "FedProx",
+      "dataset": "CV",
+      "seed": 456,
+      "hidden_dims": [
+        128,
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 11938,
+      "final_accuracy": 0.6857408201171596,
+      "runtime_seconds": 36.9,
+      "key": "1A_FedProx_M_CV_s456",
+      "phase": "1A",
+      "sz_name": "M"
+    },
+    "1A_FedProx_M_HD_s42": {
+      "algorithm": "FedProx",
+      "dataset": "HD",
+      "seed": 42,
+      "hidden_dims": [
+        128,
+        64,
+        32
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 12194,
+      "final_accuracy": 0.5934065934065934,
+      "runtime_seconds": 0.5,
+      "key": "1A_FedProx_M_HD_s42",
+      "phase": "1A",
+      "sz_name": "M"
+    },
+    "1A_FedProx_M_HD_s123": {
+      "algorithm": "FedProx",
+      "dataset": "HD",
+      "seed": 123,
+      "hidden_dims": [
+        128,
+        64,
+        32
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 12194,
+      "final_accuracy": 0.489010989010989,
+      "runtime_seconds": 0.5,
+      "key": "1A_FedProx_M_HD_s123",
+      "phase": "1A",
+      "sz_name": "M"
+    },
+    "1A_FedProx_M_HD_s456": {
+      "algorithm": "FedProx",
+      "dataset": "HD",
+      "seed": 456,
+      "hidden_dims": [
+        128,
+        64,
+        32
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 12194,
+      "final_accuracy": 0.5494505494505495,
+      "runtime_seconds": 0.4,
+      "key": "1A_FedProx_M_HD_s456",
+      "phase": "1A",
+      "sz_name": "M"
+    },
+    "1A_FedAvg_L_CV_s123": {
+      "algorithm": "FedAvg",
+      "dataset": "CV",
+      "seed": 123,
+      "hidden_dims": [
+        256,
+        128,
+        64
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 44354,
+      "final_accuracy": 0.7305329332761823,
+      "runtime_seconds": 33.5,
+      "key": "1A_FedAvg_L_CV_s123",
+      "phase": "1A",
+      "sz_name": "L"
+    },
+    "1A_FedAvg_L_CV_s456": {
+      "algorithm": "FedAvg",
+      "dataset": "CV",
+      "seed": 456,
+      "hidden_dims": [
+        256,
+        128,
+        64
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 44354,
+      "final_accuracy": 0.6919559937133877,
+      "runtime_seconds": 32.7,
+      "key": "1A_FedAvg_L_CV_s456",
+      "phase": "1A",
+      "sz_name": "L"
+    },
+    "1A_FedAvg_L_HD_s42": {
+      "algorithm": "FedAvg",
+      "dataset": "HD",
+      "seed": 42,
+      "hidden_dims": [
+        256,
+        128,
+        64
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 44866,
+      "final_accuracy": 0.7307692307692307,
+      "runtime_seconds": 0.4,
+      "key": "1A_FedAvg_L_HD_s42",
+      "phase": "1A",
+      "sz_name": "L"
+    },
+    "1A_FedAvg_L_HD_s123": {
+      "algorithm": "FedAvg",
+      "dataset": "HD",
+      "seed": 123,
+      "hidden_dims": [
+        256,
+        128,
+        64
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 44866,
+      "final_accuracy": 0.489010989010989,
+      "runtime_seconds": 0.4,
+      "key": "1A_FedAvg_L_HD_s123",
+      "phase": "1A",
+      "sz_name": "L"
+    },
+    "1A_FedAvg_L_HD_s456": {
+      "algorithm": "FedAvg",
+      "dataset": "HD",
+      "seed": 456,
+      "hidden_dims": [
+        256,
+        128,
+        64
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 44866,
+      "final_accuracy": 0.5659340659340659,
+      "runtime_seconds": 0.5,
+      "key": "1A_FedAvg_L_HD_s456",
+      "phase": "1A",
+      "sz_name": "L"
+    },
+    "1A_Ditto_L_CV_s123": {
+      "algorithm": "Ditto",
+      "dataset": "CV",
+      "seed": 123,
+      "hidden_dims": [
+        256,
+        128,
+        64
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 44354,
+      "final_accuracy": 0.8304757822546078,
+      "runtime_seconds": 79.3,
+      "key": "1A_Ditto_L_CV_s123",
+      "phase": "1A",
+      "sz_name": "L"
+    },
+    "1A_Ditto_L_CV_s456": {
+      "algorithm": "Ditto",
+      "dataset": "CV",
+      "seed": 456,
+      "hidden_dims": [
+        256,
+        128,
+        64
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 44354,
+      "final_accuracy": 0.8172596085155022,
+      "runtime_seconds": 79.8,
+      "key": "1A_Ditto_L_CV_s456",
+      "phase": "1A",
+      "sz_name": "L"
+    },
+    "1A_Ditto_L_HD_s42": {
+      "algorithm": "Ditto",
+      "dataset": "HD",
+      "seed": 42,
+      "hidden_dims": [
+        256,
+        128,
+        64
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 44866,
+      "final_accuracy": 0.7362637362637363,
+      "runtime_seconds": 1.1,
+      "key": "1A_Ditto_L_HD_s42",
+      "phase": "1A",
+      "sz_name": "L"
+    },
+    "1A_Ditto_L_HD_s123": {
+      "algorithm": "Ditto",
+      "dataset": "HD",
+      "seed": 123,
+      "hidden_dims": [
+        256,
+        128,
+        64
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 44866,
+      "final_accuracy": 0.7472527472527473,
+      "runtime_seconds": 0.9,
+      "key": "1A_Ditto_L_HD_s123",
+      "phase": "1A",
+      "sz_name": "L"
+    },
+    "1A_Ditto_L_HD_s456": {
+      "algorithm": "Ditto",
+      "dataset": "HD",
+      "seed": 456,
+      "hidden_dims": [
+        256,
+        128,
+        64
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 44866,
+      "final_accuracy": 0.7527472527472527,
+      "runtime_seconds": 0.9,
+      "key": "1A_Ditto_L_HD_s456",
+      "phase": "1A",
+      "sz_name": "L"
+    },
+    "1A_HPFL_L_CV_s123": {
+      "algorithm": "HPFL",
+      "dataset": "CV",
+      "seed": 123,
+      "hidden_dims": [
+        256,
+        128,
+        64
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 44354,
+      "final_accuracy": 0.8322617516788112,
+      "runtime_seconds": 32.1,
+      "key": "1A_HPFL_L_CV_s123",
+      "phase": "1A",
+      "sz_name": "L"
+    },
+    "1A_HPFL_L_CV_s456": {
+      "algorithm": "HPFL",
+      "dataset": "CV",
+      "seed": 456,
+      "hidden_dims": [
+        256,
+        128,
+        64
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 44354,
+      "final_accuracy": 0.818688384054865,
+      "runtime_seconds": 35.6,
+      "key": "1A_HPFL_L_CV_s456",
+      "phase": "1A",
+      "sz_name": "L"
+    },
+    "1A_HPFL_L_HD_s42": {
+      "algorithm": "HPFL",
+      "dataset": "HD",
+      "seed": 42,
+      "hidden_dims": [
+        256,
+        128,
+        64
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 44866,
+      "final_accuracy": 0.7197802197802198,
+      "runtime_seconds": 0.5,
+      "key": "1A_HPFL_L_HD_s42",
+      "phase": "1A",
+      "sz_name": "L"
+    },
+    "1A_HPFL_L_HD_s123": {
+      "algorithm": "HPFL",
+      "dataset": "HD",
+      "seed": 123,
+      "hidden_dims": [
+        256,
+        128,
+        64
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 44866,
+      "final_accuracy": 0.7197802197802198,
+      "runtime_seconds": 0.5,
+      "key": "1A_HPFL_L_HD_s123",
+      "phase": "1A",
+      "sz_name": "L"
+    },
+    "1A_HPFL_L_HD_s456": {
+      "algorithm": "HPFL",
+      "dataset": "HD",
+      "seed": 456,
+      "hidden_dims": [
+        256,
+        128,
+        64
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 44866,
+      "final_accuracy": 0.7527472527472527,
+      "runtime_seconds": 0.4,
+      "key": "1A_HPFL_L_HD_s456",
+      "phase": "1A",
+      "sz_name": "L"
+    },
+    "1A_FedProx_L_CV_s42": {
+      "algorithm": "FedProx",
+      "dataset": "CV",
+      "seed": 42,
+      "hidden_dims": [
+        256,
+        128,
+        64
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 44354,
+      "final_accuracy": 0.7154390226477102,
+      "runtime_seconds": 50.6,
+      "key": "1A_FedProx_L_CV_s42",
+      "phase": "1A",
+      "sz_name": "L"
+    },
+    "1A_FedProx_L_CV_s123": {
+      "algorithm": "FedProx",
+      "dataset": "CV",
+      "seed": 123,
+      "hidden_dims": [
+        256,
+        128,
+        64
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 44354,
+      "final_accuracy": 0.7282468924132018,
+      "runtime_seconds": 43.1,
+      "key": "1A_FedProx_L_CV_s123",
+      "phase": "1A",
+      "sz_name": "L"
+    },
+    "1A_FedProx_L_CV_s456": {
+      "algorithm": "FedProx",
+      "dataset": "CV",
+      "seed": 456,
+      "hidden_dims": [
+        256,
+        128,
+        64
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 44354,
+      "final_accuracy": 0.7039577082440348,
+      "runtime_seconds": 42.8,
+      "key": "1A_FedProx_L_CV_s456",
+      "phase": "1A",
+      "sz_name": "L"
+    },
+    "1A_FedProx_L_HD_s42": {
+      "algorithm": "FedProx",
+      "dataset": "HD",
+      "seed": 42,
+      "hidden_dims": [
+        256,
+        128,
+        64
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 44866,
+      "final_accuracy": 0.7307692307692307,
+      "runtime_seconds": 0.6,
+      "key": "1A_FedProx_L_HD_s42",
+      "phase": "1A",
+      "sz_name": "L"
+    },
+    "1A_FedProx_L_HD_s123": {
+      "algorithm": "FedProx",
+      "dataset": "HD",
+      "seed": 123,
+      "hidden_dims": [
+        256,
+        128,
+        64
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 44866,
+      "final_accuracy": 0.489010989010989,
+      "runtime_seconds": 0.5,
+      "key": "1A_FedProx_L_HD_s123",
+      "phase": "1A",
+      "sz_name": "L"
+    },
+    "1A_FedProx_L_HD_s456": {
+      "algorithm": "FedProx",
+      "dataset": "HD",
+      "seed": 456,
+      "hidden_dims": [
+        256,
+        128,
+        64
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 44866,
+      "final_accuracy": 0.5659340659340659,
+      "runtime_seconds": 0.5,
+      "key": "1A_FedProx_L_HD_s456",
+      "phase": "1A",
+      "sz_name": "L"
+    },
+    "1A_FedAvg_XL_CV_s123": {
+      "algorithm": "FedAvg",
+      "dataset": "CV",
+      "seed": 123,
+      "hidden_dims": [
+        512,
+        256,
+        128
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 170626,
+      "final_accuracy": 0.730890127161023,
+      "runtime_seconds": 47.1,
+      "key": "1A_FedAvg_XL_CV_s123",
+      "phase": "1A",
+      "sz_name": "XL"
+    },
+    "1A_FedAvg_XL_CV_s456": {
+      "algorithm": "FedAvg",
+      "dataset": "CV",
+      "seed": 456,
+      "hidden_dims": [
+        512,
+        256,
+        128
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 170626,
+      "final_accuracy": 0.7043863409058437,
+      "runtime_seconds": 46.5,
+      "key": "1A_FedAvg_XL_CV_s456",
+      "phase": "1A",
+      "sz_name": "XL"
+    },
+    "1A_FedAvg_XL_HD_s42": {
+      "algorithm": "FedAvg",
+      "dataset": "HD",
+      "seed": 42,
+      "hidden_dims": [
+        512,
+        256,
+        128
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 171650,
+      "final_accuracy": 0.6593406593406593,
+      "runtime_seconds": 0.6,
+      "key": "1A_FedAvg_XL_HD_s42",
+      "phase": "1A",
+      "sz_name": "XL"
+    },
+    "1A_FedAvg_XL_HD_s123": {
+      "algorithm": "FedAvg",
+      "dataset": "HD",
+      "seed": 123,
+      "hidden_dims": [
+        512,
+        256,
+        128
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 171650,
+      "final_accuracy": 0.489010989010989,
+      "runtime_seconds": 0.7,
+      "key": "1A_FedAvg_XL_HD_s123",
+      "phase": "1A",
+      "sz_name": "XL"
+    },
+    "1A_FedAvg_XL_HD_s456": {
+      "algorithm": "FedAvg",
+      "dataset": "HD",
+      "seed": 456,
+      "hidden_dims": [
+        512,
+        256,
+        128
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 171650,
+      "final_accuracy": 0.6208791208791209,
+      "runtime_seconds": 0.7,
+      "key": "1A_FedAvg_XL_HD_s456",
+      "phase": "1A",
+      "sz_name": "XL"
+    },
+    "1A_Ditto_XL_CV_s123": {
+      "algorithm": "Ditto",
+      "dataset": "CV",
+      "seed": 123,
+      "hidden_dims": [
+        512,
+        256,
+        128
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 170626,
+      "final_accuracy": 0.8314044863551936,
+      "runtime_seconds": 117.3,
+      "key": "1A_Ditto_XL_CV_s123",
+      "phase": "1A",
+      "sz_name": "XL"
+    },
+    "1A_Ditto_XL_CV_s456": {
+      "algorithm": "Ditto",
+      "dataset": "CV",
+      "seed": 456,
+      "hidden_dims": [
+        512,
+        256,
+        128
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 170626,
+      "final_accuracy": 0.8194027718245463,
+      "runtime_seconds": 127.5,
+      "key": "1A_Ditto_XL_CV_s456",
+      "phase": "1A",
+      "sz_name": "XL"
+    },
+    "1A_Ditto_XL_HD_s42": {
+      "algorithm": "Ditto",
+      "dataset": "HD",
+      "seed": 42,
+      "hidden_dims": [
+        512,
+        256,
+        128
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 171650,
+      "final_accuracy": 0.7087912087912088,
+      "runtime_seconds": 1.7,
+      "key": "1A_Ditto_XL_HD_s42",
+      "phase": "1A",
+      "sz_name": "XL"
+    },
+    "1A_Ditto_XL_HD_s123": {
+      "algorithm": "Ditto",
+      "dataset": "HD",
+      "seed": 123,
+      "hidden_dims": [
+        512,
+        256,
+        128
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 171650,
+      "final_accuracy": 0.7417582417582418,
+      "runtime_seconds": 1.5,
+      "key": "1A_Ditto_XL_HD_s123",
+      "phase": "1A",
+      "sz_name": "XL"
+    },
+    "1A_Ditto_XL_HD_s456": {
+      "algorithm": "Ditto",
+      "dataset": "HD",
+      "seed": 456,
+      "hidden_dims": [
+        512,
+        256,
+        128
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 171650,
+      "final_accuracy": 0.7472527472527473,
+      "runtime_seconds": 1.6,
+      "key": "1A_Ditto_XL_HD_s456",
+      "phase": "1A",
+      "sz_name": "XL"
+    },
+    "1A_HPFL_XL_CV_s123": {
+      "algorithm": "HPFL",
+      "dataset": "CV",
+      "seed": 123,
+      "hidden_dims": [
+        512,
+        256,
+        128
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 170626,
+      "final_accuracy": 0.833119017002429,
+      "runtime_seconds": 58.5,
+      "key": "1A_HPFL_XL_CV_s123",
+      "phase": "1A",
+      "sz_name": "XL"
+    },
+    "1A_HPFL_XL_CV_s456": {
+      "algorithm": "HPFL",
+      "dataset": "CV",
+      "seed": 456,
+      "hidden_dims": [
+        512,
+        256,
+        128
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 170626,
+      "final_accuracy": 0.8188312616088013,
+      "runtime_seconds": 52.7,
+      "key": "1A_HPFL_XL_CV_s456",
+      "phase": "1A",
+      "sz_name": "XL"
+    },
+    "1A_HPFL_XL_HD_s42": {
+      "algorithm": "HPFL",
+      "dataset": "HD",
+      "seed": 42,
+      "hidden_dims": [
+        512,
+        256,
+        128
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 171650,
+      "final_accuracy": 0.7142857142857143,
+      "runtime_seconds": 0.6,
+      "key": "1A_HPFL_XL_HD_s42",
+      "phase": "1A",
+      "sz_name": "XL"
+    },
+    "1A_HPFL_XL_HD_s123": {
+      "algorithm": "HPFL",
+      "dataset": "HD",
+      "seed": 123,
+      "hidden_dims": [
+        512,
+        256,
+        128
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 171650,
+      "final_accuracy": 0.7472527472527473,
+      "runtime_seconds": 0.7,
+      "key": "1A_HPFL_XL_HD_s123",
+      "phase": "1A",
+      "sz_name": "XL"
+    },
+    "1A_HPFL_XL_HD_s456": {
+      "algorithm": "HPFL",
+      "dataset": "HD",
+      "seed": 456,
+      "hidden_dims": [
+        512,
+        256,
+        128
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 171650,
+      "final_accuracy": 0.7252747252747253,
+      "runtime_seconds": 0.7,
+      "key": "1A_HPFL_XL_HD_s456",
+      "phase": "1A",
+      "sz_name": "XL"
+    },
+    "1A_FedProx_XL_CV_s42": {
+      "algorithm": "FedProx",
+      "dataset": "CV",
+      "seed": 42,
+      "hidden_dims": [
+        512,
+        256,
+        128
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 170626,
+      "final_accuracy": 0.720011431020933,
+      "runtime_seconds": 88.4,
+      "key": "1A_FedProx_XL_CV_s42",
+      "phase": "1A",
+      "sz_name": "XL"
+    },
+    "1A_FedProx_XL_CV_s123": {
+      "algorithm": "FedProx",
+      "dataset": "CV",
+      "seed": 123,
+      "hidden_dims": [
+        512,
+        256,
+        128
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 170626,
+      "final_accuracy": 0.7285326475210745,
+      "runtime_seconds": 87.7,
+      "key": "1A_FedProx_XL_CV_s123",
+      "phase": "1A",
+      "sz_name": "XL"
+    },
+    "1A_FedProx_XL_CV_s456": {
+      "algorithm": "FedProx",
+      "dataset": "CV",
+      "seed": 456,
+      "hidden_dims": [
+        512,
+        256,
+        128
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 170626,
+      "final_accuracy": 0.7008144020574367,
+      "runtime_seconds": 86.7,
+      "key": "1A_FedProx_XL_CV_s456",
+      "phase": "1A",
+      "sz_name": "XL"
+    },
+    "1A_FedProx_XL_HD_s42": {
+      "algorithm": "FedProx",
+      "dataset": "HD",
+      "seed": 42,
+      "hidden_dims": [
+        512,
+        256,
+        128
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 171650,
+      "final_accuracy": 0.6593406593406593,
+      "runtime_seconds": 1.1,
+      "key": "1A_FedProx_XL_HD_s42",
+      "phase": "1A",
+      "sz_name": "XL"
+    },
+    "1A_FedProx_XL_HD_s123": {
+      "algorithm": "FedProx",
+      "dataset": "HD",
+      "seed": 123,
+      "hidden_dims": [
+        512,
+        256,
+        128
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 171650,
+      "final_accuracy": 0.489010989010989,
+      "runtime_seconds": 1.1,
+      "key": "1A_FedProx_XL_HD_s123",
+      "phase": "1A",
+      "sz_name": "XL"
+    },
+    "1A_FedProx_XL_HD_s456": {
+      "algorithm": "FedProx",
+      "dataset": "HD",
+      "seed": 456,
+      "hidden_dims": [
+        512,
+        256,
+        128
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 171650,
+      "final_accuracy": 0.6208791208791209,
+      "runtime_seconds": 1.0,
+      "key": "1A_FedProx_XL_HD_s456",
+      "phase": "1A",
+      "sz_name": "XL"
+    },
+    "1A_FedAvg_XXL_CV_s42": {
+      "algorithm": "FedAvg",
+      "dataset": "CV",
+      "seed": 42,
+      "hidden_dims": [
+        1024,
+        512,
+        256,
+        128
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 701570,
+      "final_accuracy": 0.720011431020933,
+      "runtime_seconds": 100.2,
+      "key": "1A_FedAvg_XXL_CV_s42",
+      "phase": "1A",
+      "sz_name": "XXL"
+    },
+    "1A_FedAvg_XXL_CV_s123": {
+      "algorithm": "FedAvg",
+      "dataset": "CV",
+      "seed": 123,
+      "hidden_dims": [
+        1024,
+        512,
+        256,
+        128
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 701570,
+      "final_accuracy": 0.7321045863694814,
+      "runtime_seconds": 104.7,
+      "key": "1A_FedAvg_XXL_CV_s123",
+      "phase": "1A",
+      "sz_name": "XXL"
+    },
+    "1A_FedAvg_XXL_CV_s456": {
+      "algorithm": "FedAvg",
+      "dataset": "CV",
+      "seed": 456,
+      "hidden_dims": [
+        1024,
+        512,
+        256,
+        128
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 701570,
+      "final_accuracy": 0.6602371767395342,
+      "runtime_seconds": 103.1,
+      "key": "1A_FedAvg_XXL_CV_s456",
+      "phase": "1A",
+      "sz_name": "XXL"
+    },
+    "1A_FedAvg_XXL_HD_s42": {
+      "algorithm": "FedAvg",
+      "dataset": "HD",
+      "seed": 42,
+      "hidden_dims": [
+        1024,
+        512,
+        256,
+        128
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 703618,
+      "final_accuracy": 0.5824175824175825,
+      "runtime_seconds": 1.5,
+      "key": "1A_FedAvg_XXL_HD_s42",
+      "phase": "1A",
+      "sz_name": "XXL"
+    },
+    "1A_FedAvg_XXL_HD_s123": {
+      "algorithm": "FedAvg",
+      "dataset": "HD",
+      "seed": 123,
+      "hidden_dims": [
+        1024,
+        512,
+        256,
+        128
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 703618,
+      "final_accuracy": 0.489010989010989,
+      "runtime_seconds": 1.6,
+      "key": "1A_FedAvg_XXL_HD_s123",
+      "phase": "1A",
+      "sz_name": "XXL"
+    },
+    "1A_FedAvg_XXL_HD_s456": {
+      "algorithm": "FedAvg",
+      "dataset": "HD",
+      "seed": 456,
+      "hidden_dims": [
+        1024,
+        512,
+        256,
+        128
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 703618,
+      "final_accuracy": 0.5494505494505495,
+      "runtime_seconds": 1.6,
+      "key": "1A_FedAvg_XXL_HD_s456",
+      "phase": "1A",
+      "sz_name": "XXL"
+    },
+    "1A_Ditto_XXL_CV_s42": {
+      "algorithm": "Ditto",
+      "dataset": "CV",
+      "seed": 42,
+      "hidden_dims": [
+        1024,
+        512,
+        256,
+        128
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 701570,
+      "final_accuracy": 0.8029577766664285,
+      "runtime_seconds": 306.0,
+      "key": "1A_Ditto_XXL_CV_s42",
+      "phase": "1A",
+      "sz_name": "XXL"
+    },
+    "1A_Ditto_XXL_CV_s123": {
+      "algorithm": "Ditto",
+      "dataset": "CV",
+      "seed": 123,
+      "hidden_dims": [
+        1024,
+        512,
+        256,
+        128
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 701570,
+      "final_accuracy": 0.830047149592799,
+      "runtime_seconds": 316.0,
+      "key": "1A_Ditto_XXL_CV_s123",
+      "phase": "1A",
+      "sz_name": "XXL"
+    },
+    "1A_Ditto_XXL_CV_s456": {
+      "algorithm": "Ditto",
+      "dataset": "CV",
+      "seed": 456,
+      "hidden_dims": [
+        1024,
+        512,
+        256,
+        128
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 701570,
+      "final_accuracy": 0.8191170167166738,
+      "runtime_seconds": 322.3,
+      "key": "1A_Ditto_XXL_CV_s456",
+      "phase": "1A",
+      "sz_name": "XXL"
+    },
+    "1A_Ditto_XXL_HD_s42": {
+      "algorithm": "Ditto",
+      "dataset": "HD",
+      "seed": 42,
+      "hidden_dims": [
+        1024,
+        512,
+        256,
+        128
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 703618,
+      "final_accuracy": 0.6373626373626373,
+      "runtime_seconds": 4.5,
+      "key": "1A_Ditto_XXL_HD_s42",
+      "phase": "1A",
+      "sz_name": "XXL"
+    },
+    "1A_Ditto_XXL_HD_s123": {
+      "algorithm": "Ditto",
+      "dataset": "HD",
+      "seed": 123,
+      "hidden_dims": [
+        1024,
+        512,
+        256,
+        128
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 703618,
+      "final_accuracy": 0.6648351648351648,
+      "runtime_seconds": 4.5,
+      "key": "1A_Ditto_XXL_HD_s123",
+      "phase": "1A",
+      "sz_name": "XXL"
+    },
+    "1A_Ditto_XXL_HD_s456": {
+      "algorithm": "Ditto",
+      "dataset": "HD",
+      "seed": 456,
+      "hidden_dims": [
+        1024,
+        512,
+        256,
+        128
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 703618,
+      "final_accuracy": 0.6758241758241759,
+      "runtime_seconds": 3.9,
+      "key": "1A_Ditto_XXL_HD_s456",
+      "phase": "1A",
+      "sz_name": "XXL"
+    },
+    "1A_HPFL_XXL_CV_s42": {
+      "algorithm": "HPFL",
+      "dataset": "CV",
+      "seed": 42,
+      "hidden_dims": [
+        1024,
+        512,
+        256,
+        128
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 701570,
+      "final_accuracy": 0.8033149960705865,
+      "runtime_seconds": 106.7,
+      "key": "1A_HPFL_XXL_CV_s42",
+      "phase": "1A",
+      "sz_name": "XXL"
+    },
+    "1A_HPFL_XXL_CV_s123": {
+      "algorithm": "HPFL",
+      "dataset": "CV",
+      "seed": 123,
+      "hidden_dims": [
+        1024,
+        512,
+        256,
+        128
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 701570,
+      "final_accuracy": 0.8333333333333334,
+      "runtime_seconds": 100.3,
+      "key": "1A_HPFL_XXL_CV_s123",
+      "phase": "1A",
+      "sz_name": "XXL"
+    },
+    "1A_HPFL_XXL_CV_s456": {
+      "algorithm": "HPFL",
+      "dataset": "CV",
+      "seed": 456,
+      "hidden_dims": [
+        1024,
+        512,
+        256,
+        128
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 701570,
+      "final_accuracy": 0.8045435062151736,
+      "runtime_seconds": 125.1,
+      "key": "1A_HPFL_XXL_CV_s456",
+      "phase": "1A",
+      "sz_name": "XXL"
+    },
+    "1A_HPFL_XXL_HD_s42": {
+      "algorithm": "HPFL",
+      "dataset": "HD",
+      "seed": 42,
+      "hidden_dims": [
+        1024,
+        512,
+        256,
+        128
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 703618,
+      "final_accuracy": 0.6373626373626373,
+      "runtime_seconds": 1.8,
+      "key": "1A_HPFL_XXL_HD_s42",
+      "phase": "1A",
+      "sz_name": "XXL"
+    },
+    "1A_HPFL_XXL_HD_s123": {
+      "algorithm": "HPFL",
+      "dataset": "HD",
+      "seed": 123,
+      "hidden_dims": [
+        1024,
+        512,
+        256,
+        128
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 703618,
+      "final_accuracy": 0.6648351648351648,
+      "runtime_seconds": 1.6,
+      "key": "1A_HPFL_XXL_HD_s123",
+      "phase": "1A",
+      "sz_name": "XXL"
+    },
+    "1A_HPFL_XXL_HD_s456": {
+      "algorithm": "HPFL",
+      "dataset": "HD",
+      "seed": 456,
+      "hidden_dims": [
+        1024,
+        512,
+        256,
+        128
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 703618,
+      "final_accuracy": 0.6703296703296703,
+      "runtime_seconds": 1.5,
+      "key": "1A_HPFL_XXL_HD_s456",
+      "phase": "1A",
+      "sz_name": "XXL"
+    },
+    "1A_FedProx_XXL_CV_s42": {
+      "algorithm": "FedProx",
+      "dataset": "CV",
+      "seed": 42,
+      "hidden_dims": [
+        1024,
+        512,
+        256,
+        128
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 701570,
+      "final_accuracy": 0.7190826605701222,
+      "runtime_seconds": 259.1,
+      "key": "1A_FedProx_XXL_CV_s42",
+      "phase": "1A",
+      "sz_name": "XXL"
+    },
+    "1A_FedProx_XXL_CV_s123": {
+      "algorithm": "FedProx",
+      "dataset": "CV",
+      "seed": 123,
+      "hidden_dims": [
+        1024,
+        512,
+        256,
+        128
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 701570,
+      "final_accuracy": 0.7304614944992142,
+      "runtime_seconds": 234.6,
+      "key": "1A_FedProx_XXL_CV_s123",
+      "phase": "1A",
+      "sz_name": "XXL"
+    },
+    "1A_FedProx_XXL_CV_s456": {
+      "algorithm": "FedProx",
+      "dataset": "CV",
+      "seed": 456,
+      "hidden_dims": [
+        1024,
+        512,
+        256,
+        128
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 701570,
+      "final_accuracy": 0.6657379625660809,
+      "runtime_seconds": 252.7,
+      "key": "1A_FedProx_XXL_CV_s456",
+      "phase": "1A",
+      "sz_name": "XXL"
+    },
+    "1A_FedProx_XXL_HD_s42": {
+      "algorithm": "FedProx",
+      "dataset": "HD",
+      "seed": 42,
+      "hidden_dims": [
+        1024,
+        512,
+        256,
+        128
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 703618,
+      "final_accuracy": 0.5824175824175825,
+      "runtime_seconds": 3.6,
+      "key": "1A_FedProx_XXL_HD_s42",
+      "phase": "1A",
+      "sz_name": "XXL"
+    },
+    "1A_FedProx_XXL_HD_s123": {
+      "algorithm": "FedProx",
+      "dataset": "HD",
+      "seed": 123,
+      "hidden_dims": [
+        1024,
+        512,
+        256,
+        128
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 703618,
+      "final_accuracy": 0.489010989010989,
+      "runtime_seconds": 4.0,
+      "key": "1A_FedProx_XXL_HD_s123",
+      "phase": "1A",
+      "sz_name": "XXL"
+    },
+    "1A_FedProx_XXL_HD_s456": {
+      "algorithm": "FedProx",
+      "dataset": "HD",
+      "seed": 456,
+      "hidden_dims": [
+        1024,
+        512,
+        256,
+        128
+      ],
+      "num_clients": 4,
+      "num_rounds": 20,
+      "num_params": 703618,
+      "final_accuracy": 0.5494505494505495,
+      "runtime_seconds": 3.4,
+      "key": "1A_FedProx_XXL_HD_s456",
+      "phase": "1A",
+      "sz_name": "XXL"
+    },
+    "3A_FedAvg_CDC_s123": {
+      "algorithm": "FedAvg",
+      "dataset": "CDC",
+      "seed": 123,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 20,
+      "num_params": 3554,
+      "final_accuracy": 0.7257603532217689,
+      "runtime_seconds": 30.3,
+      "key": "3A_FedAvg_CDC_s123",
+      "phase": "3A"
+    },
+    "3A_FedAvg_CDC_s456": {
+      "algorithm": "FedAvg",
+      "dataset": "CDC",
+      "seed": 456,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 20,
+      "num_params": 3554,
+      "final_accuracy": 0.7252729924705326,
+      "runtime_seconds": 29.8,
+      "key": "3A_FedAvg_CDC_s456",
+      "phase": "3A"
+    },
+    "3A_FedAvg_CDC_s789": {
+      "algorithm": "FedAvg",
+      "dataset": "CDC",
+      "seed": 789,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 20,
+      "num_params": 3554,
+      "final_accuracy": 0.8620424575719946,
+      "runtime_seconds": 29.2,
+      "key": "3A_FedAvg_CDC_s789",
+      "phase": "3A"
+    },
+    "3A_FedAvg_CDC_s999": {
+      "algorithm": "FedAvg",
+      "dataset": "CDC",
+      "seed": 999,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 20,
+      "num_params": 3554,
+      "final_accuracy": 0.8610793550676076,
+      "runtime_seconds": 29.9,
+      "key": "3A_FedAvg_CDC_s999",
+      "phase": "3A"
+    },
+    "3A_FedProx_CDC_s42": {
+      "algorithm": "FedProx",
+      "dataset": "CDC",
+      "seed": 42,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 20,
+      "num_params": 3554,
+      "final_accuracy": 0.8615354291908939,
+      "runtime_seconds": 35.9,
+      "key": "3A_FedProx_CDC_s42",
+      "phase": "3A"
+    },
+    "3A_FedProx_CDC_s123": {
+      "algorithm": "FedProx",
+      "dataset": "CDC",
+      "seed": 123,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 20,
+      "num_params": 3554,
+      "final_accuracy": 0.7235724282025506,
+      "runtime_seconds": 35.6,
+      "key": "3A_FedProx_CDC_s123",
+      "phase": "3A"
+    },
+    "3A_FedProx_CDC_s456": {
+      "algorithm": "FedProx",
+      "dataset": "CDC",
+      "seed": 456,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 20,
+      "num_params": 3554,
+      "final_accuracy": 0.7175464185753144,
+      "runtime_seconds": 35.0,
+      "key": "3A_FedProx_CDC_s456",
+      "phase": "3A"
+    },
+    "3A_FedProx_CDC_s789": {
+      "algorithm": "FedProx",
+      "dataset": "CDC",
+      "seed": 789,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 20,
+      "num_params": 3554,
+      "final_accuracy": 0.8617270809926478,
+      "runtime_seconds": 35.3,
+      "key": "3A_FedProx_CDC_s789",
+      "phase": "3A"
+    },
+    "3A_FedProx_CDC_s999": {
+      "algorithm": "FedProx",
+      "dataset": "CDC",
+      "seed": 999,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 20,
+      "num_params": 3554,
+      "final_accuracy": 0.857452595892301,
+      "runtime_seconds": 35.3,
+      "key": "3A_FedProx_CDC_s999",
+      "phase": "3A"
+    },
+    "3A_Ditto_CDC_s123": {
+      "algorithm": "Ditto",
+      "dataset": "CDC",
+      "seed": 123,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 20,
+      "num_params": 3554,
+      "final_accuracy": 0.7359312479057024,
+      "runtime_seconds": 62.1,
+      "key": "3A_Ditto_CDC_s123",
+      "phase": "3A"
+    },
+    "3A_Ditto_CDC_s456": {
+      "algorithm": "Ditto",
+      "dataset": "CDC",
+      "seed": 456,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 20,
+      "num_params": 3554,
+      "final_accuracy": 0.7388930500256239,
+      "runtime_seconds": 62.7,
+      "key": "3A_Ditto_CDC_s456",
+      "phase": "3A"
+    },
+    "3A_Ditto_CDC_s789": {
+      "algorithm": "Ditto",
+      "dataset": "CDC",
+      "seed": 789,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 20,
+      "num_params": 3554,
+      "final_accuracy": 0.9572664734985118,
+      "runtime_seconds": 62.0,
+      "key": "3A_Ditto_CDC_s789",
+      "phase": "3A"
+    },
+    "3A_Ditto_CDC_s999": {
+      "algorithm": "Ditto",
+      "dataset": "CDC",
+      "seed": 999,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 20,
+      "num_params": 3554,
+      "final_accuracy": 0.8357511727835377,
+      "runtime_seconds": 62.6,
+      "key": "3A_Ditto_CDC_s999",
+      "phase": "3A"
+    },
+    "3A_FedLC_CDC_s42": {
+      "algorithm": "FedLC",
+      "dataset": "CDC",
+      "seed": 42,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 20,
+      "num_params": 3554,
+      "final_accuracy": 0.8615354291908939,
+      "runtime_seconds": 28.3,
+      "key": "3A_FedLC_CDC_s42",
+      "phase": "3A"
+    },
+    "3A_FedLC_CDC_s123": {
+      "algorithm": "FedLC",
+      "dataset": "CDC",
+      "seed": 123,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 20,
+      "num_params": 3554,
+      "final_accuracy": 0.7223109218851635,
+      "runtime_seconds": 28.5,
+      "key": "3A_FedLC_CDC_s123",
+      "phase": "3A"
+    },
+    "3A_FedLC_CDC_s456": {
+      "algorithm": "FedLC",
+      "dataset": "CDC",
+      "seed": 456,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 20,
+      "num_params": 3554,
+      "final_accuracy": 0.7218433397721449,
+      "runtime_seconds": 28.4,
+      "key": "3A_FedLC_CDC_s456",
+      "phase": "3A"
+    },
+    "3A_FedLC_CDC_s789": {
+      "algorithm": "FedLC",
+      "dataset": "CDC",
+      "seed": 789,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 20,
+      "num_params": 3554,
+      "final_accuracy": 0.8620227465357854,
+      "runtime_seconds": 27.9,
+      "key": "3A_FedLC_CDC_s789",
+      "phase": "3A"
+    },
+    "3A_FedLC_CDC_s999": {
+      "algorithm": "FedLC",
+      "dataset": "CDC",
+      "seed": 999,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 20,
+      "num_params": 3554,
+      "final_accuracy": 0.8599164268537864,
+      "runtime_seconds": 27.5,
+      "key": "3A_FedLC_CDC_s999",
+      "phase": "3A"
+    },
+    "3A_FedExP_CDC_s42": {
+      "algorithm": "FedExP",
+      "dataset": "CDC",
+      "seed": 42,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 20,
+      "num_params": 3554,
+      "final_accuracy": 0.8615354291908939,
+      "runtime_seconds": 28.7,
+      "key": "3A_FedExP_CDC_s42",
+      "phase": "3A"
+    },
+    "3A_FedExP_CDC_s123": {
+      "algorithm": "FedExP",
+      "dataset": "CDC",
+      "seed": 123,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 20,
+      "num_params": 3554,
+      "final_accuracy": 0.7254843987148404,
+      "runtime_seconds": 27.3,
+      "key": "3A_FedExP_CDC_s123",
+      "phase": "3A"
+    },
+    "3A_FedExP_CDC_s456": {
+      "algorithm": "FedExP",
+      "dataset": "CDC",
+      "seed": 456,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 20,
+      "num_params": 3554,
+      "final_accuracy": 0.7249970434028462,
+      "runtime_seconds": 28.1,
+      "key": "3A_FedExP_CDC_s456",
+      "phase": "3A"
+    },
+    "3A_FedExP_CDC_s789": {
+      "algorithm": "FedExP",
+      "dataset": "CDC",
+      "seed": 789,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 20,
+      "num_params": 3554,
+      "final_accuracy": 0.8620424575719946,
+      "runtime_seconds": 28.0,
+      "key": "3A_FedExP_CDC_s789",
+      "phase": "3A"
+    },
+    "3A_FedExP_CDC_s999": {
+      "algorithm": "FedExP",
+      "dataset": "CDC",
+      "seed": 999,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 20,
+      "num_params": 3554,
+      "final_accuracy": 0.8610793550676076,
+      "runtime_seconds": 28.9,
+      "key": "3A_FedExP_CDC_s999",
+      "phase": "3A"
+    },
+    "3A_FedLESAM_CDC_s42": {
+      "algorithm": "FedLESAM",
+      "dataset": "CDC",
+      "seed": 42,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 20,
+      "num_params": 3554,
+      "final_accuracy": 0.8615354291908939,
+      "runtime_seconds": 30.7,
+      "key": "3A_FedLESAM_CDC_s42",
+      "phase": "3A"
+    },
+    "3A_FedLESAM_CDC_s123": {
+      "algorithm": "FedLESAM",
+      "dataset": "CDC",
+      "seed": 123,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 20,
+      "num_params": 3554,
+      "final_accuracy": 0.7257603532217689,
+      "runtime_seconds": 31.2,
+      "key": "3A_FedLESAM_CDC_s123",
+      "phase": "3A"
+    },
+    "3A_FedLESAM_CDC_s456": {
+      "algorithm": "FedLESAM",
+      "dataset": "CDC",
+      "seed": 456,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 20,
+      "num_params": 3554,
+      "final_accuracy": 0.7252729924705326,
+      "runtime_seconds": 31.7,
+      "key": "3A_FedLESAM_CDC_s456",
+      "phase": "3A"
+    },
+    "3A_FedLESAM_CDC_s789": {
+      "algorithm": "FedLESAM",
+      "dataset": "CDC",
+      "seed": 789,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 20,
+      "num_params": 3554,
+      "final_accuracy": 0.8620424575719946,
+      "runtime_seconds": 31.3,
+      "key": "3A_FedLESAM_CDC_s789",
+      "phase": "3A"
+    },
+    "3A_FedLESAM_CDC_s999": {
+      "algorithm": "FedLESAM",
+      "dataset": "CDC",
+      "seed": 999,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 20,
+      "num_params": 3554,
+      "final_accuracy": 0.8610793550676076,
+      "runtime_seconds": 31.1,
+      "key": "3A_FedLESAM_CDC_s999",
+      "phase": "3A"
+    },
+    "3A_HPFL_CDC_s123": {
+      "algorithm": "HPFL",
+      "dataset": "CDC",
+      "seed": 123,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 20,
+      "num_params": 3554,
+      "final_accuracy": 0.7420613801667554,
+      "runtime_seconds": 32.6,
+      "key": "3A_HPFL_CDC_s123",
+      "phase": "3A"
+    },
+    "3A_HPFL_CDC_s456": {
+      "algorithm": "HPFL",
+      "dataset": "CDC",
+      "seed": 456,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 20,
+      "num_params": 3554,
+      "final_accuracy": 0.7394055268656128,
+      "runtime_seconds": 28.0,
+      "key": "3A_HPFL_CDC_s456",
+      "phase": "3A"
+    },
+    "3A_HPFL_CDC_s789": {
+      "algorithm": "HPFL",
+      "dataset": "CDC",
+      "seed": 789,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 20,
+      "num_params": 3554,
+      "final_accuracy": 0.9676541895807462,
+      "runtime_seconds": 29.1,
+      "key": "3A_HPFL_CDC_s789",
+      "phase": "3A"
+    },
+    "3A_HPFL_CDC_s999": {
+      "algorithm": "HPFL",
+      "dataset": "CDC",
+      "seed": 999,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 20,
+      "num_params": 3554,
+      "final_accuracy": 0.8557574801907991,
+      "runtime_seconds": 29.0,
+      "key": "3A_HPFL_CDC_s999",
+      "phase": "3A"
+    },
+    "3B_FedAvg_PX_K3_s123": {
+      "algorithm": "FedAvg",
+      "dataset": "PX",
+      "seed": 123,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 3,
+      "num_rounds": 30,
+      "num_params": 2885,
+      "final_accuracy": 0.9213483146067416,
+      "runtime_seconds": 9.0,
+      "key": "3B_FedAvg_PX_K3_s123",
+      "phase": "3B"
+    },
+    "3B_FedAvg_PX_K3_s456": {
+      "algorithm": "FedAvg",
+      "dataset": "PX",
+      "seed": 456,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 3,
+      "num_rounds": 30,
+      "num_params": 2885,
+      "final_accuracy": 0.9215823970037453,
+      "runtime_seconds": 8.7,
+      "key": "3B_FedAvg_PX_K3_s456",
+      "phase": "3B"
+    },
+    "3B_Ditto_PX_K3_s123": {
+      "algorithm": "Ditto",
+      "dataset": "PX",
+      "seed": 123,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 3,
+      "num_rounds": 30,
+      "num_params": 2885,
+      "final_accuracy": 0.9248595505617978,
+      "runtime_seconds": 20.0,
+      "key": "3B_Ditto_PX_K3_s123",
+      "phase": "3B"
+    },
+    "3B_Ditto_PX_K3_s456": {
+      "algorithm": "Ditto",
+      "dataset": "PX",
+      "seed": 456,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 3,
+      "num_rounds": 30,
+      "num_params": 2885,
+      "final_accuracy": 0.9290730337078652,
+      "runtime_seconds": 18.5,
+      "key": "3B_Ditto_PX_K3_s456",
+      "phase": "3B"
+    },
+    "3B_HPFL_PX_K3_s123": {
+      "algorithm": "HPFL",
+      "dataset": "PX",
+      "seed": 123,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 3,
+      "num_rounds": 30,
+      "num_params": 2885,
+      "final_accuracy": 0.925561797752809,
+      "runtime_seconds": 7.3,
+      "key": "3B_HPFL_PX_K3_s123",
+      "phase": "3B"
+    },
+    "3B_HPFL_PX_K3_s456": {
+      "algorithm": "HPFL",
+      "dataset": "PX",
+      "seed": 456,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 3,
+      "num_rounds": 30,
+      "num_params": 2885,
+      "final_accuracy": 0.9295411985018727,
+      "runtime_seconds": 7.4,
+      "key": "3B_HPFL_PX_K3_s456",
+      "phase": "3B"
+    },
+    "3B_FedAvg_PX_K5_s42": {
+      "algorithm": "FedAvg",
+      "dataset": "PX",
+      "seed": 42,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 30,
+      "num_params": 2885,
+      "final_accuracy": 0.9192415730337079,
+      "runtime_seconds": 7.7,
+      "key": "3B_FedAvg_PX_K5_s42",
+      "phase": "3B"
+    },
+    "3B_FedAvg_PX_K5_s123": {
+      "algorithm": "FedAvg",
+      "dataset": "PX",
+      "seed": 123,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 30,
+      "num_params": 2885,
+      "final_accuracy": 0.9213483146067416,
+      "runtime_seconds": 7.9,
+      "key": "3B_FedAvg_PX_K5_s123",
+      "phase": "3B"
+    },
+    "3B_FedAvg_PX_K5_s456": {
+      "algorithm": "FedAvg",
+      "dataset": "PX",
+      "seed": 456,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 30,
+      "num_params": 2885,
+      "final_accuracy": 0.9213483146067416,
+      "runtime_seconds": 7.8,
+      "key": "3B_FedAvg_PX_K5_s456",
+      "phase": "3B"
+    },
+    "3B_Ditto_PX_K5_s42": {
+      "algorithm": "Ditto",
+      "dataset": "PX",
+      "seed": 42,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 30,
+      "num_params": 2885,
+      "final_accuracy": 0.9211142322097379,
+      "runtime_seconds": 17.4,
+      "key": "3B_Ditto_PX_K5_s42",
+      "phase": "3B"
+    },
+    "3B_Ditto_PX_K5_s123": {
+      "algorithm": "Ditto",
+      "dataset": "PX",
+      "seed": 123,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 30,
+      "num_params": 2885,
+      "final_accuracy": 0.9150280898876404,
+      "runtime_seconds": 17.6,
+      "key": "3B_Ditto_PX_K5_s123",
+      "phase": "3B"
+    },
+    "3B_Ditto_PX_K5_s456": {
+      "algorithm": "Ditto",
+      "dataset": "PX",
+      "seed": 456,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 30,
+      "num_params": 2885,
+      "final_accuracy": 0.9262640449438202,
+      "runtime_seconds": 17.2,
+      "key": "3B_Ditto_PX_K5_s456",
+      "phase": "3B"
+    },
+    "3B_HPFL_PX_K5_s42": {
+      "algorithm": "HPFL",
+      "dataset": "PX",
+      "seed": 42,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 30,
+      "num_params": 2885,
+      "final_accuracy": 0.9218164794007491,
+      "runtime_seconds": 7.3,
+      "key": "3B_HPFL_PX_K5_s42",
+      "phase": "3B"
+    },
+    "3B_HPFL_PX_K5_s123": {
+      "algorithm": "HPFL",
+      "dataset": "PX",
+      "seed": 123,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 30,
+      "num_params": 2885,
+      "final_accuracy": 0.9250936329588015,
+      "runtime_seconds": 7.3,
+      "key": "3B_HPFL_PX_K5_s123",
+      "phase": "3B"
+    },
+    "3B_HPFL_PX_K5_s456": {
+      "algorithm": "HPFL",
+      "dataset": "PX",
+      "seed": 456,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 30,
+      "num_params": 2885,
+      "final_accuracy": 0.9283707865168539,
+      "runtime_seconds": 7.3,
+      "key": "3B_HPFL_PX_K5_s456",
+      "phase": "3B"
+    },
+    "3B_FedAvg_PX_K10_s123": {
+      "algorithm": "FedAvg",
+      "dataset": "PX",
+      "seed": 123,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 10,
+      "num_rounds": 30,
+      "num_params": 2885,
+      "final_accuracy": 0.9173689138576779,
+      "runtime_seconds": 7.5,
+      "key": "3B_FedAvg_PX_K10_s123",
+      "phase": "3B"
+    },
+    "3B_FedAvg_PX_K10_s456": {
+      "algorithm": "FedAvg",
+      "dataset": "PX",
+      "seed": 456,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 10,
+      "num_rounds": 30,
+      "num_params": 2885,
+      "final_accuracy": 0.9201779026217228,
+      "runtime_seconds": 7.7,
+      "key": "3B_FedAvg_PX_K10_s456",
+      "phase": "3B"
+    },
+    "3B_Ditto_PX_K10_s123": {
+      "algorithm": "Ditto",
+      "dataset": "PX",
+      "seed": 123,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 10,
+      "num_rounds": 30,
+      "num_params": 2885,
+      "final_accuracy": 0.9131554307116105,
+      "runtime_seconds": 17.4,
+      "key": "3B_Ditto_PX_K10_s123",
+      "phase": "3B"
+    },
+    "3B_Ditto_PX_K10_s456": {
+      "algorithm": "Ditto",
+      "dataset": "PX",
+      "seed": 456,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 10,
+      "num_rounds": 30,
+      "num_params": 2885,
+      "final_accuracy": 0.9225187265917603,
+      "runtime_seconds": 17.2,
+      "key": "3B_Ditto_PX_K10_s456",
+      "phase": "3B"
+    },
+    "3B_HPFL_PX_K10_s123": {
+      "algorithm": "HPFL",
+      "dataset": "PX",
+      "seed": 123,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 10,
+      "num_rounds": 30,
+      "num_params": 2885,
+      "final_accuracy": 0.924625468164794,
+      "runtime_seconds": 7.4,
+      "key": "3B_HPFL_PX_K10_s123",
+      "phase": "3B"
+    },
+    "3B_HPFL_PX_K10_s456": {
+      "algorithm": "HPFL",
+      "dataset": "PX",
+      "seed": 456,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 10,
+      "num_rounds": 30,
+      "num_params": 2885,
+      "final_accuracy": 0.9262640449438202,
+      "runtime_seconds": 7.5,
+      "key": "3B_HPFL_PX_K10_s456",
+      "phase": "3B"
+    },
+    "3B_FedAvg_PX_K20_s123": {
+      "algorithm": "FedAvg",
+      "dataset": "PX",
+      "seed": 123,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 20,
+      "num_rounds": 30,
+      "num_params": 2885,
+      "final_accuracy": 0.9173689138576779,
+      "runtime_seconds": 7.6,
+      "key": "3B_FedAvg_PX_K20_s123",
+      "phase": "3B"
+    },
+    "3B_FedAvg_PX_K20_s456": {
+      "algorithm": "FedAvg",
+      "dataset": "PX",
+      "seed": 456,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 20,
+      "num_rounds": 30,
+      "num_params": 2885,
+      "final_accuracy": 0.9201779026217228,
+      "runtime_seconds": 7.8,
+      "key": "3B_FedAvg_PX_K20_s456",
+      "phase": "3B"
+    },
+    "3B_Ditto_PX_K20_s123": {
+      "algorithm": "Ditto",
+      "dataset": "PX",
+      "seed": 123,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 20,
+      "num_rounds": 30,
+      "num_params": 2885,
+      "final_accuracy": 0.9131554307116105,
+      "runtime_seconds": 17.2,
+      "key": "3B_Ditto_PX_K20_s123",
+      "phase": "3B"
+    },
+    "3B_Ditto_PX_K20_s456": {
+      "algorithm": "Ditto",
+      "dataset": "PX",
+      "seed": 456,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 20,
+      "num_rounds": 30,
+      "num_params": 2885,
+      "final_accuracy": 0.9225187265917603,
+      "runtime_seconds": 17.3,
+      "key": "3B_Ditto_PX_K20_s456",
+      "phase": "3B"
+    },
+    "3B_HPFL_PX_K20_s123": {
+      "algorithm": "HPFL",
+      "dataset": "PX",
+      "seed": 123,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 20,
+      "num_rounds": 30,
+      "num_params": 2885,
+      "final_accuracy": 0.924625468164794,
+      "runtime_seconds": 7.6,
+      "key": "3B_HPFL_PX_K20_s123",
+      "phase": "3B"
+    },
+    "3B_HPFL_PX_K20_s456": {
+      "algorithm": "HPFL",
+      "dataset": "PX",
+      "seed": 456,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 20,
+      "num_rounds": 30,
+      "num_params": 2885,
+      "final_accuracy": 0.9262640449438202,
+      "runtime_seconds": 7.5,
+      "key": "3B_HPFL_PX_K20_s456",
+      "phase": "3B"
+    },
+    "5A_Per-FedAvg_PX_s42": {
+      "algorithm": "Per-FedAvg",
+      "dataset": "PX",
+      "seed": 42,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 30,
+      "num_params": 2885,
+      "final_accuracy": 0.9213483146067416,
+      "runtime_seconds": 9.9,
+      "key": "5A_Per-FedAvg_PX_s42",
+      "phase": "5A"
+    },
+    "5A_Per-FedAvg_PX_s123": {
+      "algorithm": "Per-FedAvg",
+      "dataset": "PX",
+      "seed": 123,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 30,
+      "num_params": 2885,
+      "final_accuracy": 0.9222846441947565,
+      "runtime_seconds": 9.8,
+      "key": "5A_Per-FedAvg_PX_s123",
+      "phase": "5A"
+    },
+    "5A_Per-FedAvg_PX_s456": {
+      "algorithm": "Per-FedAvg",
+      "dataset": "PX",
+      "seed": 456,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 30,
+      "num_params": 2885,
+      "final_accuracy": 0.924625468164794,
+      "runtime_seconds": 10.2,
+      "key": "5A_Per-FedAvg_PX_s456",
+      "phase": "5A"
+    },
+    "5A_Per-FedAvg_PX_s789": {
+      "algorithm": "Per-FedAvg",
+      "dataset": "PX",
+      "seed": 789,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 30,
+      "num_params": 2885,
+      "final_accuracy": 0.9253277153558053,
+      "runtime_seconds": 10.2,
+      "key": "5A_Per-FedAvg_PX_s789",
+      "phase": "5A"
+    },
+    "5A_Per-FedAvg_PX_s999": {
+      "algorithm": "Per-FedAvg",
+      "dataset": "PX",
+      "seed": 999,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 30,
+      "num_params": 2885,
+      "final_accuracy": 0.9150280898876404,
+      "runtime_seconds": 10.0,
+      "key": "5A_Per-FedAvg_PX_s999",
+      "phase": "5A"
+    },
+    "5A_Per-FedAvg_CV_s123": {
+      "algorithm": "Per-FedAvg",
+      "dataset": "CV",
+      "seed": 123,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 2914,
+      "final_accuracy": 0.8201885983711958,
+      "runtime_seconds": 26.8,
+      "key": "5A_Per-FedAvg_CV_s123",
+      "phase": "5A"
+    },
+    "5A_Per-FedAvg_CV_s456": {
+      "algorithm": "Per-FedAvg",
+      "dataset": "CV",
+      "seed": 456,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 2914,
+      "final_accuracy": 0.8128304043434776,
+      "runtime_seconds": 26.5,
+      "key": "5A_Per-FedAvg_CV_s456",
+      "phase": "5A"
+    },
+    "5A_Per-FedAvg_CV_s789": {
+      "algorithm": "Per-FedAvg",
+      "dataset": "CV",
+      "seed": 789,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 2914,
+      "final_accuracy": 0.9098442634662095,
+      "runtime_seconds": 26.8,
+      "key": "5A_Per-FedAvg_CV_s789",
+      "phase": "5A"
+    },
+    "5A_Per-FedAvg_CV_s999": {
+      "algorithm": "Per-FedAvg",
+      "dataset": "CV",
+      "seed": 999,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 2914,
+      "final_accuracy": 0.7574653521931705,
+      "runtime_seconds": 27.6,
+      "key": "5A_Per-FedAvg_CV_s999",
+      "phase": "5A"
+    },
+    "5A_Per-FedAvg_BC_s42": {
+      "algorithm": "Per-FedAvg",
+      "dataset": "BC",
+      "seed": 42,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 3,
+      "num_rounds": 20,
+      "num_params": 4130,
+      "final_accuracy": 0.6814159292035398,
+      "runtime_seconds": 0.4,
+      "key": "5A_Per-FedAvg_BC_s42",
+      "phase": "5A"
+    },
+    "5A_Per-FedAvg_BC_s123": {
+      "algorithm": "Per-FedAvg",
+      "dataset": "BC",
+      "seed": 123,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 3,
+      "num_rounds": 20,
+      "num_params": 4130,
+      "final_accuracy": 0.6283185840707964,
+      "runtime_seconds": 0.3,
+      "key": "5A_Per-FedAvg_BC_s123",
+      "phase": "5A"
+    },
+    "5A_Per-FedAvg_BC_s456": {
+      "algorithm": "Per-FedAvg",
+      "dataset": "BC",
+      "seed": 456,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 3,
+      "num_rounds": 20,
+      "num_params": 4130,
+      "final_accuracy": 0.6371681415929203,
+      "runtime_seconds": 0.4,
+      "key": "5A_Per-FedAvg_BC_s456",
+      "phase": "5A"
+    },
+    "5A_Per-FedAvg_BC_s789": {
+      "algorithm": "Per-FedAvg",
+      "dataset": "BC",
+      "seed": 789,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 3,
+      "num_rounds": 20,
+      "num_params": 4130,
+      "final_accuracy": 0.7767857142857143,
+      "runtime_seconds": 0.3,
+      "key": "5A_Per-FedAvg_BC_s789",
+      "phase": "5A"
+    },
+    "5A_Per-FedAvg_BC_s999": {
+      "algorithm": "Per-FedAvg",
+      "dataset": "BC",
+      "seed": 999,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 3,
+      "num_rounds": 20,
+      "num_params": 4130,
+      "final_accuracy": 0.7876106194690266,
+      "runtime_seconds": 0.3,
+      "key": "5A_Per-FedAvg_BC_s999",
+      "phase": "5A"
+    },
+    "5A_FedDyn_PX_s42": {
+      "algorithm": "FedDyn",
+      "dataset": "PX",
+      "seed": 42,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 30,
+      "num_params": 2885,
+      "final_accuracy": 0.9222846441947565,
+      "runtime_seconds": 11.1,
+      "key": "5A_FedDyn_PX_s42",
+      "phase": "5A"
+    },
+    "5A_FedDyn_PX_s123": {
+      "algorithm": "FedDyn",
+      "dataset": "PX",
+      "seed": 123,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 30,
+      "num_params": 2885,
+      "final_accuracy": 0.920880149812734,
+      "runtime_seconds": 11.2,
+      "key": "5A_FedDyn_PX_s123",
+      "phase": "5A"
+    },
+    "5A_FedDyn_PX_s456": {
+      "algorithm": "FedDyn",
+      "dataset": "PX",
+      "seed": 456,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 30,
+      "num_params": 2885,
+      "final_accuracy": 0.9248595505617978,
+      "runtime_seconds": 11.4,
+      "key": "5A_FedDyn_PX_s456",
+      "phase": "5A"
+    },
+    "5A_FedDyn_PX_s789": {
+      "algorithm": "FedDyn",
+      "dataset": "PX",
+      "seed": 789,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 30,
+      "num_params": 2885,
+      "final_accuracy": 0.9183052434456929,
+      "runtime_seconds": 11.3,
+      "key": "5A_FedDyn_PX_s789",
+      "phase": "5A"
+    },
+    "5A_FedDyn_PX_s999": {
+      "algorithm": "FedDyn",
+      "dataset": "PX",
+      "seed": 999,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 30,
+      "num_params": 2885,
+      "final_accuracy": 0.9166666666666666,
+      "runtime_seconds": 11.2,
+      "key": "5A_FedDyn_PX_s999",
+      "phase": "5A"
+    },
+    "5A_FedDyn_CV_s123": {
+      "algorithm": "FedDyn",
+      "dataset": "CV",
+      "seed": 123,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 2914,
+      "final_accuracy": 0.7234604943563366,
+      "runtime_seconds": 30.4,
+      "key": "5A_FedDyn_CV_s123",
+      "phase": "5A"
+    },
+    "5A_FedDyn_CV_s456": {
+      "algorithm": "FedDyn",
+      "dataset": "CV",
+      "seed": 456,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 2914,
+      "final_accuracy": 0.6901700242891842,
+      "runtime_seconds": 30.3,
+      "key": "5A_FedDyn_CV_s456",
+      "phase": "5A"
+    },
+    "5A_FedDyn_CV_s789": {
+      "algorithm": "FedDyn",
+      "dataset": "CV",
+      "seed": 789,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 2914,
+      "final_accuracy": 0.7147449635662237,
+      "runtime_seconds": 30.5,
+      "key": "5A_FedDyn_CV_s789",
+      "phase": "5A"
+    },
+    "5A_FedDyn_CV_s999": {
+      "algorithm": "FedDyn",
+      "dataset": "CV",
+      "seed": 999,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 2914,
+      "final_accuracy": 0.7286040862980426,
+      "runtime_seconds": 31.3,
+      "key": "5A_FedDyn_CV_s999",
+      "phase": "5A"
+    },
+    "5A_FedDyn_BC_s42": {
+      "algorithm": "FedDyn",
+      "dataset": "BC",
+      "seed": 42,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 3,
+      "num_rounds": 20,
+      "num_params": 4130,
+      "final_accuracy": 0.9646017699115044,
+      "runtime_seconds": 0.9,
+      "key": "5A_FedDyn_BC_s42",
+      "phase": "5A"
+    },
+    "5A_FedDyn_BC_s123": {
+      "algorithm": "FedDyn",
+      "dataset": "BC",
+      "seed": 123,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 3,
+      "num_rounds": 20,
+      "num_params": 4130,
+      "final_accuracy": 0.9646017699115044,
+      "runtime_seconds": 0.5,
+      "key": "5A_FedDyn_BC_s123",
+      "phase": "5A"
+    },
+    "5A_FedDyn_BC_s456": {
+      "algorithm": "FedDyn",
+      "dataset": "BC",
+      "seed": 456,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 3,
+      "num_rounds": 20,
+      "num_params": 4130,
+      "final_accuracy": 0.9557522123893806,
+      "runtime_seconds": 0.4,
+      "key": "5A_FedDyn_BC_s456",
+      "phase": "5A"
+    },
+    "5A_FedDyn_BC_s789": {
+      "algorithm": "FedDyn",
+      "dataset": "BC",
+      "seed": 789,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 3,
+      "num_rounds": 20,
+      "num_params": 4130,
+      "final_accuracy": 0.9732142857142857,
+      "runtime_seconds": 0.4,
+      "key": "5A_FedDyn_BC_s789",
+      "phase": "5A"
+    },
+    "5A_FedDyn_BC_s999": {
+      "algorithm": "FedDyn",
+      "dataset": "BC",
+      "seed": 999,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 3,
+      "num_rounds": 20,
+      "num_params": 4130,
+      "final_accuracy": 0.9469026548672567,
+      "runtime_seconds": 0.4,
+      "key": "5A_FedDyn_BC_s999",
+      "phase": "5A"
+    },
+    "5A_FedSAM_PX_s42": {
+      "algorithm": "FedSAM",
+      "dataset": "PX",
+      "seed": 42,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 30,
+      "num_params": 2885,
+      "final_accuracy": 0.9225187265917603,
+      "runtime_seconds": 14.0,
+      "key": "5A_FedSAM_PX_s42",
+      "phase": "5A"
+    },
+    "5A_FedSAM_PX_s123": {
+      "algorithm": "FedSAM",
+      "dataset": "PX",
+      "seed": 123,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 30,
+      "num_params": 2885,
+      "final_accuracy": 0.9194756554307116,
+      "runtime_seconds": 14.4,
+      "key": "5A_FedSAM_PX_s123",
+      "phase": "5A"
+    },
+    "5A_FedSAM_PX_s456": {
+      "algorithm": "FedSAM",
+      "dataset": "PX",
+      "seed": 456,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 30,
+      "num_params": 2885,
+      "final_accuracy": 0.9218164794007491,
+      "runtime_seconds": 14.2,
+      "key": "5A_FedSAM_PX_s456",
+      "phase": "5A"
+    },
+    "5A_FedSAM_PX_s789": {
+      "algorithm": "FedSAM",
+      "dataset": "PX",
+      "seed": 789,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 30,
+      "num_params": 2885,
+      "final_accuracy": 0.9169007490636704,
+      "runtime_seconds": 14.2,
+      "key": "5A_FedSAM_PX_s789",
+      "phase": "5A"
+    },
+    "5A_FedSAM_PX_s999": {
+      "algorithm": "FedSAM",
+      "dataset": "PX",
+      "seed": 999,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 30,
+      "num_params": 2885,
+      "final_accuracy": 0.9138576779026217,
+      "runtime_seconds": 14.9,
+      "key": "5A_FedSAM_PX_s999",
+      "phase": "5A"
+    },
+    "5A_FedSAM_CV_s123": {
+      "algorithm": "FedSAM",
+      "dataset": "CV",
+      "seed": 123,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 2914,
+      "final_accuracy": 0.7271038719817117,
+      "runtime_seconds": 38.7,
+      "key": "5A_FedSAM_CV_s123",
+      "phase": "5A"
+    },
+    "5A_FedSAM_CV_s456": {
+      "algorithm": "FedSAM",
+      "dataset": "CV",
+      "seed": 456,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 2914,
+      "final_accuracy": 0.6878839834262037,
+      "runtime_seconds": 38.5,
+      "key": "5A_FedSAM_CV_s456",
+      "phase": "5A"
+    },
+    "5A_FedSAM_CV_s789": {
+      "algorithm": "FedSAM",
+      "dataset": "CV",
+      "seed": 789,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 2914,
+      "final_accuracy": 0.6923846263751965,
+      "runtime_seconds": 39.6,
+      "key": "5A_FedSAM_CV_s789",
+      "phase": "5A"
+    },
+    "5A_FedSAM_CV_s999": {
+      "algorithm": "FedSAM",
+      "dataset": "CV",
+      "seed": 999,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 5,
+      "num_rounds": 25,
+      "num_params": 2914,
+      "final_accuracy": 0.7313901985997999,
+      "runtime_seconds": 39.3,
+      "key": "5A_FedSAM_CV_s999",
+      "phase": "5A"
+    },
+    "5A_FedSAM_BC_s42": {
+      "algorithm": "FedSAM",
+      "dataset": "BC",
+      "seed": 42,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 3,
+      "num_rounds": 20,
+      "num_params": 4130,
+      "final_accuracy": 0.6814159292035398,
+      "runtime_seconds": 0.5,
+      "key": "5A_FedSAM_BC_s42",
+      "phase": "5A"
+    },
+    "5A_FedSAM_BC_s123": {
+      "algorithm": "FedSAM",
+      "dataset": "BC",
+      "seed": 123,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 3,
+      "num_rounds": 20,
+      "num_params": 4130,
+      "final_accuracy": 0.6283185840707964,
+      "runtime_seconds": 0.5,
+      "key": "5A_FedSAM_BC_s123",
+      "phase": "5A"
+    },
+    "5A_FedSAM_BC_s456": {
+      "algorithm": "FedSAM",
+      "dataset": "BC",
+      "seed": 456,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 3,
+      "num_rounds": 20,
+      "num_params": 4130,
+      "final_accuracy": 0.6371681415929203,
+      "runtime_seconds": 0.5,
+      "key": "5A_FedSAM_BC_s456",
+      "phase": "5A"
+    },
+    "5A_FedSAM_BC_s789": {
+      "algorithm": "FedSAM",
+      "dataset": "BC",
+      "seed": 789,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 3,
+      "num_rounds": 20,
+      "num_params": 4130,
+      "final_accuracy": 0.7410714285714286,
+      "runtime_seconds": 0.5,
+      "key": "5A_FedSAM_BC_s789",
+      "phase": "5A"
+    },
+    "5A_FedSAM_BC_s999": {
+      "algorithm": "FedSAM",
+      "dataset": "BC",
+      "seed": 999,
+      "hidden_dims": [
+        64,
+        32
+      ],
+      "num_clients": 3,
+      "num_rounds": 20,
+      "num_params": 4130,
+      "final_accuracy": 0.8053097345132744,
+      "runtime_seconds": 0.5,
+      "key": "5A_FedSAM_BC_s999",
+      "phase": "5A"
+    }
+  },
+  "metadata": {
+    "total_experiments": 24,
+    "mode": "QUICK",
+    "start_time": "2026-03-06T10:18:27.997833",
+    "last_save": "2026-03-06T12:11:16.649030",
+    "end_time": "2026-03-06T12:11:16.649014",
+    "elapsed_seconds": 6225.1
+  }
+}
