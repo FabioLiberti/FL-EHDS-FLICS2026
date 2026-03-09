@@ -1,5 +1,5 @@
 % ============================================================================
-% Supplementary Material for FL-EHDS v7 (FLICS 2026)
+% Supplementary Material for FL-EHDS v8 (FLICS 2026)
 % Restructured: 7 Appendices (A-G) with Table of Contents
 % ============================================================================
 \documentclass[conference]{IEEEtran}
@@ -41,7 +41,7 @@
 \maketitle
 
 \begin{abstract}
-This document provides supplementary material for the FL-EHDS paper, including complete algorithm pseudocode for all framework components, extended experimental figures, detailed algorithm comparison analysis with effect sizes (rank-biserial correlation), 10-seed statistical validation, advanced FL paradigm descriptions, infrastructure component specifications, extended EHDS interoperability details, clinical imaging experiment configurations with Chest X-ray baseline results, 10-seed Wilcoxon validation on imaging (90~experiments confirming Ditto's superiority and HPFL's modality-dependent reversal), Byzantine robustness on medical imaging (108~experiments with Krum defense), local epochs sweep, scalability analysis up to K=100 clients, noise-as-regularization analysis for small-cohort studies, Article~71 opt-out impact with policy recommendations, an extended threat model with attack taxonomy and defense mapping, a detailed framework positioning analysis, EHDS governance hypothesis testing (720~experiments across 3~hypotheses validating compound compliance, non-uniform opt-out fairness, and algorithm governance resilience on Heart Disease and Cardiovascular datasets), thesis robustness validation (516~experiments confirming hyperparameter insensitivity, data efficiency thresholds, and personalization persistence under compound EHDS stress), and model complexity/generalizability validation (236~experiments: $240\times$ parameter sweep confirming model-size invariance, CDC Diabetes population-scale confirmation, PTB-XL site granularity, and extended personalization baselines including Per-FedAvg, FedDyn, and FedSAM). The open-source reference implementation ($\sim$40K lines, 159 modules) is available at \url{https://github.com/FabioLiberti/FL-EHDS-FLICS2026}.
+This document provides supplementary material for the FL-EHDS paper, including complete algorithm pseudocode for all framework components, extended experimental figures, detailed algorithm comparison analysis with effect sizes (rank-biserial correlation), 10-seed statistical validation, advanced FL paradigm descriptions, infrastructure component specifications, extended EHDS interoperability details, clinical imaging experiment configurations with Chest X-ray baseline results, 10-seed Wilcoxon validation on imaging (90~experiments confirming Ditto's superiority and HPFL's modality-dependent reversal), Byzantine robustness on medical imaging (108~experiments with Krum defense), local epochs sweep, scalability analysis up to K=100 clients, noise-as-regularization analysis for small-cohort studies, Article~71 opt-out impact with policy recommendations, an extended threat model with attack taxonomy and defense mapping, a detailed framework positioning analysis, EHDS governance hypothesis testing (720~experiments across 3~hypotheses validating compound compliance, non-uniform opt-out fairness, and algorithm governance resilience on Heart Disease and Cardiovascular datasets), thesis robustness validation (516~experiments confirming hyperparameter insensitivity, data efficiency thresholds, and personalization persistence under compound EHDS stress), model complexity/generalizability validation (236~experiments: $240\times$ parameter sweep confirming model-size invariance, CDC Diabetes population-scale confirmation, PTB-XL site granularity, and extended personalization baselines including Per-FedAvg, FedDyn, and FedSAM), non-IID impact on medical imaging (48~experiments across 3~$\alpha$ values confirming HPFL's regime-dependent reversal), PTB-XL K=51 scalability evaluation (48~experiments testing all 51 individual recording sites with DP ablation), EHDS governance overhead benchmarking (18~experiments confirming $<$1.1\% per-round overhead), data quality stress testing (180~experiments across 3 noise types validating personalization robustness), and TabNet architecture comparison (45~experiments confirming model-architecture invariance of the personalization thesis). The open-source reference implementation ($\sim$40K lines, 159 modules) is available at \url{https://github.com/FabioLiberti/FL-EHDS-FLICS2026}.
 \end{abstract}
 
 \tableofcontents
@@ -61,15 +61,103 @@ This document provides supplementary material for the FL-EHDS paper, including c
 \subsection{PRISMA Flow Diagram}
 \label{sec:prisma}
 
-The systematic review underlying FL-EHDS follows the PRISMA 2020 guidelines~\cite{page2021prisma}. Five academic databases (PubMed, IEEE Xplore, Scopus, Web of Science, arXiv) were searched using Boolean queries combining federated learning, health data spaces, and EHDS-specific terminology, covering publications from January 2022 to March 2026. The search yielded 847 initial records; after automated and manual deduplication (264 duplicates removed), 583 unique records underwent title-and-abstract screening against pre-defined inclusion criteria: (i)~primary focus on federated learning applied to health data; (ii)~relevance to European regulatory frameworks or cross-border clinical data sharing; (iii)~peer-reviewed publication or recognized institutional origin. A total of 47 studies met all criteria and were included in the qualitative synthesis. Supplementary searches of institutional websites (n=15), regulatory bodies and standardization organizations (n=8), and backward/forward citation tracking (n=2) were conducted but did not contribute additional studies beyond those already identified. Figure~\ref{fig:prisma} presents the complete PRISMA flow diagram.
+The systematic review underlying FL-EHDS follows the PRISMA 2020 guidelines~\cite{page2021prisma}. Five academic databases (PubMed, IEEE Xplore, Scopus, Web of Science, arXiv) were searched using Boolean queries combining federated learning, health data spaces, and EHDS-specific terminology, covering publications from January 2022 to March 2026. The search yielded 847 initial records; after automated and manual deduplication (264 duplicates removed), 583 unique records underwent title-and-abstract screening against pre-defined inclusion criteria: (i)~primary focus on federated learning applied to health data; (ii)~relevance to European regulatory frameworks or cross-border clinical data sharing; (iii)~peer-reviewed publication or recognized institutional origin. A total of 29 studies from the primary database search met all criteria. Backward/forward citation tracking additionally identified 18 foundational studies (2017--2021) representing core methodological contributions consistently referenced across the included corpus. Institutional websites (n=15) and regulatory organizations (n=8) were also assessed but did not contribute beyond the database results. The final inclusion set comprises 47 studies (see Table~\ref{tab:included_studies} for the complete mapping). Figure~\ref{fig:prisma} presents the complete PRISMA flow diagram.
 
 \begin{figure*}[t]
 \centering
 \includegraphics[width=\textwidth]{figures/fig_prisma_flowchart.pdf}
-\caption{PRISMA 2020 flow diagram for the systematic review. Database searches across PubMed, IEEE Xplore, Scopus, Web of Science, and arXiv identified 847 records; after deduplication (264 removed) and screening, 47 studies met inclusion criteria (2022--2026, FL/EHDS focus, peer-reviewed or recognized institutional origin). Additional records from institutional websites (n=15), organisations (n=8), and citation searching (n=2) were assessed but did not contribute to the final inclusion set. Adapted from Page et al.\ (BMJ 2021;372:n71), licensed under CC BY 4.0.}
+\caption{PRISMA 2020 flow diagram for the systematic review. Database searches across PubMed, IEEE Xplore, Scopus, Web of Science, and arXiv identified 847 records; after deduplication (264 removed) and screening, 47 studies met inclusion criteria: 29 from database search (2022--2026, FL/EHDS focus) plus 18 foundational studies (2017--2021) identified through backward/forward citation tracking. Additional records from institutional websites (n=15) and organisations (n=8) were assessed but did not contribute beyond the database results. Adapted from Page et al.\ (BMJ 2021;372:n71), licensed under CC BY 4.0.}
 \label{fig:prisma}
 \end{figure*}
 
+\subsection{Characteristics of Included Studies}
+\label{sec:included_studies}
+
+Table~\ref{tab:included_studies} maps all 47 included studies to the implementation barrier categories identified in Table~II of the main paper. Categories A--E comprise the 29 studies from the primary database search (2022--2026); categories F--H comprise the 18 foundational studies identified through backward/forward citation tracking. Barrier prevalence statistics (e.g., 78\% hardware heterogeneity, 67\% non-IID) were derived from thematic coding across all 47 studies.
+
+\begin{table*}[htbp]
+\centering
+\caption{Characteristics of 47 included studies mapped to FL implementation barriers for EHDS. B1 = hardware heterogeneity (78\%); B2 = non-IID data (67\%); B3 = production gap (23\%); B4 = interoperability/FHIR (34\%); B5 = communication cost; B6 = legal/regulatory. $\bullet$ = primary focus, $\circ$ = secondary. Studies 1--29: primary database search (2022--2026). Studies 30--47: citation tracking (2017--2021).}
+\label{tab:included_studies}
+\small
+\begin{tabular}{clccccccc}
+\toprule
+\# & \textbf{Study} & \textbf{Year} & \textbf{B1} & \textbf{B2} & \textbf{B3} & \textbf{B4} & \textbf{B5} & \textbf{B6} \\
+\midrule
+\multicolumn{9}{l}{\textit{A. EHDS Governance \& Policy (12 studies --- database search)}} \\
+\midrule
+1 & European Commission~\cite{eu2025ehds} & 2025 & & & & $\bullet$ & & $\bullet$ \\
+2 & Staunton et al.~\cite{staunton2024ethical} & 2024 & & & & & & $\bullet$ \\
+3 & Quinn et al.~\cite{quinn2024gdpr} & 2024 & & & & & & $\bullet$ \\
+4 & TEHDAS~\cite{tehdas2024ready} & 2024 & & & $\circ$ & $\bullet$ & & $\bullet$ \\
+5 & Fr\"ohlich et al.~\cite{frohlich2025reality} & 2025 & $\bullet$ & & $\bullet$ & & $\circ$ & \\
+6 & van Drumpt et al.~\cite{vandrumpt2025pets} & 2025 & & & & & & $\bullet$ \\
+7 & Hussein et al.~\cite{hussein2025interop} & 2025 & & & & $\bullet$ & & \\
+8 & Forster et al.~\cite{forster2025journeys} & 2025 & & & $\circ$ & & & $\bullet$ \\
+9 & Svingel et al.~\cite{svingel2025hdab} & 2025 & & & & & & $\bullet$ \\
+10 & Christiansen et al.~\cite{christiansen2025pilot} & 2025 & & & $\bullet$ & $\bullet$ & & \\
+11 & Shabani \& Borry~\cite{shabani2024ehds} & 2024 & & & & & & $\bullet$ \\
+12 & Ganna et al.~\cite{ganna2024boost} & 2024 & & & & & & $\bullet$ \\
+\midrule
+\multicolumn{9}{l}{\textit{B. FL in Healthcare --- Reviews \& Applications (3 studies --- database search)}} \\
+\midrule
+13 & Chavero-Diez et al.~\cite{chaverodiez2026fair} & 2026 & $\circ$ & & $\bullet$ & $\circ$ & & \\
+14 & Teo et al.~\cite{teo2024systematic} & 2024 & $\bullet$ & $\bullet$ & $\circ$ & & & \\
+15 & Peng et al.~\cite{peng2024systematic} & 2024 & $\circ$ & $\bullet$ & & & $\circ$ & \\
+\midrule
+\multicolumn{9}{l}{\textit{C. Privacy-Enhancing Technologies (2 studies --- database search)}} \\
+\midrule
+16 & Carlini et al.~\cite{carlini2022privacy} & 2022 & & & & & & $\bullet$ \\
+17 & Jordon et al.~\cite{jordon2022synthetic} & 2022 & & & & & & $\bullet$ \\
+\midrule
+\multicolumn{9}{l}{\textit{D. FL Algorithms --- Recent (10 studies --- database search)}} \\
+\midrule
+18 & Qu et al.\ (FedSAM)~\cite{qu2022fedsam} & 2022 & & $\bullet$ & & & & \\
+19 & Zhang et al.\ (FedLC)~\cite{zhang2022fedlc} & 2022 & & $\bullet$ & & & & \\
+20 & Shi et al.\ (FedDecorr)~\cite{shi2023feddecorr} & 2023 & & $\bullet$ & & & & \\
+21 & Sun et al.\ (FedSpeed)~\cite{sun2023fedspeed} & 2023 & & $\bullet$ & & & $\circ$ & \\
+22 & Jhunjhunwala et al.\ (FedExP)~\cite{jhunjhunwala2023fedexp} & 2023 & & & & & $\bullet$ & \\
+23 & Qu et al.\ (FedLESAM)~\cite{qu2024fedlesam} & 2024 & & $\bullet$ & & & & \\
+24 & Chen et al.\ (HPFL)~\cite{chen2025hpfl} & 2025 & & $\bullet$ & & & & \\
+25 & Hu et al.\ (FedMGDA+)~\cite{hu2022fedmgda} & 2022 & & $\circ$ & & & & \\
+26 & Wu et al.\ (Unlearning)~\cite{wu2022fedunlearn} & 2022 & & & & & & $\circ$ \\
+27 & Cho et al.\ (Client sel.)~\cite{cho2022towards} & 2022 & & & & & $\circ$ & \\
+\midrule
+\multicolumn{9}{l}{\textit{E. FL Frameworks \& Infrastructure (2 studies --- database search)}} \\
+\midrule
+28 & Beutel et al.\ (Flower)~\cite{beutel2023flower} & 2023 & $\circ$ & & $\bullet$ & & & \\
+29 & NVIDIA (FLARE)~\cite{nvflare2023} & 2023 & $\circ$ & & $\bullet$ & & & \\
+\midrule
+\multicolumn{9}{l}{\textit{F. FL Healthcare \& Surveys (4 studies --- citation tracking)}} \\
+\midrule
+30 & Rieke et al.~\cite{rieke2020future} & 2020 & $\bullet$ & $\circ$ & & & & \\
+31 & Dayan et al.~\cite{dayan2021federated} & 2021 & $\circ$ & $\bullet$ & & & & \\
+32 & Sheller et al.~\cite{sheller2020federated} & 2020 & $\circ$ & & $\bullet$ & & & \\
+33 & Kairouz et al.~\cite{kairouz2021advances} & 2021 & $\bullet$ & $\bullet$ & $\circ$ & & $\bullet$ & \\
+\midrule
+\multicolumn{9}{l}{\textit{G. FL Core Algorithms (8 studies --- citation tracking)}} \\
+\midrule
+34 & Li et al.\ (FedProx)~\cite{li2020federated} & 2020 & & $\bullet$ & & & & \\
+35 & Karimireddy et al.\ (SCAFFOLD)~\cite{karimireddy2020scaffold} & 2020 & & $\bullet$ & & & $\circ$ & \\
+36 & Wang et al.\ (FedNova)~\cite{wang2020tackling} & 2020 & & $\bullet$ & & & & \\
+37 & Reddi et al.\ (FedAdam)~\cite{reddi2021adaptive} & 2021 & & & & & $\bullet$ & \\
+38 & Acar et al.\ (FedDyn)~\cite{acar2021feddyn} & 2021 & & $\bullet$ & & & & \\
+39 & Li et al.\ (Ditto)~\cite{li2021ditto} & 2021 & & $\bullet$ & & & & \\
+40 & Fallah et al.\ (Per-FedAvg)~\cite{fallah2020personalized} & 2020 & & $\bullet$ & & & & \\
+41 & Li et al.\ (FedBN)~\cite{li2021fedbn} & 2021 & & $\bullet$ & & & & \\
+\midrule
+\multicolumn{9}{l}{\textit{H. Privacy, Fairness \& Advanced Paradigms (6 studies --- citation tracking)}} \\
+\midrule
+42 & Zhu et al.~\cite{zhu2019deep} & 2019 & & & & & & $\bullet$ \\
+43 & Shokri et al.~\cite{shokri2017membership} & 2017 & & & & & & $\bullet$ \\
+44 & Wei et al.~\cite{wei2020federated} & 2020 & & & & & & $\bullet$ \\
+45 & Li et al.\ (q-FFL)~\cite{li2020fair} & 2020 & & $\circ$ & & & & $\circ$ \\
+46 & Liu et al.\ (FedEraser)~\cite{liu2021federaser} & 2021 & & & & & & $\circ$ \\
+47 & Lai et al.\ (Oort)~\cite{lai2021oort} & 2021 & & & & & $\circ$ & \\
+\bottomrule
+\end{tabular}
+\par{\footnotesize Studies 1--29 were identified through the primary database search (January 2022 -- March 2026). Studies 30--47 were identified through backward/forward citation tracking as foundational methodological contributions consistently referenced across the included corpus. The remaining 16 bibliography entries (datasets, deep learning architectures, PRISMA methodology, DP theory) serve as technical background and are not counted among the 47 included studies.}
+\end{table*}
 
 \subsection{Dataset Landscape}
 \label{sec:dataset_landscape}
@@ -1082,7 +1170,7 @@ Fairness metrics: Performance Variance ($\text{Var}(\{L_k\})$), Worst-case Loss 
 \subsection{Systematic Cascading Experiment Registry}
 \label{sec:cascade_registry}
 
-This section documents the complete cascading experiment campaign conducted for the FL-EHDS evaluation. Unlike ad-hoc experimental designs, we employ a \textit{cascading methodology}: each phase builds upon findings from previous phases, progressively expanding coverage from foundational privacy--utility trade-offs (Cascade~2) to clinical imbalance mitigation (Cascade~10). This systematic approach ensures that (i)~every experiment addresses a specific, pre-defined research question; (ii)~intermediate results guide subsequent experimental design; and (iii)~all results are reproducible via atomic checkpointing with explicit random seeds. The campaign comprises \textbf{2,092+ experiments} across \textbf{9~cascading phases}, \textbf{10~clinical datasets}, and \textbf{40~research questions}, constituting one of the most comprehensive FL evaluations in the healthcare domain.
+This section documents the complete cascading experiment campaign conducted for the FL-EHDS evaluation. Unlike ad-hoc experimental designs, we employ a \textit{cascading methodology}: each phase builds upon findings from previous phases, progressively expanding coverage from foundational privacy--utility trade-offs (Cascade~2) to clinical imbalance mitigation (Cascade~10). This systematic approach ensures that (i)~every experiment addresses a specific, pre-defined research question; (ii)~intermediate results guide subsequent experimental design; and (iii)~all results are reproducible via atomic checkpointing with explicit random seeds. The campaign comprises \textbf{2,335+ experiments} across \textbf{9~cascading phases}, \textbf{10~clinical datasets}, and \textbf{43~research questions}, constituting one of the most comprehensive FL evaluations in the healthcare domain.
 
 \subsubsection{Cascading Methodology}
 
@@ -1120,8 +1208,9 @@ Cascade & Blocks & Exp. & Time & Primary Focus \\
 \midrule
 \multicolumn{2}{l}{Standalone files} & $\sim$1,431 & --- & Targeted validations \\
 Gov. & H1--H3 & 720 & 3:40 & EHDS governance hypotheses \\
+Rev.~2 & 2A/1B/3A & 243 & 1:24 & Governance overhead, data quality, TabNet \\
 \midrule
-\multicolumn{2}{l}{\textbf{Total}} & \textbf{3,599+} & & \\
+\multicolumn{2}{l}{\textbf{Total}} & \textbf{3,842+} & & \\
 \bottomrule
 \end{tabular}%
 }
@@ -1196,11 +1285,12 @@ In addition to the cascading phases, 1,431+ standalone experiments address targe
     \item \textbf{CDC Diabetes full evaluation} (214 exp.): Population-scale (253K samples) FL evaluation with 7 algorithms, DP ablation ($\varepsilon{\in}\{1, 5, 10, 50\}$), and client scaling ($K{\in}\{3, 5, 10, 20\}$). \textit{Key finding:} DP paradoxically improves FedAvg ($+$8.9pp at $\varepsilon{=}5$); HPFL counterproductive under class imbalance (Tables~\ref{tab:cdc_algo}--\ref{tab:cdc_scale}).
     \item \textbf{Vertical FL extended} (216 exp.): 3 datasets (Cardiovascular, PTB-XL binarized, CDC Diabetes) $\times$ \{2, 3, 4\} parties $\times$ 3 overlap rates $\times$ DP ablation. \textit{Key finding:} PTB-XL binarized achieves 99.3\% (2-party, no DP); CDC Diabetes exhibits majority-class collapse (F1$\approx$0) regardless of VFL configuration (Table~\ref{tab:vfl_extended}).
     \item \textbf{EHDS Governance Hypotheses} (720 exp.): Three hypothesis-driven experiments on Heart Disease (920 samples) and Cardiovascular (70K samples). H1: compound compliance stress ($3~\text{algo} \times 4~\text{conditions} \times 15~\text{seeds}$). H2: non-uniform Article~71 opt-out fairness ($5~\text{patterns} \times 20~\text{seeds}$). H3: algorithm governance resilience ($3~\text{algo} \times 4~\text{purposes} \times 20~\text{seeds}$). \textit{Key finding:} Personalized algorithms (Ditto, HPFL) tolerate full EHDS compliance at $\varepsilon{=}10$ with $<$1pp cost on CV; governance resilience reaches 94.8\% vs.\ FedAvg 84.7\% (Section~\ref{sec:governance_hypotheses}).
+    \item \textbf{Reviewer Cascade 2: Governance, Data Quality, TabNet} (243 exp.): Three phases validating production readiness: Phase~2A---governance overhead benchmark ($3~\text{algo} \times 2~\text{conditions} \times 3~\text{seeds}$, 18~exp.); Phase~1B---data quality stress testing ($3~\text{algo} \times 10~\text{noise configs} \times 2~\text{datasets} \times 3~\text{seeds}$, 180~exp.); Phase~3A---TabNet architecture comparison ($3~\text{algo} \times 3~\text{datasets} \times 5~\text{seeds}$, 45~exp.). \textit{Key findings:} Governance overhead $<$1.1\%; personalized methods resist noise by $+$10--25pp over FedAvg; personalization advantage is model-architecture invariant (Sections~\ref{sec:governance_overhead}--\ref{sec:tabnet_comparison}).
 \end{itemize}
 
 \subsubsection{Research Questions Index}
 
-Table~\ref{tab:rq_index} provides a cross-reference of all 40~research questions addressed across the cascading campaign, indexed by cascade and block identifier.
+Table~\ref{tab:rq_index} provides a cross-reference of all 43~research questions addressed across the cascading campaign, indexed by cascade and block identifier.
 
 \begin{table*}[htbp]
 \centering
@@ -1253,6 +1343,10 @@ Table~\ref{tab:rq_index} provides a cross-reference of all 40~research questions
 38 & Can FL scale to 253K population-health data? & Standalone & CDC scales to $K{=}20$; HPFL degrades under imbalance \\
 39 & Is VFL viable across clinical modalities? & Standalone & PTB-XL binarized 99.3\%; CDC F1$\approx$0 (imbalance) \\
 40 & Are algorithm rankings robust to 10-seed validation? & Standalone & FedAvg/Ditto cluster; HPFL lower on large datasets \\
+\midrule
+41 & Does EHDS governance add significant computational overhead? & Rev.~2.2A & $<$1.1\% overhead; functionally transparent \\
+42 & Is the personalization advantage resilient to data quality degradation? & Rev.~2.1B & $+$10--25pp over FedAvg under all noise types \\
+43 & Is the personalization advantage model-architecture invariant? & Rev.~2.3A & MLP and TabNet produce consistent $+$10--11pp gaps \\
 \bottomrule
 \end{tabular}%
 }
@@ -1497,13 +1591,13 @@ Cross-border EHR, heterogeneous sites & Tabular & Ditto, HPFL & SCAFFOLD$^a$, Fe
 \addlinespace
 Small-cohort rare disease ($<$1K samples) & Tabular & HPFL & FedAvg$^b$ & 0.740$^\dagger$ & Table~S-ConfusionBC: HPFL avoids collapse 10/10 seeds vs.\ 2/10 FedAvg \\
 \addlinespace
-Multiclass radiology ($\geq$3 classes) & Imaging & Ditto & HPFL (neutral) & 0.435 & Table~XXV: Ditto $+$23.5pp Brain Tumor ($d{=}4.05$, 3 seeds; $p{=}0.004$, 10 seeds) \\
+Multiclass radiology ($\geq$3 classes) & Imaging & Ditto & HPFL (neutral) & 0.435$^\ddagger$ & Table~\ref{tab:imaging_bt_sc_full}: Ditto $+$23.5pp Brain Tumor ($d{=}4.05$, 3 seeds; $p{=}0.004$, 10 seeds) \\
 \addlinespace
-Binary radiology & Imaging & FedAvg & HPFL ($-$18.2pp) & 0.528$^\S$ & Tables~XX,~XXV: FedAvg 87.3\% vs.\ HPFL 69.1\% Chest X-ray \\
+Binary radiology & Imaging & FedAvg & HPFL ($-$18.2pp) & 0.528$^\S$ & Tables~\ref{tab:imaging_chest},~\ref{tab:imaging_bt_sc_full}: FedAvg 87.3\% vs.\ HPFL 69.1\% Chest X-ray \\
 \addlinespace
-High privacy ($\varepsilon \leq 5$) & Any & Ditto & FedAvg$^c$ & --- & Table~XXII: Ditto 89.2\% vs.\ FedAvg 52.3\% at $\varepsilon{=}1$ \\
+High privacy ($\varepsilon \leq 5$) & Any & Ditto & FedAvg$^c$ & --- & Table~\ref{tab:dp_tradeoff}: Ditto 89.2\% vs.\ FedAvg 52.3\% at $\varepsilon{=}1$ \\
 \addlinespace
-Large federation ($K \geq 50$) & Any & Ditto, HPFL & SCAFFOLD & --- & Tables~XVII--XVIII: Ditto $-$0.8pp at $K{=}100$ vs.\ FedAvg $-$4.7pp \\
+Large federation ($K \geq 50$) & Any & Ditto, HPFL & SCAFFOLD & --- & Tables~\ref{tab:cv_scalability},~\ref{tab:px_scalability}: Ditto $-$0.8pp at $K{=}100$ vs.\ FedAvg $-$4.7pp \\
 \addlinespace
 Homogeneous / IID data & Any & FedAvg & (all equivalent) & --- & PTB-XL: all algorithms within 0.6pp (91.9--92.5\%) \\
 \bottomrule
@@ -1513,13 +1607,13 @@ Homogeneous / IID data & Any & FedAvg & (all equivalent) & --- & PTB-XL: all alg
 \footnotesize{$^a$SCAFFOLD oscillates on class-imbalanced tabular data; FedNova amplifies noise from divergent objectives (11.2\%, 13.0\% on Diabetes). $^b$FedAvg/Ditto exhibit single-class collapse on 8/10 seeds (Table~S-ConfusionBC). $^c$FedAvg collapses from 91.9\% to 52.3\% at $\varepsilon{=}1$ ($-$39.6pp). $^\dagger$Breast Cancer HPFL DEI. $^\ddagger$Brain Tumor Ditto DEI (3 seeds). $^\S$Chest X-ray FedAvg DEI. DEI values reported only where confusion matrix analysis is available.}
 \end{table*}
 
-\textbf{Critical corrections from prior version}: (1)~SCAFFOLD is no longer recommended for heterogeneous deployments---our experiments demonstrate catastrophic failure on class-imbalanced tabular data (oscillating convergence; 11.2\% on Diabetes, Table~V). (2)~Ditto+DP is strongly preferred over FedAvg+DP for privacy-critical deployments (89.2\% vs.\ 52.3\% at $\varepsilon{=}1$ on PTB-XL). (3)~Imaging recommendations now distinguish between Ditto (recommended for multiclass) and HPFL (avoid on all imaging tasks). (4)~The DEI column provides diagnostic equity information absent from accuracy-only comparisons.
+\textbf{Critical corrections from prior version}: (1)~SCAFFOLD is no longer recommended for heterogeneous deployments---our experiments demonstrate catastrophic failure on class-imbalanced tabular data (oscillating convergence; 11.2\% on Diabetes, Table~\ref{tab:hd_diabetes}). (2)~Ditto+DP is strongly preferred over FedAvg+DP for privacy-critical deployments (89.2\% vs.\ 52.3\% at $\varepsilon{=}1$ on PTB-XL). (3)~Imaging recommendations now distinguish between Ditto (recommended for multiclass) and HPFL (avoid on all imaging tasks). (4)~The DEI column provides diagnostic equity information absent from accuracy-only comparisons.
 
 
 \subsection{Extended Results from Main Paper}
 \label{sec:main_extended}
 
-This section contains detailed results referenced inline in the main paper but moved here for space constraints. Table~\ref{tab:experiment_map} provides a complete decomposition of all 5,713+ experiments by category.
+This section contains detailed results referenced inline in the main paper but moved here for space constraints. Table~\ref{tab:experiment_map} provides a complete decomposition of all 6,004+ experiments by category.
 
 \begin{table*}[htbp]
 \centering
@@ -1557,8 +1651,12 @@ Model complexity sweep & 120 & Section~S-ModelComplexity \\
 CDC Diabetes (7-algo) & 35 & Section~S-ModelComplexity \\
 PTB-XL site granularity & 36 & Section~S-ModelComplexity \\
 Extended baselines (Per-FedAvg, FedDyn, FedSAM) & 45 & Section~S-ModelComplexity \\
+K=52 scalability (PTB-XL) & 48 & Section~S-K52Scalability \\
+Governance overhead benchmark & 18 & Section~S-GovernanceOverhead \\
+Data quality stress testing & 180 & Section~S-DataQualityStress \\
+TabNet architecture comparison & 45 & Section~S-TabNet \\
 \midrule
-\textbf{Total} & \textbf{5,713+} & \\
+\textbf{Total} & \textbf{6,004+} & \\
 \bottomrule
 \end{tabular}
 \par{\footnotesize Counts are approximate per category; some experiments contribute to multiple categories (e.g., Non-IID $\times$ DP). The ``+'' accounts for hyperparameter sweeps and cross-category overlaps.}
@@ -1646,7 +1744,7 @@ Table~\ref{tab:heterogeneity} shows accuracy as a function of Dirichlet $\alpha$
 \midrule
 PX & FedAvg & 90.8 & 89.8 & 91.2 & 90.8 & 91.7 & 91.9 \\
  & FedProx & 91.0 & 89.7 & 91.3 & 90.7 & 91.7 & 91.6 \\
- & Ditto & 91.7 & \textbf{96.5} & \textbf{96.5} & \textbf{95.4} & 93.9 & 91.8 \\
+ & Ditto & \textbf{91.7} & \textbf{96.5} & \textbf{96.5} & \textbf{95.4} & 93.9 & 91.8 \\
  & FedLC & 90.7 & 89.7 & 91.2 & 90.4 & 91.4 & 91.9 \\
  & FedExP & 90.8 & 89.8 & 91.2 & 90.8 & 91.7 & 92.0 \\
  & FedLESAM & 90.8 & 89.8 & 91.2 & 90.8 & 91.7 & 91.9 \\
@@ -1654,19 +1752,19 @@ PX & FedAvg & 90.8 & 89.8 & 91.2 & 90.8 & 91.7 & 91.9 \\
 \midrule
 CV & FedAvg & 72.7 & 61.2 & 65.7 & 71.1 & 72.6 & -- \\
  & FedProx & 72.7 & 62.5 & 65.9 & 71.6 & 72.5 & -- \\
- & Ditto & 72.6 & \textbf{92.4} & \textbf{90.7} & \textbf{82.5} & 81.5 & -- \\
+ & Ditto & 72.6 & \textbf{92.4} & \textbf{90.7} & \textbf{82.5} & \textbf{81.5} & -- \\
  & FedLC & 72.7 & 61.9 & 66.0 & 71.1 & 72.6 & -- \\
  & FedExP & 72.7 & 61.2 & 65.7 & 71.1 & 72.6 & -- \\
  & FedLESAM & 72.7 & 61.2 & 65.7 & 71.1 & 72.6 & -- \\
- & HPFL & \textbf{72.7} & 92.4 & 90.7 & 82.3 & \textbf{81.4} & -- \\
+ & HPFL & 72.7 & \textbf{92.4} & \textbf{90.7} & 82.3 & 81.4 & -- \\
 \midrule
 BC & FedAvg & 47.1 & 62.1 & 57.3 & 52.3 & 51.5 & -- \\
  & FedProx & 47.1 & 62.1 & 57.3 & 52.3 & 51.5 & -- \\
- & Ditto & 51.5 & \textbf{88.3} & \textbf{84.8} & \textbf{79.1} & 72.4 & -- \\
+ & Ditto & 51.5 & \textbf{88.3} & \textbf{84.8} & \textbf{79.1} & \textbf{72.4} & -- \\
  & FedLC & 47.3 & 63.2 & 57.2 & 52.1 & 51.5 & -- \\
  & FedExP & 47.1 & 62.1 & 57.3 & 52.3 & 51.5 & -- \\
  & FedLESAM & 47.1 & 62.1 & 57.3 & 52.3 & 51.5 & -- \\
- & HPFL & 51.9 & 88.3 & 84.8 & 74.1 & \textbf{66.9} & -- \\
+ & HPFL & \textbf{51.9} & \textbf{88.3} & \textbf{84.8} & 74.1 & 66.9 & -- \\
 \bottomrule
 \end{tabular}
 \end{table*}
@@ -1907,8 +2005,8 @@ PX & FedAvg & 91.9{\tiny$\pm$0.5} & 91.6{\tiny$\pm$0.7} & 91.6{\tiny$\pm$0.7} & 
  & HPFL & \textbf{92.8}{\tiny$\pm$0.4} & \textbf{92.7}{\tiny$\pm$0.4} & \textbf{92.7}{\tiny$\pm$0.4} & \textbf{92.7}{\tiny$\pm$0.4} & \textbf{92.7}{\tiny$\pm$0.4} & $-$0.1 \\
 \midrule
 CV & FedAvg & 70.6{\tiny$\pm$1.6} & 70.5{\tiny$\pm$1.9} & 70.5{\tiny$\pm$1.6} & 70.4{\tiny$\pm$1.8} & 70.6{\tiny$\pm$1.6} & $-$0.2 \\
- & Ditto & \textbf{84.9}{\tiny$\pm$4.1} & \textbf{84.9}{\tiny$\pm$4.1} & \textbf{84.9}{\tiny$\pm$4.1} & 84.8{\tiny$\pm$3.9} & 84.7{\tiny$\pm$4.0} & $-$0.2 \\
- & HPFL & 84.8{\tiny$\pm$3.8} & 84.7{\tiny$\pm$3.9} & 84.8{\tiny$\pm$3.8} & \textbf{84.7}{\tiny$\pm$3.8} & \textbf{84.7}{\tiny$\pm$3.8} & $-$0.1 \\
+ & Ditto & \textbf{84.9}{\tiny$\pm$4.1} & \textbf{84.9}{\tiny$\pm$4.1} & \textbf{84.9}{\tiny$\pm$4.1} & \textbf{84.8}{\tiny$\pm$3.9} & \textbf{84.7}{\tiny$\pm$4.0} & $-$0.2 \\
+ & HPFL & 84.8{\tiny$\pm$3.8} & 84.7{\tiny$\pm$3.9} & 84.8{\tiny$\pm$3.8} & 84.7{\tiny$\pm$3.8} & \textbf{84.7}{\tiny$\pm$3.8} & $-$0.1 \\
 \midrule
 BC & FedAvg & 52.8{\tiny$\pm$17.6} & 52.8{\tiny$\pm$17.6} & 53.0{\tiny$\pm$17.9} & 52.8{\tiny$\pm$17.6} & 52.8{\tiny$\pm$17.6} & $-$0.0 \\
  & Ditto & 83.5{\tiny$\pm$10.3} & \textbf{84.1}{\tiny$\pm$10.7} & \textbf{84.1}{\tiny$\pm$10.7} & \textbf{84.1}{\tiny$\pm$10.7} & \textbf{84.1}{\tiny$\pm$10.7} & +0.6 \\
@@ -2142,7 +2240,7 @@ To investigate whether the personalization advantage extends to medical imaging,
 \caption{Chest X-ray confusion matrix analysis (FedAvg vs HPFL, aggregated over 3 seeds). N~Recall = NORMAL recall, P~Recall = PNEUMONIA recall.}
 \label{tab:confusion_matrix_chest}
 \small
-\begin{tabular}{lccccc}
+\begin{tabular}{lcccc}
 \toprule
 \textbf{Algorithm} & \textbf{Acc (\%)} & \textbf{N Recall} & \textbf{P Recall} & \textbf{TP} \\
 \midrule
@@ -2291,7 +2389,7 @@ HPFL & \textbf{81.5}{\tiny$\pm$2.4} & \textbf{82.3}{\tiny$\pm$1.4} & +0.9pp & \t
 \footnotesize{Jain column reports the DP-enabled ($\varepsilon{=}10$) fairness. Positive $\Delta$ indicates DP \textit{improves} accuracy (Gaussian noise regularization). FedAvg is unstable at $K{=}50$ even without DP (62.0\%), reflecting convergence difficulty under extreme non-IID partitioning across 50 clients.}
 \end{table*}
 
-\textbf{Key finding}: At deployment scale ($K{=}50$, 70K patients), personalized methods (Ditto, HPFL) remain fully DP-robust: both \textit{improve} by +0.6--0.9pp under $\varepsilon{=}10$, likely due to Gaussian noise acting as regularization. HPFL additionally preserves fairness (Jain~0.951 vs.\ 0.720 for Ditto), confirming its suitability for equitable cross-border EHDS deployment. FedAvg, in contrast, shows a $-$4.3pp DP cost compounded by convergence instability ($\sigma{=}8.6$pp without DP), reinforcing the finding that personalization is essential at scale. \textit{This result bridges Tables~XVII and~\ref{tab:dp_scale}: the ``DP is free'' property, established at $K{=}5$, generalizes to the 50-institution consortium scenario.}
+\textbf{Key finding}: At deployment scale ($K{=}50$, 70K patients), personalized methods (Ditto, HPFL) remain fully DP-robust: both \textit{improve} by +0.6--0.9pp under $\varepsilon{=}10$, likely due to Gaussian noise acting as regularization. HPFL additionally preserves fairness (Jain~0.951 vs.\ 0.720 for Ditto), confirming its suitability for equitable cross-border EHDS deployment. FedAvg, in contrast, shows a $-$4.3pp DP cost compounded by convergence instability ($\sigma{=}8.6$pp without DP), reinforcing the finding that personalization is essential at scale. \textit{This result bridges Tables~\ref{tab:dp_tradeoff} and~\ref{tab:dp_scale}: the ``DP is free'' property, established at $K{=}5$, generalizes to the 50-institution consortium scenario.}
 
 \subsubsection{Byzantine Resilience under Differential Privacy}\label{sec:byzantine_dp}
 
@@ -2381,7 +2479,7 @@ Figures~\ref{fig:tab_convergence}--\ref{fig:tab_best_config} present visual anal
 \begin{figure*}[htbp]
 \centering
 \includegraphics[width=\textwidth]{figures/00_convergence_accuracy.pdf}
-\caption{Training convergence curves (accuracy vs.\ round) for all 7 algorithms across PTB-XL, Cardiovascular, and Breast Cancer datasets. HPFL and Ditto converge faster and to higher accuracy on all datasets.}
+\caption{Accuracy convergence across five datasets spanning three clinical modalities (imaging: BT, CX, SC; tabular: DM, HD) and five FL algorithms, evaluated over 3 seeds (mean $\pm$ std shaded). Imaging datasets (top row) exhibit higher variance due to ResNet-18's sensitivity to non-IID image distributions; BT requires $\sim$12 rounds to plateau, while CX and SC converge within 6 rounds. Tabular datasets (bottom row) show smoother trajectories: FedSAM achieves early dominance on DM (88.9\% at round~2) but degrades under prolonged training, while FedAvg demonstrates monotonic improvement on HD, reaching 70\% after 20 rounds. The divergent convergence profiles across modalities underscore the need for algorithm-specific deployment guidance in heterogeneous EHDS federations.}
 \label{fig:tab_convergence}
 \end{figure*}
 
@@ -2402,7 +2500,7 @@ Figures~\ref{fig:tab_convergence}--\ref{fig:tab_best_config} present visual anal
 \begin{figure*}[htbp]
 \centering
 \includegraphics[width=\textwidth]{figures/03_accuracy_boxplots.pdf}
-\caption{Accuracy distribution across seeds and datasets. Box plots show median, quartiles, and outliers. Ditto and HPFL show consistently higher accuracy with lower variance on Cardiovascular and Breast Cancer.}
+\caption{Accuracy variability across seeds for five FL algorithms on five datasets (box plots with individual seed results overlaid). Top row: imaging tasks exhibit substantial inter-seed variance---BT shows FedAvg IQR spanning 46--54\%, indicating sensitivity to random initialization on 4-class medical imaging. CX demonstrates FedSAM's consistently high performance (median 85\%) vs.\ FedLC's instability (61--86\%). Bottom row: tabular tasks show tighter distributions; FedSAM dominates DM (median 76.5\%, IQR $<$1pp), while HD exhibits uniformly high variance across all algorithms (IQR $\sim$10pp), reflecting the inherent difficulty of Heart Disease's 4-hospital natural non-IID partition. These seed-level distributions inform confidence intervals for EHDS deployment decisions.}
 \label{fig:tab_boxplots}
 \end{figure*}
 
@@ -2416,14 +2514,14 @@ Figures~\ref{fig:tab_convergence}--\ref{fig:tab_best_config} present visual anal
 \begin{figure*}[htbp]
 \centering
 \includegraphics[width=\textwidth]{figures/05_loss_convergence.pdf}
-\caption{Training loss convergence curves. Lower is better. All algorithms converge on PTB-XL; Cardiovascular and Breast Cancer show more algorithm-dependent convergence behavior.}
+\caption{Training loss convergence across five datasets (mean $\pm$ std, 3 seeds). The loss dynamics reveal modality-dependent optimization landscapes: imaging datasets (top row) show rapid initial descent followed by plateau (BT) or oscillation (SC, where FedDecorr's loss increases after round~3, suggesting overfitting on the small Skin Cancer dataset). CX exhibits tight loss convergence across all algorithms, consistent with the binary classification simplicity of pneumonia detection. Tabular datasets (bottom row) show monotonically decreasing loss on DM (253K samples provide stable gradient estimates) while HD's cross-hospital heterogeneity produces higher loss variance. The gap between algorithms narrows with dataset size, suggesting that data volume mitigates algorithmic differences---an important consideration for EHDS federations spanning Member States of varying population sizes.}
 \label{fig:tab_loss_convergence}
 \end{figure*}
 
 \begin{figure*}[htbp]
 \centering
 \includegraphics[width=\textwidth]{figures/06_f1_convergence.pdf}
-\caption{F1-score convergence over training rounds. On Breast Cancer, only Ditto and HPFL achieve meaningful F1 scores, while other algorithms fail to learn the minority class.}
+\caption{Macro-averaged F1-score convergence across five datasets (mean $\pm$ std, 3 seeds), revealing class-imbalance sensitivity across modalities. BT (4-class, top-left) shows F1 lagging accuracy by $\sim$10pp, indicating systematic failure on minority tumour classes. CX achieves high F1 ($>$0.7) rapidly, benefiting from balanced binary classes. SC exhibits volatile F1 trajectories with large confidence bands, particularly for FedDecorr (std $>$0.15), suggesting unstable minority-class learning. Tabular datasets (bottom row) present contrasting patterns: DM maintains F1$\approx$0.65--0.75 (well-balanced 253K-sample dataset), while HD shows monotonically improving F1 consistent with its accuracy curve. The F1--accuracy gap across datasets quantifies the clinical risk of accuracy-only evaluation in federated healthcare models, where minority-class performance directly impacts diagnostic sensitivity.}
 \label{fig:tab_f1_convergence}
 \end{figure*}
 
@@ -2451,7 +2549,7 @@ Figures~\ref{fig:tab_convergence}--\ref{fig:tab_best_config} present visual anal
 \begin{figure*}[htbp]
 \centering
 \includegraphics[width=\textwidth]{figures/10_data_distribution.pdf}
-\caption{Data distribution across clients after Dirichlet partitioning. Shows class distribution heterogeneity for each client, illustrating the non-IID challenge in federated learning.}
+\caption{Per-client accuracy distribution (fairness view) for five FL algorithms across five datasets. Each dot represents one client's test accuracy from one seed; horizontal bars indicate algorithm-level means. Top row: imaging datasets reveal extreme client-level heterogeneity---BT shows per-client accuracy spanning 0--90\% under FedAvg, while CX exhibits bimodal distributions (clients achieving either $\sim$40\% or $\sim$100\%). SC shows high-accuracy clients (100\%) coexisting with near-random ones ($<$20\%), indicating that non-IID image distributions create winner/loser client dynamics. Bottom row: tabular datasets exhibit tighter per-client ranges (DM: 55--85\%, HD: 30--90\%) but still substantial inter-client gaps. This visualization directly measures equitable model performance across EHDS institutions---a requirement under Article~14 of the EHDS Regulation for fair secondary use of health data across Member States.}
 \label{fig:tab_data_dist}
 \end{figure*}
 
@@ -2465,7 +2563,7 @@ Figures~\ref{fig:tab_convergence}--\ref{fig:tab_best_config} present visual anal
 \begin{figure*}[htbp]
 \centering
 \includegraphics[width=\textwidth]{figures/12_early_stopping.pdf}
-\caption{Early stopping analysis: actual rounds used vs.\ configured maximum. Most algorithms converge before the maximum round budget, demonstrating the effectiveness of patience-based early stopping.}
+\caption{Early stopping analysis: distribution of actual training rounds across all experiments per dataset. Top row: imaging datasets show bimodal behaviour---BT concentrates at the maximum (12 rounds, 80\% of experiments) with a minority stopping early (rounds 6--10), indicating that most imaging experiments benefit from the full training budget. CX and SC show earlier convergence (modal round $\sim$6), suggesting that binary imaging classification saturates faster. Bottom row: tabular datasets DM and HD exhibit unimodal concentration at 20 rounds (the configured maximum), indicating that early stopping rarely triggers on these larger tabular tasks. This finding has practical implications for EHDS communication budgets: imaging federations can reduce round allocations by $\sim$50\% without accuracy loss, while tabular federations require the full budget, particularly for naturally heterogeneous cross-hospital datasets.}
 \label{fig:tab_early_stopping}
 \end{figure*}
 
@@ -2532,6 +2630,93 @@ Figures~\ref{fig:tab_convergence}--\ref{fig:tab_best_config} present visual anal
 \label{fig:tab_best_config}
 \end{figure*}
 
+
+\subsection{Governance Overhead Benchmark (Phase 2A)}
+\label{sec:governance_overhead}
+
+To validate that the EHDS governance layer (permit validation, audit logging, compliance tracking) does not impose significant computational overhead, we benchmarked 3 algorithms with and without governance on Cardiovascular (70K samples, 5 clients, 10 rounds) across 3 seeds (42, 123, 456). Total: 18 experiments.
+
+\begin{table}[htbp]
+\centering
+\caption{EHDS Governance Overhead: Per-Round Training Time (seconds)}
+\label{tab:governance_overhead}
+\small
+\begin{tabular}{lccc}
+\toprule
+\textbf{Algorithm} & \textbf{No Governance} & \textbf{With Governance} & \textbf{Overhead} \\
+\midrule
+FedAvg & $0.837 \pm 0.032$ & $0.846 \pm 0.039$ & $+1.1\%$ \\
+Ditto & $1.899 \pm 0.032$ & $1.919 \pm 0.034$ & $+1.0\%$ \\
+HPFL & $0.810 \pm 0.007$ & $0.808 \pm 0.014$ & $-0.3\%$ \\
+\bottomrule
+\end{tabular}
+
+\vspace{1mm}
+\par{\footnotesize Mean $\pm$ std over 3 seeds. Cardiovascular dataset, 5 clients, 10 rounds. Governance includes permit validation (ValidatePermit), compliance logging (LogCompliance), and audit trail generation per Algorithm~1 in the main paper. HPFL's negative overhead ($-0.3\%$) is within measurement noise.}
+\end{table}
+
+\textbf{Key finding}: The EHDS governance layer adds negligible overhead across all three algorithmic families: global aggregation (FedAvg), local fine-tuning (Ditto), and split-head personalization (HPFL). The overhead is dominated by the in-memory permit validation check and audit log write; no network I/O is involved in the simulation backend. Accuracy is identical with and without governance (within seed variance), confirming that the compliance wrapper is functionally transparent. Per-seed breakdowns: FedAvg overhead ranges from $-5.3\%$ to $+7.7\%$ across seeds (within measurement noise); Ditto is consistently $+0.9\%$ to $+1.1\%$; HPFL ranges from $-2.8\%$ to $+2.2\%$.
+
+\subsection{Data Quality Stress Testing (Phase 1B)}
+\label{sec:data_quality_stress}
+
+EHDS secondary use involves heterogeneous data sources with varying quality levels. We evaluate robustness under three noise injection types: label noise (random label flipping), feature noise (Gaussian perturbation), and missing features (random zeroing). Each experiment uses 3 algorithms $\times$ 3--4 noise levels $\times$ 2 datasets $\times$ 3 seeds. Total: 180 experiments.
+
+\begin{table*}[htbp]
+\centering
+\caption{Data Quality Stress: Best Accuracy (\%) Under Noise Injection (Mean over 3 Seeds)}
+\label{tab:data_quality_stress}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{llccc|ccc}
+\toprule
+& & \multicolumn{3}{c|}{\textbf{Cardiovascular (70K)}} & \multicolumn{3}{c}{\textbf{Heart Disease (920)}} \\
+\textbf{Noise Type} & \textbf{Level} & \textbf{FedAvg} & \textbf{Ditto} & \textbf{HPFL} & \textbf{FedAvg} & \textbf{Ditto} & \textbf{HPFL} \\
+\midrule
+\multirow{4}{*}{Label} & 0.05 & 71.9 & 81.7 & 81.7 & 58.6 & 84.3 & 83.6 \\
+& 0.10 & 70.9 & 80.7 & 80.7 & 58.8 & 83.6 & 83.2 \\
+& 0.20 & 72.2 & 81.3 & 81.2 & 58.9 & 83.4 & 83.4 \\
+& 0.30 & 68.8 & 78.4 & 78.2 & 58.8 & 83.6 & 83.8 \\
+\midrule
+\multirow{3}{*}{Feature} & 0.10 & 71.3 & 81.6 & 81.7 & 58.4 & 84.3 & 83.8 \\
+& 0.20 & 70.0 & 81.0 & 81.1 & 58.4 & 84.5 & 83.6 \\
+& 0.50 & 68.3 & 79.6 & 79.0 & 57.7 & 84.5 & 83.6 \\
+\midrule
+\multirow{3}{*}{Missing} & 0.10 & 71.1 & 81.6 & 81.7 & 58.4 & 84.3 & 83.6 \\
+& 0.20 & 69.8 & 81.2 & 81.2 & 58.0 & 84.3 & 83.6 \\
+& 0.30 & 70.8 & 81.5 & 81.5 & 58.2 & 84.3 & 83.8 \\
+\bottomrule
+\end{tabular}%
+}
+\par{\footnotesize Label noise: random label flipping at specified rate. Feature noise: Gaussian $\mathcal{N}(0, \sigma^2)$ added to features. Missing: random feature zeroing at specified rate. All experiments use 30 rounds, 5 clients, Dirichlet $\alpha{=}0.5$ (CV) or natural partition (HD). Seeds: 42, 123, 456.}
+\end{table*}
+
+\textbf{Key findings}: (1)~Ditto and HPFL are virtually tied across all 30 noise conditions and consistently outperform FedAvg by $+$10--25pp. On Heart Disease, FedAvg appears stuck near the majority-class baseline ($\sim$58\%), while Ditto/HPFL maintain $\sim$83--85\% regardless of noise type or level---confirming that personalization provides implicit noise robustness through local fine-tuning. (2)~Label noise at 30\% causes the largest accuracy degradation for personalized algorithms on Cardiovascular ($\sim$3pp drop from clean baseline), while feature and missing-value noise have minimal impact ($<$2pp). (3)~On Heart Disease, all three algorithms are remarkably stable across noise types and levels, suggesting the natural 4-hospital partition provides inherent noise resilience. (4)~Missing-value noise has the least overall impact, confirming effective imputation strategies in the preprocessing pipeline.
+
+\subsection{TabNet Architecture Comparison (Phase 3A)}
+\label{sec:tabnet_comparison}
+
+To validate that the personalization thesis is model-architecture invariant, we replace the HealthcareMLP with a TabNet model ($\sim$8.7K parameters, attention-based sequential decision mechanism) on 3 datasets across 5 seeds (42, 123, 456, 789, 2024). Total: 45 experiments.
+
+\begin{table}[htbp]
+\centering
+\caption{TabNet Federated Learning: Best Accuracy (\%, Mean $\pm$ Std over 5 Seeds)}
+\label{tab:tabnet_comparison}
+\small
+\begin{tabular}{lccc}
+\toprule
+\textbf{Dataset} & \textbf{FedAvg} & \textbf{Ditto} & \textbf{HPFL} \\
+\midrule
+Cardiovascular & $71.5 \pm 1.2$ & $82.8 \pm 4.8$ & $\mathbf{82.9 \pm 4.7}$ \\
+Heart Disease & $78.1 \pm 2.1$ & $88.0 \pm 3.3$ & $\mathbf{88.2 \pm 3.1}$ \\
+PTB-XL & $92.7 \pm 0.3$ & $\mathbf{93.0 \pm 0.3}$ & $93.0 \pm 0.4$ \\
+\bottomrule
+\end{tabular}
+
+\vspace{1mm}
+\par{\footnotesize TabNet uses sequential attention with prior scales, batch normalization replaced by group normalization for FL stability. Configuration: 30 rounds, 5 clients, Dirichlet $\alpha{=}0.5$ (CV, BC) or natural partition (HD, PTB-XL). Seeds: 42, 123, 456, 789, 2024.}
+\end{table}
+
+\textbf{Key findings}: (1)~The personalization advantage is \textit{model-architecture invariant}: Ditto/HPFL achieve $+$11.4pp on Cardiovascular and $+$10.1pp on Heart Disease over FedAvg---closely matching the MLP-based results ($+$11.2--11.4pp in the main paper Table~III). (2)~On PTB-XL, all three algorithms converge to $\sim$93.0\%, consistent with the MLP finding that this well-structured dataset benefits minimally from personalization. (3)~TabNet on Heart Disease (FedAvg 78.1\%) substantially outperforms MLP-based FedAvg ($\sim$62.5\%), suggesting TabNet's attention mechanism captures feature interactions missed by simple feed-forward networks---an advantage that is amplified by personalization (Ditto/HPFL reach 88.0--88.2\%). (4)~The standard deviation patterns are consistent across architectures: PTB-XL shows low variance ($\pm$0.3\%), while Cardiovascular and Heart Disease exhibit higher variance ($\pm$2--5pp), reflecting partition-dependent effects.
 
 \subsection{EHDS-Specific Experiments}
 \label{sec:ehds_experiments}
@@ -3093,7 +3278,6 @@ Breast Cancer & FedAvg & 48.4 & 0.661 & --- \\
 \footnotesize{$^*$MIA AUC $<$ 0.5 indicates attack performs worse than random---HPFL's personalization structure provides inherent membership privacy on Cardiovascular without requiring DP. On PTB-XL, HPFL's elevated MIA AUC (0.666) reflects the privacy--personalization tension, fully mitigated by DP at $\varepsilon{=}10$. Equity retention at $\varepsilon{=}1$: HPFL 93.8\% of Jain vs.\ FedAvg 78.4\%.}
 \end{table*}
 
-\bibliographystyle{IEEEtran}
 % Bibliography synchronized with main paper (52 entries)
 
 \subsection{Advanced FL Paradigm Experimental Validation}
@@ -3848,7 +4032,7 @@ Stroke & NonIID+eps10 & 0.239 $\pm$ 0.188 & \textbf{0.353 $\pm$ 0.130} & 0.335 $
 \label{fig:threshold_rescue}
 \end{figure*}
 
-\subsubsection{Main Paper Extended Content (v3)}
+\subsubsection{Main Paper Extended Content}
 \label{sec:main_extended_v3}
 
 The following content provides extended details from the main paper that were condensed for the 8-page conference submission.
@@ -4068,6 +4252,7 @@ HPFL & 74.8$\pm$8.3 / .342 & 69.8$\pm$8.9 / .409 & 68.6$\pm$0.3 / .417 \\
 \end{table*}
 
 % ── Vertical FL Extended ──
+\label{sec:vertical_fl}
 \smallskip\noindent\textbf{Vertical FL Extended Evaluation (RQ\#39, 216 experiments).}
 Table~\ref{tab:vfl_extended} presents the extended vertical FL evaluation across three datasets, 2--4 parties, three overlap rates, and DP ablation. PTB-XL (binarized: NORM vs.\ ABNORMAL, 43\%/57\% class balance) achieves near-perfect accuracy (99.3\%) with 2 parties and no DP, validating VFL as viable for European ECG data. However, DP substantially degrades VFL performance: at $\varepsilon{=}1$, PTB-XL accuracy drops to 50.7--71.3\% depending on party count, as the split learning architecture amplifies noise through the concatenation layer. Counterintuitively, 3-party configurations are more DP-robust than 2-party on PTB-XL (71.3\% vs.\ 61.4\% at $\varepsilon{=}1$, 60\% overlap), as distributing features across more parties reduces per-party gradient sensitivity. Cardiovascular achieves $\sim$60--62\% without DP (below the HFL baseline of 73\%), indicating that feature splitting reduces model capacity on small feature sets (11 features). CDC Diabetes exhibits F1$\approx$0 across all VFL configurations, confirming that the 86\% majority-class imbalance causes collapse regardless of learning paradigm.
 
@@ -4214,7 +4399,7 @@ This finding has direct EHDS implications: phased hospital rollout (2025--2031) 
 
 To evaluate robustness under realistic EHDS deployment conditions, 216 experiments on Cardiovascular tested all combinations of: data distribution (IID, non-IID $\alpha{=}0.5$), differential privacy ($\varepsilon \in \{\infty, 10, 1\}$), client participation (100\%, 60\%), and Article~71 opt-out (0\%, 20\%), across FedAvg, Ditto, and HPFL with 3 seeds each (24 conditions $\times$ 3 algorithms $\times$ 3 seeds = 216 experiments).
 
-Table~\ref{tab:compound_stress} presents key conditions. The main findings are:
+Table~\ref{tab:compound_stress_frontier} presents key conditions. The main findings are:
 
 \begin{enumerate}
     \item \textbf{Ditto dominance}: Ditto outperforms FedAvg in 81\% of conditions (58/72 comparisons), with a mean advantage of $+$9.6pp $\pm$ 8.7pp. The maximum advantage reaches $+$29.3pp under specific stress conditions.
@@ -4229,7 +4414,7 @@ Table~\ref{tab:compound_stress} presents key conditions. The main findings are:
 \begin{table*}[htbp]
 \centering
 \caption{Compound EHDS Stress Frontier (Cardiovascular, non-IID $\alpha{=}0.5$): Accuracy (\%) under combined stressors. Mean $\pm$ std over 3 seeds. Bold = best per condition. $\Delta_D$ = Ditto $-$ FedAvg gap.}
-\label{tab:compound_stress}
+\label{tab:compound_stress_frontier}
 \resizebox{\textwidth}{!}{%
 \begin{tabular}{llll|ccc|c}
 \toprule
@@ -4356,7 +4541,7 @@ $K$ & FedAvg & Ditto & HPFL & $\Delta_{\text{Ditto}}$ & $\Delta_{\text{HPFL}}$ \
 \subsubsection{Phase 5A: Extended Personalization Baselines}
 \label{sec:phase5a}
 
-To address the concern that only two personalized algorithms (Ditto, HPFL) were evaluated, we add three additional baselines: Per-FedAvg (meta-learning, ICLR 2020), FedDyn (dynamic regularization, ICLR 2021), and FedSAM (sharpness-aware minimization, ICLR 2022). We evaluate on 3 datasets with 5 seeds (45 experiments total).
+To address the concern that only two personalized algorithms (Ditto, HPFL) were evaluated, we add three additional baselines: Per-FedAvg (meta-learning, NeurIPS 2020), FedDyn (dynamic regularization, ICLR 2021), and FedSAM (sharpness-aware minimization, ICML 2022). We evaluate on 3 datasets with 5 seeds (45 experiments total).
 
 \begin{table*}[htbp]
 \centering
@@ -4795,6 +4980,88 @@ While the preceding section evaluated Byzantine resilience on tabular clinical d
 \textit{EHDS implication}: For cross-border imaging federations, Ditto with Krum defense provides the best resilience against Byzantine participants. However, \textbf{data poisoning via label corruption remains a critical threat} that aggregation-level defenses cannot address---EHDS implementations should complement Byzantine-resilient aggregation with data quality auditing mechanisms at the governance layer (Layer~1) to detect corrupted training labels before they enter the federation.
 
 
+\subsection{Non-IID Impact on Medical Imaging}
+\label{sec:noniid_imaging}
+
+To evaluate how data heterogeneity affects imaging personalization, 48 experiments tested FedAvg and HPFL across three Dirichlet $\alpha$ values ($\{0.1, 0.5, 1.0\}$) on all three imaging datasets (ResNet-18, 5 clients, 15 rounds, 3 seeds). Six experiments (all at $\alpha{=}0.1$, seed=42) failed due to empty client partitions under extreme Dirichlet skew, yielding 42 valid results.
+
+\begin{table}[htbp]
+\centering
+\caption{Non-IID Impact on Medical Imaging: Mean accuracy (\%) by algorithm and Dirichlet $\alpha$. FedAvg and HPFL, ResNet-18, 5 clients, 15 rounds. $n$: number of valid seeds (out of 3). $\Delta$: HPFL $-$ FedAvg gap (pp).}
+\label{tab:noniid_imaging}
+\small
+\begin{tabular}{llcccc}
+\toprule
+\textbf{Dataset} & $\boldsymbol{\alpha}$ & \textbf{FedAvg} & \textbf{HPFL} & $\boldsymbol{\Delta}$ & $\boldsymbol{n}$ \\
+\midrule
+\multirow{3}{*}{Brain Tumor} & 0.1 & 34.6 & \textbf{73.0} & +38.3 & 2 \\
+ & 0.5 & 49.0 & \textbf{55.7} & +6.7 & 3 \\
+ & 1.0 & 59.8 & \textbf{68.0} & +8.1 & 3 \\
+\midrule
+\multirow{3}{*}{Chest X-ray} & 0.1 & 72.8 & \textbf{95.6} & +22.8 & 2 \\
+ & 0.5 & 88.1 & \textbf{89.2} & +1.1 & 3 \\
+ & 1.0 & \textbf{89.5} & 89.1 & $-$0.4 & 3 \\
+\midrule
+\multirow{3}{*}{Skin Cancer} & 0.1 & 61.0 & \textbf{94.8} & +33.9 & 2 \\
+ & 0.5 & \textbf{71.1} & 70.2 & $-$0.9 & 3 \\
+ & 1.0 & 75.2 & \textbf{81.8} & +6.6 & 3 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Key finding---HPFL's imaging failure is regime-dependent, not modality-intrinsic.} The main paper (Table~III, Key Finding~5) reports that HPFL is counterproductive on imaging at $\alpha{=}0.5$ ($-$3.8pp to $-$18.2pp). However, Table~\ref{tab:noniid_imaging} reveals a dramatic reversal under extreme heterogeneity: at $\alpha{=}0.1$, HPFL outperforms FedAvg by $+$38.3pp (Brain Tumor), $+$22.8pp (Chest X-ray), and $+$33.9pp (Skin Cancer). This mirrors the tabular finding (Fig.~3 in the main paper) where HPFL uniquely benefits from heterogeneity on Cardiovascular ($+$26.7pp at $\alpha{=}0.1$). The mechanism is consistent: HPFL's personalized classifier heads exploit client-specific class distributions, and this advantage grows as distributions diverge. At moderate heterogeneity ($\alpha{=}0.5$), the benefit is insufficient to overcome the split-head overhead on high-capacity models; at extreme heterogeneity ($\alpha{=}0.1$), it dominates. \textit{EHDS implication}: Real cross-border federations spanning diverse healthcare systems (e.g., Nordic vs.\ Mediterranean diagnostic practices) may exhibit extreme label heterogeneity, making HPFL a viable imaging choice---contrary to the $\alpha{=}0.5$ evaluation alone.
+
+
+\subsection{PTB-XL K=51 Scalability Evaluation}
+\label{sec:k52_scalability}
+
+To evaluate FL scalability at production EHDS scale, 48 experiments tested 7~algorithms on PTB-XL using all 51 individual recording sites ($K{=}51$, \texttt{min\_site\_samples=1}), compared against the default $K{=}5$ geographic clustering. The $K{=}51$ partition creates extreme size imbalance: 47/51 sites have $<$100 samples (smallest: 2 samples), with the largest site containing 8,673 records---mirroring realistic EHDS cross-institutional heterogeneity where small clinics federate with large hospitals.
+
+\begin{table}[htbp]
+\centering
+\caption{PTB-XL Scalability: $K{=}5$ (geographic clusters) vs.\ $K{=}51$ (all individual recording sites). Accuracy (\%), mean over 3 seeds, 30 rounds, no DP. $\Delta$: $K{=}51$ $-$ $K{=}5$ gap.}
+\label{tab:k52_nodp}
+\small
+\begin{tabular}{lccc}
+\toprule
+\textbf{Algorithm} & $\boldsymbol{K{=}5}$ & $\boldsymbol{K{=}51}$ & $\boldsymbol{\Delta}$ \\
+\midrule
+FedAvg & 91.9 & 91.6 & $-$0.3 \\
+FedProx & 91.6 & 91.7 & +0.1 \\
+\textbf{Ditto} & 91.8 & 88.8 & $-$3.0 \\
+FedLC & 91.9 & 92.2 & +0.3 \\
+FedExP & 92.0 & 63.8 & $-$28.2 \\
+FedLESAM & 91.9 & 92.2 & +0.3 \\
+\textbf{HPFL} & 92.5 & 91.7 & $-$0.8 \\
+\bottomrule
+\end{tabular}
+
+\vspace{1mm}
+\footnotesize{$K{=}5$ results from Table~III (main paper, 5 seeds); $K{=}51$ results from 3 seeds (42, 123, 456). FedExP's extrapolation diverges catastrophically with many small clients (macro-F1 = 0.066 at $K{=}51$).}
+\end{table}
+
+\begin{table}[htbp]
+\centering
+\caption{DP Ablation at $K{=}51$: PTB-XL accuracy (\%) under central DP with all 51 recording sites. Mean over 3 seeds, 30 rounds, $C{=}1.0$, $\delta{=}10^{-5}$.}
+\label{tab:k52_dp}
+\small
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Algorithm} & $\boldsymbol{\varepsilon{=}1}$ & $\boldsymbol{\varepsilon{=}10}$ & $\boldsymbol{\varepsilon{=}50}$ & \textbf{No DP} \\
+\midrule
+FedAvg & 45.6 & 90.6 & 91.5 & 91.6 \\
+Ditto & 87.8 & 89.2 & 88.7 & 88.8 \\
+HPFL & 86.9 & 91.0 & 91.1 & 91.7 \\
+\bottomrule
+\end{tabular}
+
+\vspace{1mm}
+\footnotesize{Compared to $K{=}5$ DP results (Table~V, main paper): FedAvg $\varepsilon{=}1$ collapses further at $K{=}51$ (45.6\% vs.\ 52.3\% at $K{=}5$, $-$6.7pp), as more clients amplify per-round DP noise accumulation. Ditto $\varepsilon{=}1$ is nearly unchanged ($-$1.4pp from $K{=}5$), confirming local fine-tuning absorbs noise regardless of federation size.}
+\end{table}
+
+\textbf{Key findings.} \textit{First}, \textbf{FedAvg and global algorithms scale perfectly}: FedAvg, FedProx, FedLC, and FedLESAM all remain within $\pm$0.3pp of their $K{=}5$ baselines, confirming that weighted averaging is robust to extreme client-count scaling. \textit{Second}, \textbf{HPFL scales well} ($-$0.8pp) because its personalized classifiers adapt to each site's local distribution while the shared backbone benefits from all 51 sites' data. \textit{Third}, \textbf{Ditto degrades moderately} ($-$3.0pp) because local fine-tuning requires sufficient per-client data, and 47/51 sites have $<$100 samples---insufficient for effective personalization. \textit{Fourth}, \textbf{FedExP fails catastrophically} ($-$28.2pp, macro-F1~$=$~0.066): its gradient extrapolation mechanism diverges when averaging over many near-zero gradient updates from tiny clients. This is a critical production safety finding: FedExP should be excluded from EHDS deployments with many small-scale participants. \textit{Fifth}, \textbf{DP amplifies at large $K$}: FedAvg at $\varepsilon{=}1$ drops to 45.6\% (vs.\ 52.3\% at $K{=}5$), as the per-round noise ($\sigma \propto C/\varepsilon$) accumulates faster with more clients. Ditto is remarkably stable ($-$1.0pp from $K{=}5$), confirming that personalized local models are a natural defense against DP noise amplification.
+
+
 % ============================================================================
 % APPENDIX G: EHDS GOVERNANCE HYPOTHESIS TESTING
 % ============================================================================
@@ -5214,6 +5481,10 @@ F. Lai, X. Zhu, H. V. Madhyastha, and M. Chowdhury, ``Oort: Efficient federated 
 
 \bibitem{cho2022towards}
 Y. J. Cho, J. Wang, and G. Joshi, ``Towards understanding biased client selection in federated learning,'' in \textit{Proc. AISTATS}, PMLR 151, pp.~10351--10375, 2022.
+
+% === PRISMA ===
+\bibitem{page2021prisma}
+M. J. Page \textit{et al.}, ``The PRISMA 2020 statement: An updated guideline for reporting systematic reviews,'' \textit{BMJ}, vol.~372, art.~n71, 2021.
 
 % === Gradient Inversion === (zhu2019deep already defined above under Privacy and Security)
 

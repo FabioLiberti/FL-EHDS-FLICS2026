@@ -216,4 +216,3 @@
 | Minor versions (vX.Y-Z) | 41 |
 | First commit | 2025 (v0.0.0) |
 | Latest version | v12.5-1 |
-| Claude Co-Authored-By | 0 (verified) |
