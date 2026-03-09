@@ -63,5 +63,8 @@ fl-ehds-framework/benchmarks/paper_results_delta/checkpoint_imaging_dp.json
 # Runtime logs
 fl-ehds-framework/logs/
 
+# Old backups
+BK&OLDS/
+
 # IEEE conference template (reference only)
 Conference-LaTeX-template_10-17-19/
