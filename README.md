@@ -6,7 +6,7 @@
 </p>
 
 <p align="center">
-  <a href="https://www.flics-conference.org/"><img src="https://img.shields.io/badge/FLICS%202026-Candidate-success?style=for-the-badge" alt="FLICS 2026"/></a>
+  <a href="https://www.flics-conference.org/"><img src="https://img.shields.io/badge/FLICS%202026-Submitted-success?style=for-the-badge" alt="FLICS 2026"/></a>
 </p>
 
 <p align="center">
@@ -15,7 +15,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue?style=flat-square" alt="MIT License"/></a>
   <img src="https://img.shields.io/badge/Code-~40K%20lines-2ea44f?style=flat-square" alt="~40K lines"/>
   <img src="https://img.shields.io/badge/Modules-159-2ea44f?style=flat-square" alt="159 modules"/>
-  <img src="https://img.shields.io/badge/Experiments-1%2C760%2B-orange?style=flat-square" alt="1,760+ experiments"/>
+  <img src="https://img.shields.io/badge/Experiments-6%2C004%2B-orange?style=flat-square" alt="6,004+ experiments"/>
 </p>
 
 <p align="center">
@@ -78,7 +78,7 @@
 
 **FL-EHDS** is a three-layer compliance framework that bridges the technology–governance divide for cross-border health analytics under the [European Health Data Space (EHDS)](https://health.ec.europa.eu/ehealth-digital-health-and-care/european-health-data-space_en), Regulation (EU) 2025/327. The framework integrates **17 federated learning algorithms** (2017–2025, including ICML 2024 Spotlight and ICLR 2025 advances) with EHDS governance mechanisms — Health Data Access Bodies (HDABs), data permits, citizen opt-out registries — and data holder components for adaptive training with FHIR R4 preprocessing and OMOP-CDM harmonisation.
 
-Experimental validation across **1,760+ experiments** on 8 tabular clinical and medical imaging datasets demonstrates that personalised FL narrows the centralised–federated accuracy gap to **6.6 percentage points** while preserving full data sovereignty, and that algorithm selection produces up to **12.6 pp** accuracy differences on heterogeneous clinical data. Our evidence synthesis reveals that **unresolved regulatory questions** — gradient data classification under GDPR, cross-border privacy budget harmonisation — constitute the critical adoption blocker, not technical limitations.
+Experimental validation across **6,004+ experiments** on 8 tabular clinical and medical imaging datasets (569–101K samples) demonstrates that personalised FL achieves up to **26.8 pp** accuracy gains over FedAvg, is hyperparameter-insensitive (≤1.44 pp across 100× lambda variation), and model-architecture invariant (MLP and TabNet, 2.9K–701K parameters). Under compound EHDS stress (data minimisation + opt-out + differential privacy), personalised methods outperform FedAvg in **81%** of conditions (+9.6 pp mean), while full EHDS governance compliance costs only **−0.7 pp** (p < 0.001). Our evidence synthesis of **47 PRISMA documents** reveals that **unresolved regulatory questions** — gradient data classification under GDPR, cross-border privacy budget harmonisation — constitute the critical adoption blocker, not technical limitations.
 
 ---
 
@@ -116,7 +116,7 @@ Existing FL frameworks provide robust distributed training but lack EHDS-specifi
 <table>
 <tr>
 <td width="60"><strong>C1</strong></td>
-<td><strong>Barrier Taxonomy.</strong> Systematic evidence synthesis of 47 documents (PRISMA methodology, GRADE-CERQual confidence assessment) identifying legal uncertainties as the critical adoption blocker.</td>
+<td><strong>Barrier Taxonomy.</strong> Systematic evidence synthesis of 47 documents (847 screened; PRISMA methodology, GRADE-CERQual confidence assessment) identifying legal uncertainties as the critical adoption blocker.</td>
 </tr>
 <tr>
 <td><strong>C2</strong></td>
@@ -128,7 +128,7 @@ Existing FL frameworks provide robust distributed training but lack EHDS-specifi
 </tr>
 <tr>
 <td><strong>C4</strong></td>
-<td><strong>Experimental Validation.</strong> 1,760+ experiments across tabular clinical and medical imaging datasets with differential privacy ablation (ε ∈ {1, 5, 10, 50}), Article 71 opt-out simulation, and 10-seed statistical validation.</td>
+<td><strong>Experimental Validation.</strong> 6,004+ experiments across tabular clinical and medical imaging datasets with differential privacy ablation (ε ∈ {1, 5, 10, 50}), Article 71 opt-out simulation, 720 governance hypothesis tests, compound EHDS stress evaluation, and 10-seed statistical validation.</td>
 </tr>
 </table>
 
@@ -240,14 +240,14 @@ The framework supports **19 healthcare datasets** across four modalities. Eight 
 | Heart Disease UCI | 920 | Tabular | 2 | Natural (4 hospitals) | Vitals, ECG, lab results |
 | Breast Cancer Wisconsin | 569 | Tabular | 2 | Dirichlet (α = 0.5) | Pathology (FNA cytology) |
 | Chest X-ray | 5,856 | Imaging | 2 | Dirichlet (α = 0.5) | Radiology (DICOM) |
-| Brain Tumor MRI | 3,064 | Imaging | 4 | Dirichlet (α = 0.5) | Neuro-imaging (DICOM) |
+| Brain Tumor MRI | 7,023 | Imaging | 4 | Dirichlet (α = 0.5) | Neuro-imaging (DICOM) |
 | Skin Cancer | 3,297 | Imaging | 2 | Dirichlet (α = 0.5) | Dermatology (DICOM) |
 
 <details>
 <summary><strong>Additional Supported Datasets (11)</strong></summary>
 <br/>
 
-Stroke Prediction, CDC Diabetes BRFSS, CKD UCI, Cirrhosis Mayo, Synthea FHIR R4, SMART Bulk FHIR, Diabetic Retinopathy (35,126 images, 5-class), Brain Tumor MRI alt. (3,264 images, 4-class), ISIC Skin Lesions (2,357 images, 9-class). These are integrated in the framework but not evaluated in the current paper. Full details in Supplementary Material, Table S1.
+Stroke Prediction (5,110), CDC Diabetes BRFSS (253,680), CKD UCI (400), Cirrhosis Mayo (418), Synthea FHIR R4 (1,180), SMART Bulk FHIR (120), FHIR R4 Synthetic (configurable), OMOP-CDM Harmonized (configurable), Diabetic Retinopathy (35,126 images, 5-class), Brain Tumor MRI alt. (3,264 images, 4-class), ISIC Skin Lesions (2,357 images, 9-class). These are integrated in the framework but not evaluated in the current paper. Full details in Supplementary Material, Table S-I.
 
 </details>
 
@@ -255,18 +255,22 @@ Stroke Prediction, CDC Diabetes BRFSS, CKD UCI, Cirrhosis Mayo, Synthea FHIR R4,
 
 ## Experimental Highlights
 
-Results from the primary evaluation: 7 algorithms × 3 datasets × 5 seeds, plus sweep phases, DP ablation, opt-out simulation, and extended 10-seed validation.
+Results from **6,004+ experiments**: 7-algorithm primary benchmark, 17-algorithm non-IID sweep (210 exp.), DP ablation, opt-out simulation, 720 governance hypothesis tests, compound EHDS stress evaluation, 516 thesis robustness experiments, and 10-seed statistical validation.
 
 | Finding | Evidence |
 |:--------|:---------|
-| Personalised FL narrows the gap to **6.6 pp** | Ditto 75.1% vs. centralised 81.7% on Heart Disease UCI |
-| Algorithm selection yields up to **12.6 pp** | Ditto 75.1% vs. FedAvg 62.5% (Heart Disease); 11.4 pp on Cardiovascular |
-| **HPFL** outperforms FedAvg on **all** datasets | p = 0.004, 0.002, 0.031 (Wilcoxon, 10-seed); pooled p < 0.001 |
+| Personalisation gains up to **26.8 pp** | Breast Cancer: Ditto 79.1% vs. FedAvg 52.3%; Brain Tumor: Ditto +23.5 pp |
+| Best-FL gap to centralised ≤ **2.4 pp** | PTB-XL: HPFL 92.5% vs. centralised 92.6%; CV: Ditto 82.5% vs. 73.5% |
+| **HPFL** outperforms FedAvg on **all 3 tabular** datasets | p = 0.004, 0.002, 0.031 (Wilcoxon, 10-seed); pooled p < 0.001 |
 | DP at ε = 10 imposes **negligible cost** | < 2 pp accuracy cost across PTB-XL and Cardiovascular |
 | DP noise as **regularisation** | FedAvg ε = 5 → 78.7% vs. 52.3% without DP on Breast Cancer (+26.4 pp) |
-| Art. 71 opt-out at 30% is **negligible** | < 1 pp drop on adequately sized datasets |
-| Personalisation **scales** | Ditto: −0.8 pp from K = 5→100 (vs. −4.7 pp FedAvg) |
-| PTB-XL validates **European FL** | 92.5% accuracy (HPFL), 5-class ECG, Jain fairness 0.999 |
+| Art. 71 opt-out at 30% is **negligible** | < 1 pp drop on adequately sized datasets (225 + 90 dynamic exp.) |
+| Full EHDS compliance costs **−0.7 pp** | Ditto under simultaneous data minimisation + opt-out + DP (p < 0.001) |
+| Compound stress: personalisation wins **81%** | Ditto outperforms FedAvg in 81% of conditions (+9.6 pp mean, 216 exp.) |
+| Cross-border heterogeneous DP: **−0.9 pp** | Per-client privacy budgets vs. no-DP; mixed > strictest-wins (+3.8 pp) |
+| Hyperparameter-insensitive: **≤1.44 pp** | Lambda 100× variation (75 exp.); model-invariant across MLP and TabNet |
+| Governance overhead **< 1.1%** per round | 18 experiments; Ditto +1.0%, HPFL −0.3% (within noise) |
+| PTB-XL validates **European FL** | 92.5% accuracy (HPFL), 5-class ECG, 52 sites, Jain fairness 0.999 |
 
 ### Primary Benchmark — 7 Algorithms × 3 Datasets
 
@@ -288,9 +292,22 @@ Results from the primary evaluation: 7 algorithms × 3 datasets × 5 seeds, plus
 
 | Approach | Accuracy | F1 | AUC | Gap |
 |:---------|:--------:|:--:|:---:|:---:|
-| Centralised (upper bound) | 81.7 ± 2.9% | .815 | .882 | — |
-| FL — Ditto | 75.1 ± 2.0% | .761 | .826 | −6.6 pp |
-| FL — FedAvg | 62.5 ± 8.0% | .736 | .834 | −19.2 pp |
+| Centralised (upper bound) | 79.6 ± 5.0% | .789 | .873 | — |
+| Local-Only | 78.6 ± 2.9% | .582 | — | −1.0 pp |
+| FL — Ditto | 76.0 ± 2.3% | .772 | .819 | −3.6 pp |
+| FL — HPFL | 75.0 ± 2.8% | .756 | .810 | −4.6 pp |
+| FL — FedAvg | 64.8 ± 7.9% | .753 | .846 | −14.8 pp |
+
+### Medical Imaging — 4 Algorithms × 3 Datasets
+
+<sub>ResNet-18 with GroupNorm + FedBN. K = 5 clients, Dirichlet α = 0.5. Mean over 3 seeds.</sub>
+
+| Algorithm | Chest X-ray | Brain Tumor | Skin Cancer |
+|:----------|:-----------:|:-----------:|:-----------:|
+| FedAvg | 87.3% | 53.8% | 65.0% |
+| Ditto | 80.0% | **77.3%** (+23.5 pp) | **90.5%** (+25.5 pp) |
+| FedLESAM | **87.8%** | — | — |
+| HPFL | 69.1% | 50.0% | 60.9% |
 
 ### Privacy–Utility Tradeoff — PTB-XL ECG
 
@@ -440,7 +457,7 @@ results = trainer.train()
 
 ## Reproducing Experiments
 
-All experiments reported in the paper are fully reproducible. Results, checkpoints, and analysis outputs are auto-saved to `benchmarks/paper_results/` and `benchmarks/paper_results_tabular/`.
+All experiments reported in the paper are fully reproducible. Results, checkpoints, and analysis outputs are auto-saved to `benchmarks/paper_results_tabular/`, `benchmarks/paper_results_delta/`, and `benchmarks/paper_results/`. All scripts support SIGINT-safe interruption with atomic checkpointing.
 
 ### Tabular Experiments
 
@@ -473,11 +490,36 @@ python -m benchmarks.analyze_tabular_extended
 # Full run (7 algorithms × 5 datasets × 3 seeds)
 python -m benchmarks.run_full_experiments
 
-# Quick validation (~1–2h)
-python -m benchmarks.run_full_experiments --quick
+# Extended imaging (Chest X-ray, Brain Tumor, Skin Cancer)
+python -m benchmarks.run_imaging_extended
+python -m benchmarks.run_imaging_multi
 
 # Resume after interruption
 python -m benchmarks.run_full_experiments --resume
+```
+
+### EHDS Governance Validation
+
+```bash
+# Governance hypothesis testing — H1, H2, H3 (720 experiments)
+python -m benchmarks.run_governance_hypotheses
+python -m benchmarks.run_governance_hypotheses_cv
+
+# Governance overhead benchmarking (18 experiments)
+python -m benchmarks.run_governance_validation
+
+# Extended governance validation
+python -m benchmarks.run_governance_extended
+```
+
+### Thesis Robustness and Cascading Analysis
+
+```bash
+# Thesis robustness validation (516 experiments)
+python -m benchmarks.run_thesis_robustness
+
+# Cascading analysis phases (Cascades 2–10)
+python -m benchmarks.run_analysis_cascade2   # through cascade10
 ```
 
 ### Per-Dataset Configuration
@@ -516,57 +558,87 @@ Each experiment run auto-generates:
 
 ```
 FL-EHDS-FLICS2026/
-├── paper/                              # Conference paper and figures
-│   ├── main.tex                        #   LaTeX source (IEEE format)
-│   ├── supplementary.tex               #   Supplementary material
-│   └── figures/                        #   Paper figures incl. architecture diagram
 │
-├── fl-ehds-framework/                  # Framework source (~40K lines, 159 modules)
+├── paper/                              # Conference paper and figures
+│   └── paper2rel/
+│       ├── flics_fl_ehds_v11.tex       #   Main paper (9 pages, IEEE format)
+│       ├── flics_fl_ehds_supplementary_v11.tex  # Supplementary (98 pages)
+│       ├── figures/                    #   40+ figures (architecture, convergence, DP)
+│       └── scripts/                    #   Figure generation scripts
+│
+├── paper_submitted/                    # Submitted versions (FLICS 2026)
+│   ├── flics_fl_ehds_v11.{tex,pdf}
+│   └── flics_fl_ehds_supplementary_v11.{tex,pdf}
+│
+├── fl-ehds-framework/                  # Framework source (~40K lines)
 │   │
-│   ├── governance/                     # ── Layer 1: EHDS Governance ──
-│   │   ├── hdab_integration/           #   OAuth2/mTLS, permit store, strictness 1–5
-│   │   ├── permit_manager/             #   Art. 53 lifecycle (PENDING→ACTIVE→EXPIRED)
-│   │   ├── optout_registry/            #   Art. 71 filtering (record/patient/dataset)
-│   │   ├── cross_border/              #   Multi-HDAB coord., 10 EU country profiles
-│   │   └── compliance_logging/         #   GDPR Art. 30 audit trail, 7-year retention
+│   ├── core/                           # ── Core FL Engine (31 modules) ──
+│   │   ├── fl_algorithms.py            #   17 FL algorithms (FedAvg → HPFL)
+│   │   ├── personalized_fl.py          #   Ditto, Per-FedAvg, HPFL
+│   │   ├── byzantine_resilience.py     #   6 defence methods + attack simulation
+│   │   ├── secure_aggregation.py       #   Pairwise masking, ECDH, Shamir
+│   │   ├── gradient_compression.py     #   Top-k sparsification
+│   │   ├── vertical_fl.py             #   Vertical (split) FL
+│   │   ├── continual_fl.py            #   Continual learning + EWC
+│   │   ├── fairness_fl.py             #   q-FedAvg, FedMinMax
+│   │   └── ...                         #   (+22 modules: async, hierarchical, etc.)
+│   │
+│   ├── governance/                     # ── Layer 1: EHDS Governance (18 modules) ──
+│   │   ├── hdab_integration.py         #   OAuth2/mTLS, HDAB API
+│   │   ├── data_permits.py             #   Art. 53 lifecycle (PENDING→ACTIVE→EXPIRED)
+│   │   ├── optout_registry.py          #   Art. 71 filtering (record/patient/dataset)
+│   │   ├── data_minimization.py        #   GDPR data minimisation enforcement
+│   │   ├── jurisdiction_privacy.py     #   Cross-border DP budget coordination
+│   │   └── ...                         #   (+13 modules: compliance, fees, routing)
 │   │
 │   ├── orchestration/                  # ── Layer 2: FL Orchestration (SPE) ──
-│   │   ├── algorithms/                 #   17 FL algorithms (FedAvg → HPFL)
+│   │   ├── aggregation/                #   FedAvg, FedProx base implementations
 │   │   ├── privacy/                    #   DP-SGD, RDP accounting, secure aggregation
-│   │   ├── byzantine/                  #   6 resilience methods + attack simulation
-│   │   ├── compliance/                 #   Purpose limitation, anonymity assessment
-│   │   └── communication/              #   gRPC/WebSocket, compression, serialisation
+│   │   └── compliance/                 #   Purpose limitation (Art. 53)
 │   │
 │   ├── data_holders/                   # ── Layer 3: Data Holders ──
-│   │   ├── training/                   #   Adaptive local training (CUDA/MPS/CPU)
-│   │   ├── preprocessing/              #   FHIR R4 pipeline, OMOP-CDM harmonisation
-│   │   └── security/                   #   AES-256-GCM, ECDHE, mTLS, nonce replay
+│   │   ├── training_engine.py          #   Adaptive local training (CUDA/MPS/CPU)
+│   │   ├── fhir_preprocessing.py       #   HL7 FHIR R4 transformation pipeline
+│   │   └── secure_communication.py     #   E2E encrypted gradients (AES-256-GCM)
 │   │
 │   ├── models/                         # Model architectures
-│   │   ├── healthcare_mlp.py           #   MLP (~10K) and DeepMLP (~110K params)
-│   │   ├── healthcare_cnn.py           #   5-block CNN with GroupNorm (~12M)
-│   │   └── healthcare_resnet.py        #   ResNet-18, GroupNorm + FedBN (~11.2M)
+│   │   ├── model_zoo.py                #   HealthcareMLP, DeepMLP, TabNet, CNN, ResNet-18
+│   │   └── cnn_fl_trainer.py           #   Imaging FL trainer (GroupNorm + FedBN)
 │   │
-│   ├── monitoring/                     # Prometheus metrics, Grafana dashboards
-│   ├── terminal/                       # CLI interface (11 screens)
-│   ├── dashboard/                      # Streamlit web interface
+│   ├── data/                           # Dataset loaders (13 loaders, 19 datasets)
+│   │   ├── real_datasets.py            #   Unified loader interface
+│   │   ├── ptbxl_loader.py             #   PTB-XL ECG (21,799 samples)
+│   │   ├── cardiovascular_loader.py    #   Cardiovascular Disease (70,000)
+│   │   └── ...                         #   (+10 loaders: diabetes, breast cancer, etc.)
 │   │
-│   ├── benchmarks/                     # Reproducible experiment suite
-│   │   ├── run_tabular_optimized.py
-│   │   ├── run_tabular_sweep.py
-│   │   ├── run_tabular_dp.py
-│   │   ├── run_tabular_seeds10.py
-│   │   ├── run_tabular_optout.py
-│   │   ├── run_tabular_deep_mlp.py
-│   │   ├── run_full_experiments.py
-│   │   ├── analyze_tabular_extended.py
-│   │   └── paper_results/              #   Auto-generated results and figures
+│   ├── terminal/                       # Terminal CLI (15 screens)
+│   │   ├── screens/                    #   Training, Byzantine, Privacy, Governance, ...
+│   │   └── training/                   #   Federated + centralised training backends
 │   │
-│   ├── datasets/                       # Dataset loaders and preprocessing
+│   ├── dashboard/                      # Streamlit web interface (14 modules)
+│   │   └── app_v4.py                   #   Main dashboard application
+│   │
+│   ├── benchmarks/                     # Reproducible experiment suite (83 scripts)
+│   │   ├── run_tabular_*.py            #   Tabular experiments (8 scripts)
+│   │   ├── run_imaging_*.py            #   Imaging experiments (14 scripts)
+│   │   ├── run_governance_*.py         #   EHDS governance validation (4 scripts)
+│   │   ├── run_analysis_cascade*.py    #   Cascading analysis phases (10 scripts)
+│   │   ├── run_cascade2_*.py           #   Cascade 2 experiments (4 scripts)
+│   │   ├── analyze_tabular_extended.py #   Tables, figures, statistical tests
+│   │   ├── paper_results_tabular/      #   Tabular checkpoints (247 files)
+│   │   ├── paper_results_delta/        #   DP/delta checkpoints (26 files)
+│   │   ├── paper_results/              #   Imaging checkpoints (16 files)
+│   │   └── results_optout/             #   Opt-out experiment results
+│   │
+│   ├── notebooks/                      # Jupyter/Colab notebooks (9)
+│   ├── experiments/                    # Centralised vs. federated comparison
 │   ├── tests/                          # Unit test suite (pytest)
-│   └── data/                           # Clinical datasets (auto-downloaded)
+│   ├── docs/                           # Framework documentation + PRISMA
+│   ├── config/                         # YAML configuration
+│   └── setup.py
 │
-├── requirements.txt
+├── VERSION_HISTORY.md
+├── EXPERIMENT_STATUS.md
 ├── LICENSE
 └── README.md
 ```
