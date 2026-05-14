@@ -65,6 +65,32 @@ fl-ehds-framework/logs/
 
 # Old backups
 BK&OLDS/
+paper_submitted/camera_ready/camera_ready_inviato_/OLD_BK/
+
+# Camera-ready iteration drafts (only canonical v12 .tex/.pdf is published)
+paper_submitted/camera_ready/flics_fl_ehds_v12.[0-9]*.tex
+paper_submitted/camera_ready/flics_fl_ehds_v12.[0-9]*.pdf
+paper_submitted/camera_ready/flics_fl_ehds_supplementary_v12.[0-9]*.tex
+paper_submitted/camera_ready/flics_fl_ehds_supplementary_v12.[0-9]*.pdf
+paper_submitted/camera_ready/flics_fl_ehds_v12.OLD.tex
+paper_submitted/camera_ready/flics_fl_ehds_v12.25B.pdf
+paper_submitted/camera_ready/flics_fl_ehds_v12_OLD*.pdf
+
+# LaTeX intermediates not in main pattern list above
+*.xdv
+
+# Cover letter (private — sent to conference editors only, never public)
+paper_submitted/camera_ready/camera_ready_inviato_/RESPONSE_TO_REVIEWERS_*
+
+# Computing request (not for repo)
+richiesta_calcolo/
+piano_sperimentale/
+SPECIFICHE_TECNICHE_ESPERIMENTI_MANCANTI.md
 
 # IEEE conference template (reference only)
 Conference-LaTeX-template_10-17-19/
+
+# === Local-only additions (skip-worktree, not pushed to remote) ===
+# Database locale governance (non versionato)
+fl-ehds-framework/data/governance.db
+fl-ehds-framework/data/*.db
